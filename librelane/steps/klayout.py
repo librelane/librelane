@@ -422,6 +422,18 @@ class StreamOut(KLayoutStep):
 
     config_vars = KLayoutStep.config_vars + [
         Variable(
+            "KLAYOUT_MAGIC_ISOSUB_LAYER",
+            tuple[int, int] | None,
+            "KLayout layer number/datatype tuple for the Magic virtual substrate isolation layer.",
+            pdk=True,
+        ),
+        Variable(
+            "MAGIC_STREAMOUT_ISOLATE_SUBSTRATE",
+            bool,
+            default=False,
+            description="Adds a virtual substrate isolation layer over the top cell. Useful when the design is getting integrated in another design with multiple power domains, where Magic's SPICE extraction engine would mistakenly conflate the power domains and cause a false LVS error. KLayout.StreamOut does the same thing so there is no XOR error and so the two GDSII files can be used interchangeably.",
+        ),
+        Variable(
             "KLAYOUT_CONFLICT_RESOLUTION",
             Optional[
                 Literal["AddToCell", "OverwriteCell", "RenameCell", "SkipNewCell"]
@@ -443,6 +455,16 @@ class StreamOut(KLayoutStep):
         input = state_in[DesignFormat.DEF]
         assert isinstance(input, Path)
 
+
+        isosub_layer_arg = []
+        if self.config["MAGIC_STREAMOUT_ISOLATE_SUBSTRATE"]:
+            if isosub_layer := self.config.get("KLAYOUT_MAGIC_ISOSUB_LAYER"):
+                isosub_layer_arg = ["--isosub", f"{isosub_layer[0]}/{isosub_layer[1]}"]
+            else:
+                self.warn(
+                    "MAGIC_STREAMOUT_ISOLATE_SUBSTRATE is enabled, but no KLAYOUT_MAGIC_ISOSUB_LAYER was defined for the PDK. Skipping the relevant step for the KLayout stream-out, which may cause XOR or LVS issues."
+                )
+
         self.run_python_batch_script(
             os.path.join(
                 get_script_dir(),
@@ -458,6 +480,7 @@ class StreamOut(KLayoutStep):
                 "--conflict-resolution",
                 self.config["KLAYOUT_CONFLICT_RESOLUTION"],
                 *self.get_cli_args(include_lefs=True, include_gds=True),
+                *isosub_layer_arg,
             ],
             env=env,
         )

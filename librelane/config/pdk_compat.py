@@ -354,4 +354,7 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
             new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
 
+    if new["PDK"].startswith("sky130"):
+        new["ISOSUB_LAYER"] = (81, 53)
+
     return new

@@ -104,5 +104,9 @@ if { $::env(MAGIC_GDS_MERGE) } {
 	gds merge yes
 }
 
+if { $::env(MAGIC_STREAMOUT_ISOLATE_SUBSTRATE) } {
+    paint isosub
+}
+
 gds write $::env(SAVE_MAG_GDS)
 puts "\[INFO\] GDS Write Complete"

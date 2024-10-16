@@ -302,6 +302,12 @@ class StreamOut(MagicStep):
             default=False,
         ),
         Variable(
+            "MAGIC_STREAMOUT_ISOLATE_SUBSTRATE",
+            bool,
+            "Adds a virtual substrate isolation layer over the top cell. Useful when the design is getting integrated in another design with multiple power domains, where Magic's SPICE extraction engine would mistakenly conflate the power domains and result in an LVS error.",
+            default=False,
+        ),
+        Variable(
             "MAGIC_DISABLE_CIF_INFO",
             bool,
             "A flag to disable writing Caltech Intermediate Format (CIF) hierarchy and subcell array information to the GDSII file.",
@@ -791,3 +797,13 @@ class RCX(MagicStep):
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         return views_updates, metrics_updates
+
+class AddIsosub(MagicStep):
+    id = "Magic.AddIsosub"
+    name = "Add isosub(subcut) to the design"
+
+    outputs = [DesignFormat.GDS, DesignFormat.MAG_GDS]
+    config_vars = StreamOut.config_vars
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "magic", "add_subcut.tcl")
