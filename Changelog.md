@@ -18,6 +18,10 @@
 
 ## Steps
 
+* `KLayout.DRC`
+
+  * Add support for ihp-sg13g2
+
 * Add `KLayout.LVS` step
 
   * Add support for ihp-sg13g2
