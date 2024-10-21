@@ -431,10 +431,64 @@ class DRC(KLayoutStep):
         )
         return subprocess_result["generated_metrics"]
 
+    def run_ihp_sg13g2(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        xml_report = os.path.join(reports_dir, "drc_violations.klayout.xml")
+        json_report = os.path.join(reports_dir, "drc_violations.klayout.json")
+
+        input_view = state_in[DesignFormat.GDS]
+        assert isinstance(input_view, Path)
+
+        density = "true" if self.config["KLAYOUT_DRC_OPTIONS"].get("density") else "false"
+        threads = self.config["KLAYOUT_DRC_THREADS"] or (str(os.cpu_count()) or "1")
+        info(f"Running KLayout DRC with {threads} threads…")
+
+        # Not pya script - DRC script is not part of OpenLane
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                drc_script_path,
+                "-rd",
+                f"in_gds={abspath(input_view)}",
+                "-rd",
+                f"report_file={abspath(xml_report)}",
+                "-rd",
+                f"density={density}",
+                "-rd",
+                f"threads={threads}",
+            ]
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                    ),
+                f"--xml-file={abspath(xml_report)}",
+                f"--json-file={abspath(json_report)}",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
+
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
         if self.config["PDK"] in ["sky130A", "sky130B"]:
             metrics_updates = self.run_sky130(state_in, **kwargs)
+        elif self.config["PDK"] in ["ihp-sg13g2"]:
+            metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:
             self.warn(
                 f"KLayout DRC is not supported for the {self.config['PDK']} PDK. This step will be skipped."
