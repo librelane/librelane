@@ -16,7 +16,7 @@ import re
 import json
 from enum import Enum
 from io import StringIO, TextIOWrapper
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from .step import StepException, ViewsUpdate, MetricsUpdate, Step
 from ..common import Path

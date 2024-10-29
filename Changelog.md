@@ -18,6 +18,10 @@
 
 ## Steps
 
+* Add `KLayout.LVS` step
+
+  * Add support for ihp-sg13g2
+
 * Add `OpenROAD.WriteCDL` step
 
   * Write the CDL netlist of a design
