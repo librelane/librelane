@@ -19,6 +19,7 @@ import shutil
 import subprocess
 from os.path import abspath
 from base64 import b64encode
+from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional, List, Sequence, Tuple, Union
 
 from .step import ViewsUpdate, MetricsUpdate, Step, StepError, StepException
@@ -495,6 +496,122 @@ class DRC(KLayoutStep):
             )
 
         return {}, metrics_updates
+
+
+@Step.factory.register()
+class LVS(KLayoutStep):
+    id = "KLayout.LVS"
+    name = "Layout Versus Schematic (KLayout)"
+
+    inputs = [
+        DesignFormat.CDL,
+        DesignFormat.GDS,
+    ]
+    outputs = [DesignFormat.SPICE]
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_LVS_SCRIPT",
+            Optional[Path],
+            "A path to KLayout LVS script.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_LVS_OPTIONS",
+            Optional[Dict[str, Union[bool, int, str]]],
+            "Options passed directly to the KLayout LVS script. They vary from one PDK to another.",
+            pdk=True,
+        ),
+    ]
+
+    def run_ihp_sg13g2(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        lvs_script_path = self.config["KLAYOUT_LVS_SCRIPT"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lvsdb_report = os.path.join(reports_dir, "lvs.klayout.lvsdb")
+
+        input_view_gds = state_in[DesignFormat.GDS]
+        input_view_cdl = state_in[DesignFormat.CDL]
+        assert isinstance(input_view_gds, Path)
+        assert isinstance(input_view_cdl, Path)
+
+        output_spice = os.path.join(
+            self.step_dir,
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.value.extension}"
+        )
+
+        with NamedTemporaryFile("w") as f:
+            # Merge all CDL inputs
+            cdl_lst = [ input_view_cdl ]
+            cdl_lst.extend( self.config["CELL_CDLS"] or [] )
+            cdl_lst.extend( self.config["EXTRA_CDLS"] or [] )
+
+            for fn in cdl_lst:
+                with open(fn, 'r') as cdl_fh:
+                    f.write( cdl_fh.read() )
+
+            opts = []
+            for k,v in self.config["KLAYOUT_LVS_OPTIONS"].items():
+                opts.extend([
+                    "-rd",
+                    f"{k}={v}",
+                ])
+
+            # Not pya script - DRC script is not part of OpenLane
+            subprocess_result = self.run_subprocess(
+                [
+                    "klayout",
+                    "-b",
+                    "-zz",
+                    "-r",
+                    lvs_script_path,
+                    "-rd",
+                    f"in_gds={abspath(input_view_gds)}",
+                    "-rd",
+                    f"cdl_file={abspath(f.name)}",
+                    "-rd",
+                    f"report_file={abspath(lvsdb_report)}",
+                    "-rd",
+                    f"target_netlist={abspath(output_spice)}",
+                ] + opts,
+                env=env,
+            )
+
+            with open(subprocess_result['log_path']) as fh:
+                for l in fh:
+                    if "INFO : Congratulations! Netlists match" in l:
+                        ok = True
+                        break
+                    elif "ERROR : Netlists don't match" in l:
+                        ok = False
+                        break
+                else:
+                    ok = False
+
+        views_updates: ViewsUpdate = {
+            DesignFormat.SPICE: Path(output_spice),
+        }
+        metrics_updates: MetricsUpdate = {
+            'design__lvs_error__count': 0 if ok else 1,
+        }
+
+        return views_updates, metrics_updates
+
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            self.warn(
+                f"KLayout LVS is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+
+        return views_updates, metrics_updates
 
 
 @Step.factory.register()
