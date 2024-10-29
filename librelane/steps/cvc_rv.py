@@ -124,13 +124,6 @@ class ERC(Step):
             description="",
             pdk=True,
         ),
-        Variable(
-            "CELL_CDLS",
-            List[Path],
-            description="A circuit-design language view of the standard cell library.",
-            pdk=True,
-            deprecated_names=["STD_CELL_LIBRARY_CDL"],
-        ),
     ]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
