@@ -196,6 +196,13 @@ scl_variables = [
         pdk=True,
     ),
     Variable(
+        "CELL_CDLS",
+        Optional[List[Path]],
+        description="A circuit-design language view of the standard cell library.",
+        pdk=True,
+        deprecated_names=["STD_CELL_LIBRARY_CDL"],
+    ),
+    Variable(
         "SYNTH_EXCLUDED_CELL_FILE",
         Path,
         "Path to a text file containing a list of (wildcards matching) cells to be excluded from the lib file in synthesis alone.",
@@ -423,6 +430,11 @@ option_variables = [
         "EXTRA_SPICE_MODELS",
         Optional[List[Path]],
         "Specifies miscellaneous SPICE models to be loaded indiscriminately whenever SPICE models are loaded.",
+    ),
+    Variable(
+        "EXTRA_CDLS",
+        Optional[List[Path]],
+        "Specifies miscellaneous CDL netlists to be loaded indiscriminately whenever CDL netlists are loaded.",
     ),
     Variable(
         "EXTRA_LIBS",
