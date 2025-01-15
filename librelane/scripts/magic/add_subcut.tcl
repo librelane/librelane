@@ -18,7 +18,9 @@ gds noduplicates true
 gds read $::env(CURRENT_GDS)
 load $::env(DESIGN_NAME)
 select top cell
-paint isosub
+if { $::env(MAGIC_ADD_ISOSUB) } {
+    paint isosub
+}
 if {  $::env(MAGIC_DISABLE_CIF_INFO) } {
 	cif *hier write disable
 	cif *array write disable

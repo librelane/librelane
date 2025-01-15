@@ -799,6 +799,11 @@ class RCX(MagicStep):
         return views_updates, metrics_updates
 
 class AddIsosub(MagicStep):
+    """
+    Draws isosub(subcut) over the design. Might be useful when design is getting integrated
+    in another design with multiple power domains.
+    """
+
     id = "Magic.AddIsosub"
     name = "Add isosub(subcut) to the design"
 
