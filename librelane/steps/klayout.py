@@ -445,7 +445,9 @@ class DRC(KLayoutStep):
         input_view = state_in[DesignFormat.GDS]
         assert isinstance(input_view, Path)
 
-        density = "true" if self.config["KLAYOUT_DRC_OPTIONS"].get("density") else "false"
+        density = (
+            "true" if self.config["KLAYOUT_DRC_OPTIONS"].get("density") else "false"
+        )
         threads = self.config["KLAYOUT_DRC_THREADS"] or (str(os.cpu_count()) or "1")
         info(f"Running KLayout DRC with {threads} threads…")
 
@@ -475,7 +477,7 @@ class DRC(KLayoutStep):
                     get_script_dir(),
                     "klayout",
                     "xml_drc_report_to_json.py",
-                    ),
+                ),
                 f"--xml-file={abspath(xml_report)}",
                 f"--json-file={abspath(json_report)}",
             ],
@@ -540,25 +542,27 @@ class LVS(KLayoutStep):
 
         output_spice = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.value.extension}"
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.value.extension}",
         )
 
         with NamedTemporaryFile("w") as f:
             # Merge all CDL inputs
-            cdl_lst = [ input_view_cdl ]
-            cdl_lst.extend( self.config["CELL_CDLS"] or [] )
-            cdl_lst.extend( self.config["EXTRA_CDLS"] or [] )
+            cdl_lst = [input_view_cdl]
+            cdl_lst.extend(self.config["CELL_CDLS"] or [])
+            cdl_lst.extend(self.config["EXTRA_CDLS"] or [])
 
             for fn in cdl_lst:
-                with open(fn, 'r') as cdl_fh:
-                    f.write( cdl_fh.read() )
+                with open(fn, "r") as cdl_fh:
+                    f.write(cdl_fh.read())
 
             opts = []
-            for k,v in self.config["KLAYOUT_LVS_OPTIONS"].items():
-                opts.extend([
-                    "-rd",
-                    f"{k}={v}",
-                ])
+            for k, v in self.config["KLAYOUT_LVS_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
 
             # Not pya script - DRC script is not part of OpenLane
             subprocess_result = self.run_subprocess(
@@ -576,11 +580,12 @@ class LVS(KLayoutStep):
                     f"report_file={abspath(lvsdb_report)}",
                     "-rd",
                     f"target_netlist={abspath(output_spice)}",
-                ] + opts,
+                ]
+                + opts,
                 env=env,
             )
 
-            with open(subprocess_result['log_path']) as fh:
+            with open(subprocess_result["log_path"]) as fh:
                 for l in fh:
                     if "INFO : Congratulations! Netlists match" in l:
                         ok = True
@@ -595,11 +600,10 @@ class LVS(KLayoutStep):
             DesignFormat.SPICE: Path(output_spice),
         }
         metrics_updates: MetricsUpdate = {
-            'design__lvs_error__count': 0 if ok else 1,
+            "design__lvs_error__count": 0 if ok else 1,
         }
 
         return views_updates, metrics_updates
-
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
