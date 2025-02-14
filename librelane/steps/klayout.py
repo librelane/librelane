@@ -586,11 +586,11 @@ class LVS(KLayoutStep):
             )
 
             with open(subprocess_result["log_path"]) as fh:
-                for l in fh:
-                    if "INFO : Congratulations! Netlists match" in l:
+                for line in fh:
+                    if "INFO : Congratulations! Netlists match" in line:
                         ok = True
                         break
-                    elif "ERROR : Netlists don't match" in l:
+                    elif "ERROR : Netlists don't match" in line:
                         ok = False
                         break
                 else:
