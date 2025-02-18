@@ -68,10 +68,14 @@ class TclUtils(object):
                 if value is not None:
                     env_out[match.group(1)] = value
 
-        def py_dict(command, target=None, key=None, value=None, *args):
+        def py_dict(command, target=None, *args):
             if command == "set":
                 if match := _env_rx.fullmatch(target):
-                    if value is not None:
+
+                    if len(args) > 1:
+                        value = args[-1]
+                        keys = args[:-1]
+
                         # Create new dict if it does not exist
                         if not match.group(1) in env_out:
                             env_out[match.group(1)] = {}
@@ -83,7 +87,20 @@ class TclUtils(object):
                             env_out[match.group(1)] = {}
 
                         # Set key value pair
-                        env_out[match.group(1)][key] = value
+                        # env_out[match.group(1)][key] = nested_dict
+
+                        cur_dict = env_out[match.group(1)]
+
+                        # Create all nested dicts
+                        for key in keys[:-1]:
+                            if key in cur_dict:
+                                cur_dict = cur_dict[key]
+                            else:
+                                cur_dict[key] = {}
+                                cur_dict = cur_dict[key]
+
+                        # Finally set the value
+                        cur_dict[keys[-1]] = value
 
         py_set_name = interpreter.register(py_set)
         py_dict_name = interpreter.register(py_dict)
