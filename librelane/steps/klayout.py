@@ -542,7 +542,7 @@ class LVS(KLayoutStep):
 
         output_spice = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.extension}",
         )
 
         with NamedTemporaryFile("w") as f:

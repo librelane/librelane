@@ -20,4 +20,4 @@ if { [info exist ::env(EXTRA_CDLS)] } {
 }
 
 # Write only the CDL
-write_cdl -masters "$masters" $::env(STEP_DIR)/$::env(DESIGN_NAME).cdl
+write_cdl -include_fillers -masters "$masters" $::env(STEP_DIR)/$::env(DESIGN_NAME).cdl
