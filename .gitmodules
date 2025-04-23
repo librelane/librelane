@@ -1,6 +1,6 @@
 [submodule "test_data/designs"]
 	path = test/designs
-	url = https://github.com/efabless/openlane2-ci-designs
+	url = https://github.com/librelane/librelane-ci-designs.git
 [submodule "test/steps/openlane2-step-unit-tests"]
 	path = test/steps/all
-	url = https://github.com/efabless/openlane2-step-unit-tests
+	url = https://github.com/librelane/librelane-step-unit-tests.git
