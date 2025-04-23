@@ -29,7 +29,7 @@
   tclFull,
   verilator,
   verilog,
-  volare,
+  ciel,
   yosys,
   yosysFull,
   # Python
@@ -99,7 +99,7 @@
         rich
         requests
         pcpp
-        volare
+        ciel
         tkinter
         lxml
         deprecated

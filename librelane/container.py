@@ -161,7 +161,7 @@ def run_in_container(
 ) -> NoReturn:
     # If imported at the top level, would interfere with Conda where Volare
     # would not be installed.
-    import volare
+    import ciel
 
     osinfo = OSInfo.get()
     if not osinfo.supported:
@@ -194,7 +194,7 @@ def run_in_container(
 
     mount_args += ["-v", f"{from_home}:{to_home}"]
 
-    from_pdk, to_pdk = sanitize_path(volare.get_volare_home(pdk_root))
+    from_pdk, to_pdk = sanitize_path(ciel.get_ciel_home(pdk_root))
 
     try:
         mkdirp(from_pdk)

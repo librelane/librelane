@@ -32,14 +32,24 @@ def _step_enabled(request: SubRequest, test: str):
 
 @pytest.fixture
 def pdk_root(request):
-    import volare
+    import ciel
+    from ciel.source import StaticWebDataSource
     from librelane.common import get_opdks_rev
 
-    volare_home = volare.get_volare_home(request.config.option.pdk_root)
+    ciel_home = ciel.get_ciel_home(request.config.option.pdk_root)
 
-    version = volare.fetch(volare_home, "sky130", get_opdks_rev())
+    data_source = StaticWebDataSource(
+        "https://fossi-foundation.github.io/ciel-releases"
+    )
 
-    return version.get_dir(volare_home)
+    version = ciel.fetch(
+        ciel_home,
+        "sky130",
+        get_opdks_rev(),
+        data_source=data_source,
+    )
+
+    return version.get_dir(ciel_home)
 
 
 def try_call(fn: Callable, /, **kwargs):

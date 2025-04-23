@@ -792,12 +792,12 @@ class Config(GenericImmutableDict[str, Any]):
     ) -> str:
         if pdk_root is None:
             try:
-                import volare
+                import ciel
 
-                pdk_root = volare.get_volare_home(pdk_root)
+                pdk_root = ciel.get_ciel_home(pdk_root)
             except ImportError:
                 raise ValueError(
-                    "The pdk_root argument is required as Volare is not installed."
+                    "The pdk_root argument is required as Ciel is not installed."
                 )
 
         return os.path.abspath(pdk_root)

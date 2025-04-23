@@ -14,6 +14,15 @@
 ## Documentation
 -->
 
+# 2.4.0
+
+2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
+original authors after Efabless Corporation has ceased operations.
+
+## Tool Updates
+
+* Volare replaced with [Ciel](https://github.com/fossi-foundation/ciel) 2.0.1
+
 # 2.3.10
 
 ## Steps

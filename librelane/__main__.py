@@ -326,7 +326,7 @@ def cli_in_container(
         final_argv = ["librelane"] + argv
 
     docker_image = os.getenv(
-        "OPENLANE_IMAGE_OVERRIDE", f"ghcr.io/librelane/librelane:{__version__}"
+        "LIBRELANE_IMAGE_OVERRIDE", f"ghcr.io/librelane/librelane:{__version__}"
     )
 
     try:

@@ -178,7 +178,7 @@ def cloup_flow_opts(
     :param jobs: Enables ``-j/--jobs`` CLI flag
     :param accept_config_files: Accepts configuration file paths as CLI arguments
     :param volare_by_default: If ``pdk_options`` is ``True``, this changes whether
-        Volare is used by default for this CLI or not.
+        Ciel is used by default for this CLI or not.
     :returns: The wrapper
     """
     o = partial(option, show_default=True)
@@ -342,10 +342,11 @@ def cloup_flow_opts(
                 "PDK options",
                 o(
                     "--volare-pdk/--manual-pdk",
-                    "use_volare",
+                    "--ciel-pdk/--manual-pdk",
+                    "use_ciel",
                     is_eager=True,
                     default=volare_by_default,
-                    help="Automatically use Volare for PDK version installation and enablement. Set --manual if you want to use a custom PDK version.",
+                    help="Automatically use Ciel for PDK version installation and enablement. Set --manual if you want to use a custom PDK version.",
                 ),
                 o(
                     "--pdk-root",
@@ -355,7 +356,7 @@ def cloup_flow_opts(
                     ),
                     is_eager=True,
                     default=os.environ.pop("PDK_ROOT", None),
-                    help="Override volare PDK root folder. Required if Volare is not installed, but a default value can also be set via the environment variable PDK_ROOT.",
+                    help="Override Ciel PDK root folder. Required if Ciel is not installed, but a default value can also be set via the environment variable PDK_ROOT.",
                 ),
                 o(
                     "-p",
@@ -409,30 +410,31 @@ def cloup_flow_opts(
                 pdk_root: Optional[str],
                 pdk: str,
                 scl: Optional[str],
-                use_volare: bool,
+                use_ciel: bool,
                 **kwargs,
             ) -> str:
-                if not use_volare:
+                if not use_ciel:
                     if pdk_root is None:
                         err("Argument --pdk-root must be present with --manual-pdk.")
                         exit(1)
                 else:
-                    import volare
+                    import ciel
+                    from ciel.source import StaticWebDataSource
 
                     opdks_rev = volare_pdk_override or get_opdks_rev()
-                    volare_home = volare.get_volare_home(pdk_root)
+                    ciel_home = ciel.get_ciel_home(pdk_root)
 
                     include_libraries = ["default"]
                     if scl is not None:
                         include_libraries.append(scl)
 
                     pdk_family = None
-                    if family := volare.Family.by_name.get(pdk):
+                    if family := ciel.Family.by_name.get(pdk):
                         pdk = family.default_variant
                         pdk_family = family.name
                         verbose(f"Resolved PDK variant {family.default_variant}.")
                     else:
-                        for family in volare.Family.by_name.values():
+                        for family in ciel.Family.by_name.values():
                             if pdk in family.variants:
                                 pdk_family = family.name
                                 break
@@ -441,13 +443,16 @@ def cloup_flow_opts(
                         err(f"Could not resolve the PDK '{pdk}'.")
                         exit(1)
 
-                    version = volare.fetch(
-                        volare_home,
+                    version = ciel.fetch(
+                        ciel_home,
                         pdk_family,
                         opdks_rev,
+                        data_source=StaticWebDataSource(
+                            "https://fossi-foundation.github.io/ciel-releases"
+                        ),
                         include_libraries=include_libraries,
                     )
-                    pdk_root = version.get_dir(volare_home)
+                    pdk_root = version.get_dir(ciel_home)
 
                 return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, **kwargs)
 

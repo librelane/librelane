@@ -48,10 +48,10 @@ we rely on Open PDKs to build the PDK, which will not only place it an LibreLane
 layout but also generate views of the PDK that are usable by the aforementioned
 tools.
 
-Because of the extended build times, the two PDKs supported by Efabless, i.e.,
+Because of extended build times,
 the [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk) and
 the [GlobalFoundries/Google GF180MCU PDK](https://github.com/google/gf180mcu-pdk),
-are built and cached using [Volare](https://github.com/efabless/volare), a version
+are built and cached using [Ciel](https://github.com/fossi-foundation/ciel), a version
 manager by the LibreLane team built on top of Open PDKs.
 
 There are multiple variants of each PDK (reflecting different metal stack
@@ -93,7 +93,7 @@ GlobalFoundry's recommendation. `A` and `B` were never used and are not supporte
 by LibreLane.
 
 LibreLane is tested with a specific revision of Open PDKs. By default, LibreLane
-will attempt to download a build done with that revision using Volare to the **PDK root**.
+will attempt to download a build done with that revision using Ciel to the **PDK root**.
 
 ## The PDK Root
 
@@ -103,9 +103,9 @@ lowest priority)"
 
 * The `--pdk-root` command-line flag
 * The `PDK_ROOT` environment variable
-* A folder named `.volare` in your home directory.
+* A folder named `.ciel` in your home directory.
 
-The PDK root stores downloaded versions of the PDK as well as the Volare metadata
+The PDK root stores downloaded versions of the PDK as well as the Ciel metadata
 information.
 
 Each PDK family, e.g., `sky130` or `gf180mcu`, has one active version at a time.
@@ -115,19 +115,19 @@ built with.
 ```{tip}
 PDKs range from 700MiB to 1.5GiB, and they add up *fast*.
 
-You can delete all non-active PDKs by invoking `volare prune` in your terminal.
+You can delete all non-active PDKs by invoking `ciel prune` in your terminal.
 ```
 
 (porting-pdks)=
 
-### Using non-Volare PDKs
+### Using non-Ciel PDKs
 
-If you want to use PDKs without Volare (built manually), you will need to pass
+If you want to use PDKs without Ciel (built manually), you will need to pass
 this flag:
 
 `--manual-pdk`
 
-This will bypassing checking and attempting to download the PDK using Volare, so
+This will bypassing checking and attempting to download the PDK using Ciel, so
 you can add custom PDKs to the PDK root.
 
 The PDKs must provide the following:

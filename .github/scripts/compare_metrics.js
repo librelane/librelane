@@ -152,7 +152,7 @@ if (require.main === module) {
 
             const context = {
                 repo: {
-                    owner: "efabless",
+                    owner: "librelane",
                     repo: "librelane"
                 },
                 issue: {
@@ -164,7 +164,7 @@ if (require.main === module) {
             compareAndComment({
                 github: octokit,
                 context: context,
-                botUsername: "librelane-bot",
+                botUsername: "ohl-bot",
                 botToken: options.token,
                 comparingDirectory: directory,
                 againstBranch: options.branch

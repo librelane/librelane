@@ -81,7 +81,7 @@ python3 -m librelane --pdk-root <path/to/pdk> </path/to/config.json>
 To start with, you can try:
 
 ```sh
-python3 -m librelane --pdk-root $HOME/.volare ./designs/spm/config.json
+python3 -m librelane --pdk-root $HOME/.ciel ./designs/spm/config.json
 ```
 
 ## Publication

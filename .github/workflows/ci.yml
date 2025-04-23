@@ -23,7 +23,7 @@ jobs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
       opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
@@ -45,28 +45,28 @@ jobs:
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-sky130
+          path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk sky130 --pdk-root ./.volare-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-gf180mcu
+          path: ./.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk gf180mcu --pdk-root ./.volare-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Download IPM
         run: |
           python3 -m pip install git+https://github.com/efabless/IPM
       - name: Checkout submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
   lint:
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
@@ -94,7 +94,7 @@ jobs:
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
@@ -103,51 +103,48 @@ jobs:
         run: |
           make venv
 
-          ./venv/bin/coverage run -m pytest -n auto --pdk-root="./.volare-sky130"
+          ./venv/bin/coverage run -m pytest -n auto --pdk-root="./.ciel-sky130"
           ./venv/bin/coverage report
           ./venv/bin/coverage html
-  build-linux-amd64:
+  build-linux-x86_64:
     needs: lint
     runs-on: ubuntu-22.04
     name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
           cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
   build-linux-aarch64:
     needs: lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
-      - uses: docker/setup-qemu-action@v1
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -158,82 +155,96 @@ jobs:
   build-darwin:
     strategy:
       matrix:
-        system:
+        os:
           [
-            { gha: macos-13, nix: "x86_64-darwin" },
-            { gha: macos-14, nix: "aarch64-darwin" },
+            {
+              name: "macOS 13",
+              family: "darwin",
+              runner: "macos-13",
+              arch: "x86_64",
+              nix: "x86_64-darwin",
+            },
+            {
+              name: "macOS 14",
+              family: "darwin",
+              runner: "macos-15",
+              arch: "aarch64",
+              nix: "aarch64-darwin",
+            },
           ]
       fail-fast: false
     needs: [lint, prepare-test-matrices]
-    runs-on: ${{ matrix.system.gha }}
-    name: Build (Nix/${{ matrix.system.nix }})
+    runs-on: ${{ matrix.os.runner }}
+    name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      # For some reason, GHA Macs are far more aggressively rate-limited with
-      # Volare than Linux
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-sky130
+          path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
-          nix_system: ${{ matrix.system.nix }}
+          nix_system: ${{ matrix.os.nix }}
           cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
           cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           shell: "zsh {0}"
           run_tests: "true"
-          pdk_root: ${{ github.workspace }}/.volare-sky130
+          pdk_root: ${{ github.workspace }}/.ciel-sky130
   build-docker:
-    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ["amd64", "aarch64"]
-    needs: [build-linux-amd64, build-linux-aarch64]
-    name: Build Docker Image (${{ matrix.arch }})
+        os:
+          [
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04",
+              arch: "x86_64",
+              nix: "x86_64-linux",
+            },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              arch: "aarch64",
+              nix: "aarch64-linux",
+            },
+          ]
+    runs-on: ${{ matrix.os.runner }}
+    needs: [build-linux-x86_64, build-linux-aarch64]
+    name: Build Docker Image (${{ matrix.os.arch }})
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          root-reserve-mb: 20480
       - name: Check out repo
-        uses: actions/checkout@v3
-
-      - uses: docker/setup-qemu-action@v1
-      - name: Set Nix System
-        run: |
-          nix_system=x86_64-linux
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            nix_system=aarch64-linux
-          fi
-          echo "NIX_SYSTEM=$nix_system" >> $GITHUB_ENV
+        uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
-          nix_system: ${{ env.NIX_SYSTEM }}
+          nix_system: ${{ matrix.os.nix }}
           cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
 
       - name: Build Docker Image
@@ -242,55 +253,50 @@ jobs:
             --print-out-paths\
             --no-link\
             --accept-flake-config\
-            --option system ${{ env.NIX_SYSTEM }}\
-            --extra-platforms ${{ env.NIX_SYSTEM }}\
-            .#packages.${{ env.NIX_SYSTEM }}.librelane-docker)
+            --option system ${{ matrix.os.nix }}\
+            --extra-platforms ${{ matrix.os.nix }}\
+            .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.8"
-      - name: Install Dependencies
-        run: make venv
       # Do not cache the PDK. We want to test the typical Docker flow here.
       - name: Smoke-Test Docker Image
+        if: ${{ matrix.os.arch != 'aarch64' }} # No KLayout wheels available for aarch64 yet
         run: |
-          mkdir -p $HOME/.volare
-          chmod -R 755 $HOME/.volare
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=librelane:tmp-aarch64-linux
-          elif [ "${{ matrix.arch }}" == "amd64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=librelane:tmp-x86_64-linux
-          fi
+          make venv
+          mkdir -p $HOME/.ciel
+          chmod -R 755 $HOME/.ciel
+          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-${{ matrix.os.arch }}-linux
           ./venv/bin/python3 -m librelane\
             --docker-no-tty\
             --dockerized\
-            --pdk-root ./.volare-sky130\
+            --pdk-root ./.ciel-sky130\
             --smoke-test
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ matrix.arch }}
+          name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
   test:
     runs-on: ubuntu-22.04
-    needs: [build-linux-amd64, prepare-test-matrices]
+    needs: [build-linux-x86_64, prepare-test-matrices]
     name: Test Design ${{ matrix.design.test_name }} (${{ matrix.design.pdk }}/${{matrix.design.scl}})
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-test-matrices.outputs.design_matrix) }}
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          root-reserve-mb: 20480
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Check if Git
@@ -301,7 +307,6 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -316,7 +321,7 @@ jobs:
         id: cache-pdk
         uses: actions/cache@v4
         with:
-          path: ./.volare-${{ matrix.design.pdk_family }}
+          path: ./.ciel-${{ matrix.design.pdk_family }}
           key: cache-${{ matrix.design.pdk_family }}-pdk-${{ needs.prepare-test-matrices.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable PDKs
@@ -325,8 +330,8 @@ jobs:
           pip3 install poetry poetry-plugin-export
           poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
           pip3 install -r requirements_tmp.txt
-          volare enable --pdk ${{ matrix.design.pdk_family }} \
-            --pdk-root ./.volare-${{ matrix.design.pdk_family }} \
+          ciel enable --pdk ${{ matrix.design.pdk_family }} \
+            --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
 
       - name: Download IPM designs
@@ -348,7 +353,7 @@ jobs:
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
-              --pdk-root ./.volare-${{ matrix.design.pdk_family }}\
+              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed\
               ${{ matrix.design.config }}
           else
@@ -357,7 +362,7 @@ jobs:
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
-              --pdk-root ./.volare-${{ matrix.design.pdk_family }}\
+              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed
           fi
       - name: Upload Run Folder
@@ -397,7 +402,7 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup
@@ -414,13 +419,13 @@ jobs:
         uses: actions/github-script@v6
         if: ${{ github.event_name == 'pull_request' }}
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
           script: |
             require("./.github/scripts/compare_metrics.js")({
               github: github,
               context: context,
-              botUsername: "librelane-bot",
-              botToken: "${{ secrets.GH_TOKEN }}",
+              botUsername: "${{ vars.BOT_USERNAME }}",
+              botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
             }).then(()=>{console.log("Done.");});
@@ -428,7 +433,7 @@ jobs:
         if: ${{ github.event_name == 'push' }} # && env.BRANCH_NAME == 'main' }}
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
-          REPO=efabless/librelane-metrics
+          REPO=${{ vars.METRICS_REPO }}
           BRANCH_NAME="commit-$CURRENT_SHA"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
           cd current
@@ -437,15 +442,15 @@ jobs:
           git config user.name "${{ vars.BOT_NAME }}"
           git config user.email "${{ vars.BOT_EMAIL }}"
           git commit -m "Upload"
-          git remote add origin "https://${{ vars.BOT_USERNAME }}:${{ secrets.GH_TOKEN }}@github.com/$REPO.git"
+          git remote add origin "https://${{ vars.BOT_USERNAME }}:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/$REPO.git"
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [build-linux-amd64, build-docker, build-py]
+    needs: [build-linux-x86_64, build-docker, build-py]
     name: Publish (If Applicable)
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Environment
@@ -456,11 +461,11 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-      - name: Download Image (Docker/amd64)
+          password: ${{ secrets.BOT_GITHUB_TOKEN }}
+      - name: Download Image (Docker/x86_64)
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-amd64
+          name: docker-image-x86_64
           path: /tmp/docker
       - name: Download Image (Docker/aarch64)
         uses: actions/download-artifact@v4
@@ -475,15 +480,15 @@ jobs:
       - name: Push (Docker)
         if: ${{ env.PUBLISH == '1' }}
         run: |
-          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
-          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
+          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
+          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
 
           docker tag librelane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
           docker push ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest create\
             ghcr.io/${{ github.repository }}:$NEW_TAG\
-            ghcr.io/${{ github.repository }}:$NEW_TAG-amd64\
+            ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64\
             ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
@@ -506,4 +511,4 @@ jobs:
         uses: tvdias/github-tagger@v0.0.1
         with:
           tag: "${{ env.NEW_TAG }}"
-          repo-token: "${{ secrets.GH_TOKEN }}"
+          repo-token: "${{ secrets.BOT_GITHUB_TOKEN }}"
