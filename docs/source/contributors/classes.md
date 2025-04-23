@@ -9,7 +9,7 @@ the interface.
 
 ## Mutability
 
-OpenLane 2 classes are based on the principle that objects that are passed
+LibreLane 2 classes are based on the principle that objects that are passed
 between contexts are either **immutable** on termination of construction or
 **replicably modifiable**.
 
@@ -39,8 +39,8 @@ a maximum of **one** public modifier adhering to these properties:
   * An **internal** part that is freely subclassable, however, it cannot be
     called from outside the public part.
 
-For {py:class}`openlane.flows.Flow`, for example, the public and internal parts
-are {py:meth}`openlane.flows.Flow.start` and {py:meth}`openlane.flows.Flow.run`
+For {py:class}`librelane.flows.Flow`, for example, the public and internal parts
+are {py:meth}`librelane.flows.Flow.start` and {py:meth}`librelane.flows.Flow.run`
 respectively.
 
 ## Access Control
@@ -54,9 +54,9 @@ API, with these strictures. We've thus decided to adopt the following convention
 ### Public
 
 All properties that do not fall into the aforementioned categories are public,
-i.e., they can be used in any context importing OpenLane.
+i.e., they can be used in any context importing LibreLane.
 
-Public methods are part of the OpenLane API and they are guaranteed to be
+Public methods are part of the LibreLane API and they are guaranteed to be
 functional within the same major version.
 
 ### Protected
@@ -76,16 +76,16 @@ some documentation tools such as Sphinx designate all properties and methods
 starting with `_` as private.
 ```
 
-Protected methods are part of the OpenLane API and they are guaranteed to be
+Protected methods are part of the LibreLane API and they are guaranteed to be
 functional within the same major version.
 
 ### Internal
 
 Internal properties and methods are prefixed by `_` (one underscore.) They may
-only be used inside the OpenLane codebase proper and not plugins or the like,
+only be used inside the LibreLane codebase proper and not plugins or the like,
 even those that inherit from the same classes.
 
-Internal properties and methods are **not** part of the OpenLane API and
+Internal properties and methods are **not** part of the LibreLane API and
 may break at any time without a major version increment.
 
 ### Private
@@ -94,12 +94,12 @@ Private properties and methods are prefixed by `__` (two underscores.) They may
 be only be used inside the specific class they are declared in, and not its
 super or subclasses.
 
-Private properties and methods are **not** part of the OpenLane API and
+Private properties and methods are **not** part of the LibreLane API and
 may break at any time without a major version increment.
 
 ## Hierarchy and "Virtual" Public Variables/Methods
 
-Classes in OpenLane rely on heavy use of polymorphism to define interface by
+Classes in LibreLane rely on heavy use of polymorphism to define interface by
 which multiple classes can interact with each other.
 
 By our immutability standard, setters are by definition not in

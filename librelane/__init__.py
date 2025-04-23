@@ -12,25 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-The OpenLane API
+The LibreLane API
 ----------------
 
 Documented elements of this API represent the primary programming interface for
-the OpenLane infrastructure.
+the LibreLane infrastructure.
 
-The various elements of OpenLane are organized into modules. You may import them
+The various elements of LibreLane are organized into modules. You may import them
 using their module name as follows:
 
 .. code-block:: python
 
-    import openlane.common
+    import librelane.common
 
 .. no-imported-members
 
 .. comment
     .. data:: discovered_plugins
 
-        A dictionary of detected OpenLane plugins, with the module name as a key and
+        A dictionary of detected LibreLane plugins, with the module name as a key and
         the module version as a version.
 """
 from .plugins import discovered_plugins

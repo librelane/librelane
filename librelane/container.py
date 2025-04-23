@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-## This file is internal to OpenLane 2 and is not part of the API.
+## This file is internal to LibreLane 2 and is not part of the API.
 import os
 import re
 import uuid
@@ -222,7 +222,7 @@ def run_in_container(
         mount_args += ["-v", f"{from_cwd}:{to_cwd}"]
     mount_args += ["-w", to_cwd]
 
-    tempdir = tempfile.mkdtemp("openlane_docker")
+    tempdir = tempfile.mkdtemp("librelane_docker")
 
     mount_args += [
         "-v",

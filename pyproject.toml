@@ -1,13 +1,12 @@
 [tool.poetry]
-name = "openlane"
+name = "librelane"
 version = "2.3.10"
 description = "An infrastructure for implementing chip design flows"
-authors = ["Efabless Corporation and Contributors <donn@efabless.com>"]
+authors = ["Mohamed Gaber <me@donn.website>", "Efabless Corporation"]
 readme = "Readme.md"
 license = "Apache-2.0"
-homepage = "https://efabless.com"
-repository = "https://github.com/efabless/openlane"
-documentation = "https://openlane.readthedocs.io"
+repository = "https://github.com/librelane/librelane"
+documentation = "https://librelane.readthedocs.io"
 
 
 [tool.poetry.dependencies]
@@ -60,11 +59,12 @@ pillow = ">=10.0.1,<11"
 
 
 [tool.poetry.scripts]
-openlane = "openlane.__main__:cli"
-"openlane.steps" = "openlane.steps.__main__:cli"
-"openlane.config" = "openlane.config.__main__:cli"
-"openlane.state" = "openlane.state.__main__:cli"
-"openlane.env_info" = "openlane:env_info_cli"
+openlane = "librelane.__main__:cli"
+librelane = "librelane.__main__:cli"
+"librelane.steps" = "librelane.steps.__main__:cli"
+"librelane.config" = "librelane.config.__main__:cli"
+"librelane.state" = "librelane.state.__main__:cli"
+"librelane.env_info" = "librelane:env_info_cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -46,9 +46,9 @@ def idem(obj: T, *args, **kwargs) -> T:
     return obj
 
 
-def get_openlane_root() -> str:
+def get_librelane_root() -> str:
     """
-    Returns the root OpenLane folder, i.e., the folder containing the
+    Returns the root LibreLane folder, i.e., the folder containing the
     ``__init__.py``.
     """
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,22 +56,22 @@ def get_openlane_root() -> str:
 
 def get_script_dir() -> str:
     """
-    Gets the OpenLane tool `scripts` directory.
+    Gets the LibreLane tool `scripts` directory.
 
     :meta private:
     """
     return os.path.join(
-        get_openlane_root(),
+        get_librelane_root(),
         "scripts",
     )
 
 
 def get_opdks_rev() -> str:
     """
-    Gets the Open_PDKs revision confirmed compatible with this version of OpenLane.
+    Gets the Open_PDKs revision confirmed compatible with this version of LibreLane.
     """
     return (
-        open(os.path.join(get_openlane_root(), "open_pdks_rev"), encoding="utf8")
+        open(os.path.join(get_librelane_root(), "open_pdks_rev"), encoding="utf8")
         .read()
         .strip()
     )
@@ -216,7 +216,7 @@ def format_size(byte_count: int) -> str:
         "TiB",
         "PiB",
         "EiB",
-        # TODO: update OpenLane when zebibytes are a thing
+        # TODO: update LibreLane when zebibytes are a thing
     ]
 
     tracker = 0
@@ -335,14 +335,14 @@ def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional
 def get_httpx_session(token: Optional[str] = None) -> httpx.Client:
     """
     Creates an ``httpx`` session client that follows redirects and has the
-    User-Agent header set to ``openlane2/{__version__}``.
+    User-Agent header set to ``librelane/{__version__}``.
 
     :param token: If this parameter is non-None and not empty, another header,
         Authorization: Bearer {token}, is included.
     :returns: The created client
     """
     session = httpx.Client(follow_redirects=True)
-    headers_raw = {"User-Agent": f"openlane2/{__version__}"}
+    headers_raw = {"User-Agent": f"librelane/{__version__}"}
     if token is not None and token.strip() != "":
         headers_raw["Authorization"] = f"Bearer {token}"
     session.headers = httpx.Headers(headers_raw)

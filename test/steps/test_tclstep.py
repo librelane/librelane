@@ -15,13 +15,13 @@ import tkinter
 
 import pytest
 
-from openlane.steps import step
+from librelane.steps import step
 
 mock_variables = pytest.mock_variables
 
 
 def test_tclstep_missing_get_script_path():
-    from openlane.steps import TclStep
+    from librelane.steps import TclStep
 
     class TclStepTest(TclStep):
         pass
@@ -34,8 +34,8 @@ def test_tclstep_missing_get_script_path():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_tclstep_init(mock_config):  # noqa: F811
-    from openlane.steps import TclStep
-    from openlane.state import DesignFormat, State
+    from librelane.steps import TclStep
+    from librelane.state import DesignFormat, State
 
     class TclStepTest(TclStep):
         inputs = []
@@ -51,8 +51,8 @@ def test_tclstep_init(mock_config):  # noqa: F811
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_tclstep_get_command(mock_config):  # noqa: F811
-    from openlane.steps import TclStep
-    from openlane.state import DesignFormat, State
+    from librelane.steps import TclStep
+    from librelane.state import DesignFormat, State
 
     class TclStepTest(TclStep):
         inputs = []
@@ -69,8 +69,8 @@ def test_tclstep_get_command(mock_config):  # noqa: F811
 
 def test_tcl_step_value_to_tcl():
     from enum import Enum
-    from openlane.steps import TclStep
-    from openlane.common import TclUtils
+    from librelane.steps import TclStep
+    from librelane.common import TclUtils
 
     numerical_list_value = [1.0, 2.1000, 3, 4.01]
     numerical_list_value_string = "1.0 2.1 3 4.01"
@@ -166,8 +166,8 @@ def test_tcl_step_value_to_tcl():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_env(mock_config):  # noqa: F811
-    from openlane.steps import TclStep
-    from openlane.state import DesignFormat, State
+    from librelane.steps import TclStep
+    from librelane.state import DesignFormat, State
 
     script_path = "/dummy_path"
     state_in = State({DesignFormat.NETLIST: "abc"})

@@ -14,7 +14,7 @@
 
 # This file supports one defined corner per-process.
 # Any more defined corners will be ignored.
-# Aggregation is left to the OpenLane step.
+# Aggregation is left to the LibreLane step.
 
 
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl

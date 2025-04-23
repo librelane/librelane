@@ -37,7 +37,7 @@ def is_real_number(obj: Any) -> bool:
 
 class Path(UserString, os.PathLike):
     """
-    A Path type for OpenLane configuration variables.
+    A Path type for LibreLane configuration variables.
 
     Basically just a string.
     """
@@ -45,7 +45,7 @@ class Path(UserString, os.PathLike):
     # This path will pass the validate() call, but will
     # fail to open. It should be used for deprecated variable
     # translation only.
-    _dummy_path: ClassVar[str] = "__openlane_dummy_path"
+    _dummy_path: ClassVar[str] = "__librelane_dummy_path"
 
     def __fspath__(self) -> str:
         return str(self)

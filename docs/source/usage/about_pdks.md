@@ -3,7 +3,7 @@
 Process Design Kits, or PDKs, are files provided by a foundry that enables chips
 to be implemented for a specific foundry process.
 
-OpenLane supports multiple process design kits, so long that an OpenLane PDK
+LibreLane supports multiple process design kits, so long that an LibreLane PDK
 configuration file is made for them.
 
 ## Specifying your PDK
@@ -31,20 +31,20 @@ cell `sky130_fd_sc_hd__and1` implements a logical AND.
 
 Each PDK comes bundled with collections of standard cells known as "standard
 cell libraries" or SCLs for short, some of which are foundry-provided and some
-of which are third-party. Each OpenLane PDK configuration specifies a default
+of which are third-party. Each LibreLane PDK configuration specifies a default
 standard cell library, so you don't have to worry about picking one- but if you
 want to anyway, ordered by priority (from highest to lowest):
 
 * Within the `config.json` file
 * The `--scl` command-line flag
 * The `STD_CELL_LIBRARY` environment variable
-* The default SCL as dictated by the OpenLane PDK configuration files.
+* The default SCL as dictated by the LibreLane PDK configuration files.
   * For sky130, that's `sky130_fd_sc_hd`.
 
 ## Building, location and downloading
 
 Most open-source PDKs are not usable in their default formats. This is the reason
-we rely on Open PDKs to build the PDK, which will not only place it an OpenLane-friendly
+we rely on Open PDKs to build the PDK, which will not only place it an LibreLane-friendly
 layout but also generate views of the PDK that are usable by the aforementioned
 tools.
 
@@ -52,7 +52,7 @@ Because of the extended build times, the two PDKs supported by Efabless, i.e.,
 the [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk) and
 the [GlobalFoundries/Google GF180MCU PDK](https://github.com/google/gf180mcu-pdk),
 are built and cached using [Volare](https://github.com/efabless/volare), a version
-manager by the OpenLane team built on top of Open PDKs.
+manager by the LibreLane team built on top of Open PDKs.
 
 There are multiple variants of each PDK (reflecting different metal stack
 configurations):
@@ -63,7 +63,7 @@ configurations):
     layer between `metal1` and `metal2`. See [here](https://sky130-fd-pr-reram.readthedocs.io/en/latest/background.html) for more information. This affects timing as, for example,
     `via1` between `metal1` and `metal2` is twice as high.
 
-Both variants are supported by OpenLane.
+Both variants are supported by LibreLane.
 
 ```{tip}
 The variants are identical on the [front end of line](https://en.wikipedia.org/wiki/Front_end_of_line),
@@ -90,14 +90,14 @@ within the same design.)
 [GFMPW0](https://platform.efabless.com/shuttles/GFMPW-0) was run on `C`,
 but any and all future shuttles by Efabless will require `gf180mcuD` as per
 GlobalFoundry's recommendation. `A` and `B` were never used and are not supported
-by OpenLane.
+by LibreLane.
 
-OpenLane is tested with a specific revision of Open PDKs. By default, OpenLane
+LibreLane is tested with a specific revision of Open PDKs. By default, LibreLane
 will attempt to download a build done with that revision using Volare to the **PDK root**.
 
 ## The PDK Root
 
-The PDK root is a directory containing all of your open-source PDKs. OpenLane
+The PDK root is a directory containing all of your open-source PDKs. LibreLane
 is configured to use the PDK root at the following options (from highest to
 lowest priority)"
 
@@ -132,11 +132,11 @@ you can add custom PDKs to the PDK root.
 
 The PDKs must provide the following:
 
-* An OpenLane PDK configuration file at the path `{pdk_root}/{pdk}/libs.tech/openlane/config.tcl`.
+* An LibreLane PDK configuration file at the path `{pdk_root}/{pdk}/libs.tech/librelane/config.tcl`.
 
 This Tcl-based (sorry) config file must include values for all non-optional variables in the {ref}`univ_flow_cvars_pdk`.
 
-* An standard cell library configuration file at the path `{pdk_root}/{pdk}/libs.tech/{scl}/openlane/config.tcl`.
+* An standard cell library configuration file at the path `{pdk_root}/{pdk}/libs.tech/{scl}/librelane/config.tcl`.
 
 This Tcl-based config file must include values for all non-optional variables in the {ref}`univ_flow_cvars_scl`.
 

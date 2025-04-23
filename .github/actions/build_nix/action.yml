@@ -4,7 +4,7 @@ inputs:
   cachix_cache:
     description: "The name of the Cachix cache to download to and/or upload from"
     required: true
-    default: "openlane"
+    default: "librelane"
   cachix_token:
     description: "An authentication token for Cachix"
     required: false
@@ -51,7 +51,7 @@ runs:
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
-          .#packages.${{ inputs.nix_system }}.openlane -- --pdk-root ${{ inputs.pdk_root }} --smoke-test
+          .#packages.${{ inputs.nix_system }}.librelane -- --pdk-root ${{ inputs.pdk_root }} --smoke-test
     - name: Unit/Step Tests
       shell: ${{ inputs.shell }}
       if: inputs.run_tests == 'true'

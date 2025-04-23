@@ -26,13 +26,13 @@ class DesignFormatObject:
     views.
 
     :param id: A lowercase alphanumeric identifier for the design format.
-        Some IDs in OpenLane 2.X use dashes. This is an inconsistency that will
-        be addressed in the next major version of OpenLane as it would be a
+        Some IDs in LibreLane 2.X use dashes. This is an inconsistency that will
+        be addressed in the next major version of LibreLane as it would be a
         breaking change.
     :param extension: The file extension for designs saved in this format.
     :param name: A human-readable name for this design format.
     :param folder_override: The subdirectory when
-        :meth:`openlane.state.State.save_snapshot` is called on a state. If
+        :meth:`librelane.state.State.save_snapshot` is called on a state. If
         unset, the value for ``id`` will be used.
     :param multiple: Whether this view may have multiple files (typically, files
         that are different across multiple corners or similar.)
@@ -52,12 +52,12 @@ class DesignFormatObject:
 class DesignFormat(Enum):
     """
     An `enumeration <https://docs.python.org/3/library/enum.html>`_ of a number
-    of :class:`openlane.state.DesignFormatObject`\\s representing the various
-    possible text or binary representations (views) supported by OpenLane
+    of :class:`librelane.state.DesignFormatObject`\\s representing the various
+    possible text or binary representations (views) supported by LibreLane
     states.
 
     Members of this enumeration are used as the keys of
-    :class:`openlane.state.State` objects.
+    :class:`librelane.state.State` objects.
     """
 
     NETLIST: DesignFormatObject = DesignFormatObject(

@@ -90,7 +90,7 @@
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
 
             # ---
-            openlane = callPythonPackage ./default.nix {};
+            librelane = callPythonPackage ./default.nix {};
           })
         )
         (pkgs': pkgs: let
@@ -98,9 +98,9 @@
         in
           {}
           // lib.optionalAttrs pkgs.stdenv.isLinux {
-            openlane-docker = callPackage ./nix/docker.nix {
+            librelane-docker = callPackage ./nix/docker.nix {
               createDockerImage = nix-eda.createDockerImage;
-              openlane = pkgs'.python3.pkgs.openlane;
+              librelane = pkgs'.python3.pkgs.librelane;
             };
           })
       ];
@@ -123,11 +123,11 @@
         pkgs = (self.legacyPackages."${system}");
         in {
           inherit (pkgs) colab-env opensta openroad-abc openroad;
-          inherit (pkgs.python3.pkgs) openlane;
-          default = pkgs.python3.pkgs.openlane;
+          inherit (pkgs.python3.pkgs) librelane;
+          default = pkgs.python3.pkgs.librelane;
         }
         // lib.optionalAttrs pkgs.stdenv.isLinux {
-          inherit (pkgs) openlane-docker;
+          inherit (pkgs) librelane-docker;
         }
     );
 
@@ -171,7 +171,7 @@
             types-psutil
             lxml-stubs
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
           extra-packages = with pkgs; [
@@ -200,7 +200,7 @@
             sphinx-tippy
             sphinx-subfigure
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
       }
     );

@@ -65,7 +65,7 @@
       ioplace-parser
     ]);
   self = buildPythonPackage {
-    pname = "openlane";
+    pname = "librelane";
     version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.version;
     format = "pyproject";
 
@@ -117,15 +117,15 @@
 
     computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
 
-    # Make PATH available to OpenLane subprocesses
+    # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
       "--prefix PATH : ${self.computed_PATH}"
     ];
 
     meta = with lib; {
       description = "Hardware design and implementation infrastructure library and ASIC flow";
-      homepage = "https://efabless.com/openlane";
-      mainProgram = "openlane";
+      homepage = "https://efabless.com/librelane";
+      mainProgram = "librelane";
       license = licenses.asl20;
       platforms = platforms.linux ++ platforms.darwin;
     };

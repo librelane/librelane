@@ -30,14 +30,14 @@ from ..steps import (
 @Flow.factory.register()
 class Classic(SequentialFlow):
     """
-    **Note: While OpenLane 2 has a stable release, the default flow is in beta
+    **Note: While LibreLane 2 has a stable release, the default flow is in beta
     pending silicon validation. Use at your own risk.**
 
-    A flow of type :class:`openlane.flows.SequentialFlow` that is the most
-    similar to the original OpenLane 1.0 flow, running the Verilog RTL through
+    A flow of type :class:`librelane.flows.SequentialFlow` that is the most
+    similar to the original LibreLane 1.0 flow, running the Verilog RTL through
     Yosys, OpenROAD, KLayout and Magic to produce a valid GDSII for simpler designs.
 
-    This is the default when using OpenLane via the command-line.
+    This is the default when using LibreLane via the command-line.
     """
 
     Steps = [

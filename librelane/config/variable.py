@@ -105,7 +105,7 @@ class Macro:
     As it is typically stored in a dictionary in its superclass, the module name
     is not stored in any of these fields.
 
-    You will note most fields correspond to a :class:`openlane.state.DesignFormat`
+    You will note most fields correspond to a :class:`librelane.state.DesignFormat`
     entry IDs. This is not coincidental.
 
     :param gds: A list of GDSII files representing the design. At least one is required.
@@ -269,15 +269,15 @@ def repr_type(t: Type[Any]) -> str:  # pragma: no cover
 @dataclass
 class Variable:
     """
-    An object encapsulating metadata on an OpenLane configuration variable, which
+    An object encapsulating metadata on an LibreLane configuration variable, which
     is used to name, document and validate values supplied to
-    :class:`openlane.steps.Step`\\s or :class:`openlane.flows.Flow`\\s.
+    :class:`librelane.steps.Step`\\s or :class:`librelane.flows.Flow`\\s.
 
     Values supplied for configuration variables are the primary interface by
-    which users configure OpenLane flows.
+    which users configure LibreLane flows.
 
     :param name: A string name for the Variable. Because of backwards compatibility
-        with OpenLane 1, the convention is ``UPPER_SNAKE_CASE``.
+        with LibreLane 1, the convention is ``UPPER_SNAKE_CASE``.
 
     :param type: A Python type object representing the variable.
 
@@ -330,7 +330,7 @@ class Variable:
         must presume it is ``null``.
 
         If this is false, a PDK is not allowed to set a default value for
-        this variable. In current versions of OpenLane, the value will be
+        this variable. In current versions of LibreLane, the value will be
         silently ignored, but warnings or errors may occur in future versions.
     """
 

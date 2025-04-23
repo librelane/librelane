@@ -102,7 +102,7 @@ class PassedDirectoryError(ValueError):
     def __init__(self, config: AnyPath) -> None:
         self.config = str(config)
         super().__init__(
-            "Passing design directories as arguments is unsupported in OpenLane 2 or higher: please pass the configuration file(s) directly."
+            "Passing design directories as arguments is unsupported in LibreLane 2 or higher: please pass the configuration file(s) directly."
         )
 
 
@@ -168,7 +168,15 @@ class Meta:
     flow: Union[None, str, List[str]] = None
     substituting_steps: Union[None, Dict[str, Union[str, None]]] = None
     step: Union[None, str] = None
-    openlane_version: Union[None, str] = __version__
+    librelane_version: Union[None, str] = __version__
+
+    @classmethod
+    def from_dict(Self, meta_dict: dict):
+        meta_dict_copy = meta_dict.copy()
+        if "openlane_version" in meta_dict_copy:
+            meta_dict_copy["librelane_version"] = meta_dict_copy["openlane_version"]
+            del meta_dict_copy["openlane_version"]
+        return Self(**meta_dict_copy)
 
     def copy(self) -> "Meta":
         return dataclasses.replace(self)
@@ -176,7 +184,7 @@ class Meta:
 
 class Config(GenericImmutableDict[str, Any]):
     """
-    A map from OpenLane configuration variable keys to their values.
+    A map from LibreLane configuration variable keys to their values.
 
     It is recommended that you use :meth:`load` to create new, validated
     configurations from dictionaries or files.
@@ -253,7 +261,7 @@ class Config(GenericImmutableDict[str, Any]):
         :param include_flow_variables: Whether to include the common flow
             variables in the copy or not.
 
-            This parameter is deprecated as of OpenLane 2.0.0b5 and should be
+            This parameter is deprecated as of LibreLane 2.0.0b5 and should be
             set to ``False`` by callers.
         :returns: The new copy
         """
@@ -362,7 +370,7 @@ class Config(GenericImmutableDict[str, Any]):
 
         meta = Meta(version=default_meta_version)
         if meta_raw := config_in.get("meta"):
-            meta = Meta(**meta_raw)
+            meta = Meta.from_dict(meta_raw)
 
         if flow_override is not None:
             meta.flow = flow_override
@@ -380,7 +388,7 @@ class Config(GenericImmutableDict[str, Any]):
     ) -> "Config":
         """
         This constructs a partial configuration object that may be incrementally
-        adjusted per-step, and activates OpenLane's **interactive mode**.
+        adjusted per-step, and activates LibreLane's **interactive mode**.
 
         The interactive mode is overall less rigid than the pure mode, adding various
         references to global objects to make the REPL or Notebook experience more
@@ -459,13 +467,13 @@ class Config(GenericImmutableDict[str, Any]):
 
         :param config_in: Either a file path to a JSON file or a Python
             Mapping object (such as ``dict``) representing an unprocessed
-            OpenLane configuration object.
+            LibreLane configuration object.
 
             Tcl files are also supported, but are deprecated and will be removed
             in the future.
 
         :param config_override_strings: A list of "overrides" in the form of
-            NAME=VALUE strings. These are primarily for running OpenLane from
+            NAME=VALUE strings. These are primarily for running LibreLane from
             the command-line and strictly speaking should not be used in the API.
 
         :param design_dir: The design directory for said configuration(s).
@@ -819,7 +827,20 @@ class Config(GenericImmutableDict[str, Any]):
                 warnings.append(f"A similarly-named PDK was found: {basename}")
             raise InvalidConfig("PDK configuration", warnings, errors)
 
-        pdk_config_path = os.path.join(pdkpath, "libs.tech", "openlane", "config.tcl")
+        pdk_config_path = os.path.join(pdkpath, "libs.tech", "librelane", "config.tcl")
+        if not os.path.exists(pdk_config_path):
+            pdk_config_path_alt = os.path.join(
+                pdkpath, "libs.tech", "openlane", "config.tcl"
+            )
+            if not os.path.exists(pdk_config_path_alt):
+                raise InvalidConfig(
+                    "PDk configuration",
+                    [],
+                    [
+                        f"Neither '{pdk_config_path}' nor '{pdk_config_path_alt} were found.'"
+                    ],
+                )
+            pdk_config_path = pdk_config_path_alt
 
         pdk_env = TclUtils._eval_env(
             pdk_config,
@@ -832,8 +853,21 @@ class Config(GenericImmutableDict[str, Any]):
         ), "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
 
         scl_config_path = os.path.join(
-            pdkpath, "libs.tech", "openlane", scl, "config.tcl"
+            pdkpath, "libs.tech", "librelane", scl, "config.tcl"
         )
+        if not os.path.exists(scl_config_path):
+            scl_config_path_alt = os.path.join(
+                pdkpath, "libs.tech", "openlane", scl, "config.tcl"
+            )
+            if not os.path.exists(scl_config_path_alt):
+                raise InvalidConfig(
+                    "PDk configuration",
+                    [],
+                    [
+                        f"Neither '{scl_config_path}' nor '{scl_config_path_alt} were found.'"
+                    ],
+                )
+            scl_config_path = scl_config_path_alt
 
         scl_env = migrate_old_config(
             TclUtils._eval_env(
@@ -926,7 +960,7 @@ class Config(GenericImmutableDict[str, Any]):
                 pass
             if not isinstance(dis, int) or dis in [1, 2, 5] or dis > 6:
                 errors.append(
-                    f"DIODE_INSERTION_STRATEGY '{dis}' is not available in OpenLane 2 or higher. See 'Migrating DIODE_INSERTION_STRATEGY' in the docs for more info."
+                    f"DIODE_INSERTION_STRATEGY '{dis}' is not available in LibreLane 2 or higher. See 'Migrating DIODE_INSERTION_STRATEGY' in the docs for more info."
                 )
             else:
                 warnings.append(

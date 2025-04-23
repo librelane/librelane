@@ -87,7 +87,7 @@ VT = TypeVar("VT")
 class OutputProcessor(ABC, Generic[VT]):
     """
     An abstract base class that processes terminal output from
-    :meth:`openlane.steps.Step.run_subprocess`
+    :meth:`librelane.steps.Step.run_subprocess`
     and append a resultant key/value pair to its returned dictionary.
 
     :param step: The step object instantiating this output processor
@@ -110,7 +110,7 @@ class OutputProcessor(ABC, Generic[VT]):
     def process_line(self, line: str) -> bool:
         """
         Fires when a line is received by
-        :meth:`openlane.steps.Step.run_subprocess`. Subclasses may do any
+        :meth:`librelane.steps.Step.run_subprocess`. Subclasses may do any
         arbitrary processing here.
 
         :param line: The line emitted by the subprocess
@@ -240,7 +240,7 @@ REPORT_START_LOCUS = "%OL_CREATE_REPORT"
 REPORT_END_LOCUS = "%OL_END_REPORT"
 METRIC_LOCUS = "%OL_METRIC"
 
-GlobalToolbox = Toolbox(os.path.join(os.getcwd(), "openlane_run", "tmp"))
+GlobalToolbox = Toolbox(os.path.join(os.getcwd(), "librelane_run", "tmp"))
 ViewsUpdate = Dict[DesignFormat, StateElement]
 MetricsUpdate = Dict[str, Any]
 
@@ -401,25 +401,25 @@ class Step(ABC):
 
     :param flow: Deprecated: the parent flow. Ignored if passed.
 
-    :cvar inputs: A list of :class:`openlane.state.DesignFormat` objects that
+    :cvar inputs: A list of :class:`librelane.state.DesignFormat` objects that
         are required for this step. These will be validated by the :meth:`start`
         method.
 
         :class:`Step` subclasses without the ``inputs`` class property declared
         are considered abstract and cannot be initialized or used in a :class:`Flow`.
 
-    :cvar outputs: A list of :class:`openlane.state.DesignFormat` objects that
+    :cvar outputs: A list of :class:`librelane.state.DesignFormat` objects that
         may be emitted by this step. A step is not allowed to modify design
         formats not declared in ``outputs``.
 
         :class:`Step` subclasses without the ``outputs`` class property declared
         are considered abstract and cannot be initialized or used in a :class:`Flow`.
 
-    :cvar config_vars: A list of configuration :class:`openlane.config.Variable` objects
+    :cvar config_vars: A list of configuration :class:`librelane.config.Variable` objects
         to be used to alter the behavior of this Step.
 
     :cvar output_processors: A default set of
-        :class:`openlane.steps.OutputProcessor` classes for use with
+        :class:`librelane.steps.OutputProcessor` classes for use with
         :meth:`run_subprocess`.
 
     :ivar state_out:
@@ -551,7 +551,7 @@ class Step(ABC):
 
     def warn(self, msg: object, /, **kwargs):
         """
-        Logs to the OpenLane logger with the log level WARNING, appending the
+        Logs to the LibreLane logger with the log level WARNING, appending the
         step's ID as extra data.
 
         :param msg: The message to log
@@ -564,7 +564,7 @@ class Step(ABC):
 
     def err(self, msg: object, /, **kwargs):
         """
-        Logs to the OpenLane logger with the log level ERROR, appending the
+        Logs to the LibreLane logger with the log level ERROR, appending the
         step's ID as extra data.
 
         :param msg: The message to log
@@ -640,7 +640,7 @@ class Step(ABC):
 
                 # or
                 
-                from openlane.steps import Step
+                from librelane.steps import Step
 
                 {Self.__name__} = Step.factory.get("{Self.id}")
                 ```
@@ -880,14 +880,14 @@ class Step(ABC):
         flatten: bool = False,
     ):
         """
-        Creates a folder that, given a specific version of OpenLane being
+        Creates a folder that, given a specific version of LibreLane being
         installed, makes a portable reproducible of that step's execution.
 
         ..note
 
             Reproducibles are limited on Magic and Netgen, as their RC files
             form an indirect dependency on many `.mag` files or similar that
-            cannot be enumerated by OpenLane.
+            cannot be enumerated by LibreLane.
 
         Reproducibles are automatically generated for failed steps, but
         this may be called manually on any step, too.
@@ -967,7 +967,7 @@ class Step(ABC):
         # 1. Config
         dumpable_config: dict = copy_recursive(self.config, translator=visitor)
         dumpable_config["meta"] = {
-            "openlane_version": __version__,
+            "librelane_version": __version__,
             "step": self.__class__.get_implementation_id(),
         }
 
@@ -1010,7 +1010,7 @@ class Step(ABC):
         with open(state_path, "w") as f:
             f.write(json.dumps(dumpable_state, cls=GenericDictEncoder))
 
-        # 3. Runner (OpenLane)
+        # 3. Runner (LibreLane)
         script_path = os.path.join(target_dir, "run_ol.sh")
         with open(script_path, "w") as f:
             f.write(
@@ -1018,9 +1018,9 @@ class Step(ABC):
                     """
                     #!/bin/sh
                     set -e
-                    python3 -m openlane --version
+                    python3 -m librelane --version
                     if [ "$?" != "0" ]; then
-                        echo "Failed to run 'python3 -m openlane --version'."
+                        echo "Failed to run 'python3 -m librelane --version'."
                         exit -1
                     fi
 
@@ -1028,7 +1028,7 @@ class Step(ABC):
                     if [ "$1" != "eject" ] && [ "$1" != "run" ]; then
                         ARGS="run $@"
                     fi
-                    python3 -m openlane.steps $ARGS\\
+                    python3 -m librelane.steps $ARGS\\
                         --config ./config.json\\
                         --state-in ./state_in.json
                     """
@@ -1038,7 +1038,7 @@ class Step(ABC):
             os.chmod(script_path, 0o755)
         hyperlinks = (
             os.getenv(
-                "_i_want_openlane_to_hyperlink_things_for_some_reason",
+                "_i_want_librelane_to_hyperlink_things_for_some_reason",
                 None,
             )
             == "1"
@@ -1084,7 +1084,7 @@ class Step(ABC):
             if Config.current_interactive is not None:
                 self.step_dir = os.path.join(
                     os.getcwd(),
-                    "openlane_run",
+                    "librelane_run",
                     f"{Step.counter}-{slugify(self.id)}",
                 )
                 Step.counter += 1
@@ -1108,7 +1108,7 @@ class Step(ABC):
 
         hyperlinks = (
             os.getenv(
-                "_i_want_openlane_to_hyperlink_things_for_some_reason",
+                "_i_want_librelane_to_hyperlink_things_for_some_reason",
                 None,
             )
             == "1"
@@ -1131,7 +1131,7 @@ class Step(ABC):
         with open(self.config_path, "w") as f:
             config_mut = self.config.to_raw_dict()
             config_mut["meta"] = {
-                "openlane_version": __version__,
+                "librelane_version": __version__,
                 "step": self.__class__.get_implementation_id(),
             }
             f.write(json.dumps(config_mut, cls=GenericDictEncoder, indent=4))
@@ -1249,7 +1249,7 @@ class Step(ABC):
             the event of a non-zero exit code. Set to ``False`` if you'd like
             to do further processing on the output(s).
         :param output_processing: An override for the class's list of
-            :class:`openlane.steps.OutputProcessor` classes.
+            :class:`librelane.steps.OutputProcessor` classes.
         :param \\*\\*kwargs: Passed on to subprocess execution: useful if you want to
             redirect stdin, stdout, etc.
         :returns: A dictionary of output processor results.
@@ -1259,7 +1259,7 @@ class Step(ABC):
             * ``log_path``: The resolved log path for the subprocess
 
             The other key value pairs depend on the ``key`` class variables
-            and :meth:`openlane.steps.OutputProcessor.result` methods of the
+            and :meth:`librelane.steps.OutputProcessor.result` methods of the
             output processors.
         :raises subprocess.CalledProcessError: If the process has a non-zero
             exit, and ``check`` is True, this exception will be raised.
@@ -1304,7 +1304,7 @@ class Step(ABC):
 
         hyperlinks = (
             os.getenv(
-                "_i_want_openlane_to_hyperlink_things_for_some_reason",
+                "_i_want_librelane_to_hyperlink_things_for_some_reason",
                 None,
             )
             == "1"

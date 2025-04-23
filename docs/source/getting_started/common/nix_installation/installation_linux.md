@@ -8,7 +8,7 @@
     * 6th Gen Intel® Core CPU or later OR AMD Ryzen™️ 1000-series or later
     * 16 GiB of RAM
 
-We will primarily support Ubuntu 20.04+ for OpenLane.
+We will primarily support Ubuntu 20.04+ for LibreLane.
 
 If you're looking to build a virtual machine, we recommend [Ubuntu 22.04](https://releases.ubuntu.com/jammy/).
 
@@ -31,8 +31,8 @@ After that, simply run this command:
 
 ```console
 $ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
-    extra-substituters = https://openlane.cachix.org
-    extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+    extra-substituters = https://librelane.cachix.org
+    extra-trusted-public-keys = librelane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
 "
 ```
 

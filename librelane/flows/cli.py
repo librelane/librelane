@@ -142,7 +142,7 @@ def cloup_flow_opts(
     enable_initial_state_element: bool = False,
 ) -> Decorator:
     """
-    Creates a wrapper that appends a number of OpenLane flow-related flags to a
+    Creates a wrapper that appends a number of LibreLane flow-related flags to a
     function decorated with @cloup.command (https://cloup.readthedocs.io/en/stable/autoapi/cloup/index.html#cloup.command).
 
     The following keyword arguments will be passed to the decorated function.
@@ -193,7 +193,7 @@ def cloup_flow_opts(
                     "flow_name",
                     type=Choice(Flow.factory.list(), case_sensitive=False),
                     default=None,
-                    help="The built-in OpenLane flow to use for this run",
+                    help="The built-in LibreLane flow to use for this run",
                 ),
                 o(
                     "-c",
@@ -257,7 +257,7 @@ def cloup_flow_opts(
                     "tag",
                     default=None,
                     type=str,
-                    help="An optional name to use for this particular run of an OpenLane-based flow. Used to create the run directory.",
+                    help="An optional name to use for this particular run of an LibreLane-based flow. Used to create the run directory.",
                 ),
                 o(
                     "--last-run",
@@ -378,7 +378,7 @@ def cloup_flow_opts(
                 "--jobs",
                 type=int,
                 default=_get_process_limit(),
-                help="The maximum number of threads or processes that can be used by OpenLane.",
+                help="The maximum number of threads or processes that can be used by LibreLane.",
                 callback=set_worker_count_cb,
                 expose_value=False,
             )(f)

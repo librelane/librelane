@@ -100,7 +100,7 @@ def run(
                 ):
                     if meta.flow is None:
                         warn(
-                            'config_file currently has substituting_steps set with no flow, where it will fall back to Classic. Starting OpenLane 3.0.0, this will be an error. Please update your configuration to explicitly set "flow" to "Classic".'
+                            'config_file currently has substituting_steps set with no flow, where it will fall back to Classic. Starting LibreLane 3.0.0, this will be an error. Please update your configuration to explicitly set "flow" to "Classic".'
                         )
                     TargetFlow = TargetFlow.Substitute(meta.substituting_steps)  # type: ignore  # Type checker is being rowdy with this one
 
@@ -159,12 +159,12 @@ def run(
         for error in e.errors:
             err(error)
 
-        err("OpenLane will now quit. Please check your configuration.")
+        err("LibreLane will now quit. Please check your configuration.")
         ctx.exit(1)
     except ValueError as e:
         err(e)
         debug(traceback.format_exc())
-        err("OpenLane will now quit.")
+        err("LibreLane will now quit.")
         ctx.exit(1)
 
     try:
@@ -181,11 +181,11 @@ def run(
         )
     except FlowException as e:
         err(f"The flow has encountered an unexpected error:\n{e}")
-        err("OpenLane will now quit.")
+        err("LibreLane will now quit.")
         ctx.exit(1)
     except FlowError as e:
         err(f"The following error was encountered while running the flow:\n{e}")
-        err("OpenLane will now quit.")
+        err("LibreLane will now quit.")
         ctx.exit(2)
 
     if vsp := view_save_path:
@@ -200,7 +200,7 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
 
     message = dedent(
         f"""
-        OpenLane v{__version__}
+        LibreLane v{__version__}
 
         Copyright ©2020-2023 Efabless Corporation and other contributors.
 
@@ -243,7 +243,7 @@ def run_included_example(
     if not smoke_test and example is not None:
         value = example
 
-    example_path = os.path.join(common.get_openlane_root(), "examples", value)
+    example_path = os.path.join(common.get_librelane_root(), "examples", value)
     if not os.path.isdir(example_path):
         print(f"Unknown example '{value}'.", file=sys.stderr)
         ctx.exit(1)
@@ -252,7 +252,7 @@ def run_included_example(
     final_path = os.path.join(os.getcwd(), value)
     cleanup = False
     if smoke_test:
-        d = tempfile.mkdtemp("openlane2")
+        d = tempfile.mkdtemp("librelane")
         final_path = os.path.join(d, "smoke_test_design")
         cleanup = True
         kwargs.update(
@@ -323,10 +323,10 @@ def cli_in_container(
 
     final_argv = ["zsh"]
     if len(argv) != 0:
-        final_argv = ["openlane"] + argv
+        final_argv = ["librelane"] + argv
 
     docker_image = os.getenv(
-        "OPENLANE_IMAGE_OVERRIDE", f"ghcr.io/efabless/openlane2:{__version__}"
+        "OPENLANE_IMAGE_OVERRIDE", f"ghcr.io/librelane/librelane:{__version__}"
     )
 
     try:
@@ -413,12 +413,12 @@ o = partial(option, show_default=True)
     o(
         "--smoke-test",
         is_flag=True,
-        help="Runs a basic OpenLane smoke test, the results of which are temporary and discarded.",
+        help="Runs a basic LibreLane smoke test, the results of which are temporary and discarded.",
     ),
     o(
         "--run-example",
         default=None,
-        help="Copies one of the OpenLane examples to the current working directory and runs it.",
+        help="Copies one of the LibreLane examples to the current working directory and runs it.",
     ),
     constraint=mutually_exclusive,
 )
@@ -431,10 +431,10 @@ o = partial(option, show_default=True)
 @click.pass_context
 def cli(ctx, /, **kwargs):
     """
-    Runs an OpenLane flow via the commandline using a design configuration
+    Runs an LibreLane flow via the commandline using a design configuration
     object.
 
-    Try 'python3 -m openlane.steps --help' for step-specific options, including
+    Try 'python3 -m librelane.steps --help' for step-specific options, including
     reproducibles and running a step standalone.
     """
     args = kwargs["config_files"]

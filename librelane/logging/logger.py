@@ -36,7 +36,7 @@ class LogLevels(IntEnum):
 
 console = rich.console.Console()
 atexit.register(lambda: rich.console.Console().show_cursor())
-__event_logger: logging.Logger = logging.getLogger("__openlane__")
+__event_logger: logging.Logger = logging.getLogger("__librelane__")
 
 
 class options:
@@ -163,7 +163,7 @@ def initialize_logger():
     rich_handler.setFormatter(LevelFormatter("%(message)s", datefmt="[%X]"))
     rich_handler.addFilter(LevelFilter(["SUBPROCESS"], invert=True))
 
-    logger = logging.getLogger("__openlane__")
+    logger = logging.getLogger("__librelane__")
     logger.setLevel(LogLevels.SUBPROCESS)
 
     logger.handlers.clear()
@@ -177,7 +177,7 @@ initialize_logger()
 
 def register_additional_handler(handler: logging.Handler):
     """
-    Adds a new handler to the default OpenLane logger.
+    Adds a new handler to the default LibreLane logger.
 
     :param handler: The new handler. Must be of type ``logging.Handler``
         or its subclasses.
@@ -187,7 +187,7 @@ def register_additional_handler(handler: logging.Handler):
 
 def deregister_additional_handler(handler: logging.Handler):
     """
-    Removes a registered handler from the default OpenLane logger.
+    Removes a registered handler from the default LibreLane logger.
 
     :param handler: The handler. If not registered, the behavior
         of this function is undefined.
@@ -197,7 +197,7 @@ def deregister_additional_handler(handler: logging.Handler):
 
 def set_log_level(lv: Union[str, int]):
     """
-    Sets the log level of the default OpenLane logger.
+    Sets the log level of the default LibreLane logger.
 
     :param lv: Either the name or number of the desired log level.
     """
@@ -206,7 +206,7 @@ def set_log_level(lv: Union[str, int]):
 
 def reset_log_level():
     """
-    Sets the log level of the default OpenLane logger back to the
+    Sets the log level of the default LibreLane logger back to the
     default log level.
     """
     set_log_level("SUBPROCESS")
@@ -214,14 +214,14 @@ def reset_log_level():
 
 def get_log_level() -> int:
     """
-    Obtains the numeric log level of the OpenLane logger.
+    Obtains the numeric log level of the LibreLane logger.
     """
     return __event_logger.getEffectiveLevel()
 
 
 def debug(*args, **kwargs):
     """
-    Logs to the OpenLane logger with the log level DEBUG.
+    Logs to the LibreLane logger with the log level DEBUG.
 
     :param msg: The message to log
     """
@@ -232,7 +232,7 @@ def debug(*args, **kwargs):
 
 def verbose(*args, **kwargs):
     """
-    Logs to the OpenLane logger with the log level VERBOSE.
+    Logs to the LibreLane logger with the log level VERBOSE.
     """
     if kwargs.get("stacklevel") is None:
         kwargs["stacklevel"] = 2
@@ -245,7 +245,7 @@ def verbose(*args, **kwargs):
 
 def info(msg: object, /, **kwargs):
     """
-    Logs to the OpenLane logger with the log level INFO.
+    Logs to the LibreLane logger with the log level INFO.
 
     :param msg: The message to log
     """
@@ -256,7 +256,7 @@ def info(msg: object, /, **kwargs):
 
 def subprocess(msg: object, /, **kwargs):
     """
-    Logs to the OpenLane logger with the log level SUBPROCESS.
+    Logs to the LibreLane logger with the log level SUBPROCESS.
 
     :param msg: The message to log
     """
@@ -279,7 +279,7 @@ def rule(title: str = "", /, **kwargs):  # pragma: no cover
 
 def success(msg: object, /, **kwargs):
     """
-    Logs to the OpenLane logger with the log level INFO.
+    Logs to the LibreLane logger with the log level INFO.
 
     :param msg: The message to log
     """
@@ -290,7 +290,7 @@ def success(msg: object, /, **kwargs):
 
 def warn(msg: object, /, **kwargs):
     """
-    Logs to the OpenLane logger with the log level WARNING.
+    Logs to the LibreLane logger with the log level WARNING.
 
     :param msg: The message to log
     """
@@ -301,7 +301,7 @@ def warn(msg: object, /, **kwargs):
 
 def err(msg: object, /, **kwargs):
     """
-    Logs to the OpenLane logger with the log level ERROR.
+    Logs to the LibreLane logger with the log level ERROR.
 
     :param msg: The message to log
     """

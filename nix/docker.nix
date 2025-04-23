@@ -18,7 +18,7 @@
   pkgs,
   lib,
   python3,
-  openlane,
+  librelane,
   git,
   neovim,
   zsh,
@@ -32,14 +32,14 @@
   #   url = "https://raw.githubusercontent.com/NixOS/nix/master/docker.nix";
   #   sha256 = "sha256:0kpj0ms09v7ss86cayf3snpsl6pnjgjzk5wcsfp16ggvr2as80ai";
   # };
-  openlane-env = python3.withPackages (ps: with ps; [openlane]);
-  openlane-env-sitepackages = "${openlane-env}/${openlane-env.sitePackages}";
-  openlane-env-bin = "${openlane-env}/bin";
+  librelane-env = python3.withPackages (ps: with ps; [librelane]);
+  librelane-env-sitepackages = "${librelane-env}/${librelane-env.sitePackages}";
+  librelane-env-bin = "${librelane-env}/bin";
 in
   createDockerImage {
     inherit pkgs;
     inherit lib;
-    name = "openlane";
+    name = "librelane";
     tag = "tmp-${system}";
     extraPkgs = with dockerTools; [
       git
@@ -47,7 +47,7 @@ in
       neovim
       silver-searcher
 
-      openlane-env
+      librelane-env
     ];
     nixConf = {
       extra-experimental-features = "nix-command flakes repl-flake";
@@ -63,7 +63,7 @@ in
       autoload -U promptinit && promptinit && prompt suse && setopt prompt_sp
       autoload -U colors && colors
 
-      export PS1=$'%{\033[31m%}OpenLane Container (${openlane.version})%{\033[0m%}:%{\033[32m%}%~%{\033[0m%}%% ';
+      export PS1=$'%{\033[31m%}LibreLane Container (${librelane.version})%{\033[0m%}:%{\033[32m%}%~%{\033[0m%}%% ';
       HEREDOC
     '';
     image-config-cmd = ["${zsh}/bin/zsh"];
@@ -72,11 +72,11 @@ in
       "LC_ALL=C.UTF-8"
       "LC_CTYPE=C.UTF-8"
       "EDITOR=nvim"
-      "NIX_PYTHONPATH=${openlane-env-sitepackages}"
+      "NIX_PYTHONPATH=${librelane-env-sitepackages}"
       "TMPDIR=/tmp"
     ];
     image-config-extra-path = [
-      "${openlane-env-bin}"
-      "${openlane.computed_PATH}"
+      "${librelane-env-bin}"
+      "${librelane.computed_PATH}"
     ];
   }

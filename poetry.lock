@@ -508,7 +508,7 @@ files = [
 [[package]]
 name = "ioplace-parser"
 version = "0.3.0"
-description = "Antlr4-based parser for the OpenLane I/O Placement script"
+description = "Antlr4-based parser for the LibreLane I/O Placement script"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]

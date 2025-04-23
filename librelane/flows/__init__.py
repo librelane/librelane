@@ -15,7 +15,7 @@
 The Flow Module
 ---------------
 
-An API for implementing new flows using the OpenLane infrastructure, as well
+An API for implementing new flows using the LibreLane infrastructure, as well
 as a number of built-in flows.
 """
 from .flow import FlowError, FlowException, FlowProgressBar, Flow

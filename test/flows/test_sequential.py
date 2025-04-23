@@ -15,8 +15,8 @@ from typing import Type
 
 import pytest
 
-from openlane.flows import flow as flow_module, sequential as sequential_flow_module
-from openlane.steps import Step, step as step_module
+from librelane.flows import flow as flow_module, sequential as sequential_flow_module
+from librelane.steps import Step, step as step_module
 
 
 mock_variables = pytest.mock_variables
@@ -24,7 +24,7 @@ mock_variables = pytest.mock_variables
 
 @pytest.fixture
 def MetricIncrementer():
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     @Step.factory.register()
     class MetricIncrementer(Step):
@@ -45,7 +45,7 @@ def MetricIncrementer():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_sequential_flow(MetricIncrementer: Type[Step]):
-    from openlane.flows import SequentialFlow
+    from librelane.flows import SequentialFlow
 
     class Dummy(SequentialFlow):
         Steps = [
@@ -80,7 +80,7 @@ def test_sequential_flow(MetricIncrementer: Type[Step]):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_custom_seqflow(MetricIncrementer):
-    from openlane.flows import SequentialFlow
+    from librelane.flows import SequentialFlow
 
     MyFlow = SequentialFlow.make(
         [
@@ -114,7 +114,7 @@ def test_custom_seqflow(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_custom_seqflow_bad_id(MetricIncrementer):
-    from openlane.flows import SequentialFlow
+    from librelane.flows import SequentialFlow
 
     with pytest.raises(TypeError, match="No step found with id"):
         SequentialFlow.make(
@@ -130,7 +130,7 @@ def test_custom_seqflow_bad_id(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_substitution(MetricIncrementer):
-    from openlane.flows import SequentialFlow
+    from librelane.flows import SequentialFlow
 
     @Step.factory.register()
     class FirstMetricIncrementer(MetricIncrementer):
@@ -194,7 +194,7 @@ def test_substitution(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_substitute_none(MetricIncrementer):
-    from openlane.flows import SequentialFlow, FlowException
+    from librelane.flows import SequentialFlow, FlowException
 
     MyFlow = SequentialFlow.make(
         [
@@ -237,7 +237,7 @@ def test_substitute_none(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_bad_substitution(MetricIncrementer):
-    from openlane.flows import SequentialFlow, FlowException
+    from librelane.flows import SequentialFlow, FlowException
 
     MyFlow = SequentialFlow.make(
         [
@@ -285,7 +285,7 @@ def test_bad_substitution(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_flow_control(MetricIncrementer):
-    from openlane.flows import SequentialFlow
+    from librelane.flows import SequentialFlow
 
     class OtherMetricIncrementer(MetricIncrementer):
         id = "Test.OtherMetricIncrementer"
@@ -336,8 +336,8 @@ def test_flow_control(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_wildcard_gating(MetricIncrementer):
-    from openlane.flows import SequentialFlow
-    from openlane.config import Variable
+    from librelane.flows import SequentialFlow
+    from librelane.config import Variable
 
     class OtherMetricIncrementer(MetricIncrementer):
         id = "Test.OtherMetricIncrementer"
@@ -383,8 +383,8 @@ def test_wildcard_gating(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_gating_validation(MetricIncrementer):
-    from openlane.flows import SequentialFlow
-    from openlane.config import Variable
+    from librelane.flows import SequentialFlow
+    from librelane.config import Variable
 
     class Dummy(SequentialFlow):
         Steps = [MetricIncrementer]

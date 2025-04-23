@@ -242,7 +242,7 @@ class SequentialFlow(Flow):
             nonlocal step_ids
             dangerous_fuzzy_matching = (
                 os.getenv(
-                    "_i_want_openlane_to_fuzzy_match_steps_and_im_willing_to_accept_the_risks",
+                    "_i_want_librelane_to_fuzzy_match_steps_and_im_willing_to_accept_the_risks",
                     None,
                 )
                 == "1"

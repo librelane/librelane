@@ -15,7 +15,7 @@
 The Logging Module
 ------------------
 
-As the name implies, this handles OpenLane's logging using the ``logging``
+As the name implies, this handles LibreLane's logging using the ``logging``
 module and the ``rich`` library.
 """
 

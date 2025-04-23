@@ -539,7 +539,7 @@ class MultiCornerSTA(OpenSTAStep):
         Variable(
             "EXTRA_SPEFS",
             Optional[List[Union[str, Path]]],
-            "A variable that only exists for backwards compatibility with OpenLane <2.0.0 and should not be used by new designs.",
+            "A variable that only exists for backwards compatibility with LibreLane <2.0.0 and should not be used by new designs.",
         ),
         Variable(
             "STA_THREADS",
@@ -1010,7 +1010,7 @@ class IOPlacement(OpenROADStep):
     Places I/O pins on a floor-planned ODB file using OpenROAD's built-in placer.
 
     If ``FP_PIN_ORDER_CFG`` is not ``None``, this step is skipped (for
-    compatibility with OpenLane 1.)
+    compatibility with LibreLane 1.)
     """
 
     id = "OpenROAD.IOPlacement"

@@ -109,7 +109,7 @@ pdk_variables = [
     Variable(
         "SIGNAL_WIRE_RC_LAYERS",
         Optional[List[str]],
-        "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of OpenLane.",
+        "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
         pdk=True,
         deprecated_names=[
             ("WIRE_RC_LAYER", lambda x: [x]),
@@ -119,7 +119,7 @@ pdk_variables = [
     Variable(
         "CLOCK_WIRE_RC_LAYERS",
         Optional[List[str]],
-        "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of OpenLane.",
+        "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
         pdk=True,
         deprecated_names=[("CLOCK_WIRE_RC_LAYER", lambda x: [x])],
     ),
@@ -450,7 +450,7 @@ option_variables = [
     Variable(
         "MACROS",
         Optional[Dict[str, Macro]],
-        "A dictionary of Macro definition objects. See {py:class}`openlane.config.Macro` for more info.",
+        "A dictionary of Macro definition objects. See {py:class}`librelane.config.Macro` for more info.",
     ),
     Variable(
         "EXTRA_LEFS",

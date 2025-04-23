@@ -23,14 +23,16 @@ def __get_version():
         import re
 
         rx = re.compile(r"version\s*=\s*\"([^\"]+)\"")
-        openlane_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        pyproject_path = os.path.join(openlane_directory, "pyproject.toml")
+        librelane_directory = os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        )
+        pyproject_path = os.path.join(librelane_directory, "pyproject.toml")
         try:
             match = rx.search(open(pyproject_path, encoding="utf8").read())
             assert match is not None, "pyproject.toml found, but without a version"
             return match[1]
         except FileNotFoundError:
-            print("Warning: Failed to extract OpenLane version.", file=sys.stderr)
+            print("Warning: Failed to extract LibreLane version.", file=sys.stderr)
             return "UNKNOWN"
 
 

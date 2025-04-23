@@ -26,7 +26,7 @@ function compareMetricsWithBranch({ comparingDirectory, againstBranch, verbosity
     const { spawnSync } = require("child_process");
 
     let tableOutOpts = table_out ? ["--table-out", table_out] : [];
-    let allOpts = ["-m", "openlane.common.metrics", "compare-remote", comparingDirectory, "--branch", againstBranch, "--table-verbosity", verbosity,].concat(tableOutOpts)
+    let allOpts = ["-m", "librelane.common.metrics", "compare-remote", comparingDirectory, "--branch", againstBranch, "--table-verbosity", verbosity,].concat(tableOutOpts)
 
     let child = spawnSync("python3", allOpts.concat(["--token", token]), { encoding: "utf8" });
 
@@ -153,7 +153,7 @@ if (require.main === module) {
             const context = {
                 repo: {
                     owner: "efabless",
-                    repo: "openlane2"
+                    repo: "librelane"
                 },
                 issue: {
                     number: options.issueNumber
@@ -164,7 +164,7 @@ if (require.main === module) {
             compareAndComment({
                 github: octokit,
                 context: context,
-                botUsername: "openlane-bot",
+                botUsername: "librelane-bot",
                 botToken: options.token,
                 comparingDirectory: directory,
                 againstBranch: options.branch

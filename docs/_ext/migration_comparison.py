@@ -84,8 +84,8 @@ def subst_migration_comparison(app: Sphinx, docname: str, sourceRef: List[str]):
                 final_string += f"""
 <table style="width: 100%; table-layout:fixed;">
 <tr>
-<th style="width: 50%;"> OpenLane &lt;2.0 </th>
-<th style="width: 50%;"> OpenLane ≥2.0    </th>
+<th style="width: 50%;"> LibreLane &lt;2.0 </th>
+<th style="width: 50%;"> LibreLane ≥2.0    </th>
 </tr>
 <tr>
 <td style="width: 50%;">

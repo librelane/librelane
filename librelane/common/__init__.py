@@ -30,7 +30,7 @@ from .generic_dict import (
 )
 from .misc import (
     idem,
-    get_openlane_root,
+    get_librelane_root,
     get_script_dir,
     get_opdks_rev,
     slugify,

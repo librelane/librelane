@@ -40,7 +40,7 @@ def json_header(
         + [
             f"PDK_{config['PDK']}",
             f"SCL_{config['STD_CELL_LIBRARY']}",
-            "__openlane__",
+            "__librelane__",
             "__pnr__",
         ]
         + (

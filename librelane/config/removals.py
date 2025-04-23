@@ -38,7 +38,7 @@ removed_variables: Dict[str, str] = {
     "PLACE_SITE_WIDTH": "Now automatically extracted from PLACE_SITE.",
     "LEC_ENABLE": "Buggy/doesn't scale properly.",
     "LVS_INSERT_POWER_PINS": "No longer necessary.",
-    "RUN_CVC": "Upstream no longer supports CVC for use within OpenLane.",
+    "RUN_CVC": "Upstream no longer supports CVC for use within LibreLane.",
     "FP_PADFRAME_CFG": "To be implemented.",
     "FP_CONTEXT_DEF": "To be implemented.",
     "FP_CONTEXT_LEF": "To be implemented.",

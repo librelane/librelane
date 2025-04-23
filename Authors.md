@@ -1,19 +1,18 @@
 # Authors
 All categories ordered by last name, alphabetically.
 
-## OpenLane Team
-* Kareem Farid \<kareem.farid@efabless.com\>
+## LibreLane Team
+LibreLane is curerntly maintained 
+
 * Mohamed Gaber \<donn@efabless.com\>
 * Mohamed Shalan \<mshalan@efabless.com\>
 
 ## OpenLane 1.0 Core Developers
-* Manar Abdelatty<sup>*</sup> \<manarabdelaty@efabless.com\>
+* Manar Abdelatty \<manarabdelaty@efabless.com\>
 * Kareem Farid \<kareem.farid@efabless.com\>
 * Mohamed Gaber \<donn@efabless.com\>
-* Ahmed Ghazy<sup>*</sup> \<ahmed.ghazy@efabless.com\>
-* Amr Gouhar<sup>*</sup> \<aagouhar@efabless.com\>
-
-<sup>* Alumni</sup>
+* Ahmed Ghazy \<ahmed.ghazy@efabless.com\>
+* Amr Gouhar \<aagouhar@efabless.com\>
 
 ## Special Thanks
 * Tim Ansell \<tansell@google.com\>
@@ -28,4 +27,4 @@ All categories ordered by last name, alphabetically.
 
 ## All Contributors
 
-https://github.com/The-OpenROAD-Project/OpenLane/graphs/contributors
+https://github.com/librelane/librelane/graphs/contributors

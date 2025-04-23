@@ -377,7 +377,7 @@ class DRC(KLayoutStep):
         input_view = state_in[DesignFormat.GDS]
         assert isinstance(input_view, Path)
 
-        # Not pya script - DRC script is not part of OpenLane
+        # Not pya script - DRC script is not part of LibreLane
         self.run_subprocess(
             [
                 "klayout",

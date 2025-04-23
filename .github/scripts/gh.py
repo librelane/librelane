@@ -120,7 +120,7 @@ if os.getenv("GITHUB_ACTIONS") != "true":
     export_env = export_env_alt
 
 origin = os.getenv("REPO_URL")
-repo = Repo("openlane", origin)
+repo = Repo("librelane", origin)
 
 # public
 gh = SimpleNamespace(
@@ -134,6 +134,6 @@ gh = SimpleNamespace(
         "event": SimpleNamespace(**{"name": os.getenv("GITHUB_EVENT_NAME")}),
         "export_env": export_env,
         "Repo": Repo,
-        "openlane": repo,
+        "librelane": repo,
     }
 )

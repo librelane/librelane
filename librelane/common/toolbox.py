@@ -58,7 +58,7 @@ class Toolbox(object):
 
     def __init__(self, tmp_dir: str) -> None:
         # Only create before use, otherwise users will end up with
-        # "openlane_run/tmp" created in their PWD because of the global toolbox
+        # "librelane_run/tmp" created in their PWD because of the global toolbox
         self.tmp_dir = tmp_dir
 
         self.remove_cells_from_lib = lru_cache(16, True)(self.remove_cells_from_lib)  # type: ignore
@@ -66,7 +66,7 @@ class Toolbox(object):
 
     @deprecated(
         version="2.0.0b1",
-        reason="Use 'aggregate_metrics' from 'openlane.common'",
+        reason="Use 'aggregate_metrics' from 'librelane.common'",
         action="once",
     )
     def aggregate_metrics(
@@ -348,7 +348,7 @@ class Toolbox(object):
             if not isinstance(state_in, State):
                 raise TypeError("parameter state_in must be of type State")
 
-            with tempfile.TemporaryDirectory(prefix="openlane_klayout_tmp_") as d:
+            with tempfile.TemporaryDirectory(prefix="librelane_klayout_tmp_") as d:
                 render_step = KLayout.Render(config, state_in, _config_quiet=True)
                 render_step.start(self, d)
                 return open(os.path.join(d, "out.png"), "rb").read()

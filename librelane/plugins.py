@@ -17,5 +17,5 @@ import importlib
 discovered_plugins = {
     name: importlib.import_module(name)
     for finder, name, ispkg in pkgutil.iter_modules()
-    if name.startswith("openlane_plugin_")
+    if name.startswith("librelane_plugin_") or name.startswith("openlane_plugin_")
 }

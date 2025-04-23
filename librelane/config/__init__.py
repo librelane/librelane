@@ -15,7 +15,7 @@
 The Configuration Module
 ------------------------
 
-This modules includes various functions for importing and/or generating OpenLane
+This modules includes various functions for importing and/or generating LibreLane
 configuration objects. Configuration objects are the primary input to a flow.
 """
 from .preprocessor import Keys

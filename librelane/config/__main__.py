@@ -92,7 +92,7 @@ def create_config(
     source_rtl,
 ):
     """
-    Generates an OpenLane JSON configuration file for a design interactively.
+    Generates an LibreLane JSON configuration file for a design interactively.
     """
     if len(source_rtl) == 0:
         source_rtl = []
@@ -149,7 +149,7 @@ def create_config(
 
     print(f"Wrote config to '{file_name}'.")
     print("To run this design, invoke:")
-    print(f"\topenlane {design_dir_opt}{file_name}")
+    print(f"\tlibrelane {design_dir_opt}{file_name}")
 
 
 cli.add_command(create_config)

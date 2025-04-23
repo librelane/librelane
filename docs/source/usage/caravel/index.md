@@ -2,7 +2,7 @@
 
 ```{admonition} Note
 :class: seealso
-If you do not have prior experience with OpenLane, please make sure to go
+If you do not have prior experience with LibreLane, please make sure to go
 through the [Getting Started: Newcomers](../../getting_started/newcomers/index.md) tutorial first.
 ```
 
@@ -31,7 +31,7 @@ for more information.
 
 ## Creating your own project repository
 
-1. Start by creating a new repository from the Caravel user project OpenLane 2
+1. Start by creating a new repository from the Caravel user project LibreLane 2
    [template](https://github.com/efabless/caravel_user_project_ol2/generate).
    Let's call it `caravel_aes_accelerator`.
 
@@ -93,7 +93,7 @@ ______________________________________________________________________
 ## Hardening strategies
 
 There are 3 options for implementing a Caravel User Project design using
-OpenLane:
+LibreLane:
 
 1. `Macro-First Hardening`: Harden the user macro(s) initially and incorporate
    them into the user project wrapper without top-level standard cells. Ideal
@@ -135,11 +135,11 @@ ______________________________________________________________________
 1. Create a design directory to add our source files to:
 
    ```console
-   $ mkdir -p ~/caravel_aes_accelerator/openlane/aes_wb_wrapper
+   $ mkdir -p ~/caravel_aes_accelerator/librelane/aes_wb_wrapper
    ```
 
 1. Create the file
-   `~/caravel_aes_accelerator/openlane/aes_wb_wrapper/config.json` and add the
+   `~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json` and add the
    following simple configuration to it
 
 ```json
@@ -183,12 +183,12 @@ ______________________________________________________________________
 
 #### Running the flow
 
-To harden macros with OpenLane, we use the default flow, {flow}`Classic`.
+To harden macros with LibreLane, we use the default flow, {flow}`Classic`.
 
-Let's try running the flow from OpenLane:
+Let's try running the flow from LibreLane:
 
 ```console
-[nix-shell:~]$ openlane ~/caravel_aes_accelerator/openlane/aes_wb_wrapper/config.json
+[nix-shell:~]$ librelane ~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json
 ```
 
 ````{tip}
@@ -202,7 +202,7 @@ should look like this:
 If not, enter the following command in your terminal:
 
 ```console
-$ nix-shell --pure ~/openlane2/shell.nix
+$ nix-shell --pure ~/librelane/shell.nix
 ```
 ````
 
@@ -220,7 +220,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/caravel_aes_accelerator/openlane/aes_wb_wrapper/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json
 ```
 
 This opens {term}`KLayout` and you should be able to see the following:
@@ -242,7 +242,7 @@ ______________________________________________________________________
 #### Checking the reports
 
 You’ll find that a run directory (named something like
-`runs/RUN_2024-02-05_16-46-01`) was created when you ran OpenLane. Under this
+`runs/RUN_2024-02-05_16-46-01`) was created when you ran LibreLane. Under this
 folder, the logs, reports, and physical views will be located. It is always a
 good idea to review all logs and reports for all the steps in your run. However,
 in this guide, we will only review the main signoff reports from a couple of
@@ -494,7 +494,7 @@ config file:
 ```
 
 …and the following 2 constraints files `pnr.sdc` and `signoff.sdc` were created
-at `~/caravel_aes_accelerator/openlane/aes_wb_wrapper/`:
+at `~/caravel_aes_accelerator/librelane/aes_wb_wrapper/`:
 
 ````{dropdown} pnr.sdc
 ```tcl
@@ -688,7 +688,7 @@ set_load 0.19 [all_outputs]
 The `Design Constraints` part has to do with the design itself. The
 `Retrieved Constraints` part is retrieved from the Caravel chip boundary
 constraints with the `user_project_wrapper`. These constraints can be found
-[here](https://github.com/efabless/caravel_user_project_ol2/blob/a9dd629af92482842ddcaba8d95c298b41c1895b/openlane/user_project_wrapper/base_user_project_wrapper.sdc#L64).
+[here](https://github.com/efabless/caravel_user_project_ol2/blob/a9dd629af92482842ddcaba8d95c298b41c1895b/librelane/user_project_wrapper/base_user_project_wrapper.sdc#L64).
 The PnR constraints file has more aggressive constraints than the signoff one,
 this is done to accommodate the gap between the optimization tool estimation of
 parasitics and the final extractions on the layout.
@@ -733,7 +733,7 @@ So, the final `config.json` is as follows:
 Now let's try re-running the flow:
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/aes_wb_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json
 ```
 
 ______________________________________________________________________
@@ -795,7 +795,7 @@ order:
 1. The successful run tag
 
 ```console
-[nix-shell:~/openlane2]$ bash ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator aes_wb_wrapper RUN_TAG
+[nix-shell:~/librelane]$ bash ~/caravel_aes_accelerator/librelane/copy_views.sh ~/caravel_aes_accelerator aes_wb_wrapper RUN_TAG
 ```
 
 This will copy the physical views of the macro in the specified run to your
@@ -814,7 +814,7 @@ Caravel is expecting any Caravel User Project to have the IO pins at specific
 locations and with specific dimensions. So, we need a fixed floorplan, fixed
 I/Os pin shapes and locations, and fixed power rings. The fixed configuration
 section can be found at the end of the configurations file
-`openlane/user_project_wrapper/config.json`:
+`librelane/user_project_wrapper/config.json`:
 
 ```json
     "//": "Fixed configurations for Caravel. You should NOT edit this section",
@@ -849,7 +849,7 @@ section can be found at the end of the configurations file
 ```
 
 The rest of the configuration file can be edited. Now, We need the following
-edits for the `openlane/user_project_wrapper/config.json` in order to integrate
+edits for the `librelane/user_project_wrapper/config.json` in order to integrate
 our macro inside the `user_project_wrapper`:
 
 1. Replace the `user_proj_example` in the `MACROS` variable with our macro.
@@ -910,7 +910,7 @@ ______________________________________________________________________
 #### Running the flow
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 ````{tip}
@@ -918,13 +918,13 @@ Double-checking: are you inside a `nix-shell`? Your terminal prompt should look
 like this:
 
 ```console
-[nix-shell:~/openlane2]$
+[nix-shell:~/librelane]$
 ```
 
 If not, enter the following command in your terminal:
 
 ```console
-$ nix-shell --pure ~/openlane2/shell.nix
+$ nix-shell --pure ~/librelane/shell.nix
 ```
 ````
 
@@ -941,7 +941,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 This opens {term}`KLayout` and you should be able to see the following:
@@ -1090,7 +1090,7 @@ To fix the long routes issue that causes maximum transition violations, 3 things
 should be done:
 
 1. Create the pin order configuration file for `aes_wb_wrapper` in
-   `openlane/aes_wb_wrapper/pin_order.cfg`:
+   `librelane/aes_wb_wrapper/pin_order.cfg`:
 
 ````{dropdown} pin_order.cfg
 ```
@@ -1101,7 +1101,7 @@ wbs_.*
 ````
 
 2. Add the `Odb.CustomIOPlacement::FP_PIN_ORDER_CFG` variable to
-   `openlane/aes_wb_wrapper/config.json`
+   `librelane/aes_wb_wrapper/config.json`
 
 ````{dropdown} config.json
 ```json
@@ -1135,7 +1135,7 @@ wbs_.*
 ````
 
 3. Update the location of the macro in the
-   `openlane/user_project_wrapper/config.json` to `[10, 20]`
+   `librelane/user_project_wrapper/config.json` to `[10, 20]`
 
 ````{dropdown} config.json
 ```json
@@ -1247,20 +1247,20 @@ wbs_.*
 Now let's re-run the flow for the `aes_wb_wrapper`:
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/aes_wb_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json
 ```
 
 Then, after checking the `aes_wb_wrapper` reports, save the physical views
 using:
 
 ```console
-[nix-shell:~/openlane2]$ bash ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator aes_wb_wrapper RUN_TAG
+[nix-shell:~/librelane]$ bash ~/caravel_aes_accelerator/librelane/copy_views.sh ~/caravel_aes_accelerator aes_wb_wrapper RUN_TAG
 ```
 
 Then rerun the `user_project_wrapper`
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 ______________________________________________________________________
@@ -1270,7 +1270,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 Now our macro is placed at the bottom left corner close to the wishbone pins.
@@ -1326,7 +1326,7 @@ order:
 1. The successful run tag
 
 ```console
-[nix-shell:~/openlane2]$ bash ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
+[nix-shell:~/librelane]$ bash ~/caravel_aes_accelerator/librelane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
 ```
 
 This will copy the physical views of the macro in the specified run to your
@@ -1344,7 +1344,7 @@ large flattened macro.
 ### Configuration
 
 Since we will only harden the `user_project_wrapper`. Only the
-`openlane/user_project_wrapper/config.json` will be edited. The following edits
+`librelane/user_project_wrapper/config.json` will be edited. The following edits
 are needed for the `user_project_wrapper`
 
 1. Add the AES Verilog files
@@ -1469,10 +1469,10 @@ ______________________________________________________________________
 
 ### Running the flow
 
-To harden macros with OpenLane, we use the default flow, {flow}`Classic`.
+To harden macros with LibreLane, we use the default flow, {flow}`Classic`.
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 The flow will finish successfully in ~2 hours and we will see:
@@ -1488,7 +1488,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 Now, we can see that there are STD cells all over the `user_project_wrapper`
@@ -1557,8 +1557,8 @@ be in the first timing path.
 
 ```{note}
 There might be more hold violations or no violations at all depending on the
-version of OpenLane being used as this is a violation with a very small negative
-slack and the results can slightly change with OpenLane or OpenROAD updates.
+version of LibreLane being used as this is a violation with a very small negative
+slack and the results can slightly change with LibreLane or OpenROAD updates.
 ```
 
 To fix hold violations, one or more of the following solutions can be applied:
@@ -1665,9 +1665,9 @@ To fix the previous issues in the implementation, the following was added to the
 ```
 
 and the following constraints file `pnr.sdc` was created at
-`~/caravel_aes_accelerator/openlane/user_project_wrapper/`. This file is
+`~/caravel_aes_accelerator/librelane/user_project_wrapper/`. This file is
 originally copied from
-`~/caravel_aes_accelerator/openlane/user_project_wrapper/signoff.sdc` and edited
+`~/caravel_aes_accelerator/librelane/user_project_wrapper/signoff.sdc` and edited
 to fix the transition and hold violations:
 
 ````{dropdown} pnr.sdc
@@ -1827,7 +1827,7 @@ Then, the PnR SDC file path was edited in the JSON file.
 ```
 
 Now the final
-`~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json` file will
+`~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json` file will
 be:
 
 ````{dropdown} config.json
@@ -1925,7 +1925,7 @@ be:
 Now let's try re-running the flow:
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 The flow will finish successfully in ~2 hours and we will see:
@@ -1989,7 +1989,7 @@ order:
 1. The successful run tag
 
 ```console
-[nix-shell:~/openlane2]$ bash ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
+[nix-shell:~/librelane]$ bash ~/caravel_aes_accelerator/librelane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
 ```
 
 This will copy the physical views of the macro in the specified run to your
@@ -2211,10 +2211,10 @@ ______________________________________________________________________
 
 #### Running the flow
 
-To harden macros with OpenLane, we use the default flow, {flow}`Classic`.
+To harden macros with LibreLane, we use the default flow, {flow}`Classic`.
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 The flow will finish successfully in ~1.5 hours and we will see:
@@ -2230,7 +2230,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/caravel_aes_accelerator/librelane/user_project_wrapper/config.json
 ```
 
 Now, we can see that there are STD cells all over the `user_project_wrapper` and
@@ -2346,7 +2346,7 @@ order:
 1. The successful run tag
 
 ```console
-[nix-shell:~/openlane2]$ bash ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
+[nix-shell:~/librelane]$ bash ~/caravel_aes_accelerator/librelane/copy_views.sh ~/caravel_aes_accelerator user_project_wrapper RUN_TAG
 ```
 
 This will copy the physical views of the macro in the specified run to your

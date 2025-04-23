@@ -131,7 +131,7 @@ class Lint(Step):
         defines = [
             f"PDK_{self.config['PDK']}",
             f"SCL_{self.config['STD_CELL_LIBRARY']}",
-            "__openlane__",
+            "__librelane__",
             "__pnr__",
         ]
         if verilog_power_define := self.config.get("VERILOG_POWER_DEFINE"):

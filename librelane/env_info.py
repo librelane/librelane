@@ -18,7 +18,7 @@
 # environment surveys. Please ensure all code as compatible as possible
 # with ancient versions of Python.
 
-## This file is internal to OpenLane 2 and is not part of the API.
+## This file is internal to LibreLane 2 and is not part of the API.
 import os
 import re
 import sys
@@ -153,7 +153,7 @@ class NixInfo(StringRepresentable):
                     file=sys.stderr,
                 )
 
-            with tempfile.TemporaryDirectory(prefix="openlane_env_report_") as d:
+            with tempfile.TemporaryDirectory(prefix="librelane_env_report_") as d:
                 with open(os.path.join(d, "flake.nix"), "w") as f:
                     f.write("{}")
                 nix_command = subprocess.run(

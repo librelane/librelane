@@ -33,7 +33,7 @@ def _step_enabled(request: SubRequest, test: str):
 @pytest.fixture
 def pdk_root(request):
     import volare
-    from openlane.common import get_opdks_rev
+    from librelane.common import get_opdks_rev
 
     volare_home = volare.get_volare_home(request.config.option.pdk_root)
 
@@ -73,10 +73,10 @@ def attribute_from_file(file: str, attribute: str):
 @pytest.mark.parametrize("test", pytest.tests)
 @pytest.mark.usefixtures("_chdir_tmp", "_step_enabled")
 def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture):
-    from openlane.steps import Step
-    from openlane.state import State
-    from openlane.common import Toolbox, get_script_dir
-    from openlane.steps.openroad_alerts import SupportsOpenROADAlerts
+    from librelane.steps import Step
+    from librelane.state import State
+    from librelane.common import Toolbox, get_script_dir
+    from librelane.steps.openroad_alerts import SupportsOpenROADAlerts
 
     sys.path.insert(0, os.getcwd())
 

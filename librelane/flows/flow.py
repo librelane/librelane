@@ -45,7 +45,7 @@ from rich.progress import (
     TaskID,
 )
 from deprecated.sphinx import deprecated
-from openlane.common.types import Path
+from librelane.common.types import Path
 
 from ..config import Config, Variable, universal_flow_config_variables, AnyConfigs
 from ..state import State, DesignFormat, DesignFormatObject
@@ -233,8 +233,8 @@ class Flow(ABC):
     progress bar at the bottom of the terminal, which shows what stage the flow
     is currently in and the remaining stages.
 
-    :param config: Either a resolved :class:`openlane.config.Config` object, or an
-        input to :meth:`openlane.config.Config.load`.
+    :param config: Either a resolved :class:`librelane.config.Config` object, or an
+        input to :meth:`librelane.config.Config.load`.
 
     :param name: An optional string name for the Flow itself, and not a run of it.
 
@@ -243,11 +243,11 @@ class Flow(ABC):
         * The value of the ``name`` property (``NotImplemented`` by default)
         * The name of the concrete ``Flow`` class
 
-    :param config_override_strings: See :meth:`openlane.config.Config.load`
-    :param pdk: See :meth:`openlane.config.Config.load`
-    :param pdk_root: See :meth:`openlane.config.Config.load`
-    :param scl: See :meth:`openlane.config.Config.load`
-    :param design_dir: See :meth:`openlane.config.Config.load`
+    :param config_override_strings: See :meth:`librelane.config.Config.load`
+    :param pdk: See :meth:`librelane.config.Config.load`
+    :param pdk_root: See :meth:`librelane.config.Config.load`
+    :param scl: See :meth:`librelane.config.Config.load`
+    :param design_dir: See :meth:`librelane.config.Config.load`
 
     :cvar Steps:
         A list of :class:`Step` **types** used by the Flow (not Step objects.)
@@ -396,13 +396,13 @@ class Flow(ABC):
                 #### Using from the CLI
 
                 ```sh
-                openlane --flow {Self.__name__} [...]
+                librelane --flow {Self.__name__} [...]
                 ```
 
                 #### Importing
 
                 ```python
-                from openlane.flows import Flow
+                from librelane.flows import Flow
 
                 {Self.__name__} = Flow.factory.get("{Self.__name__}")
                 ```
@@ -856,7 +856,7 @@ class Flow(ABC):
                     )
 
         signoff_folder = os.path.join(
-            path, "signoff", self.config["DESIGN_NAME"], "openlane-signoff"
+            path, "signoff", self.config["DESIGN_NAME"], "librelane-signoff"
         )
         mkdirp(signoff_folder)
 

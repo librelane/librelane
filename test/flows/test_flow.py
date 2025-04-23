@@ -18,9 +18,9 @@ from typing import Callable, Optional, Type
 
 import pytest
 
-from openlane.flows import flow
-from openlane.config import Variable
-from openlane.steps import step
+from librelane.flows import flow
+from librelane.config import Variable
+from librelane.steps import step
 
 mock_variables = pytest.mock_variables
 
@@ -32,9 +32,9 @@ def variable():
 
 @pytest.fixture
 def MockStepTuple(variable: Variable):
-    from openlane.common import Path
-    from openlane.steps import Step
-    from openlane.state import DesignFormat, State
+    from librelane.common import Path
+    from librelane.steps import Step
+    from librelane.state import DesignFormat, State
 
     class StepA(Step):
         id = "Test.StepA"
@@ -106,7 +106,7 @@ def MockStepTuple(variable: Variable):
 
 @pytest.fixture
 def DummyFlow(MockStepTuple):
-    from openlane.flows import Flow
+    from librelane.flows import Flow
 
     StepA, StepB, _ = MockStepTuple
 
@@ -137,7 +137,7 @@ def DummyFlow(MockStepTuple):
 
 
 def test_flow_abc_init():
-    from openlane.flows import Flow
+    from librelane.flows import Flow
 
     with pytest.raises(TypeError, match="Can't instantiate abstract class") as e:
         Flow()
@@ -146,7 +146,7 @@ def test_flow_abc_init():
 
 
 def test_factory(DummyFlow: Type[flow.Flow]):
-    from openlane.flows import Flow
+    from librelane.flows import Flow
 
     assert functools.reduce(
         lambda x, y: x and (y in Flow.factory.list()),
@@ -197,7 +197,7 @@ def test_init_and_config_vars(DummyFlow: Type[flow.Flow], variable: Variable):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow])
 def test_clashing_variables(DummyFlow: Type[flow.Flow], MockStepTuple):
-    from openlane.flows import FlowException
+    from librelane.flows import FlowException
 
     StepA, StepB, StepC = MockStepTuple
 
@@ -275,7 +275,7 @@ def test_progress_bar(DummyFlow: Type[flow.Flow]):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow, step])
 def test_run_tags(caplog: pytest.LogCaptureFixture, MockStepTuple):
-    from openlane.flows import FlowException, SequentialFlow
+    from librelane.flows import FlowException, SequentialFlow
 
     StepA, StepB, _ = MockStepTuple
 

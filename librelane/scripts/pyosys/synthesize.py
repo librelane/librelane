@@ -41,7 +41,7 @@ from ys_common import ys
 from construct_abc_script import ABCScriptCreator
 
 
-def openlane_proc(d: ys.Design, report_dir: str):
+def librelane_proc(d: ys.Design, report_dir: str):
     d.run_pass("proc_clean")  # Clean up unused procedures
     d.run_pass("proc_rmdead")  # Remove dead procedures
     d.run_pass("proc_prune")  # Prune unused parts of procedures
@@ -59,7 +59,7 @@ def openlane_proc(d: ys.Design, report_dir: str):
     d.run_pass("opt_expr")  # Optimize expressions
 
 
-def openlane_opt(
+def librelane_opt(
     d,
     fast=False,
     mux_undef=False,
@@ -141,11 +141,11 @@ def openlane_opt(
     d.check()
 
 
-def openlane_synth(
+def librelane_synth(
     d, top, flatten, report_dir, *, booth=False, abc_dff=False, undriven=True
 ):
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
-    openlane_proc(d, report_dir)
+    librelane_proc(d, report_dir)
 
     if flatten:
         d.run_pass("flatten")  # Flatten the design hierarchy
@@ -155,9 +155,9 @@ def openlane_synth(
     d.run_pass("opt_clean")  # Clean up after optimization
 
     # Perform various logic optimization passes
-    openlane_opt(d, nodffe=True, nosdff=True)
+    librelane_opt(d, nodffe=True, nosdff=True)
     d.run_pass("fsm")  # Identify and optimize finite state machines
-    openlane_opt(d)
+    librelane_opt(d)
     d.run_pass("wreduce")  # Reduce logic using algebraic rewriting
     d.run_pass("peepopt")  # Perform local peephole optimization
     d.run_pass("opt_clean")  # Clean up after optimization
@@ -165,14 +165,14 @@ def openlane_synth(
         d.run_pass("booth")
     d.run_pass("alumacc")  # Optimize arithmetic logic unitsb
     d.run_pass("share")  # Share logic across the design
-    openlane_opt(d)
+    librelane_opt(d)
 
     # Memory optimization
     d.run_pass("memory", "-nomap")  # Analyze memories but don't map them yet
     d.run_pass("opt_clean")  # Clean up after memory analysis
 
     # Perform more aggressive optimization with faster runtime
-    openlane_opt(
+    librelane_opt(
         d,
         fast=True,
         opt_share=True,  # affects opt_share
@@ -184,7 +184,7 @@ def openlane_synth(
 
     # Technology mapping
     d.run_pass("memory_map")  # Map memories to standard cells
-    openlane_opt(
+    librelane_opt(
         d,
         opt_share=True,  # affects opt_share
         mux_undef=True,  # affects opt_expr
@@ -195,8 +195,8 @@ def openlane_synth(
     d.run_pass("techmap")
 
     # Couple more fast opt iterations
-    openlane_opt(d, fast=True)
-    openlane_opt(d, fast=True)
+    librelane_opt(d, fast=True)
+    librelane_opt(d, fast=True)
 
     d.run_pass(
         "abc", "-fast", *(["-dff"] if abc_dff else [])
@@ -229,7 +229,7 @@ def synthesize(
     defines = (config.get("VERILOG_DEFINES") or []) + [
         f"PDK_{config['PDK']}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
-        "__openlane__",
+        "__librelane__",
         "__pnr__",
     ]
 
@@ -307,7 +307,7 @@ def synthesize(
         lib_arguments.extend(["-liberty", lib])
 
     if config["SYNTH_ELABORATE_ONLY"]:
-        openlane_proc(d, report_dir)
+        librelane_proc(d, report_dir)
         if config["SYNTH_ELABORATE_FLATTEN"]:
             d.run_pass("flatten", "-noscopeinfo")
         d.run_pass("setattr", "-set", "keep", "1")
@@ -346,7 +346,7 @@ def synthesize(
         d.run_pass("plugin", "-i", "lighter")
         d.run_pass("reg_clock_gating", "-map", mapping)
 
-    openlane_synth(
+    librelane_synth(
         d,
         config["DESIGN_NAME"],
         config["SYNTH_HIERARCHY_MODE"] == "flatten",

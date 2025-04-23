@@ -365,13 +365,13 @@ class SynthesisCommon(VerilogStep):
         Variable(
             "SYNTH_ABC_LEGACY_REFACTOR",
             bool,
-            "Replaces the ABC command `drf -l` with `refactor` which matches older versions of OpenLane but is more unstable.",
+            "Replaces the ABC command `drf -l` with `refactor` which matches older versions of LibreLane but is more unstable.",
             default=False,
         ),
         Variable(
             "SYNTH_ABC_LEGACY_REWRITE",
             bool,
-            "Replaces the ABC command `drw -l` with `rewrite` which matches older versions of OpenLane but is more unstable.",
+            "Replaces the ABC command `drw -l` with `rewrite` which matches older versions of LibreLane but is more unstable.",
             default=False,
         ),
         Variable(
@@ -499,7 +499,7 @@ class SynthesisCommon(VerilogStep):
                     lighter_dff_map = Path(files[0])
                 except FileNotFoundError:
                     self.warn(
-                        "Lighter not found or not set up with OpenLane: If you're using a manual Lighter install, try setting LIGHTER_DFF_MAP explicitly."
+                        "Lighter not found or not set up with LibreLane: If you're using a manual Lighter install, try setting LIGHTER_DFF_MAP explicitly."
                     )
                 except subprocess.CalledProcessError:
                     self.warn(f"{scl} not supported by Lighter.")

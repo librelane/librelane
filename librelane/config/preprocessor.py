@@ -283,7 +283,7 @@ def process_string(
         in_exposed = [final_abspath.startswith(p) for p in readable_paths]
         if True not in in_exposed:
             raise PermissionError(
-                f"'{concatenated}' is not located any path readable to OpenLane"
+                f"'{concatenated}' is not located any path readable to LibreLane"
             )
         files = sorted(glob.glob(final_abspath))
         files_escaped = [file.replace("$", r"\$") for file in files]

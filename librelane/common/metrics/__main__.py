@@ -280,13 +280,13 @@ cli.add_command(compare_multiple)
 @cloup.option(
     "-r",
     "--repo",
-    default="efabless/openlane2",
-    help="The GitHub repository for OpenLane",
+    default="librelane/librelane",
+    help="The GitHub repository for LibreLane",
 )
 @cloup.option(
     "-m",
     "--metric-repo",
-    default="efabless/openlane-metrics",
+    default="efabless/librelane-metrics",
     help="The repository storing metrics for --repo",
 )
 @cloup.option(
@@ -350,7 +350,7 @@ def compare_remote(
     url = f"https://github.com/{metric_repo}/tarball/commit-{commit}"
 
     try:
-        with tempfile.TemporaryDirectory(prefix="openlane_metrics_tmpdir_") as d:
+        with tempfile.TemporaryDirectory(prefix="librelane_metrics_tmpdir_") as d:
             bio_gz = BytesIO()
             with session.stream("GET", url) as r:
                 r.raise_for_status()

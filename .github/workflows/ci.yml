@@ -41,7 +41,7 @@ jobs:
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./openlane/open_pdks_rev)" >> $GITHUB_OUTPUT
+          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
@@ -127,7 +127,7 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
           cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
   build-linux-aarch64:
@@ -152,7 +152,7 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: aarch64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
           cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
   build-darwin:
@@ -192,7 +192,7 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ matrix.system.nix }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
           cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           shell: "zsh {0}"
           run_tests: "true"
@@ -234,7 +234,7 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ env.NIX_SYSTEM }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
 
       - name: Build Docker Image
         run: |
@@ -244,7 +244,7 @@ jobs:
             --accept-flake-config\
             --option system ${{ env.NIX_SYSTEM }}\
             --extra-platforms ${{ env.NIX_SYSTEM }}\
-            .#packages.${{ env.NIX_SYSTEM }}.openlane-docker)
+            .#packages.${{ env.NIX_SYSTEM }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
       - name: Set Up Python
@@ -259,11 +259,11 @@ jobs:
           mkdir -p $HOME/.volare
           chmod -R 755 $HOME/.volare
           if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=openlane:tmp-aarch64-linux
+            export OPENLANE_IMAGE_OVERRIDE=librelane:tmp-aarch64-linux
           elif [ "${{ matrix.arch }}" == "amd64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=openlane:tmp-x86_64-linux
+            export OPENLANE_IMAGE_OVERRIDE=librelane:tmp-x86_64-linux
           fi
-          ./venv/bin/python3 -m openlane\
+          ./venv/bin/python3 -m librelane\
             --docker-no-tty\
             --dockerized\
             --pdk-root ./.volare-sky130\
@@ -306,12 +306,12 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
+          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
 
       - name: Check Nix
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
-          sudo tree /nix/store/*-openlane2 || true
+          sudo tree /nix/store/*-librelane || true
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v4
@@ -344,7 +344,7 @@ jobs:
             mkdir -p ${{ github.workspace }}/run
             sudo du -hs /nix/store/* | sort -h | tail -n 10
             sudo du -hs /nix/store/* | sort -h | tail -n 10 > before.txt
-            nix run --accept-flake-config .#openlane --\
+            nix run --accept-flake-config .#librelane --\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
@@ -370,7 +370,7 @@ jobs:
       - name: Fetch Metrics
         if: ${{ always() }}
         run: |
-          nix develop --accept-flake-config --command openlane.state latest\
+          nix develop --accept-flake-config --command librelane.state latest\
               ${{ matrix.design.run_dir }}\
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
       - name: Upload Metrics
@@ -419,7 +419,7 @@ jobs:
             require("./.github/scripts/compare_metrics.js")({
               github: github,
               context: context,
-              botUsername: "openlane-bot",
+              botUsername: "librelane-bot",
               botToken: "${{ secrets.GH_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
@@ -428,7 +428,7 @@ jobs:
         if: ${{ github.event_name == 'push' }} # && env.BRANCH_NAME == 'main' }}
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
-          REPO=efabless/openlane-metrics
+          REPO=efabless/librelane-metrics
           BRANCH_NAME="commit-$CURRENT_SHA"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
           cd current
@@ -475,10 +475,10 @@ jobs:
       - name: Push (Docker)
         if: ${{ env.PUBLISH == '1' }}
         run: |
-          docker tag openlane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
+          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
           docker push ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
 
-          docker tag openlane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
+          docker tag librelane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
           docker push ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest create\

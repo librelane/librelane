@@ -20,7 +20,7 @@ TPE = ThreadPoolExecutor(max_workers=_get_process_limit())
 
 def set_tpe(tpe: ThreadPoolExecutor):
     """
-    Allows replacing OpenLane's global ``ThreadPoolExecutor`` with a customized
+    Allows replacing LibreLane's global ``ThreadPoolExecutor`` with a customized
     one.
 
     It will be used inside steps, so use different TPEs inside steps to avoid
@@ -34,7 +34,7 @@ def set_tpe(tpe: ThreadPoolExecutor):
 
 def get_tpe() -> ThreadPoolExecutor:
     """
-    :returns: OpenLane's global ``ThreadPoolExecutor``. This is used to run
+    :returns: LibreLane's global ``ThreadPoolExecutor``. This is used to run
         steps, so do not use them inside steps to avoid a deadlock.
     """
     global TPE

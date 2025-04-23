@@ -33,7 +33,7 @@ from ..logging import info, err, warn
 from ..flows import cloup_flow_opts
 from ..__version__ import __version__
 from ..common.cli import formatter_settings
-from ..common import mkdirp, Toolbox, get_openlane_root
+from ..common import mkdirp, Toolbox, get_librelane_root
 
 
 def load_step_from_inputs(
@@ -134,9 +134,9 @@ def run(ctx, output, state_in, config, id, pdk_root, pdk, scl):
 
     step = load_step_from_inputs(ctx, id, config, state_in, pdk_root)
 
-    if step.config.meta.openlane_version != __version__:
+    if step.config.meta.librelane_version != __version__:
         warn(
-            "OpenLane version being used is different from the version this step was originally run with. Procceed with caution."
+            "LibreLane version being used is different from the version this step was originally run with. Procceed with caution."
         )
 
     mkdirp(output)
@@ -199,21 +199,21 @@ def run(ctx, output, state_in, config, id, pdk_root, pdk, scl):
 def eject(ctx, output, state_in, config, id):
     """
     For steps that rely on underlying utilities using a subprocess, this scripts
-    "ejects" OpenLane and just returns a shell script that runs this subprocess.
+    "ejects" LibreLane and just returns a shell script that runs this subprocess.
 
     This is useful for:
 
-    * OpenLane developers and maintainers reporting issues to original tool
+    * LibreLane developers and maintainers reporting issues to original tool
       developers
-    * Advanced users who are sure that the issue is not OpenLane-specific and
-      would like to skip reporting an issue with OpenLane first
+    * Advanced users who are sure that the issue is not LibreLane-specific and
+      would like to skip reporting an issue with LibreLane first
     """
 
     step = load_step_from_inputs(ctx, id, config, state_in)
 
-    if step.config.meta.openlane_version != __version__:
+    if step.config.meta.librelane_version != __version__:
         warn(
-            "OpenLane version being used is different from the version this step was originally run with. Procceed with caution."
+            "LibreLane version being used is different from the version this step was originally run with. Procceed with caution."
         )
 
     toolbox_dir = os.path.join(".", "toolbox_tmp")
@@ -262,7 +262,7 @@ def eject(ctx, output, state_in, config, id):
         )
         exit(-1)
 
-    canon_scripts_dir = os.path.join(get_openlane_root(), "scripts")
+    canon_scripts_dir = os.path.join(get_librelane_root(), "scripts")
     target_scripts_dir = os.path.join(".", "scripts")
 
     try:
@@ -418,11 +418,11 @@ def create_reproducible(
         * The current working directory
 
     These reproducibles are filesystem-independent, i.e. they can be run
-    on any computer that has the appropriate version of OpenLane 2 installed
+    on any computer that has the appropriate version of LibreLane 2 installed
     (as well as the underlying utility for that specific step.)
 
-    The reproducible will report an error if OpenLane is not installed and will
-    emit a warning if the installed version of OpenLane mismatches the one
+    The reproducible will report an error if LibreLane is not installed and will
+    emit a warning if the installed version of LibreLane mismatches the one
     declared in the config file.
     """
     step_dir = step_dir or step_dir_arg or os.getcwd()
@@ -496,7 +496,7 @@ def create_test(ctx, step_dir, step_dir_arg, output):
 @group(formatter_settings=formatter_settings)
 def cli():
     """
-    Try 'python3 -m openlane.steps COMMAND --help' for help with a specific
+    Try 'python3 -m librelane.steps COMMAND --help' for help with a specific
     command.
     """
     pass

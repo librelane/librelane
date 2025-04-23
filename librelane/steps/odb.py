@@ -364,7 +364,7 @@ class ManualMacroPlacement(OdbpyStep):
         Variable(
             "MACRO_PLACEMENT_CFG",
             Optional[Path],
-            "Path to an optional override for instance placement instead of the `MACROS` object for compatibility with OpenLane 1. If both are `None`, this step is skipped.",
+            "Path to an optional override for instance placement instead of the `MACROS` object for compatibility with LibreLane 1. If both are `None`, this step is skipped.",
         ),
     ]
 
@@ -618,8 +618,8 @@ class CustomIOPlacement(OdbpyStep):
         Variable(
             "ERRORS_ON_UNMATCHED_IO",
             Literal["none", "unmatched_design", "unmatched_cfg", "both"],
-            "Controls whether to emit an error in: no situation, when pins exist in the design that do not exist in the config file, when pins exist in the config file that do not exist in the design, and both respectively. `both` is recommended, as the default is only for backwards compatibility with OpenLane 1.",
-            default="unmatched_design",  # Backwards compatible with OpenLane 1
+            "Controls whether to emit an error in: no situation, when pins exist in the design that do not exist in the config file, when pins exist in the config file that do not exist in the design, and both respectively. `both` is recommended, as the default is only for backwards compatibility with LibreLane 1.",
+            default="unmatched_design",  # Backwards compatible with LibreLane 1
             deprecated_names=[
                 ("QUIT_ON_UNMATCHED_IO", _migrate_unmatched_io),
             ],

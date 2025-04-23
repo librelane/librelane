@@ -65,36 +65,36 @@ against fabrication defects.
 ASIC Flow
 ```
 
-## What is OpenLane?
+## What is LibreLane?
 
 ```{figure} ./flow.webp
 :scale: 30 %
 :align: right
 
-OpenLane Flow
+LibreLane Flow
 ```
 
-OpenLane is a powerful and versatile infrastructure library that enables the
+LibreLane is a powerful and versatile infrastructure library that enables the
 construction of digital ASIC physical implementation flows based on open-source
 and commercial EDA tools. It includes a reference flow ({flow}`Classic`) that is
 constructed entirely using open-source EDA tools –abstracting their behavior and
-allowing the user to configure them using a single file (See Figure 1). OpenLane
+allowing the user to configure them using a single file (See Figure 1). LibreLane
 also supports extending or modifying flows using Python scripts and
-utilities. Here are some of the key benefits of using OpenLane:
+utilities. Here are some of the key benefits of using LibreLane:
 
-* Flexibility and extensibility: OpenLane is designed to be flexible and
+* Flexibility and extensibility: LibreLane is designed to be flexible and
   extensible, allowing designers to customize the flow to meet their specific
   needs by developing Python scripts (plugins) and utilities or by modifying the
   existing configuration file.
-* Open source: OpenLane is an open-source project that is freely available to
+* Open source: LibreLane is an open-source project that is freely available to
   use and modify, which makes it a good choice for designers looking for a
   transparent, cost-effective solution.
-* Community support: OpenLane capitalizes on OpenLane's existing community of
+* Community support: LibreLane capitalizes on LibreLane's existing community of
   users and contributors, which means that a wealth of resources is available to
   help designers get started and troubleshoot any problems they encounter.
 
 ```{seealso}
-You may want to check out [OpenLane using Google Colab directly in your browser](https://developers.google.com/silicon/guides/digital-inverter-openlane).
+You may want to check out [LibreLane using Google Colab directly in your browser](https://developers.google.com/silicon/guides/digital-inverter-librelane).
 
 It's free, and there's no need to install anything on your machine!
 ```
@@ -111,24 +111,24 @@ ______________________________________________________________________
 1. Follow the instructions in {ref}`nix-based-installation` to
    install {term}`Nix` and set up {term}`Cachix`.
 
-1. Open a terminal and clone OpenLane as follows:
+1. Open a terminal and clone LibreLane as follows:
 
    ```console
-   $ git clone https://github.com/efabless/openlane2/ ~/openlane2
+   $ git clone https://github.com/librelane/librelane/ ~/librelane
    ```
 
-1. Invoke `nix-shell`, which will make all the packages bundled with OpenLane
+1. Invoke `nix-shell`, which will make all the packages bundled with LibreLane
    available to your shell.
 
    ```console
-   $ nix-shell --pure ~/openlane2/shell.nix
+   $ nix-shell --pure ~/librelane/shell.nix
    ```
 
    Some packages will be downloaded (about 3GiB) and afterwards, the terminal
    prompt should change to:
 
    ```console
-   [nix-shell:~/openlane2]$
+   [nix-shell:~/librelane]$
    ```
 
    ```{admonition} Important
@@ -141,10 +141,10 @@ ______________________________________________________________________
    {term}`sky130` {term}`PDK`.
 
    ```console
-   [nix-shell:~/openlane2]$ openlane --log-level ERROR --condensed --show-progress-bar --smoke-test
+   [nix-shell:~/librelane]$ librelane --log-level ERROR --condensed --show-progress-bar --smoke-test
    ```
 
-That's it. Everything is ready. Now, let's try OpenLane.
+That's it. Everything is ready. Now, let's try LibreLane.
 
 ______________________________________________________________________
 
@@ -192,8 +192,8 @@ and `pm32.v`.
 
 #### Configuration
 
-Designs in OpenLane have configuration files. A configuration file contains
-values set by the user for various {py:class}`openlane.config.Variable`(s). With
+Designs in LibreLane have configuration files. A configuration file contains
+values set by the user for various {py:class}`librelane.config.Variable`(s). With
 them, you control the flows. This is the configuration file for the
 `pm32` design:
 
@@ -229,7 +229,7 @@ all available variables.
 1. Create a directory to add our source files to:
 
    ```console
-   [nix-shell:~/openlane2]$ mkdir -p ~/my_designs/pm32
+   [nix-shell:~/librelane]$ mkdir -p ~/my_designs/pm32
    ```
 
 1. Create the file `~/my_designs/pm32/config.json` and add
@@ -241,7 +241,7 @@ all available variables.
 1. Run the following command:
 
    ```console
-   [nix-shell:~/openlane2]$ openlane ~/my_designs/pm32/config.json
+   [nix-shell:~/librelane]$ librelane ~/my_designs/pm32/config.json
    ```
 
 ````{tip}
@@ -249,13 +249,13 @@ Double-checking: are you inside a `nix-shell`? Your terminal prompt
 should look like this:
 
 ```console
-[nix-shell:~/openlane2]$
+[nix-shell:~/librelane]$
 ```
 
 If not, enter the following command in your terminal:
 
 ```console
-$ nix-shell --pure ~/openlane2/shell.nix
+$ nix-shell --pure ~/librelane/shell.nix
 ```
 ````
 
@@ -268,7 +268,7 @@ ______________________________________________________________________
 To open the final {term}`GDSII` layout run this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/my_designs/pm32/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json
 ```
 
 This opens {term}`KLayout` and you should be able to see the following:
@@ -283,7 +283,7 @@ If you wish to view the layout in the {term}`OpenROAD` GUI, try this command
 instead:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinopenroad ~/my_designs/pm32/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinopenroad ~/my_designs/pm32/config.json
 ```
 
 ______________________________________________________________________
@@ -291,10 +291,10 @@ ______________________________________________________________________
 #### Run directory
 
 You'll find that a **run directory** (named something like
-`runs/RUN_2023-12-27_16-59-15`) was created when you ran OpenLane.
+`runs/RUN_2023-12-27_16-59-15`) was created when you ran LibreLane.
 
-By default, OpenLane runs a {py:class}`Flow <openlane.flows.Flow>` composed of a
-sequence of {py:class}`Step <openlane.steps.Step>`(s). Each step has its
+By default, LibreLane runs a {py:class}`Flow <librelane.flows.Flow>` composed of a
+sequence of {py:class}`Step <librelane.steps.Step>`(s). Each step has its
 separate directory within the run directory.
 
 For example, the {step}`OpenROAD.TapEndCapInsertion` Step creates the following
@@ -346,7 +346,7 @@ Here is a small description of each of those files:
 Using `state_out.json`, you can view the layout at intermediate steps as well!
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/my_designs/pm32/config.json --with-initial-state ~/my_designs/pm32/runs/RUN_2023-12-27_16-59-15/14-openroad-tapendcapinsertion/state_out.json"
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json --with-initial-state ~/my_designs/pm32/runs/RUN_2023-12-27_16-59-15/14-openroad-tapendcapinsertion/state_out.json"
 ```
 ````
 
@@ -420,7 +420,7 @@ An ASIC design’s signoff is the last phase of its implementation. It involves
 physical and timing verifications before committing to the silicon manufacturing
 process, which is commonly known as "design tape-out".
 
-OpenLane runs a couple of Step(s) for the final signoff.
+LibreLane runs a couple of Step(s) for the final signoff.
 
 1. [DRC](#drc)
 1. [LVS](#lvs)
@@ -433,7 +433,7 @@ OpenLane runs a couple of Step(s) for the final signoff.
 chip foundries, that the layout has to satisfy in order to be manufacturable,
 such as checking for minimum allowed spacing between two `met1` shapes.
 
-OpenLane runs two DRC steps using `Magic` and `KLayout`: {step}`Magic.DRC` and
+LibreLane runs two DRC steps using `Magic` and `KLayout`: {step}`Magic.DRC` and
 `KLayout.DRC`. Both tools have blind spots that are covered by the other tools.
 
 Both the layout and what is known as a PDK's {term}`DRC deck` are processed by
@@ -446,13 +446,13 @@ the tools running DRC, as shown in the diagram below:
 DRC (Design Rule Checking) Flow
 ```
 
-If DRC violations are found; OpenLane will generate an error reporting the total
+If DRC violations are found; LibreLane will generate an error reporting the total
 count of violations found by each Step.
 
 To view DRC errors graphically, you may open the layout as follows:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/my_designs/pm32/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json
 ```
 
 Then in the menu bar select Tools ► Marker Browser. A new window should open.
@@ -671,8 +671,8 @@ antenna rules, which are rules that must be obeyed to avoid this problem. The
 rules limit the ratio of collection area and drainage (thin oxide) area. Antenna
 effect can be avoided by instructing the router to use short wire segments and
 to create bridges to disconnect long from transistor gates during fabrication.
-This approach is not used by OpenLane as OpenROAD routers don't support this
-methodology. Instead, OpenLane uses another approach that involves the insertion
+This approach is not used by LibreLane as OpenROAD routers don't support this
+methodology. Instead, LibreLane uses another approach that involves the insertion
 of an antenna diode (provided as a standard cell) next to the cell input pin
 that suffers from the antenna effect. Antenna diode cell has a reversed biased
 diode which can drain out the charge without affecting the transistor circuitry.
@@ -767,13 +767,13 @@ p.*
 4. Run the flow again using the following command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane ~/my_designs/pm32/config.json
+[nix-shell:~/librelane]$ librelane ~/my_designs/pm32/config.json
 ```
 
 5. Check the final layout again using this command:
 
 ```console
-[nix-shell:~/openlane2]$ openlane --last-run --flow openinklayout ~/my_designs/pm32/config.json
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json
 ```
 
 Since the configuration file `pin_order.cfg` has `#E` then `clk`, `rst`,
