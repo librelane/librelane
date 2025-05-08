@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,14 +30,12 @@
   inputs = {
     nix-eda.url = "github:fossi-foundation/nix-eda/2.1.2";
     libparse.url = "github:efabless/libparse-python";
-    ioplace-parser.url = "github:efabless/ioplace_parser";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
 
   inputs.ciel.inputs.nix-eda.follows = "nix-eda";
-  inputs.ioplace-parser.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
   inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
@@ -41,7 +43,6 @@
     self,
     nix-eda,
     libparse,
-    ioplace-parser,
     ciel,
     devshell,
     ...
@@ -53,7 +54,7 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [libparse ioplace-parser ciel])
+        (nix-eda.flakesToOverlay [libparse ciel])
         (pkgs': pkgs: {
           yosys-sby = (pkgs.yosys-sby.override { sha256 = "sha256-Il2pXw2doaoZrVme2p0dSUUa8dCQtJJrmYitn1MkTD4="; });
           klayout = (pkgs.klayout.overrideAttrs(old: {

@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +54,6 @@
   pytest-xdist,
   pyfakefs,
   rapidfuzz,
-  ioplace-parser,
   semver,
 }: let
   yosys-env = (yosys.withPythonPackages.override {target = yosysFull;}) (ps:
@@ -62,7 +65,6 @@
       click
       rich
       pyyaml
-      ioplace-parser
     ]);
   self = buildPythonPackage {
     pname = "librelane";
@@ -107,7 +109,6 @@
         psutil
         klayout.pymod
         rapidfuzz
-        ioplace-parser
         semver
       ]
       ++ self.includedTools;

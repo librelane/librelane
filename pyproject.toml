@@ -23,7 +23,6 @@ psutil = ">=5.9.0"
 httpx = ">=0.22.0,<0.29"
 klayout = ">=0.29.0,<0.31.0"
 rapidfuzz = ">=3.9.0,<4"
-ioplace-parser = ">=0.3.0,<0.5.0"
 yamlcore = "^0.0.2"
 semver = "^3.0.2"
 

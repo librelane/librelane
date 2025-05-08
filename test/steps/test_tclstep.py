@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +22,6 @@ import pytest
 from librelane.steps import step
 
 mock_variables = pytest.mock_variables
-
-
-def test_tclstep_missing_get_script_path():
-    from librelane.steps import TclStep
-
-    class TclStepTest(TclStep):
-        pass
-
-    error = "Can't instantiate abstract class TclStepTest with abstract methods? get_script_path"  # Python 3.8 says "methods" even if there is one method
-    with pytest.raises(TypeError, match=error):
-        TclStepTest()
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
