@@ -6,7 +6,7 @@
 IPVT
 
     Short for Interconnect, Process, Voltage, and Temperature, the four
-    components of a {term}`timing corner` in OpenLane.
+    components of a {term}`timing corner` in LibreLane.
 
 timing corner
 
@@ -18,12 +18,12 @@ timing corner
     A declarative build utility that can be used to create development
     environments in a pure and reproducible manner for both Linux and macOS.
 
-    OpenLane environments including tools are built with Nix.
+    LibreLane environments including tools are built with Nix.
 
 [Cachix](https://docs.cachix.org/)
 
-    Cachix is a service that caches {term}`Nix` build results from the OpenLane
-    CI and allows users to download those results instead of building OpenLane
+    Cachix is a service that caches {term}`Nix` build results from the LibreLane
+    CI and allows users to download those results instead of building LibreLane
     and all included utilities themselves.
 
 
@@ -36,7 +36,7 @@ timing corner
     originally developed internally by Cypress Semiconductor before being spun
     out into SkyWater Technology and made accessible to general industry.
 
-    sky130 is the default PDK for use with OpenLane as it was the first entirely
+    sky130 is the default PDK for use with LibreLane as it was the first entirely
     open-source PDK.
 
 PDK
@@ -62,7 +62,7 @@ Netlist
     A representation of the circuit modeling pre-hardened elements (standard
     cells and macros) and the connections between them.
 
-    In OpenLane, Netlists can be in Verilog, where they model cells in ideal conditions
+    In LibreLane, Netlists can be in Verilog, where they model cells in ideal conditions
     and are only interested in verifying the logical correctness of the circuit,
     or they can be {term}`SPICE netlist`(s), which model more physical conditions.
 
@@ -99,10 +99,10 @@ PnR
 
     An {term}`open-source` tool chain for digital SoC layout generation,
     focusing on the RTL-to-GDSII phase of system-on-chip design. It is used for
-    floorplanning, {term}`PnR` and design optimizations inside OpenLane.
+    floorplanning, {term}`PnR` and design optimizations inside LibreLane.
 
-    OpenLane and OpenROAD are
-    [loosely affiliated projects made by different teams](#faq-openlane-vs-openroad).
+    LibreLane and OpenROAD are
+    [loosely affiliated projects made by different teams](#faq-librelane-vs-openroad).
 
 [Magic](http://opencircuitdesign.com/netgen)
 
@@ -127,16 +127,16 @@ Tcl
     VLSI tool.
 
     {term}`Yosys`, {term}`OpenROAD` and {term}`Magic` are all Tcl-programmable,
-    in addition to most proprietary electronic design automation tool. OpenLane
+    in addition to most proprietary electronic design automation tool. LibreLane
     accepts design configuration files in the Tcl format as previous versions of
-    OpenLane were written in Tcl.
+    LibreLane were written in Tcl.
 
 metrics
 
     Quantitative measures representing physical characteristics of a design.
 
     Typically, these include values like the area of the design, worst clock
-    slack, average voltage drop, et cetera, but in OpenLane the conventional definition
+    slack, average voltage drop, et cetera, but in LibreLane the conventional definition
     is expanded to include any and all information about the circuit generated
     during runtime, encompassing things such as lint violations in the
     {term}`RTL` description of the circuit, the number of pins, et cetera.
@@ -144,7 +144,7 @@ metrics
 [METRICS2.1](https://github.com/ieee-ceda-datc/datc-rdf-Metrics4ML#metrics21-naming-convention)
 
     A naming convention for {term}`metrics` of a design used by {term}`OpenROAD`
-    and OpenLane 2+. OpenLane is responsible for extracting and naming metrics
+    and LibreLane 2+. LibreLane is responsible for extracting and naming metrics
     in a 2.1-compliant format from tools other than OpenROAD.
 
 LEF
@@ -195,7 +195,7 @@ JSON
     A data interchange format derived from JavaScript supporting numeric, Boolean
     and string values as well as lists and hashmaps composed of the above.
 
-    OpenLane uses JSON as the primary form for loading and storing configuration
+    LibreLane uses JSON as the primary form for loading and storing configuration
     data.
 
 Verilog
@@ -218,7 +218,7 @@ SPICE
     extracted parasitic resistances and capacitances, transistor switching
     speed, and so on.
 
-    SPICE itself is not part of any included OpenLane flows, but
+    SPICE itself is not part of any included LibreLane flows, but
     {term}`SPICE netlist`s are.
 
 
@@ -228,7 +228,7 @@ SPICE netlist
     netlists, SPICE netlists are capable of capturing an analog view of the
     circuit.
 
-    By comparing the digital Verilog netlist and analog SPICE netlist, OpenLane
+    By comparing the digital Verilog netlist and analog SPICE netlist, LibreLane
     performs {term}`LVS`.
 
 ASIC
@@ -243,7 +243,7 @@ ASIC
     (higher upfront cost but lower-cost scaling) or {term}`FPGA` (lower-cost
     upfront cost but *very* costly scaling.)
 
-    OpenLane flows primarily target ASIC technologies for manufacturing.
+    LibreLane flows primarily target ASIC technologies for manufacturing.
 
 FPGA
 
@@ -261,7 +261,7 @@ EDA
     Short for Electronic Design Automation.
 
     A field concerned with the development software, hardware, and services to
-    enable the automation of chip design tasks. OpenLane and all of its
+    enable the automation of chip design tasks. LibreLane and all of its
     constituent utilities could be considered EDA tools.
 
 foundry
@@ -376,7 +376,7 @@ Caravel
 OpenMPW
 
     A program by Google sponsoring a free Multi-Project Wafer for
-    {term}`open-source` hardware projects. OpenLane was initially developed for
+    {term}`open-source` hardware projects. LibreLane was initially developed for
     use with the OpenMPW project.
     
     See https://developers.google.com/silicon for more info.

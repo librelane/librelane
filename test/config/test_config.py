@@ -15,8 +15,8 @@ import pytest
 
 from decimal import Decimal
 
-from openlane.config import config
-from openlane.common import Path
+from librelane.config import config
+from librelane.common import Path
 
 
 mock_variables = pytest.mock_variables
@@ -25,7 +25,7 @@ mock_variables = pytest.mock_variables
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_dict_config():
-    from openlane.config import Meta, Config
+    from librelane.config import Meta, Config
 
     cfg, _ = Config.load(
         {"DESIGN_NAME": "whatever", "VERILOG_FILES": "dir::src/*.v"},
@@ -65,7 +65,7 @@ def test_dict_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_json_config():
-    from openlane.config import Meta, Config
+    from librelane.config import Meta, Config
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -121,7 +121,7 @@ def test_json_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_yaml_config():
-    from openlane.config import Meta, Config
+    from librelane.config import Meta, Config
 
     with open("/cwd/config.yaml", "w") as f:
         f.write(
@@ -174,7 +174,7 @@ def test_yaml_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_tcl_config():
-    from openlane.config import Meta, Config
+    from librelane.config import Meta, Config
 
     with open("/cwd/config.tcl", "w") as f:
         f.write(
@@ -227,7 +227,7 @@ def test_tcl_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_multiconf():
-    from openlane.config import Config, Meta
+    from librelane.config import Config, Meta
 
     with open("/cwd/config1.yaml", "w") as f:
         f.write(
@@ -288,7 +288,7 @@ def test_multiconf():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_mixed_configs():
-    from openlane.config import Meta, Config
+    from librelane.config import Meta, Config
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -350,7 +350,7 @@ def test_mixed_configs():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_copy_filtered():
-    from openlane.config import Config, Variable
+    from librelane.config import Config, Variable
 
     step1_variables = [
         Variable(
@@ -392,7 +392,7 @@ def test_copy_filtered():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_with_increment():
-    from openlane.config import Config, Variable
+    from librelane.config import Config, Variable
 
     step1_variables = [
         Variable(
@@ -436,7 +436,7 @@ def test_with_increment():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_automatic_conversion():
-    from openlane.config import Config
+    from librelane.config import Config
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -491,7 +491,7 @@ def test_automatic_conversion():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_pdk():
-    from openlane.config import InvalidConfig, Config
+    from librelane.config import InvalidConfig, Config
 
     cfg1, _ = Config.load(
         {
@@ -577,7 +577,7 @@ def test_pdk():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_invalid_keys(caplog: pytest.LogCaptureFixture):
-    from openlane.config import InvalidConfig, Config
+    from librelane.config import InvalidConfig, Config
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -648,7 +648,7 @@ def test_invalid_keys(caplog: pytest.LogCaptureFixture):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_dis_migration(caplog: pytest.LogCaptureFixture):
-    from openlane.config import Config, InvalidConfig
+    from librelane.config import Config, InvalidConfig
 
     def set_dis(dis: int):
         with open("/cwd/config.json", "w") as f:
@@ -664,7 +664,7 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
 
     for dis in [1, 2, 5, 7, '"cat"']:
         set_dis(dis)
-        with pytest.raises(InvalidConfig, match="not available in OpenLane") as e:
+        with pytest.raises(InvalidConfig, match="not available in LibreLane") as e:
             Config.load(
                 "/cwd/config.json",
                 config.flow_common_variables,

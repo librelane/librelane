@@ -20,15 +20,15 @@ from sphinx.application import Sphinx
 from docutils.parsers.rst.states import Struct
 import re
 
-from openlane.common import slugify
-from openlane.flows import Flow
-from openlane.steps import Step
-from openlane.config import universal_flow_config_variables
+from librelane.common import slugify
+from librelane.flows import Flow
+from librelane.steps import Step
+from librelane.config import universal_flow_config_variables
 
 custom_text_rx = re.compile(r"([\s\S]+)\s+\<([A-Za-z_\-\.:]+)\>")
 
 
-def openlane_object_reference_role(
+def librelane_object_reference_role(
     role: str, rawtext: str, text: str, lineno: int, inliner, options=None, content=None
 ):
     # Get target flow, ensure it exists
@@ -70,7 +70,7 @@ def openlane_object_reference_role(
     return [parent], messages
 
 
-def openlane_var_reference_role(
+def librelane_var_reference_role(
     role: str, rawtext: str, text: str, lineno: int, inliner, options=None, content=None
 ):
     # Get target flow, ensure it exists
@@ -137,6 +137,6 @@ def openlane_var_reference_role(
 
 
 def setup(app: Sphinx):
-    app.add_role("flow", openlane_object_reference_role)
-    app.add_role("step", openlane_object_reference_role)
-    app.add_role("var", openlane_var_reference_role)
+    app.add_role("flow", librelane_object_reference_role)
+    app.add_role("step", librelane_object_reference_role)
+    app.add_role("var", librelane_var_reference_role)

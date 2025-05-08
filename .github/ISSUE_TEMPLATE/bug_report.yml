@@ -1,5 +1,5 @@
 name: Bug Report
-description: If OpenLane is not behaving as expected, please file a report here.
+description: If LibreLane is not behaving as expected, please file a report here.
 body:
   - type: textarea
     id: description
@@ -21,9 +21,9 @@ body:
         ---
         This part is incredibly important:
 
-        Please run the following shell command in the OpenLane root folder:
+        Please run the following shell command in the LibreLane root folder:
 
-            openlane.env_info || python3 ./openlane/env_info.py
+            librelane.env_info || python3 ./librelane/env_info.py
 
         Then copy and paste the ENTIRE output in the text field below.
 
@@ -44,7 +44,7 @@ body:
         You also need to upload some files so we can reproduce your issue.
 
         If a step fails, you can create a reproducible by going
-        into the step directory, then typing `openlane.steps create-reproducible`
+        into the step directory, then typing `librelane.steps create-reproducible`
 
         A new directory called `reproducible` should be created. Zip or tarball
         that directory then upload by clicking and dragging the file to

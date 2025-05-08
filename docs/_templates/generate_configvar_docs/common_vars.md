@@ -8,7 +8,7 @@ can freely override these values.
 
 ```{note}
 `?` indicates an optional variable, i.e., a value that may hold a value of
-`None`.  OpenLane steps are expected to understand that these values are
+`None`.  LibreLane steps are expected to understand that these values are
 optional and behave accordingly.
 ```
 

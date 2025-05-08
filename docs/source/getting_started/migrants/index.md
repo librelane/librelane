@@ -1,24 +1,24 @@
 !register migration_comparison
 
-# Migrating from OpenLane 1
+# Migrating from LibreLane 1
 
-Version 2 of OpenLane is a complete re-imagining of OpenLane not just as a
+Version 2 of LibreLane is a complete re-imagining of LibreLane not just as a
 simple, somewhat customizable flow, but rather as an infrastructure that can
 support innumerable flows.
 
 Being rebuilt from the ground up, there is a small learning curve to adopting
-OpenLane 2. This document aims to help those making the jump.
+LibreLane 2. This document aims to help those making the jump.
 
 ## Why migrate?
 
-At a minimum, the default flow for OpenLane 2, named {flow}`Classic`, is essentially a
-more robust re-implementation of the OpenLane 1 flow that is still entirely
+At a minimum, the default flow for LibreLane 2, named {flow}`Classic`, is essentially a
+more robust re-implementation of the LibreLane 1 flow that is still entirely
 backwards compatible, with some conveniences:
 
 ```{note}
-While the OpenLane 2 infrastructue is stable, the default OpenLane 2 flow in
+While the LibreLane 2 infrastructue is stable, the default LibreLane 2 flow in
 itself is in beta, pending silicon validation, and we still recommend the
-OpenLane 1 flow for use with OpenMPW and chipIgnite. See [the FAQ](#faq-1v2) for
+LibreLane 1 flow for use with OpenMPW and chipIgnite. See [the FAQ](#faq-1v2) for
 more information.
 ```
 
@@ -27,18 +27,18 @@ more information.
 * More graceful failures: if the design fails mid-flow, because of a more strict
   separation of concerns, you still have access to metrics and reports from all
   previous steps.
-  * In OpenLane 1, they are all extracted at the end.
+  * In LibreLane 1, they are all extracted at the end.
 * The ability to use command-line flow control options such as `--from`, `--to`,
   `--skip` and `--only`, with the ability to resume from a snapshot of your
   design at certain parts of flows, without worrying about surprises related
   to state variables missing.
 
 ```{figure} ./configurable_flow.webp
-Writing custom flows and steps using OpenLane 2
+Writing custom flows and steps using LibreLane 2
 ```
 
 Additionally, if you're a more savvy user, a _whole new world_ of possibilities
-await with OpenLane 2. Built around "flows" composed of "steps," OpenLane 2 can
+await with LibreLane 2. Built around "flows" composed of "steps," LibreLane 2 can
 implement hardware flows for ASIC implementation by relying on basic Python
 object-oriented programming principles, and this naturally allows you to:
 
@@ -52,18 +52,18 @@ object-oriented programming principles, and this naturally allows you to:
 * Access a standardized and more formal form of design metrics based on
   {term}`METRICS2.1`.
 
-For example, using a custom OpenLane 2-based flow, the team over at
+For example, using a custom LibreLane 2-based flow, the team over at
 [TinyTapeout](https://tinytapeout.com) were able to integrate dozens of tiny
 designs together into a complex chip; leveraging custom flows and custom steps
 to tape-out a complex chip for ChipIgnite.
 
 ## Installation
 
-Like OpenLane 1, installations of OpenLane 2 include all underlying utilities
+Like LibreLane 1, installations of LibreLane 2 include all underlying utilities
 for the default flow, including but not limited to; Yosys, OpenROAD, Magic, and
 KLayout.
 
-OpenLane 2 uses a deterministic and reproducible environment builder called
+LibreLane 2 uses a deterministic and reproducible environment builder called
 [Nix](https://nixos.org) to both build its underlying utilities and distribute
 them.
 
@@ -73,9 +73,9 @@ advantages and is overall recommended.
 ### Nix-based Installation (Recommended)
 
 The Nix method involves installing the Nix build utility/package management
-software and cloning the OpenLane repository.
+software and cloning the LibreLane repository.
 
-You can install Nix and set up the OpenLane binary cache by following the
+You can install Nix and set up the LibreLane binary cache by following the
 instructions at {ref}`nix-based-installation`.
 
 Afterwards, you can run an example as follows:
@@ -86,27 +86,27 @@ Afterwards, you can run an example as follows:
 
 ### Docker-based Installation (Not Preferred)
 
-Docker is still supported if you have it installed from OpenLane 1, although the
+Docker is still supported if you have it installed from LibreLane 1, although the
 Docker image is built with a Nix environment instead of CentOS. The way it is
 invoked is also much simpler, with the Python script handling mounts and calling
 the image for you, as you can see below:
 
 ```!migration_comparison[bash]
-git clone https://github.com/The-OpenROAD-Project/OpenLane
+git clone https://github.com/The-OpenROAD-Project/LibreLane
 make pdk
 make mount
 ./flow.tcl -design spm
 ---
-pip3 install --upgrade openlane
-openlane --dockerized --run-example spm
+pip3 install --upgrade librelane
+librelane --dockerized --run-example spm
 ---
-This allows you to start the OpenLane environment from anywhere, without having
+This allows you to start the LibreLane environment from anywhere, without having
 to rely on a Makefile.
 ```
 
 ```{warning}
 `--dockerized` will make your home folder, your PDK root and your current
-working directory available to the OpenLane Docker container.
+working directory available to the LibreLane Docker container.
 
 If you need any other directories mounted, you can pass them in the following
 manner: `--docker-mount <dir1> [--docker-mount <dir2> [--docker-mount <dir3>]]`.
@@ -115,14 +115,14 @@ manner: `--docker-mount <dir1> [--docker-mount <dir2> [--docker-mount <dir3>]]`.
 ## Designs and Configuration
 
 The first question you may ask is if your existing designs are supported, and
-we're happy to say that, for the most part, the answer is yes! OpenLane 2
-supports about 99% of the config files from OpenLane 1, whether they're written
+we're happy to say that, for the most part, the answer is yes! LibreLane 2
+supports about 99% of the config files from LibreLane 1, whether they're written
 in JSON or Tcl, although Tcl is finicky at this point and we recommend rewriting
 them in JSON.
 
 ```{note}
 A small caveat is interactive scripts written in Tcl, however, are not supported
-in OpenLane 2- we've replaced them with Python-based flows, which are much
+in LibreLane 2- we've replaced them with Python-based flows, which are much
 more flexible and stable: you can check out how to write one under
 {doc}`/usage/writing_custom_flows`.
 ```
@@ -136,38 +136,38 @@ documented them in the following sections for your convenience:
 
 ## Running flows
 
-The command line interface for OpenLane 2 is more streamlined, and entirely
-handled by the OpenLane 2 Python module instead of relying on Makefiles.
+The command line interface for LibreLane 2 is more streamlined, and entirely
+handled by the LibreLane 2 Python module instead of relying on Makefiles.
 
 ```!migration_comparison[bash] ### PDK Installation
 make pdk
 ---
 ---
-OpenLane 2 will automatically download and install the default PDK(s) version
+LibreLane 2 will automatically download and install the default PDK(s) version
 using Volare.
 ```
 
 ```{tip}
-Don't forget to add `--dockerized` to `openlane` invocations if you're using
+Don't forget to add `--dockerized` to `librelane` invocations if you're using
 the Docker-based installation.
 ```
 
 ```!migration_comparison[bash] ### Installation Smoke-Testing
 make test
 ---
-openlane --smoke-test
+librelane --smoke-test
 ---
-Being built into the command-line interface of OpenLane makes it runnable from
+Being built into the command-line interface of LibreLane makes it runnable from
 anywhere.
 ```
 
 ```!migration_comparison[bash] ### Running an example design
 ./flow.tcl -design spm
 ---
-openlane --run-example spm
+librelane --run-example spm
 ---
 The example designs are now copied to the current working directory before being
-run, instead of relying on a global "OpenLane installation" directory.
+run, instead of relying on a global "LibreLane installation" directory.
 ```
 
 ```{tip}
@@ -178,7 +178,7 @@ default.
 ```!migration_comparison[bash] ### Running your own design
 ./flow.tcl ~/my_designs/picorv32
 ---
-openlane [--flow Classic] ~/my_designs/picorv32/config.json
+librelane [--flow Classic] ~/my_designs/picorv32/config.json
 ---
 We've done away with providing the design folder and automatically trying to
 detect which configuration file should be run, instead opting to use the
@@ -187,7 +187,7 @@ configuration file automatically.
 
 ## Outputs
 
-Examining outputs for OpenLane 2.0+ is very different compared to previous
+Examining outputs for LibreLane 2.0+ is very different compared to previous
 versions.
 
 ### Run Folders
@@ -201,7 +201,7 @@ runs/<run_tag>
 ├── config_in.tcl
 ├── errors.log
 ├── logs
-├── openlane.log
+├── librelane.log
 ├── reports
 ├── report.csv
 ├── results
@@ -248,7 +248,7 @@ so to find the LVS report, for example, you'll have to look for the folder
 ./final
 ---
 Fairly straightforward translation. There may be a number of new views for
-OpenLane ≥2.0 runs, but all the views from previous versions should continue
+LibreLane ≥2.0 runs, but all the views from previous versions should continue
 to exist.
 ```
 
@@ -260,13 +260,13 @@ OPENLANE_VERSION
 ---
 The final resolved configuration after loading defaults, values from the PDK,
 the configuration file and any command-line overrides, and also some metadata
-such as the flow used and the version of OpenLane.
+such as the flow used and the version of LibreLane.
 
-The generated `resolved.json` is a valid OpenLane configuration file for the
+The generated `resolved.json` is a valid LibreLane configuration file for the
 same flow; so you may re-run a flow with the same exact configuration as follows:
 
 ```bash
-openlane <path to run folder>/resolved.json
+librelane <path to run folder>/resolved.json
 ```
 ````
 
@@ -277,7 +277,7 @@ openlane <path to run folder>/resolved.json
 ./error.log
 ./warnings.log
 ---
-In OpenLane 2, the error log lacks the level prefix (`[ERROR]`/`[WARNING]`) in
+In LibreLane 2, the error log lacks the level prefix (`[ERROR]`/`[WARNING]`) in
 the files themselves.
 ```
 
@@ -287,7 +287,7 @@ the files themselves.
 ./final/metrics.csv
 ./final/metrics.json
 ---
-The CSV table is transposed in comparison to OpenLane 1, i.e., where the fields
+The CSV table is transposed in comparison to LibreLane 1, i.e., where the fields
 were columns in legacy versions, they have been made into rows into the new
 versions, as metrics may vary greatly depending on the flow.
 
@@ -310,18 +310,18 @@ Temperature,) corner.
 
 ### Viewing Layouts
 
-Instead of relying on an external script similar to OpenLane 1, OpenLane 2
+Instead of relying on an external script similar to LibreLane 1, LibreLane 2
 implements flows to allow you to load your designs into a number of the GUI
-tools included with OpenLane.
+tools included with LibreLane.
 
 ```!migration_comparison[bash] #### Opening final GDS in KLayout
 python3 ./gui.py --viewer klayout --format gds <path to run folder>
 ---
-openlane [--run-tag <run tag>|--last-run] --flow OpenInKLayout <run folder>/resolved.json
+librelane [--run-tag <run tag>|--last-run] --flow OpenInKLayout <run folder>/resolved.json
 ---
 Opening in KLayout is implemented as a one-step flow named, well, {flow}`OpenInKLayout`.
 
-OpenLane 2 allows you to run multiple flows in the same run directory, and thus
+LibreLane 2 allows you to run multiple flows in the same run directory, and thus
 opening the run in KLayout is just another step. When you do so, the last state
 of the design is used as an input, meaning that KLayout will preview the latest
 GDS stream-out in the design.
@@ -330,10 +330,10 @@ GDS stream-out in the design.
 ```!migration_comparison[bash] #### Opening earlier DEF view in KLayout
 python3 ./gui.py --viewer klayout --stage routing --format def <path to run folder>
 ---
-openlane --with-initial-state <run folder>/*-openroad-detailedrouting/state_out.json --flow OpenInKLayout <run folder>/resolved.json
+librelane --with-initial-state <run folder>/*-openroad-detailedrouting/state_out.json --flow OpenInKLayout <run folder>/resolved.json
 ---
 For steps of the flow where there is no GDS view yet, {flow}`OpenInKLayout` will
-preview the DEF view instead. You can tell OpenLane 2 which state to use
+preview the DEF view instead. You can tell LibreLane 2 which state to use
 explicitly, where here we've opted for the output state of the detailed routing
 step.
 ```
@@ -341,7 +341,7 @@ step.
 ```!migration_comparison[bash] #### Opening in OpenROAD
 python3 ./gui.py --viewer openroad --stage routing --format def <path to run folder>
 ---
-openlane --with-initial-state <run folder>/*-openroad-detailedrouting/state_out.json --flow OpenInOpenROAD <run folder>/resolved.json
+librelane --with-initial-state <run folder>/*-openroad-detailedrouting/state_out.json --flow OpenInOpenROAD <run folder>/resolved.json
 ---
 Similar to KLayout, opening designs in OpenROAD is implemented as a one-step flow
 named {flow}`OpenInOpenROAD`. Like with KLayout, you can give it a run folder.

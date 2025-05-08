@@ -1,35 +1,35 @@
 # Architectural Overview
 
-At its core level, OpenLane is an infrastructure in which **Flows** could be built
+At its core level, LibreLane is an infrastructure in which **Flows** could be built
 out of multiple atomic execution units called **Steps**, and then run with a
 **Configuration**.
 
-OpenLane is architected as a Python module with the following hierarchy:
+LibreLane is architected as a Python module with the following hierarchy:
 
-![An architectural view of OpenLane since version 2.0](./architecture.webp)
+![An architectural view of LibreLane since version 2.0](./architecture.webp)
 
 The module is accessible via Python scripts, Jupyter Notebooks and a (limited)
 command-line API.
 
 The module consists of four submodules:
-* {mod}`openlane.flows`
-* {mod}`openlane.steps`
-* {mod}`openlane.config`
-* {mod}`openlane.state`
+* {mod}`librelane.flows`
+* {mod}`librelane.steps`
+* {mod}`librelane.config`
+* {mod}`librelane.state`
 
-…with an assisting module named {mod}`openlane.common`.
+…with an assisting module named {mod}`librelane.common`.
 
 ## Steps
 
-Steps are the primary execution unit of OpenLane.
+Steps are the primary execution unit of LibreLane.
 
-The {class}`openlane.steps.Step` class is an [abstract base class](https://docs.python.org/3/glossary.html#term-abstract-base-class)
+The {class}`librelane.steps.Step` class is an [abstract base class](https://docs.python.org/3/glossary.html#term-abstract-base-class)
 from which all other steps inherit.
 
 Each step takes two inputs: a **Configuration Object** and a **State**, and
 returns an **output** state as shown here:
 
-![Architectural view of an OpenLane step](./step.webp)
+![Architectural view of an LibreLane step](./step.webp)
 
 Steps should align themselves to one principle:
 
@@ -60,15 +60,15 @@ file paths and the like. These are acceptable breaks from this dogma.
 
 ### States
 
-A {class}`openlane.state.State` is a snapshot of paths to the various different
+A {class}`librelane.state.State` is a snapshot of paths to the various different
 views of the design (e.g. Netlist, DEF, GDS, etc.) at any point in time.
 
-Keys must be of the type {class}`openlane.state.DesignFormat` and values must be
+Keys must be of the type {class}`librelane.state.DesignFormat` and values must be
 either:
 
-* Of the type {class}`openlane.config.Path`.
+* Of the type {class}`librelane.config.Path`.
 * N-nested dictionaries with key values such that the leaves are of the type
-  {class}`openlane.config.Path` as well.
+  {class}`librelane.config.Path` as well.
 
 States also have another property: metrics. This attribute captures design
 metrics, which may be read and/or updated by any step.
@@ -78,13 +78,13 @@ metrics, which may be read and/or updated by any step.
 Flows are scripts that incorporate multiple `Step`s to achieve a certain
 function.
 
-The {class}`openlane.flows.Flow` class is an
+The {class}`librelane.flows.Flow` class is an
 [abstract base class](https://docs.python.org/3/glossary.html#term-abstract-base-class)
 from which all other flows inherit.
 
 ### Sequential Flows
 
-A subclass of Flows, {class}`openlane.flows.SequentialFlow` will, as the name
+A subclass of Flows, {class}`librelane.flows.SequentialFlow` will, as the name
 implies, run its declared steps in sequence with the same configuration object
 and a consecutive states, i.e.
 
@@ -95,9 +95,9 @@ and a consecutive states, i.e.
 So, for a flow of {math}`n` steps, the final state, {math}`State_{n}` will be
 the output of the entire flow.
 
-The default flow of OpenLane when run from the command-line is a SequentialFlow
+The default flow of LibreLane when run from the command-line is a SequentialFlow
 named [`Classic`](./flows.md#classic), which is based off of the
-original, Tcl-based version of OpenLane.
+original, Tcl-based version of LibreLane.
 
 ## Configuration
 
@@ -122,6 +122,6 @@ input, which can be any of:
 * A path to an existent Tcl configuration file (deprecated)
 
 and then validates this configuration, resolving paths, fixing types and
-other such tasks along the way, returning the {class}`openlane.config.Config`
+other such tasks along the way, returning the {class}`librelane.config.Config`
 class which is essentially a validated and immutable string dictionary.
  

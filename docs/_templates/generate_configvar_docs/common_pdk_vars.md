@@ -2,14 +2,14 @@
 
 These are variables that are to be defined by a process design kit's
 configuration files for *all* steps and flows. For a PDK to be compatible with
-OpenLane, all non-`Optional` variables *must* be given a value.
+LibreLane, all non-`Optional` variables *must* be given a value.
 
 Like with flow configuration variables, configuration objects can freely
 override these values.
 
 ```{note}
 `?` indicates an optional variable, i.e., a value that does not need to be
-implemented by a PDK or an SCL. OpenLane steps are expected to understand that
+implemented by a PDK or an SCL. LibreLane steps are expected to understand that
 these values may hold a value of `None` in the input configuration and
 behave accordingly.
 ```

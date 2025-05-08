@@ -1,22 +1,22 @@
 # Writing and Using Plugins
 
-OpenLane plugin modules are written in Python and can be added to `PYTHONPATH`
+LibreLane plugin modules are written in Python and can be added to `PYTHONPATH`
 or installed to your Python `site-packages` (e.g. installed either inside
-or outside a venv). OpenLane detects and imports all Python modules found that
-have the prefix `openlane_plugin_`.
+or outside a venv). LibreLane detects and imports all Python modules found that
+have the prefix `librelane_plugin_`.
 
 Plugins are useful to add support for more utilities other than those included
-with OpenLane; either alternative open-source EDA utilities that are not part of
+with LibreLane; either alternative open-source EDA utilities that are not part of
 the built-in flows, or proprietary utilities that can never be a part of the
 built-in parts.
 
 ```{note}
-Plugins are not supported in OpenLane Docker containers.
+Plugins are not supported in LibreLane Docker containers.
 ```
 
 ## Registering new Flows and Steps
 
-Plugins, much like OpenLane itself, may create and register steps and flows into
+Plugins, much like LibreLane itself, may create and register steps and flows into
 global registries, where the steps and flows can then be accessed
 programmatically via their ID.
 
@@ -43,7 +43,7 @@ steps for other tools. There are multiple ways to include these tools:
 ### Bring-your-own-tools
 
 You may require users to bring their own tools by installing them on their own
-and adding them to `PATH`, then running OpenLane with the plugin separately.
+and adding them to `PATH`, then running LibreLane with the plugin separately.
 
 This is usually the only option for proprietary utilities.
 
@@ -59,9 +59,9 @@ including the Flakes feature, to follow.
 
 You may bundle either the plugin alone or the plugin and the tool using Nix.
 
-The flake for OpenLane contains a function named `createOpenLaneShell` in its 
+The flake for LibreLane contains a function named `createOpenLaneShell` in its 
 outputs. This creates a [devshell](https://github.com/numtide/devshell), which
-is an executable script that drops you into an environment with OpenLane, its
+is an executable script that drops you into an environment with LibreLane, its
 dependencies, and optionally plugins, installed.
 
 The plugins are to be regular Python Nix derivations, built using the
@@ -75,23 +75,23 @@ and incorporates `bash`, it can declare its dependencies as follows:
 
 ```nix
   propagatedBuildInputs = includedTools ++ [
-    openlane
+    librelane
     …
   ];
 ```
 
-Then to create a devshell with both OpenLane and the plugin available, use this
+Then to create a devshell with both LibreLane and the plugin available, use this
 Nix expression:
 
 ```nix
-devShells = openlane2.inputs.nix-eda.forAllSystems { withInputs = [openlane2 self]; } (utils: with utils; {
-  default = callPackage (openlane2.createOpenLaneShell {
+devShells = librelane.inputs.nix-eda.forAllSystems { withInputs = [librelane self]; } (utils: with utils; {
+  default = callPackage (librelane.createOpenLaneShell {
     extra-python-packages = [
-      pkgs.openlane_plugin_example
+      pkgs.librelane_plugin_example
     ];
   }) {};
 });
 ```
 
 For a full example of this, see
-[`openlane_plugin_example`](https://github.com/efabless/user_plugin_example).
+[`librelane_plugin_example`](https://github.com/efabless/user_plugin_example).

@@ -8,7 +8,7 @@ For various reasons, it's recommended to call working branches, even in your for
 
 ## Testing
 
-Before you submit your changes, it's prudent to perform some kind of smoke test. `python3 -m openlane ./designs/spm/config.json` tests a simple spm design to ensure nothing has gone horribly wrong.
+Before you submit your changes, it's prudent to perform some kind of smoke test. `python3 -m librelane ./designs/spm/config.json` tests a simple spm design to ensure nothing has gone horribly wrong.
 
 ## Language Standards
 
@@ -46,7 +46,7 @@ There are some special guidelines for scripts in `scripts/yosys`, `scripts/openr
 
 ### Nix
 
-Binary utilities used by OpenLane must utilize Nix derivations. We do have some conventions:
+Binary utilities used by LibreLane must utilize Nix derivations. We do have some conventions:
 
 * All packages must accept a `pkgs` argument with a default value of `import ./pkgs.nix`.
   * https://nix.dev/tutorials/towards-reproducibility-pinning-nixpkgs
@@ -54,9 +54,9 @@ Binary utilities used by OpenLane must utilize Nix derivations. We do have some 
   * We don't keep track of versions, only commits, so it doesn't matter. In other words, `version` should (in most cases) be `null`.
   * This will ultimately help us implement automatic tool update checks
 * Packages must not enable tests.
-  * OpenLane should be unit-testing everything it needs separately, and unlike
+  * LibreLane should be unit-testing everything it needs separately, and unlike
     the nixpkgs repo proper, we make no guarantees that the actual tools fully
-    runs beyond what not OpenLane needs.
+    runs beyond what not LibreLane needs.
   * Therefore, running tests would essentially just be a waste of compute.
 
 ## Submissions
@@ -70,10 +70,10 @@ Consult [GitHub Help](https://help.github.com/articles/about-pull-requests/) for
 For a PR to be merged, there are two requirements:
 
 * There are two automated checks, one for linting and the other for functionality. Both must pass.
-* An OpenLane team member must inspect and approve the PR.
+* An LibreLane team member must inspect and approve the PR.
 
 ## Licensing and Copyright
 
 Please add you (or your employer's) copyright headers to any files to which you have made major edits.
 
-Please note all code contributions must have the same license as OpenLane, i.e., the Apache License, version 2.0.
+Please note all code contributions must have the same license as LibreLane, i.e., the Apache License, version 2.0.

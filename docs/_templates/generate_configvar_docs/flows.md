@@ -1,5 +1,5 @@
 # Built-in Flows and their Configuration Variables
-These flows come included with OpenLane. They use a variety of built-in steps to
+These flows come included with LibreLane. They use a variety of built-in steps to
 either provide a general RTL-to-GDSII flow or more specific niches.
 
 Each Flow's list of configuration variables is essentially a sum of:

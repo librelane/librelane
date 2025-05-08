@@ -1,20 +1,20 @@
 # Variable Migration Guides
 
-These are migration guides for some particularly complex variables from OpenLane
+These are migration guides for some particularly complex variables from LibreLane
 1\.
 
 ```{note}
-In this document, OpenLane 1 refers to OpenLane versions before the release of
-2.0.0, and OpenLane 2 refers to 2.0.0 or higher.
+In this document, LibreLane 1 refers to LibreLane versions before the release of
+2.0.0, and LibreLane 2 refers to 2.0.0 or higher.
 ```
 
 ## Migrating `FP_PDN_VOFFSET`/`FP_PDN_HOFFSET`/`FP_PDN_VPITCH`/`FP_PDN_HPITCH` for smaller designs
 
-When working with smaller designs, OpenLane 1 used to scale down the PDN
+When working with smaller designs, LibreLane 1 used to scale down the PDN
 pitch/offset values by a factor of 4 so at least one set of PDN straps would
 be able to connect to the design.
 
-This was a bit too magical and not entirely deterministic, and thus OpenLane 2
+This was a bit too magical and not entirely deterministic, and thus LibreLane 2
 will no longer automatically do this scaling down for you. You will have to
 manually calculate the scale.
 
@@ -22,8 +22,8 @@ See {doc}`/usage/pdn` for more info.
 
 ## Migrating `DIODE_INSERTION_STRATEGY`
 
-As they were extremely complex, the OpenLane 1 diode insertion strategies were
-replaced by two flags in OpenLane 2's "Classic" flow:
+As they were extremely complex, the LibreLane 1 diode insertion strategies were
+replaced by two flags in LibreLane 2's "Classic" flow:
 
 * `GRT_REPAIR_ANTENNAS`: Attempts to repair antennas by enabling the step
   {step}`OpenROAD.RepairAntennas` that invokes OpenROAD's `repair_antennas`
@@ -56,18 +56,18 @@ The mapping for the strategies is as follows:
 
   * Both flags are set to `true`.
 
-Although for now OpenLane 2 will attempt the conversion for you automatically,
+Although for now LibreLane 2 will attempt the conversion for you automatically,
 it is recommended you update your designs as this feature will get removed.
 
 ## Migrating `MACROS` (Optional, but highly recommended)
 
-OpenLane 2+ allows you to configure macros you use in a configuration object
+LibreLane 2+ allows you to configure macros you use in a configuration object
 called `MACROS`.
 
 This object collects all information about macros and instances of macros into
 one object.
 
-For example, where an SPM macro in OpenLane 1 would be defined across multiple
+For example, where an SPM macro in LibreLane 1 would be defined across multiple
 variables in this manner:
 
 ```json

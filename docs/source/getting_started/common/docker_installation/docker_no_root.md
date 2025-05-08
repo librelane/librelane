@@ -5,7 +5,7 @@ The steps below might become outdated. It is recommended to follow the link to t
 :::
 
 :::{important}
-This is a mandatory step. Without this, most OpenLane scripts will error out with permission issues. A majority of installation issues from users come from people skipping this so, once again, DO NOT SKIP!
+This is a mandatory step. Without this, most LibreLane scripts will error out with permission issues. A majority of installation issues from users come from people skipping this so, once again, DO NOT SKIP!
 :::
 
 ```sh

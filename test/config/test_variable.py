@@ -30,7 +30,7 @@ def _mock_fs():
 
 
 def test_macro_validation():
-    from openlane.config import Macro
+    from librelane.config import Macro
 
     with pytest.raises(ValueError, match="at least one GDSII file"):
         Macro(gds=[], lef=["test"])
@@ -43,9 +43,9 @@ def test_macro_validation():
 
 
 def test_macro_from_state():
-    from openlane.common import Path
-    from openlane.config import Macro
-    from openlane.state import State
+    from librelane.common import Path
+    from librelane.config import Macro
+    from librelane.state import State
 
     state_in = State(
         {
@@ -78,27 +78,27 @@ def test_macro_from_state():
     state_fixed = State(state_in, overrides={"lef": Path._dummy_path})
     macro = Macro.from_state(state_fixed)
     assert macro == Macro(
-        gds=[Path("__openlane_dummy_path")],
-        lef=[Path("__openlane_dummy_path")],
+        gds=[Path("__librelane_dummy_path")],
+        lef=[Path("__librelane_dummy_path")],
         instances={},
-        nl=[Path("__openlane_dummy_path")],
-        pnl=[Path("__openlane_dummy_path")],
-        spef={"corner_*": [Path("__openlane_dummy_path")]},
+        nl=[Path("__librelane_dummy_path")],
+        pnl=[Path("__librelane_dummy_path")],
+        spef={"corner_*": [Path("__librelane_dummy_path")]},
         lib={
-            "corner_1": [Path("__openlane_dummy_path")],
-            "corner_2": [Path("__openlane_dummy_path")],
+            "corner_1": [Path("__librelane_dummy_path")],
+            "corner_2": [Path("__librelane_dummy_path")],
         },
         spice=[],
         sdf={
-            "corner_1": [Path("__openlane_dummy_path")],
-            "corner_2": [Path("__openlane_dummy_path")],
+            "corner_1": [Path("__librelane_dummy_path")],
+            "corner_2": [Path("__librelane_dummy_path")],
         },
         json_h=None,
     ), "Macro was not derived from State correctly"
 
 
 def test_is_optional():
-    from openlane.config.variable import is_optional
+    from librelane.config.variable import is_optional
 
     assert is_optional(int) is False, "is_optional false positive"
     assert is_optional(Optional[int]) is True, "is_optional false negative"
@@ -111,7 +111,7 @@ def test_is_optional():
 
 
 def test_some_of():
-    from openlane.config.variable import some_of
+    from librelane.config.variable import some_of
 
     assert some_of(int) == int, "some_of changed the type of a non-option type"
     assert (
@@ -130,7 +130,7 @@ def test_some_of():
 
 
 def test_variable_construction():
-    from openlane.config import Variable
+    from librelane.config import Variable
 
     variable = Variable(
         "EXAMPLE",
@@ -164,8 +164,8 @@ def test_variable_construction():
 
 @pytest.fixture
 def variable():
-    from openlane.common import Path
-    from openlane.config import Variable
+    from librelane.common import Path
+    from librelane.config import Variable
 
     return Variable(
         "EXAMPLE",
@@ -177,7 +177,7 @@ def variable():
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_compile(variable):
-    from openlane.common import GenericDict
+    from librelane.common import GenericDict
 
     valid_input = GenericDict({"EXAMPLE": ["/cwd/a", "/cwd/b"]})
     warning_list = []
@@ -194,8 +194,8 @@ def test_compile(variable):
 
 
 def test_compile_dataclass():
-    from openlane.common import GenericDict
-    from openlane.config import Variable
+    from librelane.common import GenericDict
+    from librelane.config import Variable
 
     @dataclass
     class MyClass:
@@ -212,8 +212,8 @@ def test_compile_dataclass():
 
 
 def test_compile_required():
-    from openlane.common import GenericDict
-    from openlane.config import Variable
+    from librelane.common import GenericDict
+    from librelane.config import Variable
 
     variable = Variable("MY_VARIABLE", int, description="x")
 
@@ -226,7 +226,7 @@ def test_compile_required():
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_compile_deprecated(variable):
-    from openlane.common import GenericDict
+    from librelane.common import GenericDict
 
     deprecated_valid_input = GenericDict(
         {
@@ -264,7 +264,7 @@ def test_enum():
 
 @pytest.fixture
 def variable_set(variable, test_enum):
-    from openlane.config import Variable
+    from librelane.config import Variable
 
     return [
         variable,
@@ -334,7 +334,7 @@ def variable_set(variable, test_enum):
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_compile_invalid(variable_set: list):
-    from openlane.common import GenericDict
+    from librelane.common import GenericDict
 
     invalid_input = GenericDict(
         {
@@ -373,7 +373,7 @@ def test_compile_invalid(variable_set: list):
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_compile_permissive(variable_set: list, test_enum: Type):
-    from openlane.common import GenericDict
+    from librelane.common import GenericDict
 
     permissive_valid_input = GenericDict(
         {

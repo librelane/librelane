@@ -17,6 +17,6 @@
   symlinkJoin,
 }:
 symlinkJoin {
-  name = "openlane-colab-env";
-  paths = python3.pkgs.openlane.includedTools;
+  name = "librelane-colab-env";
+  paths = python3.pkgs.librelane.includedTools;
 }

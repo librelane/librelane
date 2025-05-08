@@ -21,7 +21,7 @@ brew install --cask docker
 
 ## Configuring Docker
 
-Under **Preferences** > **Resources** > **File Sharing**, make sure `/Users` is mounted as follows, as using OpenLane 2+ with Docker requires access to your home folder.
+Under **Preferences** > **Resources** > **File Sharing**, make sure `/Users` is mounted as follows, as using LibreLane 2+ with Docker requires access to your home folder.
 
 :::{figure} ../../../../\_static/installation/mac_docker_settings.webp
 :::

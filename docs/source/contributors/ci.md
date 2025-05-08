@@ -2,17 +2,17 @@
 
 ## Components
 
-The OpenLane CI uses Nix and PIP to produce the following components:
+The LibreLane CI uses Nix and PIP to produce the following components:
 
 * Python Package → Uploaded to [PyPI](https://pypi.org/)
-  * Installable via `pip3 install openlane`
-* Cached Linux Binaries -> Uploaded to [Cachix](https://openlane.cachix.org)
-  * Usable by invoking `nix-shell` on the OpenLane repository
+  * Installable via `pip3 install librelane`
+* Cached Linux Binaries -> Uploaded to [Cachix](https://librelane.cachix.org)
+  * Usable by invoking `nix-shell` on the LibreLane repository
   * Derivative: **Docker Image** → Uploaded to [GHCR](https://ghcr.io/)
     * Usable by using the Python package and adding `--dockerized` at the
       beginning of an invocation, no Nix needed
-* Cached macOS Binaries -> Uploaded to [Cachix](https://openlane.cachix.org)
-  * Usable by invoking `nix-shell` on the OpenLane repository
+* Cached macOS Binaries -> Uploaded to [Cachix](https://librelane.cachix.org)
+  * Usable by invoking `nix-shell` on the LibreLane repository
 
 All aforementioned products have their inputs linted for code-standards and have
 a smoke-test of some kind run on them before publishing. Additionally, the Python

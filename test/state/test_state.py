@@ -27,7 +27,7 @@ def _mock_fs():
 
 
 def test_create_by_type():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {DesignFormat.NETLIST: "abc"}
     state = State(test_dict)
@@ -35,7 +35,7 @@ def test_create_by_type():
 
 
 def test_create_by_id():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {"nl": "abc"}
     state = State(test_dict)
@@ -43,7 +43,7 @@ def test_create_by_id():
 
 
 def test_override_by_id():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {"nl": "abc"}
     override = {"nl": "abcd"}
@@ -52,7 +52,7 @@ def test_override_by_id():
 
 
 def test_override_by_type():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {"nl": "abc"}
     override = {DesignFormat.NETLIST: "abcd"}
@@ -61,7 +61,7 @@ def test_override_by_type():
 
 
 def test_immutable():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {DesignFormat.NETLIST: "abc"}
     state = State(test_dict)
@@ -73,7 +73,7 @@ def test_immutable():
 
 
 def test_to_raw_dict():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {DesignFormat.NETLIST: "abc"}
     test_metrics = {"metric": "a"}
@@ -86,7 +86,7 @@ def test_to_raw_dict():
 
 
 def test_metrics_access():
-    from openlane.state import State
+    from librelane.state import State
 
     test_dict = {}
     test_metrics = {"metric": "a"}
@@ -95,7 +95,7 @@ def test_metrics_access():
 
 
 def test_metrics_mutate():
-    from openlane.state import State
+    from librelane.state import State
 
     test_dict = {}
     test_metrics = {"metric": "a"}
@@ -114,7 +114,7 @@ def test_metrics_mutate():
 
 
 def test_copy():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {"nl": "abc", "spef": {"nom": "abc"}}
     test_metrics = {"metric": "a"}
@@ -126,7 +126,7 @@ def test_copy():
 
 
 def test_empty():
-    from openlane.state import DesignFormat, State
+    from librelane.state import DesignFormat, State
 
     test_dict = {}
     test_metrics = {}
@@ -138,7 +138,7 @@ def test_empty():
 
 
 def test_path_fail_exists():
-    from openlane.state import State, InvalidState
+    from librelane.state import State, InvalidState
 
     test_dict = {"nl": "./state.py", "pnl": "abcd"}
     test_metrics = {"metric": "a"}
@@ -161,8 +161,8 @@ def test_path_fail_exists():
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_path_success():
-    from openlane.state import State
-    from openlane.common import Path
+    from librelane.state import State
+    from librelane.common import Path
 
     test_file = "test.nl.v"
     with open(test_file, "w") as f:
@@ -178,8 +178,8 @@ def test_path_success():
 @pytest.mark.usefixtures("_mock_fs")
 def test_save():
     import json
-    from openlane.state import State
-    from openlane.common import Path
+    from librelane.state import State
+    from librelane.common import Path
 
     test_file = "test.nl.v"
     test_file_contents = "test\n"
@@ -225,7 +225,7 @@ def test_save():
 @pytest.mark.usefixtures("_mock_fs")
 def test_loads():
     import json
-    from openlane.state import State
+    from librelane.state import State
 
     test_file = "test.nl.v"
     test_file_contents = "test\n"

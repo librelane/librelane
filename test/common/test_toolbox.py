@@ -22,7 +22,7 @@ from pyfakefs.fake_filesystem_unittest import Patcher
 
 @pytest.fixture
 def mock_macros_config():
-    from openlane.config import Macro, Instance
+    from librelane.config import Macro, Instance
 
     return {
         "DEFAULT_CORNER": "nom_tt_025C_1v80",
@@ -411,8 +411,8 @@ def model_blackboxing():
     ],
 )
 def test_filter_views(corner, expected, mock_macros_config):
-    from openlane.common import Path
-    from openlane.common import Toolbox
+    from librelane.common import Path
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
     views_by_corner = {
@@ -433,7 +433,7 @@ def test_filter_views(corner, expected, mock_macros_config):
 
 
 def gmv_parameters(f):
-    from openlane.state import DesignFormat
+    from librelane.state import DesignFormat
 
     f = pytest.mark.parametrize(
         ("view", "corner", "unless_exist", "expected"),
@@ -475,7 +475,7 @@ def test_get_macro_views_without_macros(
     unless_exist,
     expected,
 ):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -498,7 +498,7 @@ def test_get_macro_views_with_macros(
     expected,
     mock_macros_config,
 ):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -509,9 +509,9 @@ def test_get_macro_views_with_macros(
 
 
 def test_get_macro_views_by_priority():
-    from openlane.state import DesignFormat
-    from openlane.config import Macro, Instance
-    from openlane.common import Toolbox
+    from librelane.state import DesignFormat
+    from librelane.config import Macro, Instance
+    from librelane.common import Toolbox
 
     cfg = {
         "MACROS": {
@@ -633,7 +633,7 @@ def test_get_macro_views_by_priority():
     ],
 )
 def test_get_timing_files(timing_corner, prioritize_nl, expected, mock_macros_config):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -651,7 +651,7 @@ def test_get_timing_files_warnings(
     caplog: pytest.LogCaptureFixture,
     mock_macros_config,
 ):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -720,7 +720,7 @@ def test_get_timing_files_warnings(
 
 @pytest.mark.usefixtures("_lib_mock_fs")
 def test_remove_cell_list_from_lib(lib_trim_result):
-    from openlane.common import Toolbox, process_list_file
+    from librelane.common import Toolbox, process_list_file
 
     toolbox = Toolbox(".")
 
@@ -739,7 +739,7 @@ def test_remove_cell_list_from_lib(lib_trim_result):
 
 @pytest.mark.usefixtures("_lib_mock_fs")
 def test_remove_cells_from_lib(lib_trim_result):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -761,7 +761,7 @@ def test_remove_cells_from_lib(lib_trim_result):
 @mock.patch.dict(os.environ, {"PATH": "/bin"})
 @pytest.mark.usefixtures("_chdir_tmp")
 def test_blackbox_creation_no_yosys(model_blackboxing):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -782,7 +782,7 @@ def test_blackbox_creation_no_yosys(model_blackboxing):
 )
 @pytest.mark.usefixtures("_chdir_tmp")
 def test_blackbox_creation_w_yosys(model_blackboxing):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 
@@ -799,7 +799,7 @@ def test_blackbox_creation_w_yosys(model_blackboxing):
 
 @pytest.mark.usefixtures("_chdir_tmp")
 def test_voltage_lib_get(sample_lib_files, caplog: pytest.LogCaptureFixture):
-    from openlane.common import Toolbox
+    from librelane.common import Toolbox
 
     toolbox = Toolbox(".")
 

@@ -13,14 +13,14 @@
 # limitations under the License.
 import pytest
 
-from openlane.steps import step
+from librelane.steps import step
 
 mock_variables = pytest.mock_variables
 
 
 @pytest.fixture
 def PotatoesBurnt():
-    from openlane.steps.checker import MetricChecker
+    from librelane.steps.checker import MetricChecker
 
     class PotatoesBurnt(MetricChecker):
         id = "Potatoes Burnt"
@@ -36,7 +36,7 @@ def PotatoesBurnt():
 @pytest.fixture
 def run_potato_checker(PotatoesBurnt, mock_config):
     def impl(state_in):
-        from openlane.common import Toolbox
+        from librelane.common import Toolbox
 
         potatoes_burnt_step = PotatoesBurnt(
             config=mock_config,
@@ -54,7 +54,7 @@ def test_metric_check_pass(
     run_potato_checker,
     caplog: pytest.LogCaptureFixture,
 ):
-    from openlane.state import State
+    from librelane.state import State
 
     run_potato_checker(
         State(
@@ -73,7 +73,7 @@ def test_metric_check_not_found(
     run_potato_checker,
     caplog: pytest.LogCaptureFixture,
 ):
-    from openlane.state import State
+    from librelane.state import State
 
     run_potato_checker(
         State(
@@ -91,8 +91,8 @@ def test_metric_check_not_found(
 def test_metric_exceed(
     run_potato_checker,
 ):
-    from openlane.state import State
-    from openlane.steps import StepError
+    from librelane.state import State
+    from librelane.steps import StepError
 
     with pytest.raises(StepError, match="1 Burnt Potato Count found"):
         run_potato_checker(
@@ -106,10 +106,10 @@ def test_metric_exceed(
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_metric_exceed_deferred(mock_config):
-    from openlane.state import State
-    from openlane.steps.checker import MetricChecker
-    from openlane.steps import DeferredStepError
-    from openlane.common import Toolbox
+    from librelane.state import State
+    from librelane.steps.checker import MetricChecker
+    from librelane.steps import DeferredStepError
+    from librelane.common import Toolbox
 
     class PotatoesDropped(MetricChecker):
         id = "Potatoes Dropped"

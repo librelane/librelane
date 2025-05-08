@@ -38,10 +38,10 @@ If you get Docker permission error when running any Docker images, then likely,
 you forgot to follow the steps to make Docker available without root or you need to _restart your Operating System_.
 
 ```
-OpenLane> docker run hello-world
+LibreLane> docker run hello-world
 docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
 See 'docker run --help'.
-OpenLane>
+LibreLane>
 ```
 
 # Checking Installation Requirements
@@ -68,24 +68,24 @@ Once an environment has been created, you may wish to activate it, e.g. by
 sourcing an activate script in its bin directory.
 ```
 
-# Download and Install OpenLane
+# Download and Install LibreLane
 
-* Download OpenLane using PIP:
-
-```sh
-python3 -m pip install openlane
-```
-
-* Run a smoke test for OpenLane:
+* Download LibreLane using PIP:
 
 ```sh
-python3 -m openlane --dockerized --smoke-test
+python3 -m pip install librelane
 ```
 
-If the smoke test finishes successfully, congratulations. You're ready to use OpenLane.
+* Run a smoke test for LibreLane:
+
+```sh
+python3 -m librelane --dockerized --smoke-test
+```
+
+If the smoke test finishes successfully, congratulations. You're ready to use LibreLane.
 
 ```{note}
-You can run simply invoke `python3 -m openlane --dockerized` without any arguments
+You can run simply invoke `python3 -m librelane --dockerized` without any arguments
 to drop into an interactive shell inside the Docker environment, with your home
 directory and your PDK root directory mounted.
 ```

@@ -2,7 +2,7 @@
 
 ## Installing Dependencies
 
-For OpenLane you need a couple of tools installed:
+For LibreLane you need a couple of tools installed:
 
 * Docker version 25.0.5+
   * Docker post-installation steps for running without root.

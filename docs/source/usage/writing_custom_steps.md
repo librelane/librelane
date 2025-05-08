@@ -3,14 +3,14 @@
 Just like you may write custom flows, you may also write custom steps to run
 within those flows.
 
-**_Again_**, please review OpenLane's high-level architecture [at this link](../reference/architecture.md).
+**_Again_**, please review LibreLane's high-level architecture [at this link](../reference/architecture.md).
 This defines many of the terms used and enumerates strictures mentioned in this document.
 
 ## Generic Steps
 
 Like flows, each Step subclass must:
 
-* Implement the {meth}`openlane.steps.Step.run` method.
+* Implement the {meth}`librelane.steps.Step.run` method.
   * This step is responsible for the core logic of the step, which is arbitrary.
   * This method must return two values:
     * A `ViewsUpdate`, a dictionary from {class}`DesignFormat` objects to
@@ -27,7 +27,7 @@ You should not be overriding `start` either, which is marked **final**.
 
 But also, each Step is required to:
 
-* Declare any required {class}`openlane.state.State` inputs in the `inputs`
+* Declare any required {class}`librelane.state.State` inputs in the `inputs`
   attribute.
   * This will enforce checking the input states for these views.
 * Declare any potential state modifications in the `outputs` attribute.
@@ -43,7 +43,7 @@ programmatically enforced, but some are still not.
 
 ### Writing Config Variables
 
-Config variables are declared using the {class}`openlane.config.Variable` object.
+Config variables are declared using the {class}`librelane.config.Variable` object.
 
 There are some conventions to writing these variables.
 
@@ -52,7 +52,7 @@ There are some conventions to writing these variables.
 * Composite types should be declared using the `typing` module, i.e., for a list
   of strings, try `typing.List[str]` instead of `list[str]` or just `list`.
   * `list[str]` is incompatible with Python 3.8.
-  * `list` does not give OpenLane adequate information to validate the child
+  * `list` does not give LibreLane adequate information to validate the child
     variables.
 * Variables that capture a physical quantity, such as time, distance or similar,
   must declare units using their `"units"` field.
@@ -61,13 +61,13 @@ There are some conventions to writing these variables.
 * Variables may be declared as `pdk`, which determines the compatibility of a PDK
   with your step. If you use a PDK that does not declare one of your declared PDK
   variables, the configuration will not compile and the step will raise a
-  {class}`openlane.steps.StepException`.
+  {class}`librelane.steps.StepException`.
   * PDK variables should generally avoid having default values other than `None`.
     An exception is when a quantity may be defined by some PDKs, but needs a fallback
     value for others.
 * No complex defaults. Defaults must be scalar and quick to evaluate- if your
   default value depends on the default value of another variable, for example,
-* All filesystem paths must be declared as {class}`openlane.common.Path`, objects
+* All filesystem paths must be declared as {class}`librelane.common.Path`, objects
   which adds some very necessary validation and enables easier processing of the
   variables down the line.
   * Avoid pointing to entire folders. If your step may require multiple files within
@@ -110,8 +110,8 @@ will handle this check for you.
 
 Otherwise, you're basically free to write any logic you desire, with one exception:
 
-* If you're running a terminal subprocess you'd like to have OpenLane manage the
-  logs for, please use {meth}`openlane.steps.Step.run_subprocess`,
+* If you're running a terminal subprocess you'd like to have LibreLane manage the
+  logs for, please use {meth}`librelane.steps.Step.run_subprocess`,
   passing \*args and \*\*kwargs. It will manage
   I/O for the process, and allow the creation of report files straight from the
   logs- more on that later.
@@ -128,14 +128,14 @@ you can also write `%OL_CREATE_REPORT <name>.rpt` to stdout and everything until
 
 ## Creating Metrics
 
-Likewise, if you're running a subprocess, you can have {meth}`openlane.steps.Step.run_subprocess`
+Likewise, if you're running a subprocess, you can have {meth}`librelane.steps.Step.run_subprocess`
 capture them for you automatically by using `%OL_METRIC`. See the documentation
-of {meth}`openlane.steps.Step.run_subprocess` for more info.
+of {meth}`librelane.steps.Step.run_subprocess` for more info.
 
 ```{note}
 Metrics generated using this method will not be automatically added to the
-output state. The {meth}`openlane.steps.Step.run` method is expected to capture
-the returned dictionary of any {meth}`openlane.steps.Step.run_subprocess`
+output state. The {meth}`librelane.steps.Step.run` method is expected to capture
+the returned dictionary of any {meth}`librelane.steps.Step.run_subprocess`
 invocations and add any values to the returned `MetricUpdate` dictionary as appropriate.
 ```
 
@@ -145,10 +145,10 @@ The `Step` object makes heavy use of object-oriented programming to encourage
 as much code reuse as possible. To that extent, there exists some more specialized
 `Step` abstract base classes that deal with specific utilities:
 
-### {class}`openlane.steps.TclStep`
+### {class}`librelane.steps.TclStep`
 
 `TclStep` implements a `run` that works for most Tcl-based utilities.
-This run calls a subprocess with the value of {meth}`openlane.steps.TclStep.get_command`,
+This run calls a subprocess with the value of {meth}`librelane.steps.TclStep.get_command`,
 and it emplaces all configuration variables as environment variables using this scheme:
 
 * List variables are joined with a space character.
@@ -171,9 +171,9 @@ Keep in mind that TclStep-based tools still have to define their `config_vars`,
 
 `TclStep` has various subclasses for a number of Tcl-based utilities:
 
-* {class}`openlane.steps.OpenROADStep`
-* {class}`openlane.steps.YosysStep`
-* {class}`openlane.steps.MagicStep`
+* {class}`librelane.steps.OpenROADStep`
+* {class}`librelane.steps.YosysStep`
+* {class}`librelane.steps.MagicStep`
 
 These subclasses acts as an abstract base class for steps that use their
 respective utility. They have one abstract method, `get_script_path`.

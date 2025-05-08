@@ -1,10 +1,10 @@
 # Docker-based Installation
 
-For ease of installation, OpenLane offers the ability to transparently use 
+For ease of installation, LibreLane offers the ability to transparently use 
 [Docker](<https://en.wikipedia.org/wiki/Docker_(software)>) containers to run
 your flow.
 
-These containers include OpenLane's binaries, scripts as well as any other
+These containers include LibreLane's binaries, scripts as well as any other
 dependencies.
 
 ```{toctree}

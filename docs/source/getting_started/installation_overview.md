@@ -1,16 +1,16 @@
 # Installation Overview
 
-OpenLane 2 offers two primary methods of installation: using **Nix** and using
+LibreLane 2 offers two primary methods of installation: using **Nix** and using
 **Docker**.
 
 ## Nix (Recommended)
 
 Nix is a build system for Linux and macOS allowing for _cachable_ and
-_reproducible_ builds, and is the primary build system for OpenLane.
+_reproducible_ builds, and is the primary build system for LibreLane.
 
 Compared to the Docker method, Nix offers:
 
-* **Native Execution on macOS:** OpenLane is built natively for both Intel and
+* **Native Execution on macOS:** LibreLane is built natively for both Intel and
   Apple Silicon-based Macs, unlike Docker which uses a Virtual Machine, and
   thus requires more resources.
 * **Filesystem integration:** No need to worry about which folders are being
@@ -18,7 +18,7 @@ Compared to the Docker method, Nix offers:
 * **Smaller deltas:** if one tool is updated, you do not need to re-download
   everything, which is not the case with Docker.
 * **Dead-simple customization:** You can modify any tool versions and/or any
-  OpenLane code and all you need to do is re-invoke `nix-shell`. Nix's smart
+  LibreLane code and all you need to do is re-invoke `nix-shell`. Nix's smart
   cache-substitution feature will automatically figure out whether your build is
   cached or not, and if not, will automatically attempt to build any tools that
   have been changed.
@@ -32,8 +32,8 @@ Nix first. Follow the installation guide here:
 Docker containers offer:
 
 * Support for Windows, Mac and Linux on both `x86-64` and `aarch64`
-* **Sandboxing:** A completely different environment for using OpenLane
-* **Familiarity:** Users of previous versions of OpenLane will already have
+* **Sandboxing:** A completely different environment for using LibreLane
+* **Familiarity:** Users of previous versions of LibreLane will already have
   Docker installed
 
 If Nix doesn't work for you for whatever reason, you may want to try Docker.
@@ -52,5 +52,5 @@ list:
 * [Magic](http://opencircuitdesign.com/magic/)
 * [Netgen](http://opencircuitdesign.com/netgen/)
 
-However, as the versions will likely not match those packaged with OpenLane,
+However, as the versions will likely not match those packaged with LibreLane,
 some incompatibilities may arise, and we will not be able to support them.

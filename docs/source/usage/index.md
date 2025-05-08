@@ -1,6 +1,6 @@
 # Usage Guides
 
-These are guides that are useful for learning how to use OpenLane, including
+These are guides that are useful for learning how to use LibreLane, including
 hardening macros and writing custom flows and scripts.
 
 ```{toctree}

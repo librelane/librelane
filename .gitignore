@@ -14,7 +14,7 @@ build/
 *.egg-info/
 dist/
 requirements.frz.txt
-openlane_ipynb/
+librelane_ipynb/
 requirements_tmp.txt
 
 # Nix
@@ -26,7 +26,7 @@ result
 /*.lef
 /*.def
 logs/
-/openlane_run
+/librelane_run
 failures_report.json
 abc.history
 slpp_all/

@@ -15,8 +15,8 @@
   extra-packages ? [],
   extra-python-packages ? [],
   extra-env ? [],
-  openlane-plugins ? [],
-  include-openlane ? true,
+  librelane-plugins ? [],
+  include-librelane ? true,
 }: ({
   lib,
   git,
@@ -29,19 +29,19 @@
   python3,
   devshell,
 }: let
-  openlane = python3.pkgs.openlane;
-  openlane-env = (
+  librelane = python3.pkgs.librelane;
+  librelane-env = (
     python3.withPackages (pp:
-        (if include-openlane then [openlane] else openlane.propagatedBuildInputs)
+        (if include-librelane then [librelane] else librelane.propagatedBuildInputs)
         ++ extra-python-packages
-        ++ openlane-plugins)
+        ++ librelane-plugins)
   );
-  openlane-env-sitepackages = "${openlane-env}/${openlane-env.sitePackages}";
-  pluginIncludedTools = lib.lists.flatten (map (n: n.includedTools) openlane-plugins);
+  librelane-env-sitepackages = "${librelane-env}/${librelane-env.sitePackages}";
+  pluginIncludedTools = lib.lists.flatten (map (n: n.includedTools) librelane-plugins);
   prompt = ''\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] '';
   packages =
     [
-      openlane-env
+      librelane-env
 
       # Conveniences
       git
@@ -53,7 +53,7 @@
       graphviz
     ]
     ++ extra-packages
-    ++ openlane.includedTools
+    ++ librelane.includedTools
     ++ pluginIncludedTools;
 in
   devshell.mkShell {
@@ -61,7 +61,7 @@ in
     env = [
       {
         name = "NIX_PYTHONPATH";
-        value = "${openlane-env-sitepackages}";
+        value = "${librelane-env-sitepackages}";
       }
     ] ++ extra-env;
     devshell.interactive.PS1 = {

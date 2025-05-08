@@ -17,7 +17,7 @@ from typing import Tuple
 
 import pytest
 
-from openlane.steps import step
+from librelane.steps import step
 
 mock_variables = pytest.mock_variables
 
@@ -34,14 +34,14 @@ def mock_run():
 
 # ---
 def test_step_init_empty():
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     with pytest.raises(TypeError, match="Can't instantiate abstract class Step"):
         Step()
 
 
 def test_step_init_missing_id(mock_run):
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -56,7 +56,7 @@ def test_step_init_missing_id(mock_run):
 
 
 def test_step_inputs_not_implemented(mock_run):
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     class TestStep(Step):
         id = "Dummy"
@@ -71,7 +71,7 @@ def test_step_inputs_not_implemented(mock_run):
 
 
 def test_step_outputs_not_implemented(mock_run):
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     class TestStep(Step):
         id = "Dummy"
@@ -86,7 +86,7 @@ def test_step_outputs_not_implemented(mock_run):
 
 
 def test_step_missing_config(mock_run):
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -99,8 +99,8 @@ def test_step_missing_config(mock_run):
 
 
 def test_step_missing_state_in(mock_run):
-    from openlane.steps import Step
-    from openlane.config import Config
+    from librelane.steps import Step
+    from librelane.config import Config
 
     class TestStep(Step):
         inputs = []
@@ -115,8 +115,8 @@ def test_step_missing_state_in(mock_run):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_create(mock_run, mock_config):
-    from openlane.steps import Step
-    from openlane.state import DesignFormat, State
+    from librelane.steps import Step
+    from librelane.state import DesignFormat, State
 
     class TestStep(Step):
         inputs = []
@@ -138,8 +138,8 @@ def test_step_create(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_mock_run(mock_run, mock_config):
-    from openlane.steps import Step
-    from openlane.state import DesignFormat, State
+    from librelane.steps import Step
+    from librelane.state import DesignFormat, State
 
     class TestStep(Step):
         inputs = []
@@ -167,9 +167,9 @@ def test_mock_run(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_start_missing_step_dir(mock_run, mock_config):
-    from openlane.steps import Step
-    from openlane.common import Toolbox
-    from openlane.state import DesignFormat, State
+    from librelane.steps import Step
+    from librelane.common import Toolbox
+    from librelane.state import DesignFormat, State
 
     class TestStep(Step):
         inputs = []
@@ -191,9 +191,9 @@ def test_step_start_missing_step_dir(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_start_invalid_state(mock_run, mock_config):
-    from openlane.common import Toolbox
-    from openlane.steps import Step, StepException
-    from openlane.state import DesignFormat, State
+    from librelane.common import Toolbox
+    from librelane.steps import Step, StepException
+    from librelane.state import DesignFormat, State
 
     class TestStep(Step):
         inputs = []
@@ -215,10 +215,10 @@ def test_step_start_invalid_state(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_start(mock_config):
-    from openlane.common import Path
-    from openlane.common import Toolbox
-    from openlane.state import DesignFormat, State
-    from openlane.steps import Step, MetricsUpdate, ViewsUpdate
+    from librelane.common import Path
+    from librelane.common import Toolbox
+    from librelane.state import DesignFormat, State
+    from librelane.steps import Step, MetricsUpdate, ViewsUpdate
 
     test_file = "test.nl.v"
     with open(test_file, "w") as f:
@@ -258,8 +258,8 @@ def test_step_start(mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_longname(mock_run, mock_config):
-    from openlane.steps import Step
-    from openlane.state import DesignFormat, State
+    from librelane.steps import Step
+    from librelane.state import DesignFormat, State
 
     class TestStep(Step):
         inputs = []
@@ -279,7 +279,7 @@ def test_step_longname(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_factory(mock_run):
-    from openlane.steps import Step
+    from librelane.steps import Step
 
     @Step.factory.register()
     class TestStep(Step):
@@ -303,9 +303,9 @@ def test_step_factory(mock_run):
 @mock_variables([step])
 def test_run_subprocess(mock_run):
     import subprocess
-    from openlane.config import Config
-    from openlane.steps import Step, StepException
-    from openlane.state import DesignFormat, State
+    from librelane.config import Config
+    from librelane.steps import Step, StepException
+    from librelane.state import DesignFormat, State
 
     state_in = State({DesignFormat.NETLIST: "abc"})
 

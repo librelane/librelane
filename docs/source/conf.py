@@ -26,10 +26,10 @@ sys.path.insert(0, os.path.abspath("../_ext"))
 sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
-project = "OpenLane"
+project = "LibreLane"
 copyright = "2020-2025 Efabless Corporation and contributors"
 author = "Efabless Corporation"
-repo = "https://github.com/efabless/openlane2"
+repo = "https://github.com/librelane/librelane"
 branch = "main"
 
 
@@ -104,7 +104,7 @@ exclude_patterns = [
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_title = "OpenLane Documentation"
+html_title = "LibreLane Documentation"
 html_theme = "furo"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -139,7 +139,7 @@ bibtex_bibfiles = ["refs.bib"]
 bibtex_default_style = "unsrt"
 
 # Autodoc
-generate_module_autodocs = [("openlane", "reference/api")]
+generate_module_autodocs = [("librelane", "reference/api")]
 autodoc_typehints = "both"
 autodoc_member_order = "bysource"
 autosectionlabel_prefix_document = True
