@@ -17,15 +17,6 @@
 # limitations under the License.
 {
   description = "open-source infrastructure for implementing chip design flows";
-  
-  nixConfig = {
-    extra-substituters = [
-      "https://openlane.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
-    ];
-  };
 
   inputs = {
     nix-eda.url = "github:fossi-foundation/nix-eda/2.1.2";

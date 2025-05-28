@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -202,7 +206,8 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
         f"""
         LibreLane v{__version__}
 
-        Copyright ©2020-2023 Efabless Corporation and other contributors.
+        Copyright ©2020-2025 Efabless Corporation, The American University in
+        Cairo, and other contributors.
 
         Available under the Apache License, version 2. Included with the source code,
         but you can also get a copy at https://www.apache.org/licenses/LICENSE-2.0

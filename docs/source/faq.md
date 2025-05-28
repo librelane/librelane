@@ -7,40 +7,36 @@
 
 ## General
 
+
 (faq-whats-librelane=)
 
 ### What is LibreLane?
 
-LibreLane is a piece of software for {term}`ASIC` implementation, initially
-released by Efabless Corporation in 2020 for use with the Google {term}`OpenMPW`
-program.
+Originally started as version 2.0 of OpenLane, LibreLane is a piece of software
+for {term}`ASIC` implementation, initially developed by Efabless Corporation,
+but its currently maintained by the same developers at the
+[American University in Cairo Open Hardware Lab](https://github.com/aucohl)
+under the stewardship of the [FOSSi Foundation](https://fossi-foundation.org).
 
-Version 1.0 of LibreLane is a simple but stable and battle-tested flow, primarily
+Version 1.0 of OpenLane was a simple but stable and battle-tested flow, primarily
 intended for implementing  designs for Efabless's {term}`MPW` programs.
 
-Version 2.0 of LibreLane reimagines it as not just a single flow, but as an
-infrastructure by which flows can be implemented. An LibreLane 1-compatible flow
-named "Classic" exists, but is in beta pending further silicon validation.
+LibreLane reimagines it as not just a single flow, but as an infrastructure by
+which flows can be implemented. An OpenLane 1-compatible flow named "Classic"
+exists, but is in beta pending further silicon validation.
 
 (faq-1v2)=
 
-### Should I use LibreLane 1 or LibreLane 2?
+### Should I use OpenLane or LibreLane?
 
-As of the time of writing:
+Since the liquidation of Efabless Corporation, the authors of OpenLane have lost
+control of the trademark, and OpenLane's original developers currently maintain
+LibreLane under the stewardship of the FOSSi Foundation.
 
-If you're targeting an Efabless MPW project such as {term}`chipIgnite`,
-we currently exclusively recommend LibreLane 1 given its extensive use (and thus
-silicon-validation) for such a purpose. While LibreLane 2 does include a flow
-similar to LibreLane 1.0 (named "Classic",) that flow is awaiting further silicon
-validation and is still in beta and should only be used at the user's own risk.
-In the future, LibreLane 2.0's "Classic" flow will replace LibreLane 1 for this
-use-case.
-
-For now however, if you're an educator looking for an elegant notebook-based
-interface to introduce students to ASIC implementation or if you're implementing
-a complex chip for which the LibreLane 1 flow is insufficiently flexible
-(e.g., you require custom implementation steps or ECOs), we recommend LibreLane 
-2.
+OpenLane 1.0 as hosted under
+[The OpenROAD Project](https://github.com/The-OpenROAD-Project/OpenLane) is
+a super-stable version that was used for countless tapeouts, but we no longer
+support it actively.
 
 (faq-librelane-vs-openroad)=
 
@@ -52,10 +48,8 @@ other tools in order to achieve a full RTL-to-GDSII flow.
 OpenROAD is primarily developed by The OpenROAD Project, which involves many
 corporations and academic institutions (primarily the University of California,
 San Diego, Parallax Software, and Precision Innovations). LibreLane, on the other
-hand, is primarily developed by Efabless Corporation.
-
-The two projects are affiliated but are otherwise distinct and are managed by
-different teams.
+hand, was primarily developed by Efabless Corporation and is currently maintained
+by the American University in Cairo, Open Hardware Lab.
 
 (faq-proprietary-pdks)=
 
@@ -68,16 +62,18 @@ said PDK. See {ref}`porting-pdks` for more info.
 
 ### Is LibreLane silicon-proven?
 
-LibreLane 1.0 has been used for countless verified tapeouts, including more or
+OpenLane 1.0 has been used for countless verified tapeouts, including more or
 less every open-source design on the Google MPW shuttles.
 
-LibreLane 2.0 is relatively less battle-tested but was used for TinyTapeout 3.5.
+LibreLane/OpenLane 2.0 has been silicon-proven in a relatively more limited
+capacity, having been used for all [Tiny Tapeout](https://tinytapeout.com) shuttles
+since 3.5 and a number of internal tape-outs at Efabless Corporation.
 
 (faq-comparison)=
 
 ### Why should I use LibreLane over other open-source RTL-to-GDS-II flows?
 
-| Point of Comparison | [OpenROAD Flow Scripts](https://github.com/The-OpenROAD-Project/OpenROAD-Flow-Scripts) | [SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler) | LibreLane \<2.0 | LibreLane ≥2 |
+| Point of Comparison | [OpenROAD Flow Scripts](https://github.com/The-OpenROAD-Project/OpenROAD-Flow-Scripts) | [SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler) | [OpenLane](https://github.com/The-OpenROAD-Project/OpenLane) | LibreLane |
 | - | - | - | - | - |
 | Architecture | Monolithic | Plugin-based | Monolithic | Plugin-based |
 | Configuration | Tcl Files | Python Files | JSON/Tcl Files | JSON/Tcl/Python Files |
@@ -88,7 +84,7 @@ LibreLane 2.0 is relatively less battle-tested but was used for TinyTapeout 3.5.
 | Proprietary Tool Support | No | Yes | No | Yes (with Plugins) |
 | Pre-built Binaries | `.deb` (x86-64) | N/A | Docker (x86-64, ARM64) | * Natively through [Nix](https://nixos.org): Linux and macOS (x86-64, ARM64) <br /> * Docker (x86-64, ARM64)|
 | Open-Source PDK Support | `sky130`, `gf180mcu`, `nangate45`, `asap7`| `sky130`, `gf180mcu`, `asap7` | `sky130`, `gf180mcu` | `sky130`, `gf180mcu` |
-| Community Examples | Limited | Limited | [9+ public multi-project wafer shuttles](https://platform.efabless.com/projects/public) | Backwards Compatible with OL1 Examples |
+| Community Examples | Limited | Limited | [9+ public multi-project wafer shuttles](https://platform.efabless.com/projects/public) | Backwards Compatible with OL Examples |
 
 ## Setup
 

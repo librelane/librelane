@@ -101,8 +101,10 @@ PnR
     focusing on the RTL-to-GDSII phase of system-on-chip design. It is used for
     floorplanning, {term}`PnR` and design optimizations inside LibreLane.
 
-    LibreLane and OpenROAD are
-    [loosely affiliated projects made by different teams](#faq-librelane-vs-openroad).
+[OpenLane](https://github.com/The-OpenROAD-Project/OpenLane)
+
+    The progenitor of LibreLane, OpenLane is an ASIC flow developed by Efabless
+    Corporation in 2020 for use with the Google {term}`OpenMPW` project.
 
 [Magic](http://opencircuitdesign.com/netgen)
 
@@ -376,8 +378,8 @@ Caravel
 OpenMPW
 
     A program by Google sponsoring a free Multi-Project Wafer for
-    {term}`open-source` hardware projects. LibreLane was initially developed for
-    use with the OpenMPW project.
+    {term}`open-source` hardware projects. LibreLane's progenitor,
+    {term}`OpenLane`, was initially developed for use with the OpenMPW project.
     
     See https://developers.google.com/silicon for more info.
     
