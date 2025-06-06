@@ -20,7 +20,6 @@
   python3,
   librelane,
   git,
-  neovim,
   zsh,
   silver-searcher,
   coreutils,
@@ -44,7 +43,6 @@ in
     extraPkgs = with dockerTools; [
       git
       zsh
-      neovim
       silver-searcher
 
       librelane-env
