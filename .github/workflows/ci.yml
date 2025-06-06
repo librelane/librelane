@@ -122,13 +122,23 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
+      - name: Cache to sky130
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@new_cache
+        with:
+          flake_outputs: .#packages.x86_64-linux.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-linux-aarch64:
     needs: lint
     runs-on: ubuntu-22.04-arm
@@ -145,13 +155,23 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: aarch64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
+      - name: Cache to sky130
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@new_cache
+        with:
+          flake_outputs: .#packages.aarch64-linux.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-darwin:
     strategy:
       matrix:
@@ -188,6 +208,8 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
@@ -198,11 +220,19 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ matrix.os.nix }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           shell: "zsh {0}"
           run_tests: "true"
           pdk_root: ${{ github.workspace }}/.ciel-sky130
+      - name: Cache to sky130
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@new_cache
+        with:
+          flake_outputs: .#packages.aarch64-linux.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-docker:
     strategy:
       matrix:
@@ -241,12 +271,12 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ matrix.os.nix }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
-
       - name: Build Docker Image
         run: |
           IMAGE_PATH=$(nix build\
@@ -307,12 +337,12 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'librelane' }}
-
       - name: Check Nix
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10

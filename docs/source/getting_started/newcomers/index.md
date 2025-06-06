@@ -109,7 +109,7 @@ ______________________________________________________________________
 ## Installation
 
 1. Follow the instructions in {ref}`nix-based-installation` to
-   install {term}`Nix` and set up {term}`Cachix`.
+   install {term}`Nix` and set up the binary cache.
 
 1. Open a terminal and clone LibreLane as follows:
 

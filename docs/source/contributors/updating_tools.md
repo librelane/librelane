@@ -97,8 +97,9 @@ If it errors out, this may be because of one of the following:
     for more information on how to learn to do that.
 * An internet connectivity issue
   * Nix will automatically download derivations it needs from various servers,
-    including but not limited to the Nix Store, Cachix, and GitHub. If there
-    is a temporarily failure accessing any of them, the build will fail.
+    including but not limited to the Nix Store, the FOSSi Foundation Cache, and
+    GitHub. If there is a temporarily failure accessing any of them, the build
+    will fail.
 * Memory corruption or other hardware failure
   * Restarting the build should work, build you can also try `nix-shell --cores 1`
     to limit the stress on your hardware.

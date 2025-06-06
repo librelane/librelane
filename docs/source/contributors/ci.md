@@ -6,12 +6,14 @@ The LibreLane CI uses Nix and PIP to produce the following components:
 
 * Python Package → Uploaded to [PyPI](https://pypi.org/)
   * Installable via `pip3 install librelane`
-* Cached Linux Binaries -> Uploaded to [Cachix](https://librelane.cachix.org)
+* Cached Linux Binaries -> Uploaded to the
+  [FOSSi Foundation Nix Cache](https://nix-cache.fossi-foundation.org)
   * Usable by invoking `nix-shell` on the LibreLane repository
   * Derivative: **Docker Image** → Uploaded to [GHCR](https://ghcr.io/)
     * Usable by using the Python package and adding `--dockerized` at the
       beginning of an invocation, no Nix needed
-* Cached macOS Binaries -> Uploaded to [Cachix](https://librelane.cachix.org)
+* Cached macOS Binaries -> Uploaded to the
+  [FOSSi Foundation Nix Cache](https://nix-cache.fossi-foundation.org)
   * Usable by invoking `nix-shell` on the LibreLane repository
 
 All aforementioned products have their inputs linted for code-standards and have
