@@ -1,14 +1,6 @@
-name: Build/Cache Nix
+name: Build LibreLane with Nix
 description: Builds default devShell for a platform, caching the results (if applicable)
 inputs:
-  cachix_cache:
-    description: "The name of the Cachix cache to download to and/or upload from"
-    required: true
-    default: "librelane"
-  cachix_token:
-    description: "An authentication token for Cachix"
-    required: false
-    default: ""
   shell:
     description: "Shell to use"
     required: true
@@ -63,11 +55,3 @@ runs:
           --accept-flake-config\
           .#devShells.${{ inputs.nix_system }}.dev --command\
           pytest --step-rx '.' --pdk-root="${{ inputs.pdk_root }}" -n auto
-    - name: Install + Push to Cachix
-      shell: ${{ inputs.shell }}
-      if: ${{ inputs.cachix_token != '' }}
-      run: |
-        echo "#################################################################"
-        nix profile install cachix
-        cachix authtoken ${{ inputs.cachix_token }}
-        cachix push ${{ inputs.cachix_cache }} ${{ steps.build.outputs.out-path }}

@@ -20,12 +20,6 @@ timing corner
 
     LibreLane environments including tools are built with Nix.
 
-[Cachix](https://docs.cachix.org/)
-
-    Cachix is a service that caches {term}`Nix` build results from the LibreLane
-    CI and allows users to download those results instead of building LibreLane
-    and all included utilities themselves.
-
 
 [sky130](https://github.com/google/skywater-pdk)
 

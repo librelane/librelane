@@ -4,37 +4,16 @@
 You will need to enable LibreLane's
 [Binary Cache](https://nixos.wiki/wiki/Binary_Cache) manually.
 
-If you don't know what that means:
-
-We use a service called Cachix, which allows the reproducible Nix builds to be
-stored on a cloud server so you do not have to build LibreLane's dependencies
-from scratch on every computer, which will take a long time.
-
-First, you want to install Cachix by running the following in your terminal:
-
-```console
-$ nix-env -f "<nixpkgs>" -iA cachix
-```
-
-Then set up the LibreLane binary cache as follows:
-
-```console
-$ sudo env PATH="$PATH" cachix use librelane
-```
-
-…and restart the Nix daemon.
-
-```console
-$ sudo pkill nix-daemon
-```
+See <https://github.com/fossi-foundation/nix-eda/blob/main/Installation.md> for
+more info.
 
 ---
 
 If you *do* know what this means, the values are as follows:
 
 ```ini
-extra-substituters = https://librelane.cachix.org
-extra-trusted-public-keys = librelane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+extra-substituters = https://nix-cache.fossi-foundation.org
+extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
 ```
 
 Make sure to restart `nix-daemon` after updating `/etc/nix/nix.conf`.

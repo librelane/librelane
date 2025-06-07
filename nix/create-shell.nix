@@ -22,7 +22,6 @@
   git,
   zsh,
   delta,
-  neovim,
   gtkwave,
   coreutils,
   graphviz,
@@ -47,7 +46,6 @@
       git
       zsh
       delta
-      neovim
       gtkwave
       coreutils
       graphviz
