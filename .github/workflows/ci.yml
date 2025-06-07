@@ -274,6 +274,7 @@ jobs:
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
+        id: nix_build_action
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ matrix.os.nix }}
@@ -288,6 +289,10 @@ jobs:
             .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
+      - name: Dump Nix Log In Case There's A Crash
+        if: always()
+        run: |
+          cat /var/log/nix-daemon.log
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
