@@ -21,7 +21,11 @@ original authors after Efabless Corporation has ceased operations.
 
 ## Tool Updates
 
-* Volare replaced with [Ciel](https://github.com/fossi-foundation/ciel) 2.0.1
+* Volare replaced by [Ciel](https://github.com/fossi-foundation/ciel)@2.0.1
+* nix-eda replaced by the
+  [FOSSi Foundation fork](https://github.com/fossi-foundation/nix-eda)@2.1.3
+* OpenLane Cachix replaced by an S3-based cache hosted at
+  https://nix-cache.fossi-foundation.org
 
 # 2.3.10
 
