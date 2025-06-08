@@ -269,6 +269,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
         with:
+          determinate: true
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
@@ -289,10 +290,6 @@ jobs:
             .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
-      - name: Dump Nix Log In Case There's A Crash
-        if: always()
-        run: |
-          cat /var/log/nix-daemon.log
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:

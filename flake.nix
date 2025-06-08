@@ -82,7 +82,9 @@
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
 
             # ---
-            librelane = callPythonPackage ./default.nix {};
+            librelane = callPythonPackage ./default.nix {
+              flake = self;
+            };
           })
         )
         (pkgs': pkgs: let

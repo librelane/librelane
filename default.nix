@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
+  flake ? null,
   lib,
   system,
   clangStdenv,
@@ -71,7 +72,7 @@
     version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.version;
     format = "pyproject";
 
-    src = nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
+    src = if (flake != null) then flake else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     nativeBuildInputs = [
       poetry-core
