@@ -53,6 +53,12 @@ original authors after Efabless Corporation has ceased operations.
 * OpenLane Cachix replaced by an S3-based cache hosted at
   https://nix-cache.fossi-foundation.org
 
+## Misc. Enhancements/Bugfixes
+
+* Worked around an issue with Google Colaboratory where if `PATH` is set,
+  Yosys's Python `sitepackages` are replaced with the global ones and everything
+  breaks.
+
 # 2.3.10
 
 ## Steps

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "librelane"
-version = "2.4.0.dev3"
+version = "2.4.0.dev4"
 description = "An infrastructure for implementing chip design flows"
 authors = ["Mohamed Gaber <me@donn.website>", "Efabless Corporation"]
 readme = "Readme.md"

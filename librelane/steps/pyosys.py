@@ -14,8 +14,10 @@
 import os
 import re
 import io
+import sys
 import json
 import fnmatch
+import shutil
 import subprocess
 from decimal import Decimal
 from abc import abstractmethod
@@ -207,7 +209,11 @@ class PyosysStep(Step):
 
     def get_command(self, state_in: State) -> List[str]:
         script_path = self.get_script_path()
-        cmd = ["yosys", "-y", script_path]
+        # HACK: Get Colab working
+        yosys_bin = "yosys"
+        if "google.colab" in sys.modules:
+            yosys_bin = shutil.which("yosys") or "yosys"
+        cmd = [yosys_bin, "-y", script_path]
         if self.config["YOSYS_LOG_LEVEL"] != "ALL":
             cmd += ["-Q"]
         if self.config["YOSYS_LOG_LEVEL"] == "WARNING":
@@ -220,6 +226,11 @@ class PyosysStep(Step):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         cmd = self.get_command(state_in)
+        # HACK: Get Colab working
+        if "google.colab" in sys.modules:
+            kwargs, env = self.extract_env(kwargs)
+            env.pop("PATH", "")
+            kwargs["env"] = env
         subprocess_result = super().run_subprocess(cmd, **kwargs)
         return {}, subprocess_result["generated_metrics"]
 
