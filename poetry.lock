@@ -491,23 +491,6 @@ files = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-name = "ioplace-parser"
-version = "0.4.0"
-description = "Antlr4-based parser for the OpenLane I/O Placement script"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "ioplace_parser-0.4.0-py3-none-any.whl", hash = "sha256:23f78482497e6ee88eac4562382e76f1e03a01aafd10653c897db7782d7f591b"},
-    {file = "ioplace_parser-0.4.0.tar.gz", hash = "sha256:73a399a9e871edff66d0248efbd8417cfbd4a02874102a1d1e01c03efe29a803"},
-]
-
-[package.dependencies]
-antlr4-python3-runtime = ">=4.9.0,<4.10.0"
-
-[[package]]
-=======
->>>>>>> origin/main
 name = "klayout"
 version = "0.29.10"
 description = "KLayout standalone Python package"
@@ -1108,12 +1091,8 @@ files = [
 ]
 
 [package.extras]
-<<<<<<< HEAD
 dev = ["abi3audit", "black", "check-manifest", "coverage", "packaging", "pylint", "pyperf", "pypinfo", "pytest-cov", "requests", "rstcheck", "ruff", "sphinx", "sphinx_rtd_theme", "toml-sort", "twine", "virtualenv", "vulture", "wheel"]
 test = ["pytest", "pytest-xdist", "setuptools"]
-=======
-test = ["enum34 ; python_version <= \"3.4\"", "ipaddress ; python_version < \"3.0\"", "mock ; python_version < \"3.0\"", "pywin32 ; sys_platform == \"win32\"", "wmi ; sys_platform == \"win32\""]
->>>>>>> origin/main
 
 [[package]]
 name = "pycodestyle"
@@ -1645,28 +1624,6 @@ files = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-name = "volare"
-version = "0.20.5"
-description = "An PDK builder/version manager for PDKs in the open_pdks format"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "volare-0.20.5-py3-none-any.whl", hash = "sha256:b4948914b1253e2e95fa6d4eb782fda5b0d133feb232bab856402c4699b7be1a"},
-    {file = "volare-0.20.5.tar.gz", hash = "sha256:bf426922c8979f7063b54a248592a23d9ae9d0aa51a1ad1c5f69bda3eb7565ed"},
-]
-
-[package.dependencies]
-click = ">=8,<9"
-httpx = ">=0.22.0,<0.29"
-pcpp = ">=1.2,<2"
-pyyaml = ">=5,<7"
-rich = ">=12,<14"
-zstandard = ">=0.19.0,<1"
-
-[[package]]
-=======
->>>>>>> origin/main
 name = "wheel"
 version = "0.45.1"
 description = "A built-package format for Python"
@@ -1887,8 +1844,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4"
-<<<<<<< HEAD
-content-hash = "70ea1472ac75841b12324019aff397cd078c02930474791e64cdade525791d95"
-=======
 content-hash = "f6c2f087b7d702db990815ba8cbe101c1b483aea9ec96bf7c762fe09869dd6ef"
->>>>>>> origin/main
