@@ -26,7 +26,7 @@ def _mock_fs():
 
 
 def test_escape():
-    from openlane.common import TclUtils
+    from librelane.common import TclUtils
 
     assert (
         TclUtils.escape("ringo") == r"ringo"
@@ -45,7 +45,7 @@ def test_escape():
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_join():
-    from openlane.common import TclUtils
+    from librelane.common import TclUtils
 
     very_wild_list = [
         "{}{}{{}}{}{}{}{}{}{}{",
@@ -72,7 +72,7 @@ def test_join():
 
 
 def test_eval_env():
-    from openlane.common import TclUtils
+    from librelane.common import TclUtils
 
     env_backup = os.environ.copy()
 

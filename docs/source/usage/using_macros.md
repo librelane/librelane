@@ -24,13 +24,13 @@ limited to:
   able to license macros to other designers as intellectual property (IP)
   without disclosing the register-transfer-level code beyond a simulation model.
 
-All non-trivial designs taped out using OpenLane have involved the use of macros
+All non-trivial designs taped out using LibreLane have involved the use of macros
 of some kind.
 
 ## Macro Files
 
 There are a number of views you typically need from a Macro. The two essential
-views for OpenLane are the {term}`LEF` (`.lef`) and the {term}`GDSII` (`.gds`)
+views for LibreLane are the {term}`LEF` (`.lef`) and the {term}`GDSII` (`.gds`)
 views- the former of which is used in PnR and the latter is used for tape-out.
 
 * Library Exchange Format ({term}`LEF`/.`lef`): Essential
@@ -65,22 +65,22 @@ views- the former of which is used in PnR and the latter is used for tape-out.
   * may be used during STA (see [relevant section](#sta)).
 * {term}`SPICE` (`.spice`): Optional
   * currently unused, but may be used in the future for hierarchical
-    {term}`LVS`. As OpenLane produces a SPICE view of all macros, it is prudent
+    {term}`LVS`. As LibreLane produces a SPICE view of all macros, it is prudent
     to include it anyway.
 * {term}`SDF` (`.sdf`): Optional
-  * currently unused. As OpenLane produces SDF views of all macros, it is
+  * currently unused. As LibreLane produces SDF views of all macros, it is
     prudent to include it anyway.
 * {term}`Yosys` JSON Header (`.json`): Optional
   * A JSON netlist produced by Yosys that provides the Powered Netlist
     in a Python-parseable format.
 
-## In OpenLane Configurations
+## In LibreLane Configurations
 
-Macros are declared in OpenLane configurations in the global variable
+Macros are declared in LibreLane configurations in the global variable
 {var}`::MACROS`. Macros is a dictionary, which in JSON is going to be just a
 dictionary/hashmap, where the keys are the name of the macro (not instances
 thereof) and the values are a Python dataclass. You can find the API reference
-for the macros hashmap at {class}`openlane.common.Macro`, but a less mechanical
+for the macros hashmap at {class}`librelane.common.Macro`, but a less mechanical
 explanation is as follows:
 
 ```{tip}
@@ -194,9 +194,9 @@ the names of modules.
 **Hierarchy maintainted during Synthesis**
 
 Using macros with hierarchy is maintained during Synthesis is
-**currently unsupported** in OpenLane, as the netlist is flattened upon moving
+**currently unsupported** in LibreLane, as the netlist is flattened upon moving
 into OpenROAD as its hierarchical support is rather experimental. This will be
-remedied in a future update to OpenLane.
+remedied in a future update to LibreLane.
 
 In the meantime, if you do choose to keep the hierarchy after Synthesis
 regardless by using the attribute `(* keep_hierarchy = "TRUE" *)`, you're on
@@ -373,6 +373,6 @@ endmodule
 ```
 
 This will preserve the original RTL for simulation, but when Synthesizing/
-Linting using OpenLane, `__pnr__` will be defined, thereby using the header for
+Linting using LibreLane, `__pnr__` will be defined, thereby using the header for
 the hardened version of the Macro. Additionally, as the power pins have no relevance
 for the RTL, they can simply be left out when PnR is not defined.

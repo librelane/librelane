@@ -87,7 +87,7 @@ Flow. Power pin names may vary.
     `endif
   ```
 
-* The configuration includes hooks to show OpenLane how to connect the signals,
+* The configuration includes hooks to show LibreLane how to connect the signals,
   as well as the name of the preprocessor guard for the power pins.
   Additionally, we ignore OpenROAD's PSM network checker as it lacks the ability
   to check hierarchical designs correctly.
@@ -130,7 +130,7 @@ These are generally harmless but do cause higher routing congestion at the top
 level. If the configuration variable `FP_PDN_SKIPTRIM` is set to `false`, the
 PDN will attempt to remove those stubs.
 
-The hierarchical mode is the default used by OpenLane and no configuration other
+The hierarchical mode is the default used by LibreLane and no configuration other
 than that which was shown above is required.
 
 ## Ring Method

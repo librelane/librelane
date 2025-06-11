@@ -37,13 +37,13 @@ Common EDA files incorporate these corners as follows:
     parasitic corner is not necessary applicable for others.
 
 ```{note}
-The default extraction utility for OpenLane, OpenROAD OpenRCX, only accounts for
+The default extraction utility for LibreLane, OpenROAD OpenRCX, only accounts for
 the interconnect corner.
 ```
 
 ## Default Flow Configuration
 
-In its current state, the default OpenLane flow allows SCLs to configure the following:
+In its current state, the default LibreLane flow allows SCLs to configure the following:
 
 * A list of PVT-corners with names that correspond to `.lib` files
 * A list of interconnect corners with arbitrary names that _may_ correspond to any of:

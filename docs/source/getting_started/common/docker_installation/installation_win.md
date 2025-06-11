@@ -12,7 +12,7 @@
 
 The following is the recommended installation method under Windows. Other
 virtualization-based methods, such as VMWare, are not supported, and some such
-as VirtualBox are known to impair the operation of OpenLane.
+as VirtualBox are known to impair the operation of LibreLane.
 
 ## Setting up WSL
 

@@ -104,7 +104,7 @@ violation type: Metal Spacing
 
 
 def test_magic_drc():
-    from openlane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, Violation, BoundingBox
 
     drc_object, count = DRC.from_magic(io.StringIO(MAGIC_EXAMPLE))
     violations = {
@@ -140,7 +140,7 @@ def test_magic_drc():
 
 
 def test_magic_drc_badrule():
-    from openlane.common import DRC
+    from librelane.common import DRC
 
     description = "P-diff distance to N-tap must be < 15.0um (egg salad)"
     magic_bad_rule_example = f"""RAM8
@@ -159,7 +159,7 @@ def test_magic_drc_badrule():
 
 
 def test_magic_drc_exceptions():
-    from openlane.common import DRC
+    from librelane.common import DRC
 
     BAD_MAGIC_EXAMPLE = """
     ----------------------------------------
@@ -183,7 +183,7 @@ def test_magic_drc_exceptions():
 
 
 def test_magic_feedback():
-    from openlane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, Violation, BoundingBox
 
     expected_violations = {
         "obsm4-metal4.ILLEGAL_OVERLAP": Violation(
@@ -353,7 +353,7 @@ def test_magic_feedback():
 
 
 def test_openroad_drc():
-    from openlane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, Violation, BoundingBox
 
     drc_object, count = DRC.from_openroad(io.StringIO(OPENROAD_EXAMPLE), "EXAMPLE")
 
@@ -417,7 +417,7 @@ def test_openroad_drc():
 
 
 def test_klayout_xml():
-    from openlane.common import DRC
+    from librelane.common import DRC
     from xml.etree import ElementTree as ET
 
     drc_object, _ = DRC.from_magic(io.StringIO(MAGIC_EXAMPLE))

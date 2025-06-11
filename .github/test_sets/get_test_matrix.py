@@ -19,7 +19,7 @@ import json
 import yaml
 import click
 
-import volare
+import ciel
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 ol_dir = os.path.dirname(os.path.dirname(__dir__))
@@ -74,10 +74,10 @@ def main(scls, use_json, test_sets):
                 ol_dir, "test", "designs", design_name, "runs", f"{pdk}-{scl}"
             )
             pdk_family = None
-            if family := volare.Family.by_name.get(pdk):
+            if family := ciel.Family.by_name.get(pdk):
                 pdk_family = family.name
             else:
-                for family in volare.Family.by_name.values():
+                for family in ciel.Family.by_name.values():
                     if pdk in family.variants:
                         pdk_family = family.name
                         break

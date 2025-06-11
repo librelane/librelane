@@ -3,7 +3,7 @@
 > Adapted from
 > [original guide](https://docs.google.com/document/d/13J1AY1zhzxur8vaFs3rRW9ZWX113rSDs63LezOOoXZ8/edit#heading=h.9y68197ebff7)
 > by Mohamed Shalan based on his experience designing the Caravel chip using
-> OpenLane and his digital systems design teaching materials.
+> LibreLane and his digital systems design teaching materials.
 >
 > The document is released under the [CC-BY-SA 4.0 License](https://creativecommons.org/licenses/by-sa/4.0/).
 
@@ -349,12 +349,12 @@ Examples of Timing Optimizations
 
 ## Tips for Achieving Timing Closure
 
-OpenLane supports automatic timing closure; the {flow}`Classic` flow applies
+LibreLane supports automatic timing closure; the {flow}`Classic` flow applies
 design optimizations that favor hold violations fixing after CTS and after
 global routing. These optimizations are controlled using some flow
 configurations such as those given by {numref}`timing-related-config-vars`.
 
-```{list-table} OpenLane Timing-related Configuration Variables
+```{list-table} LibreLane Timing-related Configuration Variables
 :name: timing-related-config-vars
 :header-rows: 1
 
@@ -468,11 +468,11 @@ timing paths. The report for any timing path is comprised of 4 sections:
   endpoint.
 * The Slack: The difference between data required and data arrival times.
 
-However hard OpenLane tries to achieve automatic timing closure; it may not work
+However hard LibreLane tries to achieve automatic timing closure; it may not work
 as expected in rare cases. Here are some tips to aid you in achieving timing
 closure:
 
-1. OpenLane sets some timing constraints through configuration variables (clock
+1. LibreLane sets some timing constraints through configuration variables (clock
    definition, input and output delays, load on output ports, driving cell for
    input ports, and maximum allowed transition). However, it is your
    responsibility to complete the constraints by providing an SDC file custom
@@ -484,9 +484,9 @@ closure:
    * Having different PnR and signoff SDC files is useful for when you want to
      over-constrain the PnR steps to possibly achieve better results then
      perform timing analysis with realistic constraints.
-1. OpenLane assumes a single clock domain. Suppose you have multiple clock
+1. LibreLane assumes a single clock domain. Suppose you have multiple clock
    domains in the same design. In that case, it is your responsibility to adjust
-   the constraints and other OpenLane components to handle them correctly.
+   the constraints and other LibreLane components to handle them correctly.
 1. STA performed immediately after the synthesis stage will not report any hold
    violations as the clock is considered an ideal net; hence there will be no
    clock skews to cause hold violations. However, you may have setup violations.
@@ -557,7 +557,7 @@ provide timing information for simulating the gate-level netlist. Simulation
 using timing information is a time-consuming process, and it cannot replace STA.
 Timing simulation can be helpful to uncover false paths and validate them.
 
-OpenLane has support for SDF generation (found under results/final/sdf/ folder).
+LibreLane has support for SDF generation (found under results/final/sdf/ folder).
 To use the generated SDF file in simulation, you need to update your testbench
 to add a line similar to the following line (inside any initial block) for each
 macro in your design.
@@ -573,7 +573,7 @@ Tachyon DA {cite}`noauthor_cvc_nodate` that has decent support for timing
 simulation using SDF files. CVC is a proprietary "shared source"[^4] simulator,
 but its license allows using it freely for non-commercial designs.
 
-OpenLane does not include CVC, so you will have to compile it separately. To run
+LibreLane does not include CVC, so you will have to compile it separately. To run
 timing simulation using CVC, invoke the following:
 
 ```console

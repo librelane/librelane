@@ -1,14 +1,6 @@
-name: Build/Cache Nix
+name: Build LibreLane with Nix
 description: Builds default devShell for a platform, caching the results (if applicable)
 inputs:
-  cachix_cache:
-    description: "The name of the Cachix cache to download to and/or upload from"
-    required: true
-    default: "openlane"
-  cachix_token:
-    description: "An authentication token for Cachix"
-    required: false
-    default: ""
   shell:
     description: "Shell to use"
     required: true
@@ -24,7 +16,7 @@ inputs:
   pdk_root:
     description: "An optional override for the PDK root."
     required: false
-    default: "$HOME/.volare"
+    default: "$HOME/.ciel"
 runs:
   using: "composite"
   steps:
@@ -51,7 +43,7 @@ runs:
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
-          .#packages.${{ inputs.nix_system }}.openlane -- --pdk-root ${{ inputs.pdk_root }} --smoke-test
+          .#packages.${{ inputs.nix_system }}.librelane -- --pdk-root ${{ inputs.pdk_root }} --smoke-test
     - name: Unit/Step Tests
       shell: ${{ inputs.shell }}
       if: inputs.run_tests == 'true'
@@ -63,11 +55,3 @@ runs:
           --accept-flake-config\
           .#devShells.${{ inputs.nix_system }}.dev --command\
           pytest --step-rx '.' --pdk-root="${{ inputs.pdk_root }}" -n auto
-    - name: Install + Push to Cachix
-      shell: ${{ inputs.shell }}
-      if: ${{ inputs.cachix_token != '' }}
-      run: |
-        echo "#################################################################"
-        nix profile install cachix
-        cachix authtoken ${{ inputs.cachix_token }}
-        cachix push ${{ inputs.cachix_cache }} ${{ steps.build.outputs.out-path }}
