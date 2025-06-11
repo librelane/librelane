@@ -17,7 +17,7 @@ from pyfakefs.fake_filesystem import FakeFilesystem
 
 def test_cli_basic():
     import click
-    from openlane.flows import cloup_flow_opts
+    from librelane.flows import cloup_flow_opts
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)
@@ -31,7 +31,7 @@ def test_cli_basic():
 @pytest.mark.usefixtures("_chdir_tmp")
 def test_only_flag():
     import click
-    from openlane.flows import cloup_flow_opts
+    from librelane.flows import cloup_flow_opts
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)
@@ -53,8 +53,8 @@ def test_only_flag():
 def test_log_level_flag(caplog: pytest.LogCaptureFixture):
     import click
 
-    from openlane.flows import cloup_flow_opts
-    from openlane.logging import get_log_level, reset_log_level
+    from librelane.flows import cloup_flow_opts
+    from librelane.logging import get_log_level, reset_log_level
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)
@@ -91,8 +91,8 @@ def test_log_level_flag(caplog: pytest.LogCaptureFixture):
 def test_worker_count_cb():
     import click
 
-    from openlane.flows import cloup_flow_opts
-    from openlane.common import get_tpe, set_tpe
+    from librelane.flows import cloup_flow_opts
+    from librelane.common import get_tpe, set_tpe
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)
@@ -113,7 +113,7 @@ def test_worker_count_cb():
 @pytest.mark.usefixtures("_chdir_tmp")
 def test_initial_state(fs: FakeFilesystem, caplog: pytest.LogCaptureFixture):
     import click
-    from openlane.flows import cloup_flow_opts
+    from librelane.flows import cloup_flow_opts
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)

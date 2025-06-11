@@ -1,0 +1,10 @@
+checker.holdviolations/004-success-hold-overwrite
+checker.holdviolations/005-fail-different-corner
+odb.addpdnobstructions/002-fail-missing-metal
+odb.addpdnobstructions/003-fail-config-format
+odb.addpdnobstructions/004-fail-config-format
+odb.customioplacement/003-extra_pin
+odb.removepdnobstructions/002-fail-missing-metal
+odb.removepdnobstructions/003-fail-config-format
+odb.removepdnobstructions/005-fail-not-found
+odb.removepdnobstructions/004-fail-config-format

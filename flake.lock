@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "ciel": {
+      "inputs": {
+        "nix-eda": [
+          "nix-eda"
+        ]
+      },
+      "locked": {
+        "lastModified": 1749368491,
+        "narHash": "sha256-UW41Y7AK+jXk9klAvTMjw1dybj5NU9TIWLXlZfkpxkA=",
+        "owner": "fossi-foundation",
+        "repo": "ciel",
+        "rev": "79cc9bc9646f9f4b190e24ff7a63fb259c78e5a8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "fossi-foundation",
+        "repo": "ciel",
+        "type": "github"
+      }
+    },
     "devshell": {
       "inputs": {
         "nixpkgs": [
@@ -8,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1728330715,
-        "narHash": "sha256-xRJ2nPOXb//u1jaBnDP56M7v5ldavjbtR6lfGqSvcKg=",
+        "lastModified": 1741473158,
+        "narHash": "sha256-kWNaq6wQUbUMlPgw8Y+9/9wP0F8SHkjy24/mN3UAppg=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "dd6b80932022cea34a019e2bb32f6fa9e494dfef",
+        "rev": "7c9e793ebe66bcba8292989a68c0419b737a22a0",
         "type": "github"
       },
       "original": {
@@ -23,36 +43,16 @@
     },
     "flake-compat": {
       "locked": {
-        "lastModified": 1696426674,
-        "narHash": "sha256-kvjfFW7WAETZlt09AgDn1MrtKzP7t90Vf7vypd3OL1U=",
-        "rev": "0f9255e01c2351cc7d116c072cb317785dd33b33",
-        "revCount": 57,
+        "lastModified": 1733328505,
+        "narHash": "sha256-NeCCThCEP3eCl2l/+27kNNK7QrwZB1IJCrXfrbv5oqU=",
+        "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
+        "revCount": 69,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.0.1/018afb31-abd1-7bff-a5e4-cff7e18efb7a/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz"
       },
       "original": {
         "type": "tarball",
         "url": "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz"
-      }
-    },
-    "ioplace-parser": {
-      "inputs": {
-        "nix-eda": [
-          "nix-eda"
-        ]
-      },
-      "locked": {
-        "lastModified": 1730973673,
-        "narHash": "sha256-F7jux5RLKTFEcXEQ2mRIH83zlSAT+uffYsf/XnKgoiU=",
-        "owner": "efabless",
-        "repo": "ioplace_parser",
-        "rev": "e31eb8553caba31c08416d89e31b6aec58002755",
-        "type": "github"
-      },
-      "original": {
-        "owner": "efabless",
-        "repo": "ioplace_parser",
-        "type": "github"
       }
     },
     "libparse": {
@@ -81,16 +81,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1733412110,
-        "narHash": "sha256-nawHN6e/ngGQ+WEAEh3l01wLIa+Jfg75PugSfJvyo6I=",
-        "owner": "efabless",
+        "lastModified": 1749403175,
+        "narHash": "sha256-+VKZ7ZrVpJxVGA0ULHO4GkDwXNFx2kZvw9TeBTpuqqA=",
+        "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "3c53b4be2102d373bf0a300e700aaa839d52ebee",
+        "rev": "abf388eeae6e55da82adefb9e74e21acea9e5888",
         "type": "github"
       },
       "original": {
-        "owner": "efabless",
-        "ref": "2.1.2",
+        "owner": "fossi-foundation",
+        "ref": "2.1.3",
         "repo": "nix-eda",
         "type": "github"
       }
@@ -113,33 +113,11 @@
     },
     "root": {
       "inputs": {
+        "ciel": "ciel",
         "devshell": "devshell",
         "flake-compat": "flake-compat",
-        "ioplace-parser": "ioplace-parser",
         "libparse": "libparse",
-        "nix-eda": "nix-eda",
-        "volare": "volare"
-      }
-    },
-    "volare": {
-      "inputs": {
-        "nixpkgs": [
-          "nix-eda",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1728904439,
-        "narHash": "sha256-e6QXMol9kbrJplYamSDfz+X/BDhgP66rHmjkeIZlaNI=",
-        "owner": "efabless",
-        "repo": "volare",
-        "rev": "7458169adc63dfac4ecfcb1c967972c6d8cd888f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "efabless",
-        "repo": "volare",
-        "type": "github"
+        "nix-eda": "nix-eda"
       }
     }
   },

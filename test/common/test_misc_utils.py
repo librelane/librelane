@@ -14,7 +14,7 @@
 
 
 def test_slugify():
-    from openlane.common import slugify
+    from librelane.common import slugify
 
     assert slugify("ABCD efg.xy-Z") == "abcd-efg-xy-z", "Failed slugify test"
     assert (
@@ -23,7 +23,7 @@ def test_slugify():
 
 
 def test_filter_filter():
-    from openlane.common import Filter
+    from librelane.common import Filter
 
     assert (
         list(Filter([]).filter(["a", "b", "c"])) == []
@@ -43,7 +43,7 @@ def test_filter_filter():
 
 
 def test_filter_all_matching():
-    from openlane.common import Filter
+    from librelane.common import Filter
 
     assert list(Filter(["k", "!b"]).get_matching_wildcards("c")) == [
         "b"

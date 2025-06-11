@@ -1,5 +1,5 @@
 [run]
-source = openlane
+source = librelane
 
 [report]
 omit =

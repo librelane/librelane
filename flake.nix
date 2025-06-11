@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,35 +18,23 @@
 {
   description = "open-source infrastructure for implementing chip design flows";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://openlane.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
-    ];
-  };
-
   inputs = {
-    nix-eda.url = github:efabless/nix-eda/2.1.2;
-    libparse.url = github:efabless/libparse-python;
-    ioplace-parser.url = github:efabless/ioplace_parser;
-    volare.url = github:efabless/volare;
-    devshell.url = github:numtide/devshell;
+    nix-eda.url = "github:fossi-foundation/nix-eda/2.1.3";
+    libparse.url = "github:efabless/libparse-python";
+    ciel.url = "github:fossi-foundation/ciel";
+    devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
 
-  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
-  inputs.ioplace-parser.inputs.nix-eda.follows = "nix-eda";
-  inputs.volare.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
+  inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
+  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs = {
     self,
     nix-eda,
     libparse,
-    ioplace-parser,
-    volare,
+    ciel,
     devshell,
     ...
   }: let
@@ -53,8 +45,12 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [libparse ioplace-parser volare])
+        (nix-eda.flakesToOverlay [libparse ciel])
         (pkgs': pkgs: {
+          yosys-sby = (pkgs.yosys-sby.override { sha256 = "sha256-Il2pXw2doaoZrVme2p0dSUUa8dCQtJJrmYitn1MkTD4="; });
+          klayout = (pkgs.klayout.overrideAttrs(old: {
+            configurePhase = builtins.replaceStrings ["-without-qtbinding"] ["-with-qtbinding"] old.configurePhase;
+          }));
           yosys = pkgs.yosys.overrideAttrs(old: {
             patches = old.patches ++ [
               ./nix/patches/yosys/async_rules.patch
@@ -93,7 +89,9 @@
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
 
             # ---
-            openlane = callPythonPackage ./default.nix {};
+            librelane = callPythonPackage ./default.nix {
+              flake = self;
+            };
           })
         )
         (pkgs': pkgs: let
@@ -101,9 +99,9 @@
         in
           {}
           // lib.optionalAttrs pkgs.stdenv.isLinux {
-            openlane-docker = callPackage ./nix/docker.nix {
+            librelane-docker = callPackage ./nix/docker.nix {
               createDockerImage = nix-eda.createDockerImage;
-              openlane = pkgs'.python3.pkgs.openlane;
+              librelane = pkgs'.python3.pkgs.librelane;
             };
           })
       ];
@@ -123,15 +121,14 @@
 
     packages = nix-eda.forAllSystems (
       system: let
-        pkgs = self.legacyPackages."${system}";
-      in
-        {
+        pkgs = (self.legacyPackages."${system}");
+        in {
           inherit (pkgs) colab-env opensta openroad-abc openroad;
-          inherit (pkgs.python3.pkgs) openlane;
-          default = pkgs.python3.pkgs.openlane;
+          inherit (pkgs.python3.pkgs) librelane;
+          default = pkgs.python3.pkgs.librelane;
         }
         // lib.optionalAttrs pkgs.stdenv.isLinux {
-          inherit (pkgs) openlane-docker;
+          inherit (pkgs) librelane-docker;
         }
     );
 
@@ -175,7 +172,7 @@
             types-psutil
             lxml-stubs
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
           extra-packages = with pkgs; [
@@ -204,7 +201,7 @@
             sphinx-tippy
             sphinx-subfigure
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
       }
     );

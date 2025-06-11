@@ -338,6 +338,51 @@
 
 * Variable types now link to dataclasses' API reference as appropriate.
 
+# 2.4.0
+
+2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
+original authors after Efabless Corporation has ceased operations.
+
+## Steps
+
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+* Created `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
+
+  * New ECO steps using the variables `INSERT_ECO_BUFFERS` and
+    `INSERT_ECO_DIODES` respectively to allow creation of buffers and diodes
+    after (and only after global routing,) with an option to run it after
+    detailed routing so long as detailed routing is run again afterwards.
+
+* `OpenROAD.*`
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
+
+## Tool Updates
+
+* Volare replaced by [Ciel](https://github.com/fossi-foundation/ciel)@2.0.1
+* nix-eda replaced by the
+  [FOSSi Foundation fork](https://github.com/fossi-foundation/nix-eda)@2.1.3
+* OpenLane Cachix replaced by an S3-based cache hosted at
+  https://nix-cache.fossi-foundation.org
+
+## Misc. Enhancements/Bugfixes
+
+* Worked around an issue with Google Colaboratory where if `PATH` is set,
+  Yosys's Python `sitepackages` are replaced with the global ones and everything
+  breaks.
+
 # 2.3.10
 
 ## Steps
@@ -360,7 +405,7 @@
 
 * Fixed substitutions in `config.json` being applied to all flows. It now only
   applies to the flow in meta.flow (which falls back to `Classic` if it's null.)
-  
+
 # 2.3.7
 
 ## Tool Updates

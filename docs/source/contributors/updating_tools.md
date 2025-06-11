@@ -1,14 +1,14 @@
 # Updating Tools
 
-To update tools bundled with OpenLane, their respective `.nix` files need to be
+To update tools bundled with LibreLane, their respective `.nix` files need to be
 updated. The relevant `.nix` files all exist under the `nix/` folder under the
-root of the OpenLane repo.
+root of the LibreLane repo.
 
-## Setting up the OpenLane Nix Cache
+## Setting up the LibreLane Nix Cache
 
 If you somehow haven't done so already, follow the instructions in
 [**Nix Installation**](../getting_started/common/nix_installation/installation_linux.md)
-to enable the OpenLane-specific binary cache.
+to enable the LibreLane-specific binary cache.
 
 ## Finding the Current Version Info
 
@@ -22,7 +22,7 @@ that decide the version being used (all strings):
 * `repo`: The name of the GitHub tool repository.
 * `rev`: By convention, the Git commit of the tool in question.
   * Technically, versions, tags and branches are also accepted, but none are
-    deemed consistent enough to use with OpenLane.
+    deemed consistent enough to use with LibreLane.
 * `sha256` (or `hash`): A sha256sum of the contents of the repository in use
   when said commit is downloaded without any `.git` files.
 
@@ -97,8 +97,9 @@ If it errors out, this may be because of one of the following:
     for more information on how to learn to do that.
 * An internet connectivity issue
   * Nix will automatically download derivations it needs from various servers,
-    including but not limited to the Nix Store, Cachix, and GitHub. If there
-    is a temporarily failure accessing any of them, the build will fail.
+    including but not limited to the Nix Store, the FOSSi Foundation Cache, and
+    GitHub. If there is a temporarily failure accessing any of them, the build
+    will fail.
 * Memory corruption or other hardware failure
   * Restarting the build should work, build you can also try `nix-shell --cores 1`
     to limit the stress on your hardware.
