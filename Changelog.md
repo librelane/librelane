@@ -30,13 +30,6 @@
   * Metrics emitted from Odb steps are now also aggregated.
   * **API**: instance variable `.alerts` now holds emitted alerts until the next
     `start()`, similar to `.state_out`.
-  
-* Created `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
-  
-  * New ECO steps using the variables `INSERT_ECO_BUFFERS` and
-    `INSERT_ECO_DIODES` respectively to allow creation of buffers and diodes
-    after (and only after global routing,) with an option to run it after
-    detailed routing so long as detailed routing is run again afterwards.
 
 * `Odb.AddPDNObstructions`, `Odb.AddRoutingObstructions`
 
