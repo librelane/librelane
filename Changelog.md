@@ -14,7 +14,7 @@
 ## Documentation
 -->
 
-# 2.4.0
+# 2.4.0: Hello, LibreLane
 
 2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
 original authors after Efabless Corporation has ceased operations.
@@ -40,6 +40,11 @@ original authors after Efabless Corporation has ceased operations.
 
   * **API**: instance variable `.alerts` now holds emitted alerts until the next
     `start()`, similar to `.state_out`.
+    
+* `OpenROAD.STAPostPNR`
+
+  * `DesignFormat.ODB` input is now optional. If the input state is missing
+    `DesignFormat.ODB`, unannotated net metrics will not be generated.
 
 ## Documentation
 
@@ -55,6 +60,16 @@ original authors after Efabless Corporation has ceased operations.
 
 ## Misc. Enhancements/Bugfixes
 
+* `librelane.state.DesignFormat`
+  * Added new dynamic property `.value.optional` which cannot be defined
+    for new enum members and always returns `False`.
+  * Added new method `mkOptional` which creates an ephemeral copy of the
+    DesignFormat where `.value.optional` returns `True`.
+* `librelane.steps.Step`
+  * DesignFormats where `.value.optional` is True (i.e. copied with mkOptional)
+    no longer cause a `StepException` to be raised if missing from inputs.
+  * Note: Currently, all outputs are technically optional anyway. This will
+    change in 3.0.0.
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything
   breaks.

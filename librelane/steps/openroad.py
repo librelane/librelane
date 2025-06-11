@@ -778,7 +778,10 @@ class STAPostPNR(STAPrePNR):
         ),
     ]
 
-    inputs = STAPrePNR.inputs + [DesignFormat.SPEF, DesignFormat.ODB]
+    inputs = STAPrePNR.inputs + [
+        DesignFormat.SPEF,
+        DesignFormat.ODB.mkOptional(),
+    ]
     outputs = STAPrePNR.outputs + [DesignFormat.LIB]
 
     def prepare_env(self, env: dict, state: State) -> dict:
@@ -851,19 +854,21 @@ class STAPostPNR(STAPrePNR):
     ) -> MetricsUpdate:
         current_env["_LIB_SAVE_DIR"] = corner_dir
         metrics_updates = super().run_corner(state_in, current_env, corner, corner_dir)
-        try:
-            filter_unannotated_metrics = self.filter_unannotated_report(
-                corner=corner,
-                checks_report=os.path.join(corner_dir, "checks.rpt"),
-                corner_dir=corner_dir,
-                env=current_env,
-                odb_design=str(state_in[DesignFormat.ODB]),
-            )
-        except subprocess.CalledProcessError as e:
-            self.err(
-                f"Failed filtering unannotated nets for the {corner} timing corner."
-            )
-            raise e
+        filter_unannotated_metrics = {}
+        if odb := state_in[DesignFormat.ODB]:
+            try:
+                filter_unannotated_metrics = self.filter_unannotated_report(
+                    corner=corner,
+                    checks_report=os.path.join(corner_dir, "checks.rpt"),
+                    corner_dir=corner_dir,
+                    env=current_env,
+                    odb_design=str(odb),
+                )
+            except subprocess.CalledProcessError as e:
+                self.err(
+                    f"Failed filtering unannotated nets for the {corner} timing corner."
+                )
+                raise e
         return {**metrics_updates, **filter_unannotated_metrics}
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:

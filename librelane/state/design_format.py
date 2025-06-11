@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from enum import Enum
-from dataclasses import dataclass
 from typing import Dict, Optional
+from dataclasses import dataclass, replace
 
 
 @dataclass
@@ -44,9 +44,15 @@ class DesignFormatObject:
     folder_override: Optional[str] = None
     multiple: bool = False
 
+    _instance_optional: bool = False
+
     @property
     def folder(self) -> str:
         return self.folder_override or self.id
+
+    @property
+    def optional(self) -> bool:
+        return self._instance_optional
 
 
 class DesignFormat(Enum):
@@ -173,6 +179,15 @@ class DesignFormat(Enum):
     @staticmethod
     def by_id(id: str) -> Optional["DesignFormat"]:
         return _designformat_by_id.get(id)
+
+    def mkOptional(self) -> "DesignFormat":
+        # HACK: Create ephemeral DesignFormat copy until 3.0.0 lets us do this
+        # a bit more appropriately.
+        clone = object.__new__(DesignFormat)
+        clone._name_ = self._name_
+        clone._value_ = replace(self._value_)
+        clone._value_._instance_optional = True
+        return clone
 
 
 _designformat_by_id: Dict[str, "DesignFormat"] = {

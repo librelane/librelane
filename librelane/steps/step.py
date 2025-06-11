@@ -53,7 +53,13 @@ from ..config import (
     Variable,
     universal_flow_config_variables,
 )
-from ..state import DesignFormat, DesignFormatObject, State, InvalidState, StateElement
+from ..state import (
+    DesignFormat,
+    DesignFormatObject,
+    State,
+    InvalidState,
+    StateElement,
+)
 from ..common import (
     GenericDict,
     GenericImmutableDict,
@@ -661,7 +667,8 @@ class Step(ABC):
             for input, output in zip_longest(Self.inputs, Self.outputs):
                 input_str = ""
                 if input is not None:
-                    input_str = f"{input.value.name} (.{input.value.extension})"
+                    optional = "?" if input.value.optional else ""
+                    input_str = f"{input.value.name}{optional} (.{input.value.extension})"
 
                 output_str = ""
                 if output is not None:
@@ -1141,7 +1148,7 @@ class Step(ABC):
 
         for input in self.inputs:
             value = state_in_result[input]
-            if value is None:
+            if value is None and not input.value.optional:
                 raise StepException(
                     f"{type(self).__name__}: missing required input '{input.name}'"
                 ) from None

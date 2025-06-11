@@ -137,6 +137,44 @@ def test_step_create(mock_run, mock_config):
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
+def test_step_optional_inputs(mock_run, mock_config):
+    from librelane.steps import Step, StepException
+    from librelane.state import DesignFormat, State
+    from librelane.common import Path
+
+    class TestStep(Step):
+        inputs = [DesignFormat.NETLIST, DesignFormat.DEF.mkOptional()]
+        outputs = []
+        run = mock_run
+        id = "TestStep"
+
+    test_file = "test.nl.v"
+    with open(test_file, "w") as f:
+        f.write("\n")
+
+    step = TestStep(
+        id="TestStep",
+        long_name="longname",
+        config=mock_config,
+        state_in=State({DesignFormat.NETLIST: Path(test_file)}),
+    )
+    assert step.id == "TestStep", "Wrong step id"
+    assert step.long_name == "longname", "Wrong step longname"
+    assert step.config == mock_config, "Wrong step config"
+
+    step.start(step_dir=".")
+
+    with pytest.raises(StepException, match="missing required input"):
+        TestStep(
+            id="TestStep",
+            long_name="longname",
+            config=mock_config,
+            state_in=State({DesignFormat.DEF: Path(test_file)}),
+        ).start(step_dir=".")
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
 def test_mock_run(mock_run, mock_config):
     from librelane.steps import Step
     from librelane.state import DesignFormat, State
