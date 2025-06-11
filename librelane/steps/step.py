@@ -668,7 +668,9 @@ class Step(ABC):
                 input_str = ""
                 if input is not None:
                     optional = "?" if input.value.optional else ""
-                    input_str = f"{input.value.name}{optional} (.{input.value.extension})"
+                    input_str = (
+                        f"{input.value.name}{optional} (.{input.value.extension})"
+                    )
 
                 output_str = ""
                 if output is not None:
