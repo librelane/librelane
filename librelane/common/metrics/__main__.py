@@ -286,7 +286,7 @@ cli.add_command(compare_multiple)
 @cloup.option(
     "-m",
     "--metric-repo",
-    default="efabless/librelane-metrics",
+    default="librelane/librelane-metrics",
     help="The repository storing metrics for --repo",
 )
 @cloup.option(
