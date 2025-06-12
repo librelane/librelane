@@ -189,13 +189,12 @@
 ## Tool Updates
 
 * Updated nix-eda
-  * Updated nixpkgs to nixos-24.11 (@ `3c53b4b`)
-  * Updated KLayout to `0.29.9`
-  * Updated Magic to `8.3.503`
-  * Updated Netgen to `1.5.287`
-* Updated ioplace-parser to`0.4.0`
-* Updated OpenROAD to `1d61007`
-  * Updated OpenSTA to `aa598a2`
+  * Updated nixpkgs to nixos-24.11 (@ `f9f0d5c`)
+  * Updated KLayout to `0.29.10`
+  * Updated Magic to `8.3.528`
+  * Updated Netgen to `1.5.295`
+* Updated OpenROAD to `341650e`
+* Updated OpenSTA to `ffabd65`
 
 ## Testing
 

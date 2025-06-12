@@ -411,6 +411,13 @@ proc write_views {args} {
         write_verilog $::env(SAVE_NL)
     }
 
+    if { [info exists ::env(SAVE_LOGICAL_NL)] } {
+        puts "Writing logic-only netlist to '$::env(SAVE_LOGICAL_NL)'…"
+        write_verilog\
+            -remove_cells "[get_physical_cells]"\
+            $::env(SAVE_LOGICAL_NL)
+    }
+
     if { [info exists ::env(SAVE_PNL)] } {
         puts "Writing powered netlist to '$::env(SAVE_PNL)'…"
         write_verilog -include_pwr_gnd $::env(SAVE_PNL)
