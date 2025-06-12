@@ -23,29 +23,66 @@
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
     raise an error for hold violations on *any* corners.
 
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
 * `Odb.AddPDNObstructions`, `Odb.AddRoutingObstructions`
 
   * `PDN_OBSTRUCTIONS` and `ROUTING_OBSTRUCTIONS` are now lists of tuples
     instead of variable-length Tcl-style lists (AKA: strings).
+  * **Internal**: Unified exit codes.
+
+* `Odb.DiodesOnPorts`, `Odb.PortDiodePlacement`
+
+  * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+
+* `Odb.FuzzyDiodePlacement`, `Odb.HeuristicDiodeInsertion`
+
+* Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+
+* `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
+  is unset.
 
 * `OpenROAD.*`
 
-  * Added `PNR_CORNERS`. An override for `DEFAULT_CORNER` for PnR steps except
-    for steps using `RSZ_CORNERS` and `CTS_CORNERS`.
+  * Added `PNR_CORNERS` which defaults to `STA_CORNERS`. An override for
+    `DEFAULT_CORNER` for PnR steps except those with more specific overrides
+    e.g. `RSZ_CORNERS`, `CTS_CORNERS`.
+
   * Added `LAYERS_RC`, `VIAS_R`: Unlike OpenLane 1.0.0 variables with similar
     names, these are mappings from corners to layer/via RC values.
-    * `PNR_CORNERS`, `RSZ_CORNERS`, and `CTS_CORNERS` all now support multiple
-      corners to have the same set of liberty files (as RC values may differ.)
+
+  * Previously, for resizer steps, corners that end up with the same set of lib
+    files and RC values would be culled to reduce runtime. Now, for all steps,
+    this behavior is gated by `DEDUPLICATE_CORNERS`, which is `False` by
+    default. **This may increase flow runtimes**. In general, it is safe to turn
+    this on, however it may be surprising behavior.
+
+    * Just like previously, however, STA steps are unaffected and will always
+      run across all corners.
+
   * Added `SET_RC_VERBOSE`, which (very noisily) logs set-RC-related commands to
     logs.
-  * Always read libs before reading odb.
+
   * Added `log_cmd` from OpenROAD-flow-scripts -- neat idea for consistency
+
   * Lib files are now *always* read BEFORE reading database files.
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
   * **Internal**: Steps now sensitive to `_OPENROAD_GUI` environment variable --
     coupled with `--only`, it runs a step in OpenROAD then doesn't quit so you
     may inspect the result.
+
     * This is not part of the OpenLane stable API and may be broken at any
       moment.
+
   * **Internal**: New convenience methods to append flags to calls based on
     environment variables
 
@@ -54,6 +91,7 @@
   * Added flags `CTS_OBSTRUCTION_AWARE` and `CTS_BALANCE_LEVELS`
   * Added `CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT`
   * Added `CTS_DELAY_BUFFER_DERATE_PCT`
+  * `CTS_CLK_BUFFERS` can now take wildcards.
 
 * `OpenROAD.CutRows`
 
@@ -65,10 +103,11 @@
   * Added `DRT_SAVE_SNAPSHOTS` which enables saving snapshots of the layout each
     detalied routing iteration.
   * Added `DRT_SAVE_DRC_REPORT_ITERS`
-  * Added `DRT_ANTENNA_REPAIR_ITERS`, which if greater than zero, enables
-    antenna fixing after detailed routing
+  * Added `DRT_ANTENNA_REPAIR_ITERS`, which, if greater than zero and
+    `DIODE_CELL` is set, enables antenna fixing after detailed routing
   * Added `DRT_ANTENNA_MARGIN` which is similar to `GRT_ANTENNA_MARGIN` but for
     the aforementioned antenna repair iterations
+  * DRC reports are now converted to `xml` and readable by KLayout
 
 * Created `OpenROAD.DumpRCValues`
 
@@ -77,16 +116,23 @@
 
 * `OpenROAD.Floorplan`
 
-  * Fixed an issue in `FP_SIZING`: `absolute` mode where if the die area's
-    x0 > x1 or y0 > y1, the computed core area would no longer fit in the die
-    area. Not that we recommend you ever do that, but technically OpenROAD
-    allows it.
-    
+  * Added `FP_FLIP_SITES`: allows sites in floorplans to be flipped. Useful in
+    niche alignment scenarios where single-height cells have ground at the south
+    side and double-height cells have power at the south side, causing a short.
+    In that situation, flipping the sites for single-height cells resolves the
+    issue.
+
 * `OpenROAD.GlobalPlacement`
 
   * Added optional variable `PL_ROUTABILITY_MAX_DENSITY_PCT`
 
+  * Added optional variable `PL_KEEP_RESIZE_BELOW_OVERFLOW`
+
   * Corrected `GPL_CELL_PADDING` to be an integer.
+
+* `OpenROAD.RepairAntennas`
+
+  * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
 
 * `OpenROAD.RepairDesignPostGPL`
 
@@ -121,6 +167,11 @@
     * `GRT_RESIZER_SETUP_MAX_UTIL_PCT`
     * `GRT_RESIZER_HOLD_REPAIR_TNS_PCT`
     * `GRT_RESIZER_HOLD_MAX_UTIL_PCT`
+
+* `OpenROAD.TapDecapInsertion`
+
+  * No longer assumes `WELLTAP_CELL` has a value and skips tap insertion if not.
+  * No longer assumes `DECAP_CELL` has a value and skips decap insertion if not.
 
 * Created `OpenROAD.UnplaceAll`
 
@@ -218,6 +269,7 @@
 
   * `{GPL,DPL}_CELL_PADDING`, `PL_MAX_DISPLACEMENT_{X,Y}` now all integers to
     match OpenROAD.
+  * `WELLTAP_CELL`, `DECAP_CELL` now optional.
 
 * `Checker.HoldViolations`
 
@@ -272,6 +324,118 @@
 
   * `FILL_CELL`, `DECAP_CELL`, `EXTRA_GDS_FILES`, `FALLBACK_SDC_FILE` were all
     renamed, see Misc. Enhancements/Bugfixes.
+
+* `openlane.common.drc`
+
+  * `BoundingBox` changed from `Tuple` to `dataclass` with additional optional
+    `info` property.
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
+
+# 2.4.0
+
+2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
+original authors after Efabless Corporation has ceased operations.
+
+## Steps
+
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+* Created `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
+
+  * New ECO steps using the variables `INSERT_ECO_BUFFERS` and
+    `INSERT_ECO_DIODES` respectively to allow creation of buffers and diodes
+    after (and only after global routing,) with an option to run it after
+    detailed routing so long as detailed routing is run again afterwards.
+
+* `OpenROAD.*`
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
+
+## Tool Updates
+
+* Volare replaced by [Ciel](https://github.com/fossi-foundation/ciel)@2.0.1
+* nix-eda replaced by the
+  [FOSSi Foundation fork](https://github.com/fossi-foundation/nix-eda)@2.1.3
+* OpenLane Cachix replaced by an S3-based cache hosted at
+  https://nix-cache.fossi-foundation.org
+
+## Misc. Enhancements/Bugfixes
+
+* Worked around an issue with Google Colaboratory where if `PATH` is set,
+  Yosys's Python `sitepackages` are replaced with the global ones and everything
+  breaks.
+
+# 2.3.10
+
+## Steps
+
+* `Yosys.Synthesis`
+  * `SYNTH_ELABORATE_FLATTEN` now passes the `-noscopeinfo` flag so scopeinfo
+    cells are no longer emitted from Synthesis.
+
+# 2.3.9
+
+## Tool Updates
+
+* Backported https://github.com/The-OpenROAD-Project/OpenROAD/pull/6743 to
+  OpenROAD to fix GUI crashes on C++ standard libraries that are not libstdc++
+  (aka: macOS.)
+
+# 2.3.8
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed substitutions in `config.json` being applied to all flows. It now only
+  applies to the flow in meta.flow (which falls back to `Classic` if it's null.)
+
+# 2.3.7
+
+## Tool Updates
+
+* Updated Docker requirement to tested version: 27.3.1
+  * Added warning when Docker version is out of date.
+
+## Documentation
+
+* Updated documentation to reflect tested Docker version.
+* Updated documentation to stop using a branch of the DetSys Nix Installer.
+
+# 2.3.6
+
+## Steps
+
+* `Verilator.Lint`
+  * Fixed missing `VERILOG_INCLUDE_DIRS` variable, which would cause designs
+    that synthesize correctly to otherwise fail linting.
+
+# 2.3.5
+
+## Tool Updates
+
+* `nix-eda` updated to 2.1.2
+  * Pulls in a Python overlay fix and a fix for `gdstk`.
+
+# 2.3.4
+
+## Tool Updates
+
+* Added patch to Yosys to resolve an early return issue that broke non-const
+  asynchronous resets. See https://github.com/YosysHQ/yosys/issues/4712 for more
+  info.
 
 # 2.3.3
 

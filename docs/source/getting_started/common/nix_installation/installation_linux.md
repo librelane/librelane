@@ -8,7 +8,7 @@
     * 6th Gen Intel® Core CPU or later OR AMD Ryzen™️ 1000-series or later
     * 16 GiB of RAM
 
-We will primarily support Ubuntu 20.04+ for OpenLane.
+We will primarily support Ubuntu 20.04+ for LibreLane.
 
 If you're looking to build a virtual machine, we recommend [Ubuntu 22.04](https://releases.ubuntu.com/jammy/).
 
@@ -30,9 +30,9 @@ $ sudo apt-get install -y curl
 After that, simply run this command:
 
 ```console
-$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix/pr/1145 | sh -s -- install --no-confirm --extra-conf "
-    extra-substituters = https://openlane.cachix.org
-    extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
+    extra-substituters = https://nix-cache.fossi-foundation.org
+    extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
 "
 ```
 

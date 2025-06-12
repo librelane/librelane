@@ -22,13 +22,14 @@ entry = re.compile(r"^([^#]*)(#[\s\S]+)?")
 
 def collect_step_tests():
     excluded_tests = set()
-    for line in open(pytest.step_excl_dir, encoding="utf8"):
-        if match := entry.match(line):
-            line = match[1]
-        line = line.strip()
-        if line == "":
-            continue
-        excluded_tests.add(line)
+    with open(pytest.step_excl_dir, encoding="utf8") as f:
+        for line in f:
+            if match := entry.match(line):
+                line = match[1]
+            line = line.strip()
+            if line == "":
+                continue
+            excluded_tests.add(line)
     result = []
     test_rx = re.compile(r"\d+\-[A-Za-z\d_]+")
     for p in sorted(

@@ -16,7 +16,7 @@ from decimal import Decimal
 
 
 def test_is_number():
-    from openlane.common import is_number
+    from librelane.common import is_number
 
     assert is_number(int(10)) is True, "integer was not a number"
     assert is_number(float(-inf)) is True, "infinite float was not a number"
@@ -25,7 +25,7 @@ def test_is_number():
 
 
 def test_is_real_number():
-    from openlane.common import is_real_number
+    from librelane.common import is_real_number
 
     assert is_real_number(10) is True, "integer was not real number"
     assert is_real_number(inf) is False, "infinity was real number"

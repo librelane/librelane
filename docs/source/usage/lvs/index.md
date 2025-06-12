@@ -1,4 +1,4 @@
-# Resolving LVS Mismatches in OpenLane
+# Resolving LVS Mismatches in LibreLane
 
 This guide aims to document a number of common {term}`LVS` mismatches, their
 possible causes, and how to resolve them.
@@ -19,7 +19,7 @@ are captured by LVS:
 1. A component (standard cell or macro) declared in the schematic is missing
    or different in the layout.
 
-The first two are the most common class of LVS error. In OpenLane, the affected
+The first two are the most common class of LVS error. In LibreLane, the affected
 nets are more often than not power nets.
 
 These mismatches can occur either by user misconfiguration 

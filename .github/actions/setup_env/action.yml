@@ -18,7 +18,7 @@ runs:
     - name: Check if publishing branch
       shell: bash
       run: |
-        if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == version* ]]; then
+        if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "dev" || "$BRANCH_NAME" == version* ]]; then
           echo "PUBLISHING_BRANCH=1" >> $GITHUB_ENV
         fi
 

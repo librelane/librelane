@@ -1,7 +1,7 @@
 # Reference Manual
 
 This is an exhaustive guide to the configuration and programming interfaces
-provided by OpenLane and its included Flows and Steps.
+provided by LibreLane and its included Flows and Steps.
 
 ```{toctree}
 :glob:

@@ -18,7 +18,7 @@ from decimal import Decimal
 
 def test_yaml_decimals():
     import yaml
-    from openlane.config.config import _OpenLaneYAMLLoader
+    from librelane.config.config import _OpenLaneYAMLLoader
 
     sio = StringIO()
     sio.write(

@@ -5,21 +5,21 @@ dist: venv/manifest.txt
 
 .PHONY: mount
 mount:
-	@echo "make mount is not needed in OpenLane 2+. You may simply call 'openlane --dockerized'."
+	@echo "make mount is not needed in LibreLane 2+. You may simply call 'librelane --dockerized'."
 
-.PHONY: pdk pull-openlane
-pdk pull-openlane:
-	@echo "OpenLane 2+ will automatically pull PDKs and/or Docker containers when it needs them."
+.PHONY: pdk pull-librelane
+pdk pull-librelane:
+	@echo "LibreLane 2+ will automatically pull PDKs and/or Docker containers when it needs them."
 
-.PHONY: openlane
-openlane:
-	@echo "make openlane is deprecated. Please use make docker-image."
+.PHONY: librelane
+librelane:
+	@echo "make librelane is deprecated. Please use make docker-image."
 	@echo "----"
 	@$(MAKE) docker-image
 
 .PHONY: docker-image
 docker-image:
-	cat $(shell nix build --no-link --print-out-paths .#openlane-docker -L --verbose) | docker load
+	cat $(shell nix build --no-link --print-out-paths .#librelane-docker -L --verbose) | docker load
 
 .PHONY: docs
 docs:
@@ -49,12 +49,12 @@ lint:
 .PHONY: coverage-infrastructure
 coverage-infrastructure:
 	python3 -m pytest -n auto\
-		--cov=openlane --cov-config=.coveragerc --cov-report html:htmlcov_infra --cov-report term
+		--cov=librelane --cov-config=.coveragerc --cov-report html:htmlcov_infra --cov-report term
 
 .PHONY: coverage-steps
 coverage-steps:
 	python3 -m pytest -n auto\
-		--cov=openlane.steps --cov-config=.coveragerc-steps --cov-report html:htmlcov_steps --cov-report term\
+		--cov=librelane.steps --cov-config=.coveragerc-steps --cov-report html:htmlcov_steps --cov-report term\
 		--step-rx "." -k test_all_steps
 
 .PHONY: check-license

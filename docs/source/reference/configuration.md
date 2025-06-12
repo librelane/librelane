@@ -1,6 +1,6 @@
 # Design Configuration Files
 
-Unless the design uses the API directly, each OpenLane-compatible design must
+Unless the design uses the API directly, each LibreLane-compatible design must
 come with a configuration file. These configuration files can be written in one
 of three grammars: JSON, YAML or Tcl.
 
@@ -230,7 +230,7 @@ You can also simply reference another number using this prefix:
 ## Tcl
 
 These configuration files are simple Tcl scripts with environment variables that
-are sourced by the OpenLane flow. Again, Tcl config files are not recommended
+are sourced by the LibreLane flow. Again, Tcl config files are not recommended
 for newer designs, but is still maintained and supported at the moment.
 
 Each design using the Tcl format has a global config.tcl and other config files
