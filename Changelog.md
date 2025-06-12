@@ -189,16 +189,12 @@
 ## Tool Updates
 
 * Updated nix-eda
-  * Updated nixpkgs to nixos-24.11 (@ `3c53b4b`)
+  * Updated nixpkgs to nixos-24.11 (@ `f9f0d5c`)
   * Updated KLayout to `0.29.10`
-  * Updated Magic to `8.3.515`
-  * Updated Netgen to `1.5.291`
-* Updated ioplace-parser to `0.4.0`
-* Updated OpenROAD to `655640a`
-  * Adds new DFT features
-* Updated OpenSTA to `aa598a2`
-* Updated Volare to `0.20.5`
-  * Includes support for ihp-sg13g2
+  * Updated Magic to `8.3.528`
+  * Updated Netgen to `1.5.295`
+* Updated OpenROAD to `341650e`
+* Updated OpenSTA to `ffabd65`
 
 ## Testing
 

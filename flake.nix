@@ -19,7 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/2.1.3";
+    nix-eda.url = "github:fossi-foundation/nix-eda/4.3.0";
     libparse.url = "github:efabless/libparse-python";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
@@ -61,10 +61,19 @@
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
           in {
+            or-tools_9_11 = callPackage ./nix/or-tools_9_11.nix {
+              inherit (pkgs'.darwin) DarwinTools;
+              stdenv =
+                if pkgs'.system == "x86_64-darwin"
+                then (pkgs'.overrideSDK pkgs'.stdenv "11.0")
+                else pkgs'.stdenv;
+            };
             colab-env = callPackage ./nix/colab-env.nix {};
             opensta = callPackage ./nix/opensta.nix {};
             openroad-abc = callPackage ./nix/openroad-abc.nix {};
-            openroad = callPackage ./nix/openroad.nix {};
+            openroad = callPackage ./nix/openroad.nix {
+              llvmPackages = pkgs'.llvmPackages_18;
+            };
           }
         )
         (
