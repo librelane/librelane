@@ -43,6 +43,7 @@ watch-docs:
 .PHONY: lint
 lint:
 	black --check .
+	flake8 .
 	mypy --check-untyped-defs .
 
 .PHONY: coverage-infrastructure
