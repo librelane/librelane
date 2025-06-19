@@ -14,8 +14,8 @@ Before you submit your changes, it's prudent to perform some kind of smoke test.
 
 ### Python
 
-Python code should be run on Python 3.8+, and be **typed**. i.e., we require
-explicit type annotations for all major API functions.
+Python code should be written for Python 3.8.1+, and be **typed**. i.e., we
+require explicit type annotations for all major API functions.
 
 You will need to ensure that your Python code passes linting with our three chosen tools:
 
