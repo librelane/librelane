@@ -25,7 +25,9 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
-      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
+      sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
+      gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
       - uses: actions/checkout@v4
       - name: Python Dependencies
@@ -40,32 +42,44 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         run: |
-          python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 $TEST_SETS
-          echo "design_matrix=$(python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 $TEST_SETS)" >> $GITHUB_OUTPUT
+          python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 --scl ihp-sg13g2/sg13g2_stdcell $TEST_SETS
+          echo "design_matrix=$(python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 --scl ihp-sg13g2/sg13g2_stdcell $TEST_SETS)" >> $GITHUB_OUTPUT
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
+          echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
+          echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
+          echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
           path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-sky130-pdk-${{ steps.set-rev.outputs.sky130_hash }}
           enableCrossOsArchive: true
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v4
         with:
           path: ./.ciel-gf180mcu
-          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.gf180mcu_hash }}
           enableCrossOsArchive: true
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      - name: Cache ihp-sg13g2 PDK
+        uses: actions/cache@v4
+        with:
+          path: ./.ciel-ihp-sg13g2
+          key: cache-ihp-sg13g2-pdk-${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
+          enableCrossOsArchive: true
+      - name: Enable ihp-sg13g2 PDK
+        run: |
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          ciel enable --pdk ihp-sg13g2 --pdk-root ./.ciel-ihp-sg13g2 ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
       - name: Checkout submodules
         uses: actions/checkout@v4
         with:
@@ -211,12 +225,6 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-      - name: Cache sky130 PDK
-        uses: actions/cache@v4
-        with:
-          path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
-          enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -350,12 +358,15 @@ jobs:
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-librelane || true
+      - name: Get PDK hash
+        run: |
+          echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v4
         with:
           path: ./.ciel-${{ matrix.design.pdk_family }}
-          key: cache-${{ matrix.design.pdk_family }}-pdk-${{ needs.prepare-test-matrices.outputs.opdks_rev }}
+          key: cache-${{ matrix.design.pdk_family }}-pdk-${{ env.PDK_HASH }}
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
@@ -363,7 +374,7 @@ jobs:
           pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
-            ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
+            ${{ env.PDK_HASH }}
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'

@@ -39,7 +39,7 @@ def create_reproducible_on_fail(request: SubRequest):
 def pdk_root(request):
     import ciel
     from ciel.source import StaticWebDataSource
-    from librelane.common import get_opdks_rev
+    from librelane.common import get_pdk_hash
 
     ciel_home = ciel.get_ciel_home(request.config.option.pdk_root)
 
@@ -50,7 +50,7 @@ def pdk_root(request):
     version = ciel.fetch(
         ciel_home,
         "sky130",
-        get_opdks_rev(),
+        get_pdk_hash("sky130A"),
         data_source=data_source,
     )
 
