@@ -34,7 +34,7 @@ from cloup.constraints import (
 from cloup.typing import Decorator
 
 from .flow import Flow
-from ..common import set_tpe, cli, get_opdks_rev, _get_process_limit
+from ..common import set_tpe, cli, get_pdk_hash, _get_process_limit
 from ..logging import set_log_level, verbose, err, options, LogLevels
 from ..state import State, InvalidState
 
@@ -421,7 +421,7 @@ def cloup_flow_opts(
                     import ciel
                     from ciel.source import StaticWebDataSource
 
-                    opdks_rev = volare_pdk_override or get_opdks_rev()
+                    opdks_rev = volare_pdk_override or get_pdk_hash(pdk)
                     ciel_home = ciel.get_ciel_home(pdk_root)
 
                     include_libraries = ["default"]

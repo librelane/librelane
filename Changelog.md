@@ -18,7 +18,7 @@
 
 ## Steps
 
-  * Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+  * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
 
     * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
 
@@ -237,6 +237,13 @@
   PDK variables.)
 
 ## Misc. Enhancements/Bugfixes
+
+* Store hashes for each PDK family separately
+
+  * Renamed `open_pdks_rev` to `pdk_hashes.yaml`
+  * Add hash for ihp-sg13g2
+  * Rename `PDK_ihp-sg13g2` define to `PDK_ihp_sg13g2`
+  * Metrics: split `pdk-scl-design_name` triple from the right, since ihp-sg13g2 contains a `-`
 
 * `librelane.common`
 
