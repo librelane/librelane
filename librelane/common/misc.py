@@ -15,6 +15,7 @@ import fnmatch
 import glob
 import gzip
 import os
+import yaml
 import pathlib
 import re
 import typing
@@ -35,6 +36,7 @@ import httpx
 
 from ..__version__ import __version__
 from .types import AnyPath, Path
+from ..logging import set_log_level, verbose, err, options, LogLevels
 
 T = TypeVar("T")
 
@@ -66,15 +68,21 @@ def get_script_dir() -> str:
     )
 
 
-def get_opdks_rev() -> str:
+def get_pdk_hash(pdk_variant) -> str:
     """
-    Gets the Open_PDKs revision confirmed compatible with this version of LibreLane.
+    Gets the PDK version hash confirmed compatible with this version of LibreLane.
     """
-    return (
-        open(os.path.join(get_librelane_root(), "open_pdks_rev"), encoding="utf8")
-        .read()
-        .strip()
+
+    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml"), "r") as file:
+        pdk_hashes = yaml.safe_load(file)
+        for pdk_family in pdk_hashes:
+            if pdk_family in pdk_variant:
+                return pdk_hashes[pdk_family]
+
+    err(
+        f"Could not find a PDK family for '{pdk_variant}'. Please specify a PDK manually with '--manual-pdk'."
     )
+    exit(1)
 
 
 # The following code snippet has been adapted under the following license:
