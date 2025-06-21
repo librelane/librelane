@@ -449,9 +449,11 @@ jobs:
           path: current
       - name: "[PRs] Compare to target branch and comment result (if the workflow has secrets access)"
         uses: actions/github-script@v6
-        if: ${{ github.event_name == 'pull_request' }}
+        env: 
+            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        if: github.event_name == 'pull_request' && env.bot_github_token != ''
         with:
-          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          github-token: ${{ env.bot_github_token }}
           script: |
             require("./.github/scripts/compare_metrics.js")({
               github: github,
@@ -462,7 +464,9 @@ jobs:
               againstBranch: "${{ github.base_ref }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
-        if: ${{ github.event_name == 'push' }} # && env.BRANCH_NAME == 'main' }}
+        env: 
+            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        if: github.event_name == 'push' && env.bot_github_token != ''
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
           REPO=${{ vars.METRICS_REPO }}

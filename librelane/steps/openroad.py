@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +19,6 @@ import io
 import os
 import re
 import json
-import tempfile
 import functools
 import subprocess
 from enum import Enum
@@ -2414,30 +2417,47 @@ class DEFtoODB(OpenROADStep):
 
 
 @Step.factory.register()
-class OpenGUI(Step):
+class OpenGUI(OpenSTAStep):
     """
     Opens the ODB view in the OpenROAD GUI. Useful to inspect some parameters,
-    such as routing density and whatnot.
+    such as routing density, timing paths, clock tree and whatnot.
+    The LIBs are loaded by default and the SPEFs if available.
     """
 
     id = "OpenROAD.OpenGUI"
     name = "Open In GUI"
 
-    inputs = [DesignFormat.ODB]
+    inputs = [
+        DesignFormat.ODB,
+        DesignFormat.SPEF.mkOptional(),
+    ]
     outputs = []
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        with tempfile.NamedTemporaryFile("a+", suffix=".tcl") as f:
-            f.write(f"read_db \"{state_in['odb']}\"")
-            f.flush()
+    def get_script_path(self) -> str:
+        return os.path.join(get_script_dir(), "openroad", "gui.tcl")
 
-            subprocess.check_call(
-                [
-                    "openroad",
-                    "-no_splash",
-                    "-gui",
-                    f.name,
-                ]
-            )
+    def get_command(self) -> List[str]:
+        return [
+            "openroad",
+            "-no_splash",
+            "-gui",
+            self.get_script_path(),
+        ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        corner_name, file_list = self._get_corner_files(prioritize_nl=True)
+        file_list.set_env(env)
+        env["_CURRENT_CORNER_NAME"] = corner_name
+
+        env = self.prepare_env(env, state_in)
+
+        command = self.get_command()
+        self.run_subprocess(
+            command,
+            env=env,
+            **kwargs,
+        )
 
         return {}, {}

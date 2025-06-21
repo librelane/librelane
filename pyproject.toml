@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "librelane"
-version = "2.4.0.dev6"
+version = "2.4.0.dev7"
 description = "An infrastructure for implementing chip design flows"
-authors = ["Mohamed Gaber <me@donn.website>", "Efabless Corporation"]
+# Technically, maintainer. We cannot use the maintainers field until
+# poetry-core>=2.0.0 which requires Python version 3.9+. This field does
+# not imply primary authorship for the purposes of copyright.
+authors = ["Mohamed Gaber <me@donn.website>"]
 readme = "Readme.md"
 license = "Apache-2.0"
 repository = "https://github.com/librelane/librelane"

@@ -1,4 +1,4 @@
-# Copyright 2025 The American University in Cairo
+# Copyright 2025 LibreLane Contributors
 #
 # Adapted from OpenLane
 #

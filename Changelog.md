@@ -40,11 +40,15 @@ original authors after Efabless Corporation has ceased operations.
 
   * **API**: instance variable `.alerts` now holds emitted alerts until the next
     `start()`, similar to `.state_out`.
-    
+
 * `OpenROAD.STAPostPNR`
 
   * `DesignFormat.ODB` input is now optional. If the input state is missing
     `DesignFormat.ODB`, unannotated net metrics will not be generated.
+
+* `OpenROAD.OpenGUI`
+
+  * The LIBs are now loaded by default and the SPEFs if available.
 
 ## Documentation
 
@@ -61,8 +65,8 @@ original authors after Efabless Corporation has ceased operations.
 ## Misc. Enhancements/Bugfixes
 
 * `librelane.state.DesignFormat`
-  * Added new dynamic property `.value.optional` which cannot be defined
-    for new enum members and always returns `False`.
+  * Added new dynamic property `.value.optional` which cannot be defined for new
+    enum members and always returns `False`.
   * Added new method `mkOptional` which creates an ephemeral copy of the
     DesignFormat where `.value.optional` returns `True`.
 * `librelane.steps.Step`
