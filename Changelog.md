@@ -189,10 +189,12 @@
 ## Tool Updates
 
 * Updated nix-eda
-  * Updated nixpkgs to nixos-24.11 (@ `f9f0d5c`)
-  * Updated KLayout to `0.29.10`
+  * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
+  * Updated KLayout to `0.30.2`
   * Updated Magic to `8.3.528`
   * Updated Netgen to `1.5.295`
+  * Updated Yosys to `0.54`
+    * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
 * Updated OpenROAD to `341650e`
 * Updated OpenSTA to `ffabd65`
 

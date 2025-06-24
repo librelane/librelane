@@ -226,7 +226,7 @@ jobs:
       - name: Cache to S3
         uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
         with:
-          flake_outputs: .#packages.${{ matrix.os. nix}}.librelane
+          flake_outputs: .#packages.${{ matrix.os.nix }}.librelane
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
           nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
           s3_bucket_name: ${{ vars.NIX_CACHE }}

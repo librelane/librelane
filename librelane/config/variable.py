@@ -575,11 +575,7 @@ class Variable:
             kwargs_dict = {}
             for current_field in fields(validating_type):
                 key = current_field.name
-                subtype = current_field.type
-                if not isinstance(subtype, type):
-                    raise ValueError(
-                        f"{validating_type.__qualname__} has field {key} with invalid type '{subtype}'"
-                    )
+                subtype: Type[Any] = current_field.type  # type: ignore
                 explicitly_specified = False
                 if key in raw:
                     explicitly_specified = True
