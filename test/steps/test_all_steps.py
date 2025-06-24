@@ -17,7 +17,7 @@ import sys
 import shutil
 import inspect
 import importlib
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -28,6 +28,11 @@ def _step_enabled(request: SubRequest, test: str):
     step_rx = request.config.option.step_rx
     if re.search(step_rx, test) is None:
         pytest.skip()
+
+
+@pytest.fixture
+def create_reproducible_on_fail(request: SubRequest):
+    return request.config.option.create_reproducible_on_fail
 
 
 @pytest.fixture
@@ -81,8 +86,9 @@ def attribute_from_file(file: str, attribute: str):
 
 
 @pytest.mark.parametrize("test", pytest.tests)
-@pytest.mark.usefixtures("_chdir_tmp", "_step_enabled")
-def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture):
+@pytest.mark.usefixtures("_chdir_tmp", "_step_enabled", "create_reproducible_on_fail")
+def test_step_folder(test: Tuple[str, bool], pdk_root: str, caplog: pytest.LogCaptureFixture):
+    
     from librelane.steps import Step
     from librelane.state import State
     from librelane.config import Config
@@ -102,7 +108,7 @@ def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture)
 
     for file in os.listdir("."):
         if file.endswith(".ref"):
-            referenced_file_path = open(file, encoding="utf8").read()
+            referenced_file_path = open(file, encoding="utf8").read().strip()
             final_path = os.path.join(".", file[:-4])
             referenced_file = os.path.join(pytest.step_common_dir, referenced_file_path)
             shutil.copy(referenced_file, final_path)
@@ -171,11 +177,16 @@ def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture)
         exception = e
 
     # 3. Call handler
-    try_call(
-        handler,
-        exception=exception,
-        step=target,
-        test=test,
-        caplog=caplog,
-        openroad_alerts=openroad_alerts,
-    )
+    try:
+        try_call(
+            handler,
+            exception=exception,
+            step=target,
+            test=test,
+            caplog=caplog,
+            openroad_alerts=openroad_alerts,
+        )
+    except Exception as e:
+        if create_reproducible_on_fail:
+            target.create_reproducible("./repro", flatten=True)
+        raise e from None

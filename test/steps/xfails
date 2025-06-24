@@ -1,0 +1,5 @@
+odb.applydeftemplate/002-bad_def
+openroad.dumprcvalues/004-no_corners_layers
+openroad.dumprcvalues/002-some_corners_all_layers
+openroad.dumprcvalues/001-all_corners_all_layers
+openroad.dumprcvalues/003-some_corners_some_data

@@ -1361,10 +1361,15 @@ class GeneratePDN(OpenROADStep):
             info(f"'FP_PDN_CFG' not explicitly set, setting it to {env['FP_PDN_CFG']}…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
+        alerts = self.alerts or []
         error_reports = glob(os.path.join(self.step_dir, "*-grid-errors.rpt"))
         for report in error_reports:
             net = os.path.basename(report).split("-", maxsplit=1)[0]
-            count = get_psm_error_count(open(report, encoding="utf8"))
+            no_terminals = any(alert.code == "PSM-0025" and alert.message.startswith(net) for alert in alerts)
+            if no_terminals:
+                count = 1
+            else:
+                count = get_psm_error_count(open(report, encoding="utf8"))
             metrics_updates[f"design__power_grid_violation__count__net:{net}"] = count
 
         metric_updates_with_aggregates = aggregate_metrics(

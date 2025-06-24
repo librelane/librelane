@@ -28,7 +28,7 @@
   spdlog,
   libffi,
   lemon-graph,
-  or-tools_9_11,
+  or-tools_9_14,
   glpk,
   zlib,
   clp,
@@ -62,6 +62,7 @@
     "-DCMAKE_EXE_LINKER_FLAGS=-L${cudd}/lib -lcudd"
     "-DVERBOSE=1"
   ];
+  join_flags = lib.strings.concatMapStrings (x: " \"${x}\" ");
 in
   stdenv.mkDerivation (finalAttrs: {
     __structuredAttrs = true; # better serialization; enables spaces in cmakeFlags
@@ -75,14 +76,6 @@ in
       inherit rev;
       inherit sha256;
     };
-
-    cmakeFlagsDevDebug = lib.strings.concatMapStrings (
-      x: " \"${x}\" "
-    ) (cmakeFlagsCommon true);
-
-    cmakeFlagsDevRelease = lib.strings.concatMapStrings (
-      x: " \"${x}\" "
-    ) (cmakeFlagsCommon false);
 
     cmakeFlags =
       (cmakeFlagsCommon false)
@@ -130,7 +123,7 @@ in
       cbc
       gtest
 
-      or-tools_9_11
+      or-tools_9_14
     ];
 
     nativeBuildInputs = [
@@ -151,9 +144,9 @@ in
         ${git}/bin/git diff --name-only | grep -E '\.(cpp|cc|c|h|hh)$' | xargs clang-format -i -style=file:.clang-format
         ${git}/bin/git diff --name-only | grep -E '\.(tcl)$' | xargs tclfmt --in-place
       }
-      alias ord-cmake-nix='cmake -DCMAKE_BUILD_TYPE=Release ${lib.strings.concatMapStrings (x: " \"${x}\" ") finalAttrs.cmakeFlags} -G Ninja'
-      alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug $cmakeFlagsDevDebug -G Ninja'
-      alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release $cmakeFlagsDevRelease -G Ninja'
+      alias ord-cmake-nix='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags finalAttrs.cmakeFlags} -G Ninja'
+      alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${join_flags (cmakeFlagsCommon /* debug: */ true)} -G Ninja'
+      alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags (cmakeFlagsCommon /* debug: */ false)} -G Ninja'
     '';
 
     passthru = {

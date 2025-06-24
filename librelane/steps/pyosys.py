@@ -122,16 +122,11 @@ verilog_rtl_cfg_vars = [
         "Key-value pairs to be `chparam`ed in Yosys, in the format `key1=value1`.",
     ),
     Variable(
-        "USE_SYNLIG",
+        "USE_SLANG",
         bool,
-        "Use the Synlig plugin to process files, which has better SystemVerilog parsing capabilities but may not be compatible with all Yosys commands and attributes.",
+        "Use the Slang frontend to process files, which has better SystemVerilog parsing capabilities but is not as battle-tested as the default Yosys friend.",
         default=False,
-    ),
-    Variable(
-        "SYNLIG_DEFER",
-        bool,
-        "Uses -defer flag when reading files the Synlig plugin, which may improve performance by reading each file separately, but is experimental.",
-        default=False,
+        deprecated_names=["USE_SYNLIG"],
     ),
 ]
 

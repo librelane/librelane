@@ -33,7 +33,7 @@
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
   version = rev-date;
-  
+
   outputs = [
     "out"
     "dev"

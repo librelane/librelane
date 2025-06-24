@@ -19,7 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/4.3.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos_2505";
     libparse.url = "github:efabless/libparse-python";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
@@ -46,22 +46,11 @@
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
         (nix-eda.flakesToOverlay [libparse ciel])
-        (pkgs': pkgs: {
-          yosys-sby = (pkgs.yosys-sby.override { sha256 = "sha256-Il2pXw2doaoZrVme2p0dSUUa8dCQtJJrmYitn1MkTD4="; });
-          klayout = (pkgs.klayout.overrideAttrs(old: {
-            configurePhase = builtins.replaceStrings ["-without-qtbinding"] ["-with-qtbinding"] old.configurePhase;
-          }));
-          yosys = pkgs.yosys.overrideAttrs(old: {
-            patches = old.patches ++ [
-              ./nix/patches/yosys/async_rules.patch
-            ];
-          });
-        })
         (
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
           in {
-            or-tools_9_11 = callPackage ./nix/or-tools_9_11.nix {
+            or-tools_9_14 = callPackage ./nix/or-tools_9_14.nix {
               inherit (pkgs'.darwin) DarwinTools;
               stdenv =
                 if pkgs'.system == "x86_64-darwin"
@@ -80,11 +69,23 @@
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
           in {
-            mdformat = pypkgs.mdformat.overridePythonAttrs (old: {
+            mdformat = pypkgs.mdformat.overridePythonAttrs ({
+              version = "0.7.18";
+              src = pypkgs'.fetchPypi {
+                pname = "mdformat";
+                version = "0.7.18";
+                hash = "sha256-QsuovFprsS1QvffB5HDB+Deoq4zoFXHU5TueYgUfbk8=";
+              };
+              
               patches = [
                 ./nix/patches/mdformat/donns_tweaks.patch
               ];
+              
               doCheck = false;
+            });
+            ciel = pkgs.ciel.overrideAttrs(attrs': attrs: {
+              buildInputs = attrs.buildInputs ++ [pypkgs'.pythonRelaxDepsHook];
+              pythonRelaxDeps = [ "rich" ];
             });
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
@@ -123,8 +124,9 @@
 
     packages = nix-eda.forAllSystems (
       system: let
-        pkgs = (self.legacyPackages."${system}");
-        in {
+        pkgs = self.legacyPackages."${system}";
+      in
+        {
           inherit (pkgs) colab-env opensta openroad-abc openroad;
           inherit (pkgs.python3.pkgs) librelane;
           default = pkgs.python3.pkgs.librelane;

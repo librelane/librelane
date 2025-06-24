@@ -174,9 +174,9 @@ proc read_timing_info {args} {
     foreach nl $::env(_CURRENT_CORNER_NETLISTS) {
         puts "Reading macro netlist at '$nl'…"
         if { [catch {read_verilog $nl} err] } {
-            puts "Error while reading macro netlist '$nl':"
-            puts $err
-            puts "Make sure that this a gate-level netlist and not an RTL file."
+            puts stderr "Error while reading macro netlist '$nl':"
+            puts stderr $err
+            puts stderr "Make sure that this a gate-level netlist and not an RTL file."
             exit 1
         }
     }
@@ -185,9 +185,9 @@ proc read_timing_info {args} {
             if { [string_in_file $verilog_file $blackbox_wildcard] } {
                 puts "Found '$blackbox_wildcard' in '$verilog_file', skipping…"
             } elseif { [catch {puts "Reading Verilog model at '$verilog_file'…"; read_verilog $verilog_file} err] } {
-                puts "Error while reading $verilog_file:"
-                puts $err
-                puts "Make sure that this a gate-level netlist and not an RTL file, otherwise, you can add the following comment '$blackbox_wildcard' in the file to skip it and blackbox the modules inside if needed."
+                puts stderr "Error while reading $verilog_file:"
+                puts stderr $err
+                puts stderr "Make sure that this a gate-level netlist and not an RTL file, otherwise, you can add the following comment '$blackbox_wildcard' in the file to skip it and blackbox the modules inside if needed."
                 exit 1
             }
         }
@@ -582,7 +582,8 @@ proc get_layers {args} {
         flags {-constrained}
 
     if { ![info exists keys(-types)] } {
-        puts "\[ERROR\] Invalid usage of get_layers: -types is required."
+        puts stderr "\[ERROR\] Invalid usage of get_layers: -types is required."
+        return -code error
     }
 
     set layers [$::tech getLayers]
