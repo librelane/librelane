@@ -89,14 +89,13 @@ in
 
     preConfigure = ''
       sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
-      patchShebangs ./etc/find_messages.py
-
       sed -Ei \
         -e 's@#include "base/abc/abc.h"@#include <base/abc/abc.h>@' \
         -e 's@#include "base/main/abcapis.h"@#include <base/main/abcapis.h>@' \
         src/rmp/src/Restructure.cpp
       sed -Ei -e '/libabc/d' src/rmp/src/CMakeLists.txt
       sed -Ei -e 's/libabc/''${ABC_LIBRARY}/' src/rmp/test/cpp/CMakeLists.txt
+      patchShebangs ./etc
     '';
 
     buildInputs = [
