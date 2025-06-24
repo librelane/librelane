@@ -48,7 +48,7 @@ original authors after Efabless Corporation has ceased operations.
 
 * `OpenROAD.OpenGUI`
 
-  * The LIBs are now loaded by default and the SPEFs if available.
+  * The LIBs are now loaded by default and the top-level SPEF if available.
 
 ## Documentation
 
