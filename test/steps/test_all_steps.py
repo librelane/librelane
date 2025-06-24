@@ -87,8 +87,12 @@ def attribute_from_file(file: str, attribute: str):
 
 @pytest.mark.parametrize("test", pytest.tests)
 @pytest.mark.usefixtures("_chdir_tmp", "_step_enabled", "create_reproducible_on_fail")
-def test_step_folder(test: Tuple[str, bool], pdk_root: str, caplog: pytest.LogCaptureFixture):
-    
+def test_step_folder(
+    test: Tuple[str, bool],
+    pdk_root: str,
+    caplog: pytest.LogCaptureFixture,
+):
+
     from librelane.steps import Step
     from librelane.state import State
     from librelane.config import Config

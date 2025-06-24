@@ -576,6 +576,10 @@ class Variable:
             for current_field in fields(validating_type):
                 key = current_field.name
                 subtype = current_field.type
+                if not isinstance(subtype, type):
+                    raise ValueError(
+                        f"{validating_type.__qualname__} has field {key} with invalid type '{subtype}'"
+                    )
                 explicitly_specified = False
                 if key in raw:
                     explicitly_specified = True

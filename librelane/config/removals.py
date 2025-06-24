@@ -42,5 +42,5 @@ removed_variables: Dict[str, str] = {
     "FP_PADFRAME_CFG": "To be implemented.",
     "FP_CONTEXT_DEF": "To be implemented.",
     "FP_CONTEXT_LEF": "To be implemented.",
-    "SYNLIG_DEFER": "Synlig replaced with Slang."
+    "SYNLIG_DEFER": "Synlig replaced with Slang.",
 }

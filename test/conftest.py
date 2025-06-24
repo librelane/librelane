@@ -315,7 +315,9 @@ def pytest_configure():
 
 def pytest_addoption(parser):
     parser.addoption("--pdk-root", action="store", default=None)
-    parser.addoption("--keep-tmp", action="store_true", default=False) # add --log-cli-level=INFO so that the tmp being kept is printed
+    parser.addoption(
+        "--keep-tmp", action="store_true", default=False
+    )  # add --log-cli-level=INFO so that the tmp being kept is printed
     parser.addoption("--step-rx", action="store", default="^$")
     parser.addoption(
         "--create-reproducible-on-fail", action="store_true", default=False

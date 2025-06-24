@@ -1365,7 +1365,10 @@ class GeneratePDN(OpenROADStep):
         error_reports = glob(os.path.join(self.step_dir, "*-grid-errors.rpt"))
         for report in error_reports:
             net = os.path.basename(report).split("-", maxsplit=1)[0]
-            no_terminals = any(alert.code == "PSM-0025" and alert.message.startswith(net) for alert in alerts)
+            no_terminals = any(
+                alert.code == "PSM-0025" and alert.message.startswith(net)
+                for alert in alerts
+            )
             if no_terminals:
                 count = 1
             else:
