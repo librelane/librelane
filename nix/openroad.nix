@@ -42,6 +42,7 @@
   buildEnv,
   makeBinaryWrapper,
   cmake,
+  ctestCheckHook,
   ninja,
   git,
   gtest,
@@ -59,8 +60,7 @@
     "-DTCL_HEADER=${tcl}/include/tcl.h"
     "-DUSE_SYSTEM_BOOST:BOOL=ON"
     "-DCMAKE_CXX_FLAGS=-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1 -I${eigen}/include/eigen3 ${lib.strings.optionalString debug "-g -O0"}"
-    "-DCMAKE_EXE_LINKER_FLAGS=-L${cudd}/lib -lcudd"
-    "-DVERBOSE=1"
+    "-DCUDD_LIB=${cudd}/lib/libcudd.a"
   ];
   join_flags = lib.strings.concatMapStrings (x: " \"${x}\" ");
 in
@@ -82,19 +82,15 @@ in
       ++ [
         "-DUSE_SYSTEM_ABC:BOOL=ON"
         "-DUSE_SYSTEM_OPENSTA:BOOL=ON"
-        "-DENABLE_TESTS:BOOL=OFF"
         "-DOPENSTA_HOME=${opensta.dev}"
         "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
       ];
 
-    preConfigure = ''
+    patches = [
+      ./patches/openroad/static_library_fixes.patch
+    ];
+    postPatch = ''
       sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
-      sed -Ei \
-        -e 's@#include "base/abc/abc.h"@#include <base/abc/abc.h>@' \
-        -e 's@#include "base/main/abcapis.h"@#include <base/main/abcapis.h>@' \
-        src/rmp/src/Restructure.cpp
-      sed -Ei -e '/libabc/d' src/rmp/src/CMakeLists.txt
-      sed -Ei -e 's/libabc/''${ABC_LIBRARY}/' src/rmp/test/cpp/CMakeLists.txt
       patchShebangs ./etc
     '';
 
@@ -136,6 +132,7 @@ in
       libsForQt5.wrapQtAppsHook
       llvmPackages.clang-tools
       python3.pkgs.tclint
+      ctestCheckHook
     ];
 
     shellHook = ''
@@ -147,6 +144,9 @@ in
       alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${join_flags (cmakeFlagsCommon /* debug: */ true)} -G Ninja'
       alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags (cmakeFlagsCommon /* debug: */ false)} -G Ninja'
     '';
+    
+    # it takes 8 billion years set it to true on your own machine to test
+    doCheck = false; 
 
     passthru = {
       inherit python3;
@@ -158,12 +158,12 @@ in
       };
     };
 
-    meta = with lib; {
+    meta = {
       description = "OpenROAD's unified application implementing an RTL-to-GDS flow";
       homepage = "https://theopenroadproject.org";
       # OpenROAD code is BSD-licensed, but OpenSTA is GPLv3 licensed,
       # so the combined work is GPLv3
-      license = licenses.gpl3Plus;
-      platforms = platforms.linux ++ platforms.darwin;
+      license = lib.licenses.gpl3Plus;
+      platforms = lib.platforms.linux ++ lib.platforms.darwin;
     };
   })
