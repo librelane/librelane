@@ -71,7 +71,7 @@
     ]
     ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]
   );
-  yosys-env = (yosys.withPythonPackages.override { target = yosys-with-plugins; }) (ps: with ps; [click]);
+  yosys-env = (yosys.withPythonPackages.override {target = yosys-with-plugins;}) (ps: with ps; [click]);
   openroad-env = openroad.withPythonPackages (ps:
     with ps; [
       click
@@ -105,29 +105,28 @@
       surelog
       ruby
     ];
-    
+
     propagatedBuildInputs = self.includedTools;
 
-    dependencies =
-      [
-        # Python
-        click
-        cloup
-        pyyaml
-        yamlcore
-        rich
-        requests
-        pcpp
-        ciel
-        tkinter
-        lxml
-        deprecated
-        libparse
-        psutil
-        klayout
-        rapidfuzz
-        semver
-      ];
+    dependencies = [
+      # Python
+      click
+      cloup
+      pyyaml
+      yamlcore
+      rich
+      requests
+      pcpp
+      ciel
+      tkinter
+      lxml
+      deprecated
+      libparse
+      psutil
+      klayout
+      rapidfuzz
+      semver
+    ];
 
     doCheck = true;
     checkInputs = [pytestCheckHook pytest-xdist pyfakefs];

@@ -69,23 +69,23 @@
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
           in {
-            mdformat = pypkgs.mdformat.overridePythonAttrs ({
+            mdformat = pypkgs.mdformat.overridePythonAttrs {
               version = "0.7.18";
               src = pypkgs'.fetchPypi {
                 pname = "mdformat";
                 version = "0.7.18";
                 hash = "sha256-QsuovFprsS1QvffB5HDB+Deoq4zoFXHU5TueYgUfbk8=";
               };
-              
+
               patches = [
                 ./nix/patches/mdformat/donns_tweaks.patch
               ];
-              
+
               doCheck = false;
-            });
-            ciel = pkgs.ciel.overrideAttrs(attrs': attrs: {
+            };
+            ciel = pkgs.ciel.overrideAttrs (attrs': attrs: {
               buildInputs = attrs.buildInputs ++ [pypkgs'.pythonRelaxDepsHook];
-              pythonRelaxDeps = [ "rich" ];
+              pythonRelaxDeps = ["rich"];
             });
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
@@ -136,8 +136,7 @@
         }
     );
 
-    # devshells
-
+    # dev
     devShells = nix-eda.forAllSystems (
       system: let
         pkgs = self.legacyPackages."${system}";

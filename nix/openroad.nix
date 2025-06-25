@@ -141,12 +141,20 @@ in
         ${git}/bin/git diff --name-only | grep -E '\.(tcl)$' | xargs tclfmt --in-place
       }
       alias ord-cmake-nix='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags finalAttrs.cmakeFlags} -G Ninja'
-      alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${join_flags (cmakeFlagsCommon /* debug: */ true)} -G Ninja'
-      alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags (cmakeFlagsCommon /* debug: */ false)} -G Ninja'
+      alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${join_flags (cmakeFlagsCommon
+        /*
+        debug:
+        */
+        true)} -G Ninja'
+      alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags (cmakeFlagsCommon
+        /*
+        debug:
+        */
+        false)} -G Ninja'
     '';
-    
+
     # it takes 8 billion years set it to true on your own machine to test
-    doCheck = false; 
+    doCheck = false;
 
     passthru = {
       inherit python3;
