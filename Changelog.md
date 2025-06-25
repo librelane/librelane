@@ -288,6 +288,12 @@
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
 
+* `OpenROAD.GeneratePDN`
+
+  * `FP_PDN_CFG`: `add_pdn_ring` calls may require `-allow_out_of_die` as an
+    escape hatch for rings that are created outside the die area: See
+    https://github.com/The-OpenROAD-Project/OpenROAD/issues/6445
+
 * `openlane.flows`
 
   * Step IDs are re-normalized after every substitution, so a substitution for

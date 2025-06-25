@@ -107,6 +107,7 @@ if { $::env(FP_PDN_ENABLE_RAILS) == 1 } {
 if { $::env(FP_PDN_CORE_RING) == 1 } {
     if { $::env(FP_PDN_MULTILAYER) == 1 } {
         add_pdn_ring \
+            -allow_out_of_die \
             -grid stdcell_grid \
             -layers "$::env(FP_PDN_VERTICAL_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)" \
             -widths "$::env(FP_PDN_CORE_RING_VWIDTH) $::env(FP_PDN_CORE_RING_HWIDTH)" \
