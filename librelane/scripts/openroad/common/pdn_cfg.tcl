@@ -94,8 +94,7 @@ if { $::env(FP_PDN_ENABLE_RAILS) == 1 } {
         -grid stdcell_grid \
         -layer $::env(FP_PDN_RAIL_LAYER) \
         -width $::env(FP_PDN_RAIL_WIDTH) \
-        -followpins \
-        -starts_with POWER
+        -followpins
 
     add_pdn_connect \
         -grid stdcell_grid \
