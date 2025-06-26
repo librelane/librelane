@@ -14,6 +14,10 @@ on:
     - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.event.number || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   prepare-test-matrices:
@@ -462,6 +466,7 @@ jobs:
               botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
+              metricsRepo: "${{ vars.METRICS_REPO }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
         env: 
