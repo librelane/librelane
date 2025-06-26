@@ -33,7 +33,7 @@ function compareMetricsWithBranch({
   const { spawnSync } = require("child_process");
 
   let tableOutOpts = table_out ? ["--table-out", table_out] : [];
-  let metricRepoOpts = metricsRepo ? ["--metrics-repo", metricsRepo] : [];
+  let metricRepoOpts = metricsRepo ? ["--metric-repo", metricsRepo] : [];
   let allOpts = [
     "-m",
     "librelane.common.metrics",
