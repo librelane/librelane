@@ -50,9 +50,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "88c98c341994b23ce08f033b827e8acb9a489497",
-  rev-date ? "2025-06-26",
-  sha256 ? "sha256-08JF/mcmTvl9Fo0rKj2feGN3VpnMqr4wdU4azxgLZsM=",
+  rev ? "341650e72dad0dc8571822ff8c5d9c5e365327f7",
+  rev-date ? "2025-06-12",
+  sha256 ? "sha256-C/nB//s9h9fCeVe3CTVr9Xey7AhDZCPniHTXybtkJ88=",
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -85,6 +85,11 @@ in
         "-DOPENSTA_HOME=${opensta.dev}"
         "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
       ];
+
+    patches = [
+      ./patches/openroad/static_library_fixes.patch
+      ./patches/openroad/fix_def_diearea.patch
+    ];
 
     postPatch = ''
       sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake

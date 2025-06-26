@@ -174,6 +174,7 @@
             types-pyyaml
             types-psutil
             lxml-stubs
+            pipx
           ];
           include-librelane = false;
         }) {};

@@ -62,9 +62,6 @@ jobs:
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
-      - name: Download IPM
-        run: |
-          python3 -m pip install git+https://github.com/efabless/IPM
       - name: Checkout submodules
         uses: actions/checkout@v4
         with:
@@ -359,20 +356,19 @@ jobs:
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
-          pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
-          pip3 install -r requirements_tmp.txt
-          ciel enable --pdk ${{ matrix.design.pdk_family }} \
+          pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
+            -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
-
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          python3 -m pip install git+https://github.com/efabless/IPM
-          ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
+          pipx run ipmgr \
+            -- install --ip-root $(realpath $IP_ROOT) \
+            --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} \
+            ${{ matrix.design.name }}
 
       - name: Run Test
         run: |
