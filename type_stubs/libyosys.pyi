@@ -12,8 +12,7 @@ class Design:
         synth_parameters: Iterable[str],
         includes: Iterable[str],
         defines: Iterable[str],
-        use_synlig: bool = False,
-        synlig_defer: bool = False,
+        use_slang: bool = False,
     ): ...
     def add_blackbox_models(
         self,

@@ -31,9 +31,13 @@
   librelane = python3.pkgs.librelane;
   librelane-env = (
     python3.withPackages (pp:
-        (if include-librelane then [librelane] else librelane.propagatedBuildInputs)
-        ++ extra-python-packages
-        ++ librelane-plugins)
+      (
+        if include-librelane
+        then [librelane]
+        else librelane.propagatedBuildInputs
+      )
+      ++ extra-python-packages
+      ++ librelane-plugins)
   );
   librelane-env-sitepackages = "${librelane-env}/${librelane-env.sitePackages}";
   pluginIncludedTools = lib.lists.flatten (map (n: n.includedTools) librelane-plugins);
@@ -56,12 +60,14 @@
 in
   devshell.mkShell {
     devshell.packages = packages;
-    env = [
-      {
-        name = "NIX_PYTHONPATH";
-        value = "${librelane-env-sitepackages}";
-      }
-    ] ++ extra-env;
+    env =
+      [
+        {
+          name = "NIX_PYTHONPATH";
+          value = "${librelane-env-sitepackages}";
+        }
+      ]
+      ++ extra-env;
     devshell.interactive.PS1 = {
       text = ''PS1="${prompt}"'';
     };

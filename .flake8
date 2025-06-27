@@ -10,6 +10,7 @@ extend-ignore =
     W5
     E731
     E721
+    F824
     PT001
 exclude =
     .git,

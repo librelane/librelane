@@ -17,8 +17,8 @@ proc drt_run {i args} {
     set output_drc "-output_drc $::env(STEP_DIR)/$directory/$::env(DESIGN_NAME).drc"
     log_cmd detailed_route {*}$args {*}$output_drc
     if { $::env(DRT_SAVE_SNAPSHOTS) } {
-        foreach snapshot [glob -nocomplain drt_iter*.odb] {
-            file rename -force $snapshot $directory/[file tail $snapshot]
+        foreach snapshot [glob -nocomplain $::env(STEP_DIR)/drt_iter*.odb] {
+            file rename -force $snapshot $::env(STEP_DIR)/$directory/[file tail $snapshot]
         }
     }
     foreach drc_file [glob -nocomplain $::env(STEP_DIR)/$directory/*.drc] {
@@ -41,13 +41,11 @@ set max_layer $::env(RT_MAX_LAYER)
 if { [info exists ::env(DRT_MAX_LAYER)] } {
     set max_layer $::env(DRT_MAX_LAYER)
 }
-if { $::env(DRT_SAVE_SNAPSHOTS) } {
-    set_debug_level DRT snapshot 1
-}
 set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1
     set drc_report_iter_step_arg "-drc_report_iter_step 1"
+    detailed_route_debug -snapshot_dir "$::env(STEP_DIR)/$directory"
 }
 if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
     set drc_report_iter_step_arg "-drc_report_iter_step $::env(DRT_SAVE_DRC_REPORT_ITERS)"
