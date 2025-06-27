@@ -45,7 +45,7 @@ Follow the installation guide here:
 You may elect to somehow provide the tools yourself. Here is a non-exhaustive
 list:
 
-* [Python 3.8 or higher](https://www.python.org/)
+* [Python 3.8.1 or higher](https://www.python.org/)
 * [Yosys](https://yosyshq.net/)
 * [OpenROAD](https://github.com/The-OpenROAD-Project/OpenROAD)
 * [KLayout](https://klayout.de)
