@@ -477,6 +477,14 @@ jobs:
     needs: [build-linux-x86_64, build-docker, build-py]
     name: Publish (If Applicable)
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v4
         with:
@@ -531,7 +539,7 @@ jobs:
           make dist
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Tag Commit
