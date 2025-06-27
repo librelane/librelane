@@ -27,7 +27,7 @@ from ..config import Instance, Macro, Variable
 from ..logging import info, verbose
 from ..state import DesignFormat, State
 
-from .openroad import DetailedPlacement, GlobalRouting
+from .openroad import DetailedPlacement, GlobalRouting, OpenROADStep
 from .openroad_alerts import OpenROADAlert, OpenROADOutputProcessor
 from .common_variables import io_layer_variables, dpl_variables, grt_variables
 from .step import (
@@ -51,6 +51,10 @@ class OdbpyStep(Step):
     output_processors = [OpenROADOutputProcessor, DefaultOutputProcessor]
 
     alerts: Optional[List[OpenROADAlert]] = None
+
+    @classmethod
+    def get_openroad_path(Self) -> str:
+        return OpenROADStep.get_openroad_path()
 
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
         if alert.code in [
@@ -155,7 +159,7 @@ class OdbpyStep(Step):
             lefs.append(str(design_lef))
         return (
             [
-                "openroad",
+                self.get_openroad_path(),
                 "-exit",
                 "-no_splash",
                 "-metrics",
@@ -946,7 +950,12 @@ class CellFrequencyTables(OdbpyStep):
         lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
         env_copy["_PNR_LIBS"] = TclStep.value_to_tcl(lib_list)
         super().run_subprocess(
-            ["openroad", "-no_splash", "-exit", self.get_buffer_list_script()],
+            [
+                self.get_openroad_path(),
+                "-no_splash",
+                "-exit",
+                self.get_buffer_list_script(),
+            ],
             env=env_copy,
             log_to=self.get_buffer_list_file(),
         )

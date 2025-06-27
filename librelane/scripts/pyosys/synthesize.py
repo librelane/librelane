@@ -298,6 +298,8 @@ def synthesize(
         )
     except Exception:
         pass
+    if config["SYNTH_NORMALIZE_SINGLE_BIT_VECTORS"]:
+        d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
 
     lib_arguments = []

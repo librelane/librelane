@@ -264,6 +264,10 @@ class OpenROADStep(TclStep):
         ),
     ]
 
+    @classmethod
+    def get_openroad_path(Self) -> str:
+        return os.getenv("_LLN_OVERRIDE_OPENROAD", "openroad")
+
     @abstractmethod
     def get_script_path(self) -> str:
         pass
@@ -466,7 +470,7 @@ class OpenROADStep(TclStep):
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         return [
-            "openroad",
+            self.get_openroad_path(),
             ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
             "-no_splash",
             "-metrics",
@@ -950,7 +954,7 @@ class STAPostPNR(STAPrePNR):
                 lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
-            "openroad",
+            self.get_openroad_path(),
             "-exit",
             "-no_splash",
             "-metrics",

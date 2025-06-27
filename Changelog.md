@@ -180,6 +180,11 @@
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
+  
+  * Added `SYNTH_NORMALIZE_SINGLE_BIT_VECTORS`: `true` by default, it converts
+    vectors with the shape `[0:0]` to normal wires for backwards compatibility
+    with older designs. See https://github.com/YosysHQ/yosys/pull/5095
+    for more info.
 
 ## Flows
 

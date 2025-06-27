@@ -211,6 +211,10 @@ class PyosysStep(Step):
         ),
     ]
 
+    @classmethod
+    def get_yosys_path(Self) -> str:
+        return os.getenv("_LLN_OVERRIDE_YOSYS", "yosys")
+
     @abstractmethod
     def get_script_path(self) -> str:
         pass
@@ -218,7 +222,7 @@ class PyosysStep(Step):
     def get_command(self, state_in: State) -> List[str]:
         script_path = self.get_script_path()
         # HACK: Get Colab working
-        yosys_bin = "yosys"
+        yosys_bin = self.get_yosys_path()
         if "google.colab" in sys.modules:
             yosys_bin = shutil.which("yosys") or "yosys"
         cmd = [yosys_bin, "-y", script_path]
@@ -490,6 +494,12 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_WRITE_NOATTR",
             bool,
             "If true, Verilog-2001 attributes are omitted from output netlists. Some utilities do not support attributes.",
+            default=True,
+        ),
+        Variable(
+            "SYNTH_NORMALIZE_SINGLE_BIT_VECTORS",
+            bool,
+            "If true, vectors with the shape [0:0] are converted to normal wires in the netlist. If disabled, even one-width pins will be suffixed [0] in the layout when imported by most PnR tools.",
             default=True,
         ),
         # Variable(
