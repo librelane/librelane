@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "librelane"
-version = "2.4.0.dev8"
+version = "2.4.0.dev9"
 description = "An infrastructure for implementing chip design flows"
 # Technically, maintainer. We cannot use the maintainers field until
 # poetry-core>=2.0.0 which requires Python version 3.9+. This field does
@@ -17,8 +17,8 @@ python = ">=3.8.1,<4"
 click = ">=8,<8.2"
 cloup = ">=3.0.5,<4"
 pyyaml = ">=5,<7"
-rich = ">=12,<14"
-ciel = ">=0.16.0"
+rich = ">=12,<15"
+ciel = ">=2.0.3,<3"
 lxml = ">=4.9.0"
 deprecated = ">=1.2.10,<2"
 libparse = ">=0.3.1,<1"

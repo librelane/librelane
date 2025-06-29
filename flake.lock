@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1749368491,
-        "narHash": "sha256-UW41Y7AK+jXk9klAvTMjw1dybj5NU9TIWLXlZfkpxkA=",
+        "lastModified": 1751196116,
+        "narHash": "sha256-y6w1MYMsgfSUPdJoKc+k+4xg0Zi1dUQtv+z71vyCLDU=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "79cc9bc9646f9f4b190e24ff7a63fb259c78e5a8",
+        "rev": "1260b5f7d752e457d0bef3b1d9ab7fd044ad9c83",
         "type": "github"
       },
       "original": {
