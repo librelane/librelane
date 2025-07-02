@@ -264,6 +264,7 @@ def synthesize(
             defines=defines,
             use_synlig=False,
             synlig_defer=False,
+            yosys_frontend="YOSYS",
         )
     elif verilog_files := config.get("VERILOG_FILES"):
         d.read_verilog_files(
@@ -274,6 +275,7 @@ def synthesize(
             defines=defines,
             use_synlig=config["USE_SYNLIG"],
             synlig_defer=config["SYNLIG_DEFER"],
+            yosys_frontend=config["YOSYS_FRONTEND"]
         )
     elif vhdl_files := config.get("VHDL_FILES"):
         d.run_pass("plugin", "-i", "ghdl")

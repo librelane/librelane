@@ -64,6 +64,7 @@ def json_header(
         defines=defines,
         use_synlig=config["USE_SYNLIG"],
         synlig_defer=config["SYNLIG_DEFER"],
+        yosys_frontend=config["YOSYS_FRONTEND"]
     )
     d.run_pass(
         "hierarchy",

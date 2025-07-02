@@ -133,6 +133,12 @@ verilog_rtl_cfg_vars = [
         "Uses -defer flag when reading files the Synlig plugin, which may improve performance by reading each file separately, but is experimental.",
         default=False,
     ),
+    Variable(
+        "YOSYS_FRONTEND",
+        Optional[Literal["YOSYS", "SYNLIG", "SLANG"]],
+        "Optional alternative yosys frontend to use",
+        default="YOSYS",
+    ),
 ]
 
 
