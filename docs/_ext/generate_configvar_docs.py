@@ -23,11 +23,11 @@ import jinja2
 from sphinx.config import Config
 from sphinx.application import Sphinx
 
-import openlane
-import openlane.flows
-import openlane.steps
-import openlane.config
-from openlane.common import slugify
+import librelane
+import librelane.flows
+import librelane.steps
+import librelane.config
+from librelane.common import slugify
 
 
 def setup(app: Sphinx):
@@ -59,11 +59,11 @@ def generate_module_docs(app: Sphinx, conf: Config):
             loader=lookup,
         )
 
-        module = openlane.config.flow
+        module = librelane.config.flow
 
         # 1. Flows
         template = env.get_template("flows.md")
-        flow_factory = openlane.flows.Flow.factory
+        flow_factory = librelane.flows.Flow.factory
 
         with open(os.path.join(doc_root_dir, "reference", "flows.md"), "w") as f:
             f.write(
@@ -104,7 +104,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
 
         # 4. Steps
         template = env.get_template("steps.md")
-        step_factory = openlane.steps.Step.factory
+        step_factory = librelane.steps.Step.factory
 
         # Pre-processing
         by_category = {}

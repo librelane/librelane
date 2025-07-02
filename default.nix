@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
+  flake ? null,
   lib,
   system,
   clangStdenv,
   fetchFromGitHub,
   nix-gitignore,
   # Tools
-  klayout,
+  klayout-app,
   libparse,
   magic-vlsi,
   netgen,
@@ -29,11 +34,16 @@
   tclFull,
   verilator,
   verilog,
-  volare,
+  ciel,
   yosys,
-  yosysFull,
+  yosys-sby,
+  yosys-eqy,
+  yosys-lighter,
+  yosys-slang,
+  yosys-ghdl,
   # Python
   buildPythonPackage,
+  poetry-core,
   click,
   cloup,
   pyyaml,
@@ -49,26 +59,34 @@
   pytest-xdist,
   pyfakefs,
   rapidfuzz,
-  ioplace-parser,
-  poetry-core,
+  semver,
+  klayout,
 }: let
-  yosys-env = (yosys.withPythonPackages.override {target = yosysFull;}) (ps:
-    with ps; [
-      click
-    ]);
+  yosys-with-plugins = yosys.withPlugins (
+    [
+      yosys-sby
+      yosys-eqy
+      yosys-lighter
+      yosys-slang
+    ]
+    ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]
+  );
+  yosys-env = (yosys.withPythonPackages.override {target = yosys-with-plugins;}) (ps: with ps; [click]);
   openroad-env = openroad.withPythonPackages (ps:
     with ps; [
       click
       rich
       pyyaml
-      ioplace-parser
     ]);
   self = buildPythonPackage {
-    pname = "openlane";
+    pname = "librelane";
     version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.version;
     format = "pyproject";
 
-    src = nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
+    src =
+      if (flake != null)
+      then flake
+      else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     nativeBuildInputs = [
       poetry-core
@@ -78,9 +96,9 @@
       opensta
       yosys-env
       openroad-env
-      klayout
       netgen
       magic-vlsi
+      klayout-app
       verilog
       verilator
       tclFull
@@ -88,42 +106,42 @@
       ruby
     ];
 
-    propagatedBuildInputs =
-      [
-        # Python
-        click
-        cloup
-        pyyaml
-        yamlcore
-        rich
-        requests
-        pcpp
-        volare
-        tkinter
-        lxml
-        deprecated
-        libparse
-        psutil
-        klayout.pymod
-        rapidfuzz
-        ioplace-parser
-      ]
-      ++ self.includedTools;
+    propagatedBuildInputs = self.includedTools;
+
+    dependencies = [
+      # Python
+      click
+      cloup
+      pyyaml
+      yamlcore
+      rich
+      requests
+      pcpp
+      ciel
+      tkinter
+      lxml
+      deprecated
+      libparse
+      psutil
+      klayout
+      rapidfuzz
+      semver
+    ];
 
     doCheck = true;
     checkInputs = [pytestCheckHook pytest-xdist pyfakefs];
 
     computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
 
-    # Make PATH available to OpenLane subprocesses
+    # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
       "--prefix PATH : ${self.computed_PATH}"
     ];
 
     meta = with lib; {
       description = "Hardware design and implementation infrastructure library and ASIC flow";
-      homepage = "https://efabless.com/openlane";
-      mainProgram = "openlane";
+      homepage = "https://efabless.com/librelane";
+      mainProgram = "librelane";
       license = licenses.asl20;
       platforms = platforms.linux ++ platforms.darwin;
     };

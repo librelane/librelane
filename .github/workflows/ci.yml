@@ -14,6 +14,10 @@ on:
     - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.event.number || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   prepare-test-matrices:
@@ -23,7 +27,7 @@ jobs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
       opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
@@ -41,32 +45,29 @@ jobs:
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./openlane/open_pdks_rev)" >> $GITHUB_OUTPUT
+          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-sky130
+          path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk sky130 --pdk-root ./.volare-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-gf180mcu
+          path: ./.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk gf180mcu --pdk-root ./.volare-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
-      - name: Download IPM
-        run: |
-          python3 -m pip install git+https://github.com/efabless/IPM
+          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Checkout submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
   lint:
@@ -74,7 +75,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
@@ -89,12 +90,12 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
@@ -103,194 +104,232 @@ jobs:
         run: |
           make venv
 
-          ./venv/bin/coverage run -m pytest -n auto --pdk-root="./.volare-sky130"
+          ./venv/bin/coverage run -m pytest -n auto --pdk-root="./.ciel-sky130"
           ./venv/bin/coverage report
           ./venv/bin/coverage html
-  build-linux-amd64:
+  build-linux-x86_64:
     needs: lint
     runs-on: ubuntu-22.04
     name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
+      - name: Cache to S3
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
+        with:
+          flake_outputs: .#packages.x86_64-linux.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-linux-aarch64:
     needs: lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
-      - uses: docker/setup-qemu-action@v1
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: aarch64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
+      - name: Cache to S3
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
+        with:
+          flake_outputs: .#packages.aarch64-linux.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-darwin:
     strategy:
       matrix:
-        system:
+        os:
           [
-            { gha: macos-13, nix: "x86_64-darwin" },
-            { gha: macos-14, nix: "aarch64-darwin" },
+            {
+              name: "macOS 13",
+              family: "darwin",
+              runner: "macos-13",
+              arch: "x86_64",
+              nix: "x86_64-darwin",
+            },
+            {
+              name: "macOS 14",
+              family: "darwin",
+              runner: "macos-15",
+              arch: "aarch64",
+              nix: "aarch64-darwin",
+            },
           ]
       fail-fast: false
     needs: [lint, prepare-test-matrices]
-    runs-on: ${{ matrix.system.gha }}
-    name: Build (Nix/${{ matrix.system.nix }})
+    runs-on: ${{ matrix.os.runner }}
+    name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      # For some reason, GHA Macs are far more aggressively rate-limited with
-      # Volare than Linux
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
-          path: ./.volare-sky130
+          path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
-          nix_system: ${{ matrix.system.nix }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
+          nix_system: ${{ matrix.os.nix }}
           shell: "zsh {0}"
           run_tests: "true"
-          pdk_root: ${{ github.workspace }}/.volare-sky130
+          pdk_root: ${{ github.workspace }}/.ciel-sky130
+      - name: Cache to S3
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
+        with:
+          flake_outputs: .#packages.${{ matrix.os.nix }}.librelane
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-docker:
-    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ["amd64", "aarch64"]
-    needs: [build-linux-amd64, build-linux-aarch64]
-    name: Build Docker Image (${{ matrix.arch }})
+        os:
+          [
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04",
+              arch: "x86_64",
+              nix: "x86_64-linux",
+            },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              arch: "aarch64",
+              nix: "aarch64-linux",
+            },
+          ]
+    runs-on: ${{ matrix.os.runner }}
+    needs: [build-linux-x86_64, build-linux-aarch64]
+    name: Build Docker Image (${{ matrix.os.arch }})
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          root-reserve-mb: 20480
       - name: Check out repo
-        uses: actions/checkout@v3
-
-      - uses: docker/setup-qemu-action@v1
-      - name: Set Nix System
-        run: |
-          nix_system=x86_64-linux
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            nix_system=aarch64-linux
-          fi
-          echo "NIX_SYSTEM=$nix_system" >> $GITHUB_ENV
+        uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
         with:
+          determinate: true
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
+        id: nix_build_action
         uses: ./.github/actions/build_nix
         with:
-          nix_system: ${{ env.NIX_SYSTEM }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-
+          nix_system: ${{ matrix.os.nix }}
       - name: Build Docker Image
         run: |
           IMAGE_PATH=$(nix build\
             --print-out-paths\
             --no-link\
             --accept-flake-config\
-            --option system ${{ env.NIX_SYSTEM }}\
-            --extra-platforms ${{ env.NIX_SYSTEM }}\
-            .#packages.${{ env.NIX_SYSTEM }}.openlane-docker)
+            --option system ${{ matrix.os.nix }}\
+            --extra-platforms ${{ matrix.os.nix }}\
+            .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.8"
-      - name: Install Dependencies
-        run: make venv
       # Do not cache the PDK. We want to test the typical Docker flow here.
       - name: Smoke-Test Docker Image
+        if: ${{ matrix.os.arch != 'aarch64' }} # No KLayout wheels available for aarch64 yet
         run: |
-          mkdir -p $HOME/.volare
-          chmod -R 755 $HOME/.volare
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=openlane:tmp-aarch64-linux
-          elif [ "${{ matrix.arch }}" == "amd64" ]; then
-            export OPENLANE_IMAGE_OVERRIDE=openlane:tmp-x86_64-linux
-          fi
-          ./venv/bin/python3 -m openlane\
+          make venv
+          mkdir -p $HOME/.ciel
+          chmod -R 755 $HOME/.ciel
+          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-${{ matrix.os.arch }}-linux
+          ./venv/bin/python3 -m librelane\
             --docker-no-tty\
             --dockerized\
-            --pdk-root ./.volare-sky130\
+            --pdk-root ./.ciel-sky130\
             --smoke-test
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ matrix.arch }}
+          name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
   test:
     runs-on: ubuntu-22.04
-    needs: [build-linux-amd64, prepare-test-matrices]
+    needs: [build-linux-x86_64, prepare-test-matrices]
     name: Test Design ${{ matrix.design.test_name }} (${{ matrix.design.pdk }}/${{matrix.design.scl}})
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-test-matrices.outputs.design_matrix) }}
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          root-reserve-mb: 20480
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Check if Git
@@ -301,91 +340,96 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-
       - name: Check Nix
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
-          sudo tree /nix/store/*-openlane2 || true
+          sudo tree /nix/store/*-librelane || true
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v4
         with:
-          path: ./.volare-${{ matrix.design.pdk_family }}
+          path: ./.ciel-${{ matrix.design.pdk_family }}
           key: cache-${{ matrix.design.pdk_family }}-pdk-${{ needs.prepare-test-matrices.outputs.opdks_rev }}
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
-          pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
-          pip3 install -r requirements_tmp.txt
-          volare enable --pdk ${{ matrix.design.pdk_family }} \
-            --pdk-root ./.volare-${{ matrix.design.pdk_family }} \
+          pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
+            -- enable --pdk ${{ matrix.design.pdk_family }} \
+            --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
-
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          python3 -m pip install git+https://github.com/efabless/IPM
-          ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
+          pipx run ipmgr \
+            -- install --ip-root $(realpath $IP_ROOT) \
+            --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} \
+            ${{ matrix.design.name }}
 
       - name: Run Test
+        id: test_run
+        continue-on-error: true
         run: |
           if test ${{matrix.design.script}} = "None"
           then
             mkdir -p ${{ github.workspace }}/run
             sudo du -hs /nix/store/* | sort -h | tail -n 10
             sudo du -hs /nix/store/* | sort -h | tail -n 10 > before.txt
-            nix run --accept-flake-config .#openlane --\
+            nix run . --\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
-              --pdk-root ./.volare-${{ matrix.design.pdk_family }}\
+              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed\
               ${{ matrix.design.config }}
           else
-            nix develop --accept-flake-config --command\
+            nix develop --command\
               python3 ${{ matrix.design.script }}\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
-              --pdk-root ./.volare-${{ matrix.design.pdk_family }}\
+              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed
           fi
+
       - name: Upload Run Folder
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.test_name }}-${{ matrix.design.pdk }}-${{ matrix.design.scl }}
           path: ${{ matrix.design.run_dir }}
 
       - name: Fetch Metrics
-        if: ${{ always() }}
         run: |
-          nix develop --accept-flake-config --command openlane.state latest\
+          nix develop --command librelane.state latest\
               ${{ matrix.design.run_dir }}\
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
       - name: Upload Metrics
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
           path: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
+      - name: Propagate test failure after uploading metrics
+        if: steps.test_run.outcome == 'failure'
+        run:
+          exit -1
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
     needs: test
-    if: ${{ always() }}
+    if: always()
     steps:
-      - name: Merge Artifacts
+      - id: metric_merge
+        name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
         with:
           name: metrics
@@ -394,10 +438,11 @@ jobs:
     name: Upload Metrics
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
-    if: ${{ always() }}
+    # if there isn't at least one metric this exercise is pointless
+    if: needs.merge_metrics.result == 'success'
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup
@@ -412,23 +457,28 @@ jobs:
           path: current
       - name: "[PRs] Compare to target branch and comment result (if the workflow has secrets access)"
         uses: actions/github-script@v6
-        if: ${{ github.event_name == 'pull_request' }}
+        env: 
+            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        if: github.event_name == 'pull_request' && env.bot_github_token != ''
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ env.bot_github_token }}
           script: |
             require("./.github/scripts/compare_metrics.js")({
               github: github,
               context: context,
-              botUsername: "openlane-bot",
-              botToken: "${{ secrets.GH_TOKEN }}",
+              botUsername: "${{ vars.BOT_USERNAME }}",
+              botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
+              metricsRepo: "${{ vars.METRICS_REPO }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
-        if: ${{ github.event_name == 'push' }} # && env.BRANCH_NAME == 'main' }}
+        env: 
+            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        if: github.event_name == 'push' && env.bot_github_token != ''
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
-          REPO=efabless/openlane-metrics
+          REPO=${{ vars.METRICS_REPO }}
           BRANCH_NAME="commit-$CURRENT_SHA"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
           cd current
@@ -437,15 +487,23 @@ jobs:
           git config user.name "${{ vars.BOT_NAME }}"
           git config user.email "${{ vars.BOT_EMAIL }}"
           git commit -m "Upload"
-          git remote add origin "https://${{ vars.BOT_USERNAME }}:${{ secrets.GH_TOKEN }}@github.com/$REPO.git"
+          git remote add origin "https://${{ vars.BOT_USERNAME }}:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/$REPO.git"
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [build-linux-amd64, build-docker, build-py]
+    needs: [build-docker, build-py]
     name: Publish (If Applicable)
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Environment
@@ -456,11 +514,11 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-      - name: Download Image (Docker/amd64)
+          password: ${{ secrets.BOT_GITHUB_TOKEN }}
+      - name: Download Image (Docker/x86_64)
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-amd64
+          name: docker-image-x86_64
           path: /tmp/docker
       - name: Download Image (Docker/aarch64)
         uses: actions/download-artifact@v4
@@ -475,15 +533,15 @@ jobs:
       - name: Push (Docker)
         if: ${{ env.PUBLISH == '1' }}
         run: |
-          docker tag openlane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
-          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-amd64
+          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
+          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
 
-          docker tag openlane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
+          docker tag librelane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
           docker push ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest create\
             ghcr.io/${{ github.repository }}:$NEW_TAG\
-            ghcr.io/${{ github.repository }}:$NEW_TAG-amd64\
+            ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64\
             ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
@@ -498,7 +556,7 @@ jobs:
           make dist
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Tag Commit
@@ -506,4 +564,4 @@ jobs:
         uses: tvdias/github-tagger@v0.0.1
         with:
           tag: "${{ env.NEW_TAG }}"
-          repo-token: "${{ secrets.GH_TOKEN }}"
+          repo-token: "${{ secrets.BOT_GITHUB_TOKEN }}"

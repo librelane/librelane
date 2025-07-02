@@ -25,10 +25,10 @@ print("Getting tags…")
 
 latest_tag = None
 latest_tag_commit = None
-tags = [pair[1] for pair in gh.openlane.tags]
+tags = [pair[1] for pair in gh.librelane.tags]
 
 version = subprocess.check_output(
-    ["python3", "./openlane/__version__.py"], encoding="utf8"
+    ["python3", "./librelane/__version__.py"], encoding="utf8"
 )
 print(version, tags)
 tag_exists = version in tags

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Documentation plays an important role in OpenLane.
+Documentation plays an important role in LibreLane.
 Good documentation should cover as much information as possible,
 while staying readable, up-to-date and clean.
 
@@ -43,15 +43,15 @@ make venv
 After installation, every time you want to build the documentation proceed to enter the venv and run `sphinx-build` following commands:
 
 ```sh
-cd OpenLane/
+cd LibreLane/
 make docs
 ```
 
 View the generated html files using your favorite web browser. Open this document in browser:
 
 ```sh
-# Assuming same folder as OpenLane
-cd OpenLane/
+# Assuming same folder as LibreLane
+cd LibreLane/
 
 # macOS
 open docs/build/html/docs/source/contributing_to_docs.html
@@ -88,7 +88,7 @@ If you want to create new category than take a look at the source code of existi
 In order to improve the readability of the documentation, please use and capitalize names and trademarks properly. Some examples you can see below:
 
 ```
-OpenLANE → OpenLane
+OpenLANE → LibreLane
 OpenRoad → OpenROAD
 Mac OS X → macOS
 MAGIC → Magic
@@ -140,7 +140,7 @@ There is a programmable error in your configuration file:
 Traceback (most recent call last):
 File "/home/user/.local/lib/python3.10/site-packages/sphinx/config.py", line 343, in eval_config_file
     exec(code, namespace)
-File "/home/user/Desktop/openlane/conf.py", line 24, in <module>
+File "/home/user/Desktop/librelane/conf.py", line 24, in <module>
     from recommonmark.parser import CommonMarkParser
 ModuleNotFoundError: No module named 'recommonmark'
 ```

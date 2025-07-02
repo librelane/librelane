@@ -23,41 +23,70 @@
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
     raise an error for hold violations on *any* corners.
 
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
 * `Odb.AddPDNObstructions`, `Odb.AddRoutingObstructions`
 
   * `PDN_OBSTRUCTIONS` and `ROUTING_OBSTRUCTIONS` are now lists of tuples
     instead of variable-length Tcl-style lists (AKA: strings).
+  * **Internal**: Unified exit codes.
 
 * `Odb.CustomIOPlacement`
 
   * All variables prefixed `FP_IO_` have been renamed, now prefixed `IO_PIN_`.
 
 * `Odb.DiodesOnPorts`, `Odb.PortDiodePlacement`
+
   * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
 
-*  `Odb.FuzzyDiodePlacement`, `Odb.HeuristicDiodeInsertion`
-  * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
-  * `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if
-    it is unset.
+* `Odb.FuzzyDiodePlacement`, `Odb.HeuristicDiodeInsertion`
+
+* Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+
+* `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
+  is unset.
 
 * `OpenROAD.*`
 
-  * Added `PNR_CORNERS`. An override for `DEFAULT_CORNER` for PnR steps except
-    for steps using `RSZ_CORNERS` and `CTS_CORNERS`.
+  * Added `PNR_CORNERS` which defaults to `STA_CORNERS`. An override for
+    `DEFAULT_CORNER` for PnR steps except those with more specific overrides
+    e.g. `RSZ_CORNERS`, `CTS_CORNERS`.
+
   * Added `LAYERS_RC`, `VIAS_R`: Unlike OpenLane 1.0.0 variables with similar
     names, these are mappings from corners to layer/via RC values.
-    * `PNR_CORNERS`, `RSZ_CORNERS`, and `CTS_CORNERS` all now support multiple
-      corners to have the same set of liberty files (as RC values may differ.)
+
+  * Previously, for resizer steps, corners that end up with the same set of lib
+    files and RC values would be culled to reduce runtime. Now, for all steps,
+    this behavior is gated by `DEDUPLICATE_CORNERS`, which is `False` by
+    default. **This may increase flow runtimes**. In general, it is safe to turn
+    this on, however it may be surprising behavior.
+
+    * Just like previously, however, STA steps are unaffected and will always
+      run across all corners.
+
   * Added `SET_RC_VERBOSE`, which (very noisily) logs set-RC-related commands to
     logs.
-  * Always read libs before reading odb.
+
   * Added `log_cmd` from OpenROAD-flow-scripts -- neat idea for consistency
+
   * Lib files are now *always* read BEFORE reading database files.
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
   * **Internal**: Steps now sensitive to `_OPENROAD_GUI` environment variable --
     coupled with `--only`, it runs a step in OpenROAD then doesn't quit so you
     may inspect the result.
+
     * This is not part of the OpenLane stable API and may be broken at any
       moment.
+
   * **Internal**: New convenience methods to append flags to calls based on
     environment variables
 
@@ -161,6 +190,11 @@
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
+  
+  * Added `SYNTH_NORMALIZE_SINGLE_BIT_VECTORS`: `true` by default, it converts
+    vectors with the shape `[0:0]` to normal wires for backwards compatibility
+    with older designs. See https://github.com/YosysHQ/yosys/pull/5095
+    for more info.
 
 ## Flows
 
@@ -170,13 +204,14 @@
 ## Tool Updates
 
 * Updated nix-eda
-  * Updated nixpkgs to nixos-24.11 (@ `3c53b4b`)
-  * Updated KLayout to `0.29.9`
-  * Updated Magic to `8.3.503`
-  * Updated Netgen to `1.5.287`
-* Updated ioplace-parser to`0.4.0`
-* Updated OpenROAD to `1d61007`
-  * Updated OpenSTA to `aa598a2`
+  * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
+  * Updated KLayout to `0.30.2`
+  * Updated Magic to `8.3.528`
+  * Updated Netgen to `1.5.295`
+  * Updated Yosys to `0.54`
+    * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
+* Updated OpenROAD to `341650e`
+* Updated OpenSTA to `ffabd65`
 
 ## Testing
 
@@ -268,6 +303,12 @@
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
 
+* `OpenROAD.GeneratePDN`
+
+  * `FP_PDN_CFG`: `add_pdn_ring` calls may require `-allow_out_of_die` as an
+    escape hatch for rings that are created outside the die area: See
+    https://github.com/The-OpenROAD-Project/OpenROAD/issues/6445
+
 * `openlane.flows`
 
   * Step IDs are re-normalized after every substitution, so a substitution for
@@ -307,6 +348,132 @@
 
   * `BoundingBox` changed from `Tuple` to `dataclass` with additional optional
     `info` property.
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
+
+# 2.4.0: Hello, LibreLane
+
+2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
+original authors after Efabless Corporation has ceased operations.
+
+## Steps
+
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+* Created `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
+
+  * New ECO steps using the variables `INSERT_ECO_BUFFERS` and
+    `INSERT_ECO_DIODES` respectively to allow creation of buffers and diodes
+    after (and only after global routing,) with an option to run it after
+    detailed routing so long as detailed routing is run again afterwards.
+
+* `OpenROAD.*`
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+* `OpenROAD.STAPostPNR`
+
+  * `DesignFormat.ODB` input is now optional. If the input state is missing
+    `DesignFormat.ODB`, unannotated net metrics will not be generated.
+
+* `OpenROAD.OpenGUI`
+
+  * The LIBs are now loaded by default and the top-level SPEF if available.
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
+
+## Tool Updates
+
+* Volare replaced by [Ciel](https://github.com/fossi-foundation/ciel)@2.0.1
+* nix-eda replaced by the
+  [FOSSi Foundation fork](https://github.com/fossi-foundation/nix-eda)@2.1.3
+* OpenLane Cachix replaced by an S3-based cache hosted at
+  https://nix-cache.fossi-foundation.org
+
+## Misc. Enhancements/Bugfixes
+
+* `librelane.state.DesignFormat`
+  * Added new dynamic property `.value.optional` which cannot be defined for new
+    enum members and always returns `False`.
+  * Added new method `mkOptional` which creates an ephemeral copy of the
+    DesignFormat where `.value.optional` returns `True`.
+* `librelane.steps.Step`
+  * DesignFormats where `.value.optional` is True (i.e. copied with mkOptional)
+    no longer cause a `StepException` to be raised if missing from inputs.
+  * Note: Currently, all outputs are technically optional anyway. This will
+    change in 3.0.0.
+* Worked around an issue with Google Colaboratory where if `PATH` is set,
+  Yosys's Python `sitepackages` are replaced with the global ones and everything
+  breaks.
+
+# 2.3.10
+
+## Steps
+
+* `Yosys.Synthesis`
+  * `SYNTH_ELABORATE_FLATTEN` now passes the `-noscopeinfo` flag so scopeinfo
+    cells are no longer emitted from Synthesis.
+
+# 2.3.9
+
+## Tool Updates
+
+* Backported https://github.com/The-OpenROAD-Project/OpenROAD/pull/6743 to
+  OpenROAD to fix GUI crashes on C++ standard libraries that are not libstdc++
+  (aka: macOS.)
+
+# 2.3.8
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed substitutions in `config.json` being applied to all flows. It now only
+  applies to the flow in meta.flow (which falls back to `Classic` if it's null.)
+
+# 2.3.7
+
+## Tool Updates
+
+* Updated Docker requirement to tested version: 27.3.1
+  * Added warning when Docker version is out of date.
+
+## Documentation
+
+* Updated documentation to reflect tested Docker version.
+* Updated documentation to stop using a branch of the DetSys Nix Installer.
+
+# 2.3.6
+
+## Steps
+
+* `Verilator.Lint`
+  * Fixed missing `VERILOG_INCLUDE_DIRS` variable, which would cause designs
+    that synthesize correctly to otherwise fail linting.
+
+# 2.3.5
+
+## Tool Updates
+
+* `nix-eda` updated to 2.1.2
+  * Pulls in a Python overlay fix and a fix for `gdstk`.
+
+# 2.3.4
+
+## Tool Updates
+
+* Added patch to Yosys to resolve an early return issue that broke non-const
+  asynchronous resets. See https://github.com/YosysHQ/yosys/issues/4712 for more
+  info.
 
 # 2.3.3
 

@@ -1,0 +1,86 @@
+# Copyright 2020-2022 Efabless Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+proc drt_run {i args} {
+    set directory "drt-run-${i}"
+    file mkdir "$::env(STEP_DIR)/$directory"
+    set output_drc "-output_drc $::env(STEP_DIR)/$directory/$::env(DESIGN_NAME).drc"
+    log_cmd detailed_route {*}$args {*}$output_drc
+    if { $::env(DRT_SAVE_SNAPSHOTS) } {
+        foreach snapshot [glob -nocomplain $::env(STEP_DIR)/drt_iter*.odb] {
+            file rename -force $snapshot $::env(STEP_DIR)/$directory/[file tail $snapshot]
+        }
+    }
+    foreach drc_file [glob -nocomplain $::env(STEP_DIR)/$directory/*.drc] {
+        file copy -force $drc_file $::env(STEP_DIR)/[file tail $drc_file]
+    }
+    write_db $::env(STEP_DIR)/$directory/$::env(DESIGN_NAME).odb
+}
+
+source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+read_current_odb
+
+set_thread_count $::env(DRT_THREADS)
+
+set min_layer $::env(RT_MIN_LAYER)
+if { [info exists ::env(DRT_MIN_LAYER)] } {
+    set min_layer $::env(DRT_MIN_LAYER)
+}
+
+set max_layer $::env(RT_MAX_LAYER)
+if { [info exists ::env(DRT_MAX_LAYER)] } {
+    set max_layer $::env(DRT_MAX_LAYER)
+}
+set drc_report_iter_step_arg ""
+if { $::env(DRT_SAVE_SNAPSHOTS) } {
+    set_debug_level DRT snapshot 1
+    set drc_report_iter_step_arg "-drc_report_iter_step 1"
+    detailed_route_debug -snapshot_dir "$::env(STEP_DIR)/$directory"
+}
+if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
+    set drc_report_iter_step_arg "-drc_report_iter_step $::env(DRT_SAVE_DRC_REPORT_ITERS)"
+}
+
+set i 0
+
+set drt_args [list]
+lappend drt_args -bottom_routing_layer $min_layer
+lappend drt_args -top_routing_layer $max_layer
+lappend drt_args -droute_end_iter $::env(DRT_OPT_ITERS)
+lappend drt_args -or_seed 42
+lappend drt_args -verbose 1
+lappend drt_args {*}$drc_report_iter_step_arg
+drt_run $i {*}$drt_args
+
+incr i
+
+if { ![info exists ::env(DIODE_CELL)] } {
+    puts "\[INFO\] Skipping post-DRT antenna repair: 'DIODE_CELL' not set."
+} elseif { $::env(DRT_ANTENNA_REPAIR_ITERS) == 0 } {
+    puts "\[INFO\] Skipping post-DRT antenna repair: DRT_ANTENNA_REPAIR_ITERS set to 0."
+} else {
+    set diode_cell [lindex [split $::env(DIODE_CELL) "/"] 0]
+
+    while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
+        puts "\[INFO\] Running antenna repair iteration $i…"
+        set diodes_inserted [log_cmd repair_antennas $diode_cell -ratio_margin $::env(DRT_ANTENNA_MARGIN)]
+        if {$diodes_inserted} {
+            drt_run $i {*}$drt_args
+        } else {
+            puts "\[INFO\] No diodes inserted. Ending antenna repair iterations."
+            break
+        }
+        incr i
+    }
+}
+write_views

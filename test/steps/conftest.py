@@ -21,14 +21,15 @@ entry = re.compile(r"^([^#]*)(#[\s\S]+)?")
 
 
 def collect_step_tests():
-    excluded_tests = set()
-    for line in open(pytest.step_excl_dir, encoding="utf8"):
-        if match := entry.match(line):
-            line = match[1]
-        line = line.strip()
-        if line == "":
-            continue
-        excluded_tests.add(line)
+    xfails = set()
+    with open(pytest.step_xfail_dir, encoding="utf8") as f:
+        for line in f:
+            if match := entry.match(line):
+                line = match[1]
+            line = line.strip()
+            if line == "":
+                continue
+            xfails.add(line)
     result = []
     test_rx = re.compile(r"\d+\-[A-Za-z\d_]+")
     for p in sorted(
@@ -43,7 +44,9 @@ def collect_step_tests():
         if test_rx.match(basename) is None:
             continue
         test_id = os.path.relpath(p, pytest.step_test_dir)
-        if test_id not in excluded_tests:
+        if test_id in xfails:
+            result.append(pytest.param(test_id, marks=pytest.mark.xfail))
+        else:
             result.append(test_id)
 
     return result
@@ -52,7 +55,7 @@ def collect_step_tests():
 def pytest_configure():
     __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-    pytest.step_excl_dir = os.path.join(__dir__, "excluded_step_tests")
+    pytest.step_xfail_dir = os.path.join(__dir__, "xfails")
     pytest.step_test_dir = os.path.join(__dir__, "all", "by_id")
     pytest.step_common_dir = os.path.join(__dir__, "all", "common")
     pytest.tests = collect_step_tests()

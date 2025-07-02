@@ -1,19 +1,15 @@
 # Additional Material
 
-There are some cool tutorials and guides on using OpenLane to harden chips. Though do note, guides, especially video tutorials and webinars, tend to become out of date.
+There are some cool tutorials and guides on using LibreLane to harden chips. Though do note, guides, especially video tutorials and webinars, tend to become out of date.
 
-Additionally, we are also going to link to academic publications about OpenLane if you are interested in reading and/or citing it.
+Additionally, we are also going to link to academic publications about LibreLane if you are interested in reading and/or citing it.
 
 ## Text Guides
 
 ### Official
 
-* [OpenLane ReadTheDocs](https://openlane.readthedocs.io/)
+* [LibreLane ReadTheDocs](https://librelane.readthedocs.io/)
   * You are probably already here, though! Hi.
-* [Quick-Start Guide, Caravel User Project ReadTheDocs](https://caravel-harness.readthedocs.io/en/latest/getting-started.html#quick-start-for-user-projects)
-  * If you are looking to submit a project for an OpenMPW or ChipIgnite shuttle, start here.
-* [Digital inverter with OpenLane and Colab, Build Custom Silicon with Google](https://developers.google.com/silicon/guides/digital-inverter-openlane)
-  * This is a very simple introduction using Google Colab- you do not even need to install anything!
 
 ### Community
 
@@ -21,6 +17,8 @@ Additionally, we are also going to link to academic publications about OpenLane 
 
 * [Introduction to OpenMPW, VLSI.jp](https://vlsi.jp/Introduction_to_OpenMPW.html#introduction-to-openmpw)
 * [RgGen ✕ OpenMPW Walkthrough](https://vlsi.jp/RgGenxOpenMPW_eng.html#rggen--openmpw-walkthrough)
+* [Quick-Start Guide, Caravel User Project ReadTheDocs](https://caravel-harness.readthedocs.io/en/latest/getting-started.html#quick-start-for-user-projects)
+  * If you are looking to submit a project for an OpenMPW or ChipIgnite shuttle, start here.
 
 #### 日本語
 
@@ -44,7 +42,7 @@ Additionally, we are also going to link to academic publications about OpenLane 
 
 ## Publications
 
-This is a list of publications about OpenLane, sorted from newest to oldest.
+This is a list of publications about LibreLane or its predecessor, sorted from newest to oldest.
 
 * R. Timothy Edwards, M. Shalan and M. Kassem, "Real Silicon using Open Source EDA," in IEEE Design & Test, doi: 10.1109/MDAT.2021.3050000. [Paper](https://ieeexplore.ieee.org/document/9336682)
 * M. Shalan and T. Edwards, "Building OpenLANE: A 130nm OpenROAD-based Tapeout-Proven Flow: Invited Paper," 2020 IEEE/ACM International Conference On Computer Aided Design (ICCAD), San Diego, CA, USA, 2020, pp. 1-6. [Paper](https://ieeexplore.ieee.org/document/9256623/)

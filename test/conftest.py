@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import os
 import tempfile
 from shutil import rmtree
@@ -22,8 +23,8 @@ import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 from _pytest.fixtures import SubRequest
 
-from openlane.config import Variable, Macro
-from openlane.common import Path, GenericDict
+from librelane.config import Variable, Macro
+from librelane.common import Path, GenericDict
 
 
 def pytest_assertrepr_compare(op, left, right):
@@ -50,7 +51,7 @@ def _mock_conf_fs():
         patcher.fs.create_dir("/cwd/spef")
         patcher.fs.create_file("/cwd/spef/b.spef")
         patcher.fs.create_file(
-            "/pdk/dummy/libs.tech/openlane/config.tcl",
+            "/pdk/dummy/libs.tech/librelane/config.tcl",
             contents="""
             if { ![info exists ::env(STD_CELL_LIBRARY)] } {
                 set ::env(STD_CELL_LIBRARY) "dummy_scl"
@@ -60,7 +61,7 @@ def _mock_conf_fs():
             """,
         )
         patcher.fs.create_file(
-            "/pdk/dummy2/libs.tech/openlane/config.tcl",
+            "/pdk/dummy2/libs.tech/librelane/config.tcl",
             contents="""
             if { ![info exists ::env(STD_CELL_LIBRARY)] } {
                 set ::env(STD_CELL_LIBRARY) "dummy2_scl"
@@ -76,11 +77,11 @@ def _mock_conf_fs():
             "/pdk/dummy2/libs.ref/techlef/dummy2_scl/dummy_tech_lef.tlef",
         )
         patcher.fs.create_file(
-            "/pdk/dummy/libs.tech/openlane/dummy_scl/config.tcl",
+            "/pdk/dummy/libs.tech/librelane/dummy_scl/config.tcl",
             contents="",
         )
         patcher.fs.create_file(
-            "/pdk/dummy2/libs.tech/openlane/dummy2_scl/config.tcl",
+            "/pdk/dummy2/libs.tech/librelane/dummy2_scl/config.tcl",
             contents="",
         )
 
@@ -105,17 +106,15 @@ class chdir(object):
 
 @pytest.fixture
 def _chdir_tmp(request: SubRequest):
-    keep_tmp = request.config.getoption("--keep-tmp")
-
-    if not keep_tmp:
-        with tempfile.TemporaryDirectory(prefix="openlane_test_") as dir, chdir(dir):
+    if not request.config.option.keep_tmp:
+        with tempfile.TemporaryDirectory(prefix="librelane_test_") as dir, chdir(dir):
             yield
     else:
-        dir = tempfile.mkdtemp(prefix="openlane_test_")
+        dir = tempfile.mkdtemp(prefix="librelane_test_")
         with chdir(dir):
-            print(f"\nTMP: {dir}")
+            logging.info(f"\nTMP: {dir}")
             yield
-            print(f"\nTMP: {dir}")
+            logging.info(f"\nTMP: {dir}")
 
 
 MOCK_PDK_VARS = [
@@ -206,7 +205,7 @@ COMMON_FLOW_VARS = MOCK_PDK_VARS + MOCK_FLOW_VARS
 
 
 def mock_variables(patch_in_objects: Optional[Iterable[Any]] = None):
-    from openlane.config import config
+    from librelane.config import config
 
     if patch_in_objects is None:
         patch_in_objects = []
@@ -247,7 +246,7 @@ def mock_variables(patch_in_objects: Optional[Iterable[Any]] = None):
 @pytest.fixture
 @mock_variables()
 def mock_config():
-    from openlane.config import Config
+    from librelane.config import Config
 
     mock_config, _ = Config.load(
         {
@@ -303,7 +302,7 @@ class MockProgress(object):
 
 @pytest.fixture(autouse=True)
 def _mock_progress():
-    from openlane.flows import flow
+    from librelane.flows import flow
 
     with mock.patch.object(flow, "Progress", MockProgress):
         yield
@@ -315,6 +314,11 @@ def pytest_configure():
 
 
 def pytest_addoption(parser):
-    parser.addoption("--step-rx", action="store", default="^$")
     parser.addoption("--pdk-root", action="store", default=None)
-    parser.addoption("--keep-tmp", action="store_true", default=False)
+    parser.addoption(
+        "--keep-tmp", action="store_true", default=False
+    )  # add --log-cli-level=INFO so that the tmp being kept is printed
+    parser.addoption("--step-rx", action="store", default="^$")
+    parser.addoption(
+        "--create-reproducible-on-fail", action="store_true", default=False
+    )

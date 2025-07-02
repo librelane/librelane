@@ -16,7 +16,7 @@
 
 
 ```{note}
-OpenLane 2 *requires* WSL2. Make sure that you're using Windows 11, or
+LibreLane *requires* WSL2. Make sure that you're using Windows 11, or
 Windows 10 is up-to-date.
 ```
 
@@ -59,9 +59,9 @@ $ sudo apt-get install -y curl
 Then install Nix by running the following command:
 
 ```console 
-$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix/pr/1145 | sh -s -- install --no-confirm --extra-conf "
-    extra-substituters = https://openlane.cachix.org
-    extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
+    extra-substituters = https://nix-cache.fossi-foundation.org
+    extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
 "
 ```
 

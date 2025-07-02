@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,35 +18,23 @@
 {
   description = "open-source infrastructure for implementing chip design flows";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://openlane.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
-    ];
-  };
-
   inputs = {
-    nix-eda.url = github:efabless/nix-eda;
-    libparse.url = github:efabless/libparse-python;
-    ioplace-parser.url = github:efabless/ioplace_parser;
-    volare.url = github:efabless/volare;
-    devshell.url = github:numtide/devshell;
+    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos_2505";
+    libparse.url = "github:efabless/libparse-python";
+    ciel.url = "github:fossi-foundation/ciel";
+    devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
 
-  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
-  inputs.ioplace-parser.inputs.nix-eda.follows = "nix-eda";
-  inputs.volare.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
+  inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
+  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs = {
     self,
     nix-eda,
     libparse,
-    ioplace-parser,
-    volare,
+    ciel,
     devshell,
     ...
   }: let
@@ -53,12 +45,12 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [libparse ioplace-parser volare])
+        (nix-eda.flakesToOverlay [libparse ciel])
         (
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
           in {
-            or-tools_9_11 = callPackage ./nix/or-tools_9_11.nix {
+            or-tools_9_14 = callPackage ./nix/or-tools_9_14.nix {
               inherit (pkgs'.darwin) DarwinTools;
               stdenv =
                 if pkgs'.system == "x86_64-darwin"
@@ -68,25 +60,41 @@
             colab-env = callPackage ./nix/colab-env.nix {};
             opensta = callPackage ./nix/opensta.nix {};
             openroad-abc = callPackage ./nix/openroad-abc.nix {};
-            openroad = callPackage ./nix/openroad.nix {};
+            openroad = callPackage ./nix/openroad.nix {
+              llvmPackages = pkgs'.llvmPackages_18;
+            };
           }
         )
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
           in {
-            mdformat = pypkgs.mdformat.overridePythonAttrs (old: {
+            mdformat = pypkgs.mdformat.overridePythonAttrs {
+              version = "0.7.18";
+              src = pypkgs'.fetchPypi {
+                pname = "mdformat";
+                version = "0.7.18";
+                hash = "sha256-QsuovFprsS1QvffB5HDB+Deoq4zoFXHU5TueYgUfbk8=";
+              };
+
               patches = [
                 ./nix/patches/mdformat/donns_tweaks.patch
               ];
+
               doCheck = false;
+            };
+            ciel = pkgs.ciel.overrideAttrs (attrs': attrs: {
+              buildInputs = attrs.buildInputs ++ [pypkgs'.pythonRelaxDepsHook];
+              pythonRelaxDeps = ["rich"];
             });
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
 
             # ---
-            openlane = callPythonPackage ./default.nix {};
+            librelane = callPythonPackage ./default.nix {
+              flake = self;
+            };
           })
         )
         (pkgs': pkgs: let
@@ -94,9 +102,9 @@
         in
           {}
           // lib.optionalAttrs pkgs.stdenv.isLinux {
-            openlane-docker = callPackage ./nix/docker.nix {
+            librelane-docker = callPackage ./nix/docker.nix {
               createDockerImage = nix-eda.createDockerImage;
-              openlane = pkgs'.python3.pkgs.openlane;
+              librelane = pkgs'.python3.pkgs.librelane;
             };
           })
       ];
@@ -120,16 +128,15 @@
       in
         {
           inherit (pkgs) colab-env opensta openroad-abc openroad;
-          inherit (pkgs.python3.pkgs) openlane;
-          default = pkgs.python3.pkgs.openlane;
+          inherit (pkgs.python3.pkgs) librelane;
+          default = pkgs.python3.pkgs.librelane;
         }
         // lib.optionalAttrs pkgs.stdenv.isLinux {
-          inherit (pkgs) openlane-docker;
+          inherit (pkgs) librelane-docker;
         }
     );
 
-    # devshells
-
+    # dev
     devShells = nix-eda.forAllSystems (
       system: let
         pkgs = self.legacyPackages."${system}";
@@ -167,8 +174,9 @@
             types-pyyaml
             types-psutil
             lxml-stubs
+            pipx
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
           extra-packages = with pkgs; [
@@ -197,7 +205,7 @@
             sphinx-tippy
             sphinx-subfigure
           ];
-          include-openlane = false;
+          include-librelane = false;
         }) {};
       }
     );
