@@ -180,6 +180,11 @@
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
+  
+  * Added `SYNTH_NORMALIZE_SINGLE_BIT_VECTORS`: `true` by default, it converts
+    vectors with the shape `[0:0]` to normal wires for backwards compatibility
+    with older designs. See https://github.com/YosysHQ/yosys/pull/5095
+    for more info.
 
 ## Flows
 
@@ -189,13 +194,14 @@
 ## Tool Updates
 
 * Updated nix-eda
-  * Updated nixpkgs to nixos-24.11 (@ `3c53b4b`)
-  * Updated KLayout to `0.29.9`
-  * Updated Magic to `8.3.503`
-  * Updated Netgen to `1.5.287`
-* Updated ioplace-parser to`0.4.0`
-* Updated OpenROAD to `1d61007`
-  * Updated OpenSTA to `aa598a2`
+  * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
+  * Updated KLayout to `0.30.2`
+  * Updated Magic to `8.3.528`
+  * Updated Netgen to `1.5.295`
+  * Updated Yosys to `0.54`
+    * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
+* Updated OpenROAD to `341650e`
+* Updated OpenSTA to `ffabd65`
 
 ## Testing
 
@@ -286,6 +292,12 @@
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+
+* `OpenROAD.GeneratePDN`
+
+  * `FP_PDN_CFG`: `add_pdn_ring` calls may require `-allow_out_of_die` as an
+    escape hatch for rings that are created outside the die area: See
+    https://github.com/The-OpenROAD-Project/OpenROAD/issues/6445
 
 * `openlane.flows`
 

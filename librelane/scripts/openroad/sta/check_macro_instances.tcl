@@ -30,10 +30,10 @@ foreach {instance_name macro_name} $::env(_check_macro_instances) {
     set instances [get_cells -hierarchical $instance_name]
     set instance_count [llength $instances]
     if { $instance_count < 1 } {
-        puts "\[ERROR\] No macro instance $instance_name found."
+        puts stderr "\[ERROR\] No macro instance $instance_name found."
         incr error_count
     } elseif { $instance_count > 1 } {
-        puts "\[ERROR\] Macro instance name $instance_name matches multiple cells."
+        puts stderr "\[ERROR\] Macro instance name $instance_name matches multiple cells."
         incr error_count
     } else {
         # The next line doesn't actually matter because this is Tcl but I'd feel
@@ -42,7 +42,7 @@ foreach {instance_name macro_name} $::env(_check_macro_instances) {
 
         set master_name [get_property $instance ref_name]
         if { $master_name != $macro_name } {
-            puts "\[ERROR\] Instance $instance_name is configured as an instance of macro $macro_name, but is an instance of $master_name."
+            puts stderr "\[ERROR\] Instance $instance_name is configured as an instance of macro $macro_name, but is an instance of $master_name."
             incr error_count
         }
     }

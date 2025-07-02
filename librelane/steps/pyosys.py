@@ -122,16 +122,11 @@ verilog_rtl_cfg_vars = [
         "Key-value pairs to be `chparam`ed in Yosys, in the format `key1=value1`.",
     ),
     Variable(
-        "USE_SYNLIG",
+        "USE_SLANG",
         bool,
-        "Use the Synlig plugin to process files, which has better SystemVerilog parsing capabilities but may not be compatible with all Yosys commands and attributes.",
+        "Use the Slang frontend to process files, which has better SystemVerilog parsing capabilities but is not as battle-tested as the default Yosys friend.",
         default=False,
-    ),
-    Variable(
-        "SYNLIG_DEFER",
-        bool,
-        "Uses -defer flag when reading files the Synlig plugin, which may improve performance by reading each file separately, but is experimental.",
-        default=False,
+        deprecated_names=["USE_SYNLIG"],
     ),
 ]
 
@@ -216,6 +211,10 @@ class PyosysStep(Step):
         ),
     ]
 
+    @classmethod
+    def get_yosys_path(Self) -> str:
+        return os.getenv("_LLN_OVERRIDE_YOSYS", "yosys")
+
     @abstractmethod
     def get_script_path(self) -> str:
         pass
@@ -223,7 +222,7 @@ class PyosysStep(Step):
     def get_command(self, state_in: State) -> List[str]:
         script_path = self.get_script_path()
         # HACK: Get Colab working
-        yosys_bin = "yosys"
+        yosys_bin = self.get_yosys_path()
         if "google.colab" in sys.modules:
             yosys_bin = shutil.which("yosys") or "yosys"
         cmd = [yosys_bin, "-y", script_path]
@@ -495,6 +494,12 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_WRITE_NOATTR",
             bool,
             "If true, Verilog-2001 attributes are omitted from output netlists. Some utilities do not support attributes.",
+            default=True,
+        ),
+        Variable(
+            "SYNTH_NORMALIZE_SINGLE_BIT_VECTORS",
+            bool,
+            "If true, vectors with the shape [0:0] are converted to normal wires in the netlist. If disabled, even one-width pins will be suffixed [0] in the layout when imported by most PnR tools.",
             default=True,
         ),
         # Variable(

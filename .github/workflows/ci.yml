@@ -66,9 +66,6 @@ jobs:
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
-      - name: Download IPM
-        run: |
-          python3 -m pip install git+https://github.com/efabless/IPM
       - name: Checkout submodules
         uses: actions/checkout@v4
         with:
@@ -230,7 +227,7 @@ jobs:
       - name: Cache to S3
         uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
         with:
-          flake_outputs: .#packages.${{ matrix.os. nix}}.librelane
+          flake_outputs: .#packages.${{ matrix.os.nix }}.librelane
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
           nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
           s3_bucket_name: ${{ vars.NIX_CACHE }}
@@ -363,20 +360,19 @@ jobs:
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
-          pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
-          pip3 install -r requirements_tmp.txt
-          ciel enable --pdk ${{ matrix.design.pdk_family }} \
+          pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
+            -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
-
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          python3 -m pip install git+https://github.com/efabless/IPM
-          ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
+          pipx run ipmgr \
+            -- install --ip-root $(realpath $IP_ROOT) \
+            --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} \
+            ${{ matrix.design.name }}
 
       - name: Run Test
         id: test_run
@@ -498,6 +494,14 @@ jobs:
     needs: [build-docker, build-py]
     name: Publish (If Applicable)
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v4
         with:
@@ -552,7 +556,7 @@ jobs:
           make dist
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Tag Commit

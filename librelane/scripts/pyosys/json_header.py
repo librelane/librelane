@@ -62,8 +62,7 @@ def json_header(
         synth_parameters=config["SYNTH_PARAMETERS"] or [],
         includes=includes,
         defines=defines,
-        use_synlig=config["USE_SYNLIG"],
-        synlig_defer=config["SYNLIG_DEFER"],
+        use_slang=config["USE_SLANG"],
     )
     d.run_pass(
         "hierarchy",

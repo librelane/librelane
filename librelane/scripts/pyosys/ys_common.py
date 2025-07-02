@@ -50,48 +50,28 @@ def _Design_read_verilog_files(
     synth_parameters: Iterable[str],
     includes: Iterable[str],
     defines: Iterable[str],
-    use_synlig: bool = False,
-    synlig_defer: bool = False,
+    use_slang: bool = False,
 ):
     files = list(files)  # for easier concatenation
     include_args = [f"-I{dir}" for dir in includes]
     define_args = [f"-D{define}" for define in defines]
     chparams = {}
-    synlig_chparam_args = []
+    slang_chparam_args = []
     for chparam in synth_parameters:
         param, value = chparam.split("=", maxsplit=1)  # validate
         chparams[param] = value
-        synlig_chparam_args.append(f"-P{param}={value}")
+        slang_chparam_args.append(f"-G{param}={value}")
 
-    if use_synlig and synlig_defer:
-        self.run_pass("plugin", "-i", "synlig-sv")
-        for file in files:
-            self.run_pass(
-                "read_systemverilog",
-                "-defer",
-                "-sverilog",
-                *define_args,
-                *include_args,
-                file,
-            )
+    ys.log("use_slang" if use_slang else "wtaf")
+    if use_slang:
+        self.run_pass("plugin", "-i", "slang")
         self.run_pass(
-            "read_systemverilog",
-            "-link",
-            "-sverilog",
-            "-top",
-            top,
-            *synlig_chparam_args,
-        )
-    elif use_synlig:
-        self.run_pass("plugin", "-i", "synlig-sv")
-        self.run_pass(
-            "read_systemverilog",
-            "-sverilog",
-            "-top",
+            "read_slang",
+            "--top",
             top,
             *define_args,
             *include_args,
-            *synlig_chparam_args,
+            *slang_chparam_args,
             *files,
         )
     else:

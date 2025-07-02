@@ -158,6 +158,13 @@ DesignFormat(
 ).register()
 
 DesignFormat(
+    "logical_nl",
+    "logical_nl.v",
+    "Logical cell-only Verilog Netlist",
+    folder_override="nl",
+).register()
+
+DesignFormat(
     "pnl",
     "pnl.v",
     "Powered Verilog Netlist",

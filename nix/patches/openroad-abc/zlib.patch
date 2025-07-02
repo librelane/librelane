@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b90ac02d..b0d6b13f 100644
+index 918fb79a1..272278b04 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -61,6 +61,11 @@ if( APPLE )
@@ -40,10 +40,10 @@ index b90ac02d..b0d6b13f 100644
  
  set(ABC_MAIN_SRC src/base/main/main.c)
 diff --git a/Makefile b/Makefile
-index e94591b2..89e2500b 100644
+index 798fb2e7b..be9e01b65 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -22,7 +22,7 @@ MODULES := \
+@@ -23,7 +23,7 @@ MODULES := \
  	src/map/mapper src/map/mio src/map/super src/map/if src/map/if/acd \
  	src/map/amap src/map/cov src/map/scl src/map/mpm \
  	src/misc/extra src/misc/mvc src/misc/st src/misc/util src/misc/nm \
@@ -52,7 +52,7 @@ index e94591b2..89e2500b 100644
  	src/misc/mem src/misc/bar src/misc/bbl src/misc/parse \
  	src/opt/cut src/opt/fxu src/opt/fxch src/opt/rwr src/opt/mfs src/opt/sim \
  	src/opt/ret src/opt/fret src/opt/res src/opt/lpk src/opt/nwk src/opt/rwt \
-@@ -45,6 +45,12 @@ $(ARCHFLAGS_EXE) : arch_flags.c
+@@ -46,6 +46,12 @@ $(ARCHFLAGS_EXE) : arch_flags.c
  
  INCLUDES += -I$(ABCSRC)/src
  
@@ -66,7 +66,7 @@ index e94591b2..89e2500b 100644
  ifdef ABC_USE_STDINT_H
      ARCHFLAGS ?= -DABC_USE_STDINT_H=1
 diff --git a/src/misc/zlib/zlib.h b/src/misc/zlib/zlib.h
-index 46c1a1ae..1667a8cf 100644
+index 46c1a1aec..1667a8cfe 100644
 --- a/src/misc/zlib/zlib.h
 +++ b/src/misc/zlib/zlib.h
 @@ -28,6 +28,10 @@

@@ -58,13 +58,13 @@
 # can't use clang on linux: https://github.com/abseil/abseil-cpp/issues/1747
 stdenv.mkDerivation (finalAttrs: {
   pname = "or-tools";
-  version = "9.11";
+  version = "9.14";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = "or-tools";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-aRhUAs9Otvra7VPJvrf0fhDCGpYhOw1//BC4dFJ7/xI=";
+    hash = "sha256-FxKe3uY4L33mavwC2aanji3fY9dPqpkwVqi6PNjovSA=";
   };
 
   cmakeFlags =

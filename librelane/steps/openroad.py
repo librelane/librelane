@@ -267,6 +267,10 @@ class OpenROADStep(TclStep):
         ),
     ]
 
+    @classmethod
+    def get_openroad_path(Self) -> str:
+        return os.getenv("_LLN_OVERRIDE_OPENROAD", "openroad")
+
     @abstractmethod
     def get_script_path(self) -> str:
         pass
@@ -469,7 +473,7 @@ class OpenROADStep(TclStep):
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         return [
-            "openroad",
+            self.get_openroad_path(),
             ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
             "-no_splash",
             "-metrics",
@@ -956,7 +960,7 @@ class STAPostPNR(STAPrePNR):
                 lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
-            "openroad",
+            self.get_openroad_path(),
             "-exit",
             "-no_splash",
             "-metrics",
@@ -1369,10 +1373,18 @@ class GeneratePDN(OpenROADStep):
             info(f"'FP_PDN_CFG' not explicitly set, setting it to {env['FP_PDN_CFG']}…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
+        alerts = self.alerts or []
         error_reports = glob(os.path.join(self.step_dir, "*-grid-errors.rpt"))
         for report in error_reports:
             net = os.path.basename(report).split("-", maxsplit=1)[0]
-            count = get_psm_error_count(open(report, encoding="utf8"))
+            no_terminals = any(
+                alert.code == "PSM-0025" and alert.message.startswith(net)
+                for alert in alerts
+            )
+            if no_terminals:
+                count = 1
+            else:
+                count = get_psm_error_count(open(report, encoding="utf8"))
             metrics_updates[f"design__power_grid_violation__count__net:{net}"] = count
 
         metric_updates_with_aggregates = aggregate_metrics(
