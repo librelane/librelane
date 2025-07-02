@@ -43,83 +43,83 @@ foreach vdd $::env(VDD_NETS) gnd $::env(GND_NETS) {
 set_voltage_domain -name CORE -power $::env(VDD_NET) -ground $::env(GND_NET) \
     -secondary_power $secondary
 
-if { $::env(FP_PDN_MULTILAYER) == 1 } {
+if { $::env(PDN_MULTILAYER) == 1 } {
     define_pdn_grid \
         -name stdcell_grid \
         -starts_with POWER \
         -voltage_domain CORE \
-        -pins "$::env(FP_PDN_VERTICAL_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)"
+        -pins "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
 
     add_pdn_stripe \
         -grid stdcell_grid \
-        -layer $::env(FP_PDN_VERTICAL_LAYER) \
-        -width $::env(FP_PDN_VWIDTH) \
-        -pitch $::env(FP_PDN_VPITCH) \
-        -offset $::env(FP_PDN_VOFFSET) \
-        -spacing $::env(FP_PDN_VSPACING) \
+        -layer $::env(PDN_VERTICAL_LAYER) \
+        -width $::env(PDN_VWIDTH) \
+        -pitch $::env(PDN_VPITCH) \
+        -offset $::env(PDN_VOFFSET) \
+        -spacing $::env(PDN_VSPACING) \
         -starts_with POWER -extend_to_core_ring
 
     add_pdn_stripe \
         -grid stdcell_grid \
-        -layer $::env(FP_PDN_HORIZONTAL_LAYER) \
-        -width $::env(FP_PDN_HWIDTH) \
-        -pitch $::env(FP_PDN_HPITCH) \
-        -offset $::env(FP_PDN_HOFFSET) \
-        -spacing $::env(FP_PDN_HSPACING) \
+        -layer $::env(PDN_HORIZONTAL_LAYER) \
+        -width $::env(PDN_HWIDTH) \
+        -pitch $::env(PDN_HPITCH) \
+        -offset $::env(PDN_HOFFSET) \
+        -spacing $::env(PDN_HSPACING) \
         -starts_with POWER -extend_to_core_ring
 
     add_pdn_connect \
         -grid stdcell_grid \
-        -layers "$::env(FP_PDN_VERTICAL_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)"
+        -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
 } else {
     define_pdn_grid \
         -name stdcell_grid \
         -starts_with POWER \
         -voltage_domain CORE \
-        -pins $::env(FP_PDN_VERTICAL_LAYER)
+        -pins $::env(PDN_VERTICAL_LAYER)
 
     add_pdn_stripe \
         -grid stdcell_grid \
-        -layer $::env(FP_PDN_VERTICAL_LAYER) \
-        -width $::env(FP_PDN_VWIDTH) \
-        -pitch $::env(FP_PDN_VPITCH) \
-        -offset $::env(FP_PDN_VOFFSET) \
-        -spacing $::env(FP_PDN_VSPACING) \
+        -layer $::env(PDN_VERTICAL_LAYER) \
+        -width $::env(PDN_VWIDTH) \
+        -pitch $::env(PDN_VPITCH) \
+        -offset $::env(PDN_VOFFSET) \
+        -spacing $::env(PDN_VSPACING) \
         -starts_with POWER -extend_to_core_ring
 }
 
 # Adds the standard cell rails if enabled.
-if { $::env(FP_PDN_ENABLE_RAILS) == 1 } {
+if { $::env(PDN_ENABLE_RAILS) == 1 } {
     add_pdn_stripe \
         -grid stdcell_grid \
-        -layer $::env(FP_PDN_RAIL_LAYER) \
-        -width $::env(FP_PDN_RAIL_WIDTH) \
+        -layer $::env(PDN_RAIL_LAYER) \
+        -width $::env(PDN_RAIL_WIDTH) \
         -followpins
 
     add_pdn_connect \
         -grid stdcell_grid \
-        -layers "$::env(FP_PDN_RAIL_LAYER) $::env(FP_PDN_VERTICAL_LAYER)"
+        -layers "$::env(PDN_RAIL_LAYER) $::env(PDN_VERTICAL_LAYER)"
 }
 
 
 # Adds the core ring if enabled.
-if { $::env(FP_PDN_CORE_RING) == 1 } {
-    if { $::env(FP_PDN_MULTILAYER) == 1 } {
+if { $::env(PDN_CORE_RING) == 1 } {
+    if { $::env(PDN_MULTILAYER) == 1 } {
         add_pdn_ring \
             -allow_out_of_die \
             -grid stdcell_grid \
-            -layers "$::env(FP_PDN_VERTICAL_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)" \
-            -widths "$::env(FP_PDN_CORE_RING_VWIDTH) $::env(FP_PDN_CORE_RING_HWIDTH)" \
-            -spacings "$::env(FP_PDN_CORE_RING_VSPACING) $::env(FP_PDN_CORE_RING_HSPACING)" \
-            -core_offset "$::env(FP_PDN_CORE_RING_VOFFSET) $::env(FP_PDN_CORE_RING_HOFFSET)"
+            -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)" \
+            -widths "$::env(PDN_CORE_RING_VWIDTH) $::env(PDN_CORE_RING_HWIDTH)" \
+            -spacings "$::env(PDN_CORE_RING_VSPACING) $::env(PDN_CORE_RING_HSPACING)" \
+            -core_offset "$::env(PDN_CORE_RING_VOFFSET) $::env(PDN_CORE_RING_HOFFSET)"
     } else {
-        throw APPLICATION "FP_PDN_CORE_RING cannot be used when FP_PDN_MULTILAYER is set to false."
+        throw APPLICATION "PDN_CORE_RING cannot be used when PDN_MULTILAYER is set to false."
         # add_pdn_ring \
         #     -grid stdcell_grid \
-        #     -layers "$::env(FP_PDN_VERTICAL_LAYER)" \
-        #     -widths "$::env(FP_PDN_CORE_RING_VWIDTH)" \
-        #     -spacings "$::env(FP_PDN_CORE_RING_VSPACING)" \
-        #     -core_offset "$::env(FP_PDN_CORE_RING_VOFFSET)"
+        #     -layers "$::env(PDN_VERTICAL_LAYER)" \
+        #     -widths "$::env(PDN_CORE_RING_VWIDTH)" \
+        #     -spacings "$::env(PDN_CORE_RING_VSPACING)" \
+        #     -core_offset "$::env(PDN_CORE_RING_VOFFSET)"
     }
 }
 
@@ -128,8 +128,8 @@ define_pdn_grid \
     -default \
     -name macro \
     -starts_with POWER \
-    -halo "$::env(FP_PDN_HORIZONTAL_HALO) $::env(FP_PDN_VERTICAL_HALO)"
+    -halo "$::env(PDN_HORIZONTAL_HALO) $::env(PDN_VERTICAL_HALO)"
 
 add_pdn_connect \
     -grid macro \
-    -layers "$::env(FP_PDN_VERTICAL_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)"
+    -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"

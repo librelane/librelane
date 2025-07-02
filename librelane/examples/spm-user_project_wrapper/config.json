@@ -1,13 +1,25 @@
 {
     "DESIGN_NAME": "SPM_example",
-    "VERILOG_FILES": ["dir::./defines.v", "dir::./SPM_example.v"],
+    "VERILOG_FILES": [
+        "dir::./defines.v",
+        "dir::./SPM_example.v"
+    ],
     "CLOCK_PERIOD": 25,
     "CLOCK_PORT": "wb_clk_i",
     "CLOCK_NET": "SPM.clk",
     "RT_MAX_LAYER": "met4",
     "FP_SIZING": "absolute",
-    "VDD_NETS": ["vccd1"],
-    "GND_NETS": ["vssd1"],
-    "FP_PDN_MULTILAYER": false,
-    "DIE_AREA": [0, 0, 600, 600]
+    "VDD_NETS": [
+        "vccd1"
+    ],
+    "GND_NETS": [
+        "vssd1"
+    ],
+    "PDN_MULTILAYER": false,
+    "DIE_AREA": [
+        0,
+        0,
+        600,
+        600
+    ]
 }

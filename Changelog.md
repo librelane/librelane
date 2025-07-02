@@ -37,6 +37,10 @@
     instead of variable-length Tcl-style lists (AKA: strings).
   * **Internal**: Unified exit codes.
 
+* `Odb.CustomIOPlacement`
+
+  * All variables prefixed `FP_IO_` have been renamed, now prefixed `IO_PIN_`.
+
 * `Odb.DiodesOnPorts`, `Odb.PortDiodePlacement`
 
   * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
@@ -121,6 +125,12 @@
     side and double-height cells have power at the south side, causing a short.
     In that situation, flipping the sites for single-height cells resolves the
     issue.
+
+* `OpenROAD.GeneratePDN`
+
+  * All variables prefixed `FP_PDN_` have been renamed to be prefixed simply
+    `PDN`. Backwards compatibility wrapper code has been added for `PDN_CFG`
+    files.
 
 * `OpenROAD.GlobalPlacement`
 

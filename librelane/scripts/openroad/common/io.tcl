@@ -99,23 +99,35 @@ proc read_pdn_cfg {} {
 
     # Compatibility Layer for Deprecated Variables That May Still Be Used By
     # User Files
-    set ::env(DESIGN_IS_CORE) $::env(FP_PDN_MULTILAYER)
-    set ::env(FP_PDN_ENABLE_MACROS_GRID) $::env(PDN_CONNECT_MACROS_TO_GRID)
-    set ::env(FP_PDN_RAILS_LAYER) $::env(FP_PDN_RAIL_LAYER)
-    set ::env(FP_PDN_UPPER_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)
-    set ::env(FP_PDN_LOWER_LAYER) $::env(FP_PDN_VERTICAL_LAYER)
+    set unset_list {
+        DESIGN_IS_CORE
+        PDN_ENABLE_MACROS_GRID
+        PDN_RAILS_LAYER
+        PDN_UPPER_LAYER
+        PDN_LOWER_LAYER
+    }
+    set ::env(DESIGN_IS_CORE) $::env(PDN_MULTILAYER)
+    set ::env(PDN_ENABLE_MACROS_GRID) $::env(PDN_CONNECT_MACROS_TO_GRID)
+    set ::env(PDN_RAILS_LAYER) $::env(PDN_RAIL_LAYER)
+    set ::env(PDN_UPPER_LAYER) $::env(PDN_HORIZONTAL_LAYER)
+    set ::env(PDN_LOWER_LAYER) $::env(PDN_VERTICAL_LAYER)
+    foreach key [array names ::env] {
+        if { [string match PDN_* $key] } {
+            set fp_name FP_$key
+            lappend unset_list $fp_name
+            set ::env($fp_name) $::env($key)
+        }
+    }
 
-    if {[catch {source $::env(FP_PDN_CFG)} errmsg]} {
+    if {[catch {source $::env(PDN_CFG)} errmsg]} {
         puts stderr $errmsg
         exit 1
     }
 
     # Restore Environment
-    unset ::env(DESIGN_IS_CORE)
-    unset ::env(FP_PDN_ENABLE_MACROS_GRID)
-    unset ::env(FP_PDN_RAILS_LAYER)
-    unset ::env(FP_PDN_UPPER_LAYER)
-    unset ::env(FP_PDN_LOWER_LAYER)
+    foreach unsettable $unset_list {
+        unset ::env($unsettable)
+    }
 }
 
 

@@ -7,16 +7,16 @@ PNR_SDC_FILE: dir::src/impl.sdc
 SIGNOFF_SDC_FILE: dir::src/signoff.sdc
 
 # PDN
-FP_PDN_VOFFSET: 5
-FP_PDN_HOFFSET: 5
-FP_PDN_VWIDTH: 2
-FP_PDN_HWIDTH: 2
-FP_PDN_VPITCH: 30
-FP_PDN_HPITCH: 30
-FP_PDN_SKIPTRIM: true
+PDN_VOFFSET: 5
+PDN_HOFFSET: 5
+PDN_VWIDTH: 2
+PDN_HWIDTH: 2
+PDN_VPITCH: 30
+PDN_HPITCH: 30
+PDN_SKIPTRIM: true
 
 # Pin Order
-FP_PIN_ORDER_CFG: dir::pin_order.cfg
+IO_PIN_ORDER_CFG: dir::pin_order.cfg
 
 # Technology-Specific Configs
 pdk::sky130*:

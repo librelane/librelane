@@ -618,31 +618,10 @@ class CustomIOPlacement(OdbpyStep):
 
     config_vars = io_layer_variables + [
         Variable(
-            "FP_IO_VLENGTH",
-            Optional[Decimal],
-            """
-            The length of the pins with a north or south orientation. If unspecified by a PDK, the script will use whichever is higher of the following two values:
-                * The pin width
-                * The minimum value satisfying the minimum area constraint given the pin width
-            """,
-            units="µm",
-            pdk=True,
-        ),
-        Variable(
-            "FP_IO_HLENGTH",
-            Optional[Decimal],
-            """
-            The length of the pins with an east or west orientation. If unspecified by a PDK, the script will use whichever is higher of the following two values:
-                * The pin width
-                * The minimum value satisfying the minimum area constraint given the pin width
-            """,
-            units="µm",
-            pdk=True,
-        ),
-        Variable(
-            "FP_PIN_ORDER_CFG",
+            "IO_PIN_ORDER_CFG",
             Optional[Path],
-            "Path to the configuration file. If set to `None`, this step is skipped.",
+            "Path to a custom pin configuration file.",
+            deprecated_names=["FP_PIN_ORDER_CFG"],
         ),
         Variable(
             "ERRORS_ON_UNMATCHED_IO",
@@ -660,28 +639,28 @@ class CustomIOPlacement(OdbpyStep):
 
     def get_command(self) -> List[str]:
         length_args = []
-        if self.config["FP_IO_VLENGTH"] is not None:
-            length_args += ["--ver-length", self.config["FP_IO_VLENGTH"]]
-        if self.config["FP_IO_HLENGTH"] is not None:
-            length_args += ["--hor-length", self.config["FP_IO_HLENGTH"]]
+        if self.config["IO_PIN_V_LENGTH"] is not None:
+            length_args += ["--ver-length", self.config["IO_PIN_V_LENGTH"]]
+        if self.config["IO_PIN_H_LENGTH"] is not None:
+            length_args += ["--hor-length", self.config["IO_PIN_H_LENGTH"]]
 
         return (
             super().get_command()
             + [
                 "--config",
-                self.config["FP_PIN_ORDER_CFG"],
+                self.config["IO_PIN_ORDER_CFG"],
                 "--hor-layer",
                 self.config["FP_IO_HLAYER"],
                 "--ver-layer",
                 self.config["FP_IO_VLAYER"],
                 "--hor-width-mult",
-                str(self.config["FP_IO_VTHICKNESS_MULT"]),
+                str(self.config["IO_PIN_V_THICKNESS_MULT"]),
                 "--ver-width-mult",
-                str(self.config["FP_IO_HTHICKNESS_MULT"]),
+                str(self.config["IO_PIN_H_THICKNESS_MULT"]),
                 "--hor-extension",
-                str(self.config["FP_IO_HEXTEND"]),
+                str(self.config["IO_PIN_H_EXTENSION"]),
                 "--ver-extension",
-                str(self.config["FP_IO_VEXTEND"]),
+                str(self.config["IO_PIN_V_EXTENSION"]),
                 "--unmatched-error",
                 self.config["ERRORS_ON_UNMATCHED_IO"],
             ]
@@ -689,8 +668,8 @@ class CustomIOPlacement(OdbpyStep):
         )
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        if self.config["FP_PIN_ORDER_CFG"] is None:
-            info(f"No custom floorplan file configured, skipping '{self.id}'…")
+        if self.config["IO_PIN_ORDER_CFG"] is None:
+            info(f"No custom I/O placement file configured, skipping '{self.id}'…")
             return {}, {}
         return super().run(state_in, **kwargs)
 

@@ -21,7 +21,7 @@ source $::env(SCRIPTS_DIR)/openroad/common/set_power_nets.tcl
 read_pdn_cfg
 
 set arg_list [list]
-if { $::env(FP_PDN_SKIPTRIM) } {
+if { $::env(PDN_SKIPTRIM) } {
     lappend arg_list -skip_trim
 }
 # run PDNGEN
