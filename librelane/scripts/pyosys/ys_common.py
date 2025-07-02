@@ -52,6 +52,7 @@ def _Design_read_verilog_files(
     defines: Iterable[str],
     use_synlig: bool = False,
     synlig_defer: bool = False,
+    yosys_frontend: str = "YOSYS",
 ):
     files = list(files)  # for easier concatenation
     include_args = [f"-I{dir}" for dir in includes]
@@ -63,7 +64,7 @@ def _Design_read_verilog_files(
         chparams[param] = value
         synlig_chparam_args.append(f"-P{param}={value}")
 
-    if use_synlig and synlig_defer:
+    if use_synlig and synlig_defer or yosys_frontend == "SYNLIG-DEFER":
         self.run_pass("plugin", "-i", "synlig-sv")
         for file in files:
             self.run_pass(
@@ -82,7 +83,7 @@ def _Design_read_verilog_files(
             top,
             *synlig_chparam_args,
         )
-    elif use_synlig:
+    elif use_synlig or yosys_frontend == "SYNLIG":
         self.run_pass("plugin", "-i", "synlig-sv")
         self.run_pass(
             "read_systemverilog",
@@ -92,6 +93,16 @@ def _Design_read_verilog_files(
             *define_args,
             *include_args,
             *synlig_chparam_args,
+            *files,
+        )
+    elif yosys_frontend == "SLANG":
+        self.run_pass("plugin", "-i", "slang")
+        self.run_pass(
+            "read_slang",
+            "-top",
+            top,
+            *define_args,
+            *include_args,
             *files,
         )
     else:

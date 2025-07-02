@@ -14,6 +14,7 @@ class Design:
         defines: Iterable[str],
         use_synlig: bool = False,
         synlig_defer: bool = False,
+        yosys_frontend: str = "YOSYS",
     ): ...
     def add_blackbox_models(
         self,
