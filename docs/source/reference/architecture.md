@@ -1,17 +1,22 @@
 # Architectural Overview
 
-At its core level, LibreLane is an infrastructure in which **Flows** could be built
-out of multiple atomic execution units called **Steps**, and then run with a
-**Configuration**.
+At its core level, LibreLane is an infrastructure in which **Flows** could be
+built out of multiple atomic execution units called **Steps**, and then run with
+a **Configuration**.
 
-LibreLane is architected as a Python module with the following hierarchy:
+LibreLane is implemented as a Python module with the following architecture:
 
-![An architectural view of LibreLane since version 2.0](./architecture.webp)
+```{image} ./architecture.svg
+:alt: An architectural view of LibreLane
+:align: center
+:width: 80%
+```
 
 The module is accessible via Python scripts, Jupyter Notebooks and a (limited)
 command-line API.
 
 The module consists of four submodules:
+
 * {mod}`librelane.flows`
 * {mod}`librelane.steps`
 * {mod}`librelane.config`
@@ -19,25 +24,37 @@ The module consists of four submodules:
 
 …with an assisting module named {mod}`librelane.common`.
 
+### States
+
+A {class}`librelane.state.State` is a snapshot of paths to the various different
+views of the design (e.g. Netlist, DEF, GDS, etc.) at any point in time.
+
+Keys must be of the type {class}`librelane.state.DesignFormat` and values must
+be either:
+
+* Of the type {class}`librelane.config.Path`.
+* N-nested dictionaries with key values such that the leaves are of the type
+  {class}`librelane.config.Path` as well.
+
+States also have another property: metrics. This attribute captures design
+metrics, which may be read and/or updated by any step.
+
 ## Steps
 
 Steps are the primary execution unit of LibreLane.
 
-The {class}`librelane.steps.Step` class is an [abstract base class](https://docs.python.org/3/glossary.html#term-abstract-base-class)
-from which all other steps inherit.
-
 Each step takes two inputs: a **Configuration Object** and a **State**, and
-returns an **output** state as shown here:
-
-![Architectural view of an LibreLane step](./step.webp)
+returns an **output** State.
 
 Steps should align themselves to one principle:
 
 * <u>The same step with the same input configuration and same input state must
   emit the same output.</u>
 
-(ref-step-strictures)=
-This is applied as far as the functionality goes:
+In other words, for the same version of LibreLane, the output state is strictly
+a function of the input configuration and the input state.
+
+(ref-step-strictures)= This is applied as far as the functionality goes:
 
 * Steps **do NOT** modify files in-place. New files must be created in the
   step's dedicated directory. If the tool does not support out-of-place
@@ -58,20 +75,10 @@ in the future.
 Some aspects cannot be made entirely deterministic, such as timestamps in views,
 file paths and the like. These are acceptable breaks from this dogma.
 
-### States
-
-A {class}`librelane.state.State` is a snapshot of paths to the various different
-views of the design (e.g. Netlist, DEF, GDS, etc.) at any point in time.
-
-Keys must be of the type {class}`librelane.state.DesignFormat` and values must be
-either:
-
-* Of the type {class}`librelane.config.Path`.
-* N-nested dictionaries with key values such that the leaves are of the type
-  {class}`librelane.config.Path` as well.
-
-States also have another property: metrics. This attribute captures design
-metrics, which may be read and/or updated by any step.
+The {class}`librelane.steps.Step` class is an
+[abstract base class](https://docs.python.org/3/glossary.html#term-abstract-base-class)
+from which all other steps inherit and is the implementation of this part of the
+LibreLane architecture.
 
 ## Flows
 
@@ -96,8 +103,7 @@ So, for a flow of {math}`n` steps, the final state, {math}`State_{n}` will be
 the output of the entire flow.
 
 The default flow of LibreLane when run from the command-line is a SequentialFlow
-named [`Classic`](./flows.md#classic), which is based off of the
-original, Tcl-based version of LibreLane.
+named [`Classic`](./flows.md#classic), which is based off of OpenLane.
 
 ## Configuration
 
@@ -115,13 +121,13 @@ given this configuration object as an input.
 ### Builder
 
 The configuration builder takes a `Flow` and a raw configuration object as an
-input, which can be any of:
+input, which can be one more of:
 
 * A Python dictionary
 * A path to an existent JSON configuration file
-* A path to an existent Tcl configuration file (deprecated)
+* A path to an existent YAML file
+* A path to an existent Tcl configuration file
 
-and then validates this configuration, resolving paths, fixing types and
-other such tasks along the way, returning the {class}`librelane.config.Config`
-class which is essentially a validated and immutable string dictionary.
- 
+and then validates this configuration, resolving paths, fixing types and other
+such tasks along the way, returning the {class}`librelane.config.Config` class
+which is essentially a validated and immutable string dictionary.
