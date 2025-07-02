@@ -705,6 +705,9 @@ class Config(GenericImmutableDict[str, Any]):
                 readable_paths=readable_paths,
             )
         )
+        
+        # Flatten Verilog files so that multiple globs can be combined
+        mutable["VERILOG_FILES"] = Config.__flatten_list(mutable["VERILOG_FILES"])
 
         processed, design_warnings, design_errors = Config.__process_variable_list(
             mutable,
@@ -1023,3 +1026,14 @@ class Config(GenericImmutableDict[str, Any]):
                         warnings.append(f"An unknown key '{key}' was provided.")
 
         return (final, warnings, errors)
+
+    # Takes a list of the form [1, [2,3]] and converts it to [1,2,3]
+    def __flatten_list(in_list: List):
+        out_list = []
+        for item in in_list:
+            if isinstance(item, List):
+                for subitem in item:
+                    out_list.append(subitem)
+            else:
+                out_list.append(item)
+        return out_list
