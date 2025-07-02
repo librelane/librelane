@@ -14,6 +14,10 @@ on:
     - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.event.number || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   prepare-test-matrices:
@@ -89,7 +93,7 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
@@ -375,13 +379,15 @@ jobs:
           ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
 
       - name: Run Test
+        id: test_run
+        continue-on-error: true
         run: |
           if test ${{matrix.design.script}} = "None"
           then
             mkdir -p ${{ github.workspace }}/run
             sudo du -hs /nix/store/* | sort -h | tail -n 10
             sudo du -hs /nix/store/* | sort -h | tail -n 10 > before.txt
-            nix run --accept-flake-config .#librelane --\
+            nix run . --\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
@@ -389,7 +395,7 @@ jobs:
               --condensed\
               ${{ matrix.design.config }}
           else
-            nix develop --accept-flake-config --command\
+            nix develop --command\
               python3 ${{ matrix.design.script }}\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
@@ -397,32 +403,37 @@ jobs:
               --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed
           fi
+
       - name: Upload Run Folder
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.test_name }}-${{ matrix.design.pdk }}-${{ matrix.design.scl }}
           path: ${{ matrix.design.run_dir }}
 
       - name: Fetch Metrics
-        if: ${{ always() }}
         run: |
-          nix develop --accept-flake-config --command librelane.state latest\
+          nix develop --command librelane.state latest\
               ${{ matrix.design.run_dir }}\
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
       - name: Upload Metrics
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
           path: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
+      - name: Propagate test failure after uploading metrics
+        if: steps.test_run.outcome == 'failure'
+        run:
+          exit -1
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
     needs: test
-    if: ${{ always() }}
+    if: always()
     steps:
-      - name: Merge Artifacts
+      - id: metric_merge
+        name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
         with:
           name: metrics
@@ -431,7 +442,8 @@ jobs:
     name: Upload Metrics
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
-    if: ${{ always() }}
+    # if there isn't at least one metric this exercise is pointless
+    if: needs.merge_metrics.result == 'success'
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -462,6 +474,7 @@ jobs:
               botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
+              metricsRepo: "${{ vars.METRICS_REPO }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
         env: 
@@ -482,7 +495,7 @@ jobs:
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [build-linux-x86_64, build-docker, build-py]
+    needs: [build-docker, build-py]
     name: Publish (If Applicable)
     steps:
       - name: Check out repo
