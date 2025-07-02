@@ -135,8 +135,8 @@ verilog_rtl_cfg_vars = [
     ),
     Variable(
         "YOSYS_FRONTEND",
-        Optional[Literal["YOSYS", "SYNLIG", "SLANG"]],
-        "Optional alternative yosys frontend to use",
+        Optional[Literal["YOSYS", "SYNLIG", "SYNLIG-DEFER", "SLANG"]],
+        "Optional alternative yosys frontends to use.",
         default="YOSYS",
     ),
 ]

@@ -64,7 +64,7 @@ def _Design_read_verilog_files(
         chparams[param] = value
         synlig_chparam_args.append(f"-P{param}={value}")
 
-    if use_synlig and synlig_defer:
+    if use_synlig and synlig_defer or yosys_frontend == "SYNLIG-DEFER":
         self.run_pass("plugin", "-i", "synlig-sv")
         for file in files:
             self.run_pass(
@@ -83,7 +83,7 @@ def _Design_read_verilog_files(
             top,
             *synlig_chparam_args,
         )
-    elif use_synlig or yosys_frontend.lower() == "synlig":
+    elif use_synlig or yosys_frontend == "SYNLIG":
         self.run_pass("plugin", "-i", "synlig-sv")
         self.run_pass(
             "read_systemverilog",
@@ -95,7 +95,7 @@ def _Design_read_verilog_files(
             *synlig_chparam_args,
             *files,
         )
-    elif yosys_frontend.lower() == "slang":
+    elif yosys_frontend == "SLANG":
         self.run_pass("plugin", "-i", "slang")
         self.run_pass(
             "read_slang",
