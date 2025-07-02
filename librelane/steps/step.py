@@ -661,7 +661,10 @@ class Step(ABC):
             for input, output in zip_longest(Self.inputs, Self.outputs):
                 input_str = ""
                 if input is not None:
-                    input_str = f"{input.full_name} (.{input.extension})"
+                    optional = "?" if input.value.optional else ""
+                    input_str = (
+                        f"{input.value.name}{optional} (.{input.value.extension})"
+                    )
 
                 output_str = ""
                 if output is not None:
@@ -1140,8 +1143,8 @@ class Step(ABC):
         self.start_time = time.time()
 
         for input in self.inputs:
-            value = state_in_result.get(input.id)
-            if value is None:
+            value = state_in_result.get_by_df(input)
+            if value is None and not input.optional:
                 raise StepException(
                     f"{type(self).__name__}: missing required input '{input.id}'"
                 ) from None

@@ -69,7 +69,7 @@ VT = TypeVar("VT")
 
 class GenericDict(Mapping[KT, VT]):
     """
-    A dictionary with generic keys and values that is compatible with Python 3.8.
+    A dictionary with generic keys and values that is compatible with Python 3.8.1.
 
     :param copying: A base Mapping object to copy values from.
     :param overrides: Another mapping object to override the value from `copying`

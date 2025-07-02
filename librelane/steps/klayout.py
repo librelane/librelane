@@ -124,13 +124,13 @@ class KLayoutStep(Step):
             result += lef_args
 
         if include_gds:
-            gds_args = []
+            gds_args: List[str] = []
             for gds in self.config["CELL_GDS"]:
                 gds_args.append("--with-gds-file")
                 gds_args.append(gds)
             for gds in self.toolbox.get_macro_views(self.config, DesignFormat.GDS):
                 gds_args.append("--with-gds-file")
-                gds_args.append(gds)
+                gds_args.append(str(gds))
             if extra_gds := self.config["EXTRA_GDS"]:
                 for gds in extra_gds:
                     gds_args.append("--with-gds-file")

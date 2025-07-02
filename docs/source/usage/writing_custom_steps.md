@@ -51,7 +51,7 @@ There are some conventions to writing these variables.
   in the Python programming language.
 * Composite types should be declared using the `typing` module, i.e., for a list
   of strings, try `typing.List[str]` instead of `list[str]` or just `list`.
-  * `list[str]` is incompatible with Python 3.8.
+  * `list[str]` is incompatible with Python 3.8.1.
   * `list` does not give LibreLane adequate information to validate the child
     variables.
 * Variables that capture a physical quantity, such as time, distance or similar,

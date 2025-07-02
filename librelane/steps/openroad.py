@@ -1,4 +1,8 @@
-# Copyright 2023-2025 Efabless Corporation
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
+# Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,13 +15,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import functools
 import io
-import json
 import os
 import re
+import json
+import functools
 import subprocess
-import tempfile
 import textwrap
 import pathlib
 from abc import abstractmethod
@@ -920,7 +923,10 @@ class STAPostPNR(STAPrePNR):
         ),
     ]
 
-    inputs = STAPrePNR.inputs + [DesignFormat.SPEF, DesignFormat.ODB]
+    inputs = STAPrePNR.inputs + [
+        DesignFormat.SPEF,
+        DesignFormat.ODB.mkOptional(),
+    ]
     outputs = STAPrePNR.outputs + [DesignFormat.LIB]
 
     def prepare_env(self, env: dict, state: State) -> dict:
@@ -993,19 +999,21 @@ class STAPostPNR(STAPrePNR):
     ) -> MetricsUpdate:
         current_env["_LIB_SAVE_DIR"] = corner_dir
         metrics_updates = super().run_corner(state_in, current_env, corner, corner_dir)
-        try:
-            filter_unannotated_metrics = self.filter_unannotated_report(
-                corner=corner,
-                checks_report=os.path.join(corner_dir, "checks.rpt"),
-                corner_dir=corner_dir,
-                env=current_env,
-                odb_design=str(state_in[DesignFormat.ODB]),
-            )
-        except subprocess.CalledProcessError as e:
-            self.err(
-                f"Failed filtering unannotated nets for the {corner} timing corner."
-            )
-            raise e
+        filter_unannotated_metrics = {}
+        if odb := state_in[DesignFormat.ODB]:
+            try:
+                filter_unannotated_metrics = self.filter_unannotated_report(
+                    corner=corner,
+                    checks_report=os.path.join(corner_dir, "checks.rpt"),
+                    corner_dir=corner_dir,
+                    env=current_env,
+                    odb_design=str(odb),
+                )
+            except subprocess.CalledProcessError as e:
+                self.err(
+                    f"Failed filtering unannotated nets for the {corner} timing corner."
+                )
+                raise e
         return {**metrics_updates, **filter_unannotated_metrics}
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
@@ -2729,31 +2737,48 @@ class DEFtoODB(OpenROADStep):
 
 
 @Step.factory.register()
-class OpenGUI(Step):
+class OpenGUI(OpenSTAStep):
     """
     Opens the ODB view in the OpenROAD GUI. Useful to inspect some parameters,
-    such as routing density and whatnot.
+    such as routing density, timing paths, clock tree and whatnot.
+    The LIBs are loaded by default and the SPEFs if available.
     """
 
     id = "OpenROAD.OpenGUI"
     name = "Open In GUI"
 
-    inputs = [DesignFormat.ODB]
+    inputs = [
+        DesignFormat.ODB,
+        DesignFormat.SPEF.mkOptional(),
+    ]
     outputs = []
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        with tempfile.NamedTemporaryFile("a+", suffix=".tcl") as f:
-            f.write(f"read_db \"{state_in['odb']}\"")
-            f.flush()
+    def get_script_path(self) -> str:
+        return os.path.join(get_script_dir(), "openroad", "gui.tcl")
 
-            subprocess.check_call(
-                [
-                    "openroad",
-                    "-no_splash",
-                    "-gui",
-                    f.name,
-                ]
-            )
+    def get_command(self) -> List[str]:
+        return [
+            "openroad",
+            "-no_splash",
+            "-gui",
+            self.get_script_path(),
+        ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        corner_name, file_list = self._get_corner_files(prioritize_nl=True)
+        file_list.set_env(env)
+        env["_CURRENT_CORNER_NAME"] = corner_name
+
+        env = self.prepare_env(env, state_in)
+
+        command = self.get_command()
+        self.run_subprocess(
+            command,
+            env=env,
+            **kwargs,
+        )
 
         return {}, {}
 

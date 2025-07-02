@@ -113,6 +113,9 @@ class State(GenericImmutableDict[str, StateElement]):
             **kwargs,
         )
 
+    def get_by_df(self, key: DesignFormat) -> StateElement:
+        return self.get(key.id)
+
     def __getitem__(self, key: Union[DesignFormat, str]) -> StateElement:
         if isinstance(key, DesignFormat):
             id: str = key.id

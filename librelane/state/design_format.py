@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Dict, List, Optional, ClassVar
 from deprecated.sphinx import deprecated
 
@@ -57,6 +57,8 @@ class DesignFormat(metaclass=DFMetaclass):
     folder_override: Optional[str] = None
     multiple: bool = False
 
+    _instance_optional: bool = False
+
     @property
     def folder(self) -> str:
         return self.folder_override or self.id
@@ -69,6 +71,10 @@ class DesignFormat(metaclass=DFMetaclass):
     )
     def value(self) -> DesignFormat:
         return self
+
+    @property
+    def optional(self) -> bool:
+        return self._instance_optional
 
     @property
     @deprecated(
@@ -138,6 +144,9 @@ class DesignFormat(metaclass=DFMetaclass):
             return [cls.id for cls in Self._registry.values()]
 
     factory: ClassVar = DesignFormatFactory
+
+    def mkOptional(self) -> "DesignFormat":
+        return replace(self, _instance_optional=True)
 
 
 # Common Design Formats

@@ -593,7 +593,7 @@ class Variable:
                     value=field_value,
                     explicitly_specified=explicitly_specified,
                     default=field_default,
-                    validating_type=subtype,
+                    validating_type=subtype,  # type: ignore
                     permissive_typing=permissive_typing,
                     depth=depth + 1,
                 )
