@@ -730,6 +730,7 @@ class Variable:
         )
 
     # Flatten list. Note: Must modify value, not return a new list.
+    @staticmethod
     def __flatten_list(value: list):
         new_list = []
         for item in value:
