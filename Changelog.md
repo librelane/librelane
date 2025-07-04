@@ -64,6 +64,9 @@ original authors after Efabless Corporation has ceased operations.
 
 ## Misc. Enhancements/Bugfixes
 
+* `librelane.config.Variable`
+  * Variables of type `List[Path]` now flatten lists of lists so multiple globs
+    may be used within the same configuration variable.
 * `librelane.state.DesignFormat`
   * Added new dynamic property `.value.optional` which cannot be defined for new
     enum members and always returns `False`.
