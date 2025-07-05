@@ -255,7 +255,7 @@ class TclStep(Step):
         #
         # Emplace file to be sourced in dict with key ``_TCL_ENV_IN``
         env = os.environ.copy()
-        with open(env_in_file, "a+") as f:
+        with open(env_in_file, "w") as f:
             for key, value in env_in:
                 if key in env and env[key] == value:
                     continue
