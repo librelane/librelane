@@ -18,6 +18,10 @@
 
 ## Steps
 
+  * Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+
+    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
 * `KLayout.DRC`
 
   * Add support for ihp-sg13g2
@@ -293,6 +297,11 @@
     instead of floats.
 
 ## API Breaks
+
+* `KLayout.StreamOut` now behaves differently as the default for cell conflict resolution has been changed from "AddToCell" to "RenameCell", which is a safer.
+
+	* To retain the old behavior, set `KLAYOUT_CONFLICT_RESOLUTION` to "AddToCell".
+	* It may be necessary to set `KLAYOUT_CONFLICT_RESOLUTION` to "SkipNewCell" to match the old macro integration behavior of magic.
 
 * `*`
 
