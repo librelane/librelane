@@ -65,18 +65,40 @@ original authors after Efabless Corporation has ceased operations.
 ## Misc. Enhancements/Bugfixes
 
 * `librelane.config.Variable`
+
   * Variables of type `List[Path]` now flatten lists of lists so multiple globs
     may be used within the same configuration variable.
+
 * `librelane.state.DesignFormat`
+
   * Added new dynamic property `.value.optional` which cannot be defined for new
     enum members and always returns `False`.
   * Added new method `mkOptional` which creates an ephemeral copy of the
     DesignFormat where `.value.optional` returns `True`.
+
+* `librelane.flows.Flow`
+  * Added `.display_help()` for consistency with steps.
+  * Fixed `.get_help_md()` including MyST anchors even for renderers that do not
+    support them, only doing so now if the keyword argument `myst_anchors` is
+    set to `True`.
+
 * `librelane.steps.Step`
+
   * DesignFormats where `.value.optional` is True (i.e. copied with mkOptional)
     no longer cause a `StepException` to be raised if missing from inputs.
+  * `display_help` now renders the markdown help with rich in a non-notebook
+    environment instead of raising an error.
+  * Fixed `.get_help_md()` including MyST anchors even for renderers that do not
+    support them, only doing so now if the keyword argument `myst_anchors` is
+    set to `True`.
   * Note: Currently, all outputs are technically optional anyway. This will
     change in 3.0.0.
+
+* `librelane.common.ScopedFile`
+
+  * Fixed crash associated with `__del__` when ScopedFile is declared at the
+    top-level.
+
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything
   breaks.

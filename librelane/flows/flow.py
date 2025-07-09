@@ -375,7 +375,7 @@ class Flow(ABC):
         self.progress_bar = FlowProgressBar(self.name)
 
     @classmethod
-    def get_help_md(Self) -> str:  # pragma: no cover
+    def get_help_md(Self, myst_anchors: bool = True) -> str:  # pragma: no cover
         """
         :returns: rendered Markdown help for this Flow
         """
@@ -383,10 +383,12 @@ class Flow(ABC):
         if Self.__doc__:
             doc_string = textwrap.dedent(Self.__doc__)
 
+        flow_anchor = f"(flow-{slugify(Self.__name__, lower=True)})="
+
         result = (
             textwrap.dedent(
                 f"""\
-                (flow-{slugify(Self.__name__, lower=True)})=
+                {flow_anchor * myst_anchors}
                 ### {Self.__name__}
 
                 ```{{eval-rst}}
@@ -426,7 +428,8 @@ class Flow(ABC):
             for var in flow_config_vars:
                 units = var.units or ""
                 pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                result += f"| `{var.name}`{{#{var._get_docs_identifier(Self.__name__)}}}{pdk_superscript} | {var.type_repr_md()} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
+                var_anchor = f"{{#{var._get_docs_identifier(Self.__name__)}}}"
+                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md()} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
             result += "\n"
 
         if len(Self.Steps):
@@ -438,9 +441,34 @@ class Flow(ABC):
                     name = step.name
                 else:
                     name = step.id
-                result += f"* [`{step.id}`](./step_config_vars.md#{slugify(name)})\n"
+                if myst_anchors:
+                    result += (
+                        f"* [`{step.id}`](./step_config_vars.md#{slugify(name)})\n"
+                    )
+                else:
+                    result += f"* {step.id}"
 
         return result
+
+    @classmethod
+    def display_help(Self):  # pragma: no cover
+        """
+        Displays Markdown help for a given flow.
+
+        If in an IPython environment, it's rendered using ``IPython.display``.
+        Otherwise, it's rendered using ``rich.markdown``.
+        """
+        try:
+            get_ipython()  # type: ignore
+
+            import IPython.display
+
+            IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        except NameError:
+            from ..logging import console
+            from rich.markdown import Markdown
+
+            console.log(Markdown(Self.get_help_md()))
 
     def get_all_config_variables(self) -> List[Variable]:
         """
