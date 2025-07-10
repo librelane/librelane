@@ -240,6 +240,13 @@ DesignFormat(
 ).register()
 
 DesignFormat(
+    "cdl",
+    "cdl",
+    "Circuit Design Language",
+    alts=["CDL"],
+).register()
+
+DesignFormat(
     "gds",
     "gds",
     "GDSII Stream",

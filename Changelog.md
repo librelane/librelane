@@ -18,6 +18,18 @@
 
 ## Steps
 
+* `KLayout.DRC`
+
+  * Add support for ihp-sg13g2
+
+* Add `KLayout.LVS` step
+
+  * Add support for ihp-sg13g2
+
+* Add `OpenROAD.WriteCDL` step
+
+  * Write the CDL netlist of a design
+
 * `Checker.HoldViolations`
 
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
@@ -221,6 +233,10 @@
   PDK variables.)
 
 ## Misc. Enhancements/Bugfixes
+
+* `librelane.common`
+
+  * `_eval_env`: Add support for nested dicts in tcl
 
 * `openlane.flows`
 

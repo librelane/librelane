@@ -16,7 +16,7 @@ import re
 import json
 from enum import Enum
 from io import StringIO, TextIOWrapper
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from .step import StepException, ViewsUpdate, MetricsUpdate, Step
 from ..common import Path
@@ -123,13 +123,6 @@ class ERC(Step):
             Optional[Path],  # Only optional for backwards-compat
             description="",
             pdk=True,
-        ),
-        Variable(
-            "CELL_CDLS",
-            List[Path],
-            description="A circuit-design language view of the standard cell library.",
-            pdk=True,
-            deprecated_names=["STD_CELL_LIBRARY_CDL"],
         ),
     ]
 
