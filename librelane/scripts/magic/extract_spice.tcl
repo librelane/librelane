@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +27,7 @@ if { $::env(MAGIC_EXT_USE_GDS) } {
     read_pdk_lef
     read_macro_lef
     read_extra_lef
+    read_pad_lef
     read_def
 }
 
@@ -39,7 +44,7 @@ if { [info exists ::env(MAGIC_EXT_ABSTRACT_CELLS)] } {
             }
         }
         if { $matched == 0 } {
-            puts "\[WARNING\] Failed to match the experssion '$expression' with cells in the design"
+            puts "\[WARNING\] Failed to match the expression '$expression' with cells in the design"
         }
     }
     foreach cell $matching_cells {
