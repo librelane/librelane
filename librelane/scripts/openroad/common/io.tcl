@@ -185,6 +185,13 @@ proc read_timing_info {args} {
             read_liberty -corner $corner_name $extra_lib
         }
     }
+    
+    if { [info exists ::env(PAD_LIBS) ] } {
+        foreach lib $::env(PAD_LIBS) {
+            puts "Reading gpio pad timing for the '$corner_name' corner at '$lib'…"
+            read_liberty -corner $corner_name $lib
+        }
+    }
 
     set blackbox_wildcard {/// sta-blackbox}
     foreach nl $::env(_CURRENT_CORNER_NETLISTS) {
@@ -286,6 +293,13 @@ proc read_pnr_libs {args} {
                 read_liberty -corner $corner_name $extra_lib
             }
         }
+        
+        if { [info exists ::env(PAD_LIBS) ] } {
+            foreach pad_lib $::env(PAD_LIBS) {
+                puts "Reading gpio pad timing library for the '$corner_name' corner at '$pad_lib'…"
+                read_liberty -corner $corner_name $pad_lib
+            }
+        }
     }
 }
 
@@ -308,6 +322,12 @@ proc read_lefs {{tlef_key "TECH_LEF"}} {
     if { [info exist ::env(EXTRA_LEFS)] } {
         foreach lef $::env(EXTRA_LEFS) {
             puts "Reading extra LEF file at '$lef'…"
+            read_lef $lef
+        }
+    }
+    if { [info exist ::env(PAD_LEFS)] } {
+        foreach lef $::env(PAD_LEFS) {
+            puts "Reading gpio pad LEF file at '$lef'…"
             read_lef $lef
         }
     }
