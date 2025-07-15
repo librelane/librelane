@@ -140,7 +140,12 @@ class ERC(Step):
 
             cdl_file = os.path.join(self.step_dir, f"{self.config['DESIGN_NAME']}.cdl")
             with open(cdl_file, "w", encoding="utf8") as f:
-                for file in self.config["CELL_CDLS"] + [state_in[DesignFormat.SPICE]]:
+                for file in (
+                    self.config["CELL_CDLS"]
+                    + self.config["EXTRA_CDLS"]
+                    + self.config["PAD_CDLS"]
+                    + [state_in[DesignFormat.SPICE]]
+                ):
                     cdl_clean(open(file, encoding="utf8"), f)
             kwargs, env = self.extract_env(kwargs)
 
