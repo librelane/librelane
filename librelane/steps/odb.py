@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -150,6 +154,10 @@ class OdbpyStep(Step):
             lefs.append(lef)
         if extra_lefs := self.config["EXTRA_LEFS"]:
             for lef in extra_lefs:
+                lefs.append("--input-lef")
+                lefs.append(lef)
+        if pad_lefs := self.config["PAD_LEFS"]:
+            for lef in pad_lefs:
                 lefs.append("--input-lef")
                 lefs.append(lef)
         if (design_lef := self.state_in.result().get(DesignFormat.LEF)) and (

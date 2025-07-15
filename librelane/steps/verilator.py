@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +105,14 @@ class Lint(Step):
             blackboxes.append(
                 self.toolbox.create_blackbox_model(
                     frozenset(cell_verilog_models),
+                    frozenset(["USE_POWER_PINS"]),
+                )
+            )
+
+        if pad_verilog_models := self.config["PAD_VERILOG_MODELS"]:
+            blackboxes.append(
+                self.toolbox.create_blackbox_model(
+                    frozenset(pad_verilog_models),
                     frozenset(["USE_POWER_PINS"]),
                 )
             )
