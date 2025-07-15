@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +28,12 @@ if { $::env(MAGIC_MACRO_STD_CELL_SOURCE) == "PDK" } {
 }
 
 read_extra_gds
+# annotate with lef
 read_extra_lef
+
+read_pad_gds
+# annotate with lef
+read_pad_lef
 
 load (NEWCELL)
 
