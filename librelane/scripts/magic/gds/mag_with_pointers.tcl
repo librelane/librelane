@@ -29,4 +29,3 @@ set final_filepath $::env(signoff_tmpfiles)/gds_ptrs.mag
 file rename -force $::env(signoff_tmpfiles)/$::env(DESIGN_NAME).mag $final_filepath
 
 puts "\[INFO\] Wrote $final_filepath including GDS pointers."
-exit 0

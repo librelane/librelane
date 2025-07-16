@@ -19,7 +19,6 @@ import io
 import os
 import re
 import json
-import functools
 import subprocess
 from enum import Enum
 from math import inf
@@ -1147,9 +1146,7 @@ def get_psm_error_count(rpt: io.TextIOWrapper) -> int:
 
     sio.seek(0)
     violations = yaml.load(sio, Loader=yaml.SafeLoader) or []
-    return functools.reduce(
-        lambda acc, current: acc + len(current["srcs"]), violations, 0
-    )
+    return sum(len(violation["srcs"]) for violation in violations)
 
 
 @Step.factory.register()

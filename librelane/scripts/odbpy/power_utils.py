@@ -17,7 +17,6 @@ import utl
 
 import re
 import json
-import functools
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -49,11 +48,14 @@ class Design(object):
     def get_verilog_net_name_by_bit(self, top_module: str, target_bit: int):
         yosys_design_object = self.yosys_dict["modules"][top_module]
         if top_module not in self.verilog_net_names_by_bit_by_module:
-            self.verilog_net_names_by_bit_by_module[top_module] = functools.reduce(
-                lambda a, b: {**a, **{bit: b[0] for bit in b[1]["bits"]}},
-                yosys_design_object["netnames"].items(),
-                {},
-            )
+            # check git history for a version of this loop that is drunk on power
+            netname_by_bit = {}
+
+            for netname, info in yosys_design_object["netnames"].items():
+                for bit in info["bits"]:
+                    netname_by_bit[bit] = netname
+
+            self.verilog_net_names_by_bit_by_module[top_module] = netname_by_bit
         return self.verilog_net_names_by_bit_by_module[top_module][target_bit]
 
     def get_pins(self, module_name: str) -> Dict[str, odb.dbMTerm]:

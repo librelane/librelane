@@ -36,6 +36,16 @@ original authors after Efabless Corporation has ceased operations.
     after (and only after global routing,) with an option to run it after
     detailed routing so long as detailed routing is run again afterwards.
 
+* `Magic.*`
+
+  * Unified exits in wrapper.
+
+* `Magic.SpiceExtraction`
+
+  * Added new variable `MAGIC_FEEDBACK_CONVERSION_THRESHOLD`: the number of
+    overlap errors that can be in a single feedback file before the step no
+    longer attempts to compile it into a KLayout database.
+
 * `OpenROAD.*`
 
   * **API**: instance variable `.alerts` now holds emitted alerts until the next
@@ -64,19 +74,35 @@ original authors after Efabless Corporation has ceased operations.
 
 ## Misc. Enhancements/Bugfixes
 
+* `CLI`
+
+  * Various fixes to `--ef-save-views-to` to better align with the Caravel User
+    Project format: SDFs now save in the right spot and reports are saved
+    correctly.
+
 * `librelane.config.Variable`
 
   * Variables of type `List[Path]` now flatten lists of lists so multiple globs
     may be used within the same configuration variable.
 
-* `librelane.state.DesignFormat`
+* `librelane.state`
 
-  * Added new dynamic property `.value.optional` which cannot be defined for new
-    enum members and always returns `False`.
-  * Added new method `mkOptional` which creates an ephemeral copy of the
-    DesignFormat where `.value.optional` returns `True`.
+  * `DesignFormat`
+
+    * Added new dynamic property `.value.optional` which cannot be defined for
+      new enum members and always returns `False`.
+    * Added new method `.mkOptional()` which creates an ephemeral copy of the
+      DesignFormat where `.value.optional` returns `True`.
+
+  * `State`
+
+    * Added new method `.metrics_to_csv()` which uses `csv.writer` to dump
+      metrics.
+    * `.save_snapshot()` now uses `.metrics_to_csv()` internally instead of
+      primitive for-loop.
 
 * `librelane.flows.Flow`
+
   * Added `.display_help()` for consistency with steps.
   * Fixed `.get_help_md()` including MyST anchors even for renderers that do not
     support them, only doing so now if the keyword argument `myst_anchors` is
@@ -102,6 +128,8 @@ original authors after Efabless Corporation has ceased operations.
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything
   breaks.
+
+* Replaced `functools.reduce` with the C-optimized built-ins wherever possible.
 
 # 2.3.10
 

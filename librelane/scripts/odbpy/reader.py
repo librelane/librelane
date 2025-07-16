@@ -20,7 +20,7 @@ import sys
 import json
 import locale
 import inspect
-import functools
+from functools import wraps
 from decimal import Decimal
 from fnmatch import fnmatch
 from typing import Callable, Dict
@@ -188,7 +188,7 @@ class OdbReader(object):
 
 
 def click_odb(function):
-    @functools.wraps(function)
+    @wraps(function)
     def wrapper(input_db, input_lefs, config_path, **kwargs):
         reader = OdbReader(input_db, config_path=config_path)
 
