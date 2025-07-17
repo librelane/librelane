@@ -39,9 +39,13 @@ proc calc_horizontal_pad_location {index total cellname} {
     set DIE_WIDTH [expr {[lindex $::env(DIE_AREA) 2] - [lindex $::env(DIE_AREA) 0]}]
     set PAD_OFFSET [expr {$io_height + $::env(PAD_BONDPAD_SIZE) + $::env(PAD_SEALRING_OFFSET)}]
     set PAD_AREA_WIDTH [expr {$DIE_WIDTH - ($PAD_OFFSET * 2)}]
-    set HORIZONTAL_PAD_DISTANCE [expr {($PAD_AREA_WIDTH / $total) - $io_width}]
+    #set HORIZONTAL_PAD_DISTANCE [expr {($PAD_AREA_WIDTH / $total) - $io_width}]
+    set SPACE_WIDTH [expr {$PAD_AREA_WIDTH - ($io_width * $total)}]
+    set HORIZONTAL_PAD_DISTANCE [expr {2 * floor($SPACE_WIDTH / (2 * $total))}]
+    set SPACE_LEFT [expr {$SPACE_WIDTH - $HORIZONTAL_PAD_DISTANCE * ($total - 1)}]
 
-    return [expr {$PAD_OFFSET + (($io_width + $HORIZONTAL_PAD_DISTANCE) * $index) + ($HORIZONTAL_PAD_DISTANCE / 2)}]
+    #return [expr {$PAD_OFFSET + (($io_width + $HORIZONTAL_PAD_DISTANCE) * $index) + ($HORIZONTAL_PAD_DISTANCE / 2)}]
+    return [expr {$PAD_OFFSET + ($SPACE_LEFT / 2) + (($io_width + $HORIZONTAL_PAD_DISTANCE) * $index)}]
 }
 
 proc calc_vertical_pad_location {index total cellname} {
@@ -65,9 +69,13 @@ proc calc_vertical_pad_location {index total cellname} {
     set DIE_HEIGHT [expr {[lindex $::env(DIE_AREA) 3] - [lindex $::env(DIE_AREA) 1]}]
     set PAD_OFFSET [expr {$io_height + $::env(PAD_BONDPAD_SIZE) + $::env(PAD_SEALRING_OFFSET)}]
     set PAD_AREA_HEIGHT [expr {$DIE_HEIGHT - ($PAD_OFFSET * 2)}]
-    set VERTICAL_PAD_DISTANCE [expr {($PAD_AREA_HEIGHT / $total) - $io_width}]
+    #set VERTICAL_PAD_DISTANCE [expr {($PAD_AREA_HEIGHT / $total) - $io_width}]
+    set SPACE_HEIGHT [expr {$PAD_AREA_HEIGHT - ($io_width * $total)}]
+    set VERTICAL_PAD_DISTANCE [expr {2 * floor($SPACE_HEIGHT / (2 * $total))}]
+    set SPACE_LEFT [expr {$SPACE_HEIGHT - $VERTICAL_PAD_DISTANCE * ($total - 1)}]
 
-    return [expr {$PAD_OFFSET + (($io_width + $VERTICAL_PAD_DISTANCE) * $index) + ($VERTICAL_PAD_DISTANCE / 2)}]
+    #return [expr {$PAD_OFFSET + (($io_width + $VERTICAL_PAD_DISTANCE) * $index) + ($VERTICAL_PAD_DISTANCE / 2)}]
+    return [expr {$PAD_OFFSET + ($SPACE_LEFT / 2) + (($io_width + $VERTICAL_PAD_DISTANCE) * $index)}]
 }
 
 # TODO find a generic way

@@ -664,6 +664,125 @@ class LVS(KLayoutStep):
 
 
 @Step.factory.register()
+class SealRing(KLayoutStep):
+
+    id = "KLayout.SealRing"
+    name = "Adds Seal Ring to the GDS"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.GDS]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            self.warn(
+                f"KLayout.FillerGeneration is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+
+        return views_updates, metrics_updates
+
+    def run_ihp_sg13g2(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        self.run_pya_script(
+            [
+                "python3",
+                os.path.join(get_script_dir(), "klayout", "ihp_seal_ring.py"),
+                "--input-gds",
+                abspath(input_gds),
+                "--output-gds",
+                abspath(output_gds),
+                "--die-width",
+                f"{self.config['DIE_AREA'][2]:f}",
+                "--die-height",
+                f"{self.config['DIE_AREA'][3]:f}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+
+@Step.factory.register()
+class FillerGeneration(KLayoutStep):
+
+    id = "KLayout.FillerGeneration"
+    name = "Adds filler to the GDS"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.GDS]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            self.warn(
+                f"KLayout.FillerGeneration is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+
+        return views_updates, metrics_updates
+
+    def run_ihp_sg13g2(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = os.path.join(
+            self.config["PDK_ROOT"],
+            self.config["PDK"],
+            "libs.tech/klayout/tech/scripts/filler.py",
+        )
+
+        print(env)
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        # Not a pya script
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"output_file={abspath(output_gds)}",
+                abspath(input_gds),
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+
+@Step.factory.register()
 class OpenGUI(KLayoutStep):
     """
     Opens the DEF view in the KLayout GUI, with layers loaded and mapped
