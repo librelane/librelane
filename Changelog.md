@@ -14,6 +14,10 @@
 ## Documentation
 -->
 
+# 2.4.2
+
+* Fixed tilde (~) not being expanded for home directory
+
 # 2.4.1
 
 ## Misc. Enhancements/Bugfixes

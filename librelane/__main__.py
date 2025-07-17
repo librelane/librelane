@@ -83,6 +83,10 @@ def run(
         TargetFlow: Optional[Type[Flow]] = Flow.factory.get("Classic")
 
         for config_file in config_files:
+            # expands the pdk-root path
+            pdk_root = (
+                os.path.expanduser(pdk_root) if isinstance(pdk_root, str) else None
+            )
             if meta := Config.get_meta(config_file):
                 # to maintain backwards compat, in 3 you will need to explicitly
                 # set the flow you're substituting
