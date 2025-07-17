@@ -1214,7 +1214,6 @@ class Padring(OpenROADStep):
     ]
 
     def get_script_path(self):
-        print(self.config["PAD_CFG"])
         return self.config["PAD_CFG"]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
