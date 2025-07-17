@@ -84,7 +84,9 @@ def run(
         TargetFlow: Optional[Type[Flow]] = Flow.factory.get("Classic")
 
         for config_file in config_files:
-            if meta := Config.get_meta(config_file):
+            # expands the pdk-root path
+            pdk_root = os.path.expanduser(pdk_root) if isinstance(pdk_root, str) else None
+            if meta := Config.get_ueta(config_file):
                 if isinstance(meta.flow, str):
                     if found := Flow.factory.get(meta.flow):
                         TargetFlow = found
