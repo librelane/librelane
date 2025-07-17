@@ -14,7 +14,6 @@
 import os
 import re
 import shutil
-import functools
 import subprocess
 from signal import SIGKILL
 from decimal import Decimal
@@ -34,7 +33,8 @@ from .tclstep import TclStep
 from ..state import DesignFormat, State
 
 from ..config import Variable
-from ..common import get_script_dir, DRC as DRCObject, Path, mkdirp
+from ..common import get_script_dir, DRC as DRCObject, Path, mkdirp, count_occurences
+from ..logging import warn
 
 
 class MagicOutputProcessor(OutputProcessor):
@@ -464,6 +464,12 @@ class SpiceExtraction(MagicStep):
             "Extracts a SPICE netlist based on black-boxed standard cells and macros (basically, anything with a LEF) rather than transistors. An error will be thrown if both this and `MAGIC_EXT_USE_GDS` is set to ``True``.",
             default=False,
         ),
+        Variable(
+            "MAGIC_FEEDBACK_CONVERSION_THRESHOLD",
+            int,
+            "If Magic provides more feedback items than this threshold, conversion to KLayout databases is skipped (as something has gone horribly wrong.)",
+            default=10000,
+        ),
     ]
 
     def get_script_path(self):
@@ -481,22 +487,29 @@ class SpiceExtraction(MagicStep):
 
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
-        cif_scale = Decimal(open(os.path.join(self.step_dir, "cif_scale.txt")).read())
         feedback_path = os.path.join(self.step_dir, "feedback.txt")
+        with open(feedback_path, encoding="utf8") as f:
+            illegal_overlap_count = count_occurences(f, "Illegal overlap")
+
+        metrics_updates["magic__illegal_overlap__count"] = illegal_overlap_count
+        threshold = self.config["MAGIC_FEEDBACK_CONVERSION_THRESHOLD"]
+        if illegal_overlap_count > threshold:
+            warn(
+                f"Not converting the feedback to the KLayout database format: {illegal_overlap_count} > MAGIC_FEEDBACK_CONVERSION_THRESHOLD ({threshold}). You may manually increase the threshold, but it might take forever."
+            )
+            return views_updates, metrics_updates
+
+        cif_scale = Decimal(open(os.path.join(self.step_dir, "cif_scale.txt")).read())
         try:
             se_feedback, _ = DRCObject.from_magic_feedback(
                 open(feedback_path, encoding="utf8"),
                 cif_scale,
                 self.config["DESIGN_NAME"],
             )
-            illegal_overlap_count = functools.reduce(
-                lambda a, b: a + len(b.bounding_boxes),
-                [
-                    v
-                    for v in se_feedback.violations.values()
-                    if "Illegal overlap" in v.description
-                ],
-                0,
+            illegal_overlap_count = sum(
+                len(v.bounding_boxes)
+                for v in se_feedback.violations.values()
+                if "Illegal overlap" in v.description
             )
             with open(os.path.join(self.step_dir, "feedback.xml"), "wb") as f:
                 se_feedback.to_klayout_xml(f)
@@ -504,9 +517,6 @@ class SpiceExtraction(MagicStep):
         except ValueError as e:
             self.warn(
                 f"Failed to convert SPICE extraction feedback to KLayout database format: {e}"
-            )
-            metrics_updates["magic__illegal_overlap__count"] = (
-                open(feedback_path, encoding="utf8").read().count("Illegal overlap")
             )
         return views_updates, metrics_updates
 

@@ -13,7 +13,6 @@
 # limitations under the License.
 import os
 import pathlib
-import functools
 from typing import Callable, Optional, Type
 
 import pytest
@@ -148,15 +147,14 @@ def test_flow_abc_init():
 def test_factory(DummyFlow: Type[flow.Flow]):
     from librelane.flows import Flow
 
-    assert functools.reduce(
-        lambda x, y: x and (y in Flow.factory.list()),
-        [
+    assert all(
+        flow in Flow.factory.list()
+        for flow in [
             "Optimizing",
             "Classic",
             "OpenInKLayout",
             "OpenInOpenROAD",
-        ],
-        True,
+        ]
     ), "One or more built-in flows missing from factory list"
 
     Flow.factory.register()(DummyFlow)

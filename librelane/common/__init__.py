@@ -43,6 +43,7 @@ from .misc import (
     Filter,
     get_latest_file,
     process_list_file,
+    count_occurences,
     _get_process_limit,
 )
 from .types import (
