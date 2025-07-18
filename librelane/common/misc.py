@@ -40,7 +40,7 @@ import httpx
 
 from ..__version__ import __version__
 from .types import AnyPath, Path
-from ..logging import set_log_level, verbose, err, options, LogLevels
+from ..logging import err
 
 T = TypeVar("T")
 
