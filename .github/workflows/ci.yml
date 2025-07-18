@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
-#      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
       sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
       gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
       ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
@@ -48,7 +47,6 @@ jobs:
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-#          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
           echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
           echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
           echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
@@ -227,12 +225,6 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-#      - name: Cache sky130 PDK
-#        uses: actions/cache@v4
-#        with:
-#          path: ./.ciel-sky130
-#          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
-#          enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
