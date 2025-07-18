@@ -358,12 +358,15 @@ jobs:
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-librelane || true
+      - name: Get PDK hash
+        run: |
+          echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v4
         with:
           path: ./.ciel-${{ matrix.design.pdk_family }}
-          key: cache-${{ matrix.design.pdk_family }}-pdk-$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})
+          key: cache-${{ matrix.design.pdk_family }}-pdk-${{ env.PDK_HASH }}
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
@@ -371,7 +374,7 @@ jobs:
           pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
-            $(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})
+            ${{ env.PDK_HASH }}
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
