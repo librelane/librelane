@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
-      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
+#      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
       sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
       gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
       ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
@@ -48,7 +48,7 @@ jobs:
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
+#          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
           echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
           echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
           echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
@@ -371,7 +371,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./.ciel-${{ matrix.design.pdk_family }}
-          key: cache-${{ matrix.design.pdk_family }}-pdk-$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/open_pdks_rev --pdk-family ${{ matrix.design.pdk_family }})
+          key: cache-${{ matrix.design.pdk_family }}-pdk-$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
@@ -379,7 +379,7 @@ jobs:
           pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
-            $(python3 ./.github/scripts/get_pdk_hash.py ./librelane/open_pdks_rev --pdk-family ${{ matrix.design.pdk_family }})
+            $(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
