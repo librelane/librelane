@@ -88,3 +88,7 @@
     - picorv32a
     - PPU
     - y_huff
+- scl: ihp-sg13g2/sg13g2_stdcell
+  name: fastest_test_set
+  designs:
+    - spm
