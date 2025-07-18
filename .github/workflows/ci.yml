@@ -49,9 +49,9 @@ jobs:
         id: set-rev
         run: |
           echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
-          echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/open_pdks_rev --pdk-family sky130)" >> $GITHUB_OUTPUT
-          echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/open_pdks_rev --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
-          echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/open_pdks_rev --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
+          echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
+          echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
+          echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
