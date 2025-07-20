@@ -59,5 +59,3 @@ foreach design_name [cellname list allcells] {
 	puts $fp [join $new_mag_lines "\n"]
 	close $fp
 }
-
-exit 0

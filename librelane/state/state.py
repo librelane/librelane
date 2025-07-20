@@ -13,7 +13,9 @@
 # limitations under the License.
 from __future__ import annotations
 
+import io
 import os
+import csv
 import sys
 import json
 import shutil
@@ -209,13 +211,19 @@ class State(GenericImmutableDict[str, StateElement]):
         self._walk(self, path, visitor)
         metrics_csv_path = os.path.join(path, "metrics.csv")
         with open(metrics_csv_path, "w", encoding="utf8") as f:
-            f.write("Metric,Value\n")
-            for metric in self.metrics:
-                f.write(f"{metric},{self.metrics[metric]}\n")
+            self.metrics_to_csv(f)
 
         metrics_json_path = os.path.join(path, "metrics.json")
         with open(metrics_json_path, "w", encoding="utf8") as f:
             f.write(self.metrics.dumps())
+
+    def metrics_to_csv(
+        self, fp: io.TextIOWrapper, metrics_object: Optional[Dict[str, Any]] = None
+    ):
+        w = csv.writer(fp)
+        w.writerow(("Metric", "Value"))
+        for entry in (metrics_object or self.metrics).items():
+            w.writerow(entry)
 
     def validate(self):
         """

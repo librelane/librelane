@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import fnmatch
+import io
+import os
+import re
 import glob
 import gzip
-import os
-import pathlib
-import re
 import typing
+import pathlib
+import fnmatch
 import unicodedata
 from math import inf
 from typing import (
+    IO,
     Any,
     Generator,
     Iterable,
@@ -378,7 +380,7 @@ def _get_process_limit() -> int:
     return int(os.getenv("_OPENLANE_MAX_CORES", os.cpu_count() or 1))
 
 
-def gzopen(filename, mode="rt"):
+def gzopen(filename: AnyPath, mode="rt") -> IO[Any]:
     """
     This method (tries to?) emulate the gzopen from the Linux Standard Base,
     specifically this part:
@@ -388,6 +390,11 @@ def gzopen(filename, mode="rt"):
     for reading directly from the file without any decompression.
 
     gzip.open does not have this behavior.
+
+    :param filename: The full path to the uncompressed or gzipped file.
+    :param mode: "r", "rb", "w", "wb", "x", "xb", "a" or "ab" for
+        binary mode, or "rt", "wt", "xt" or "at" for text mode.
+    :returns: An I/O wrapper that may very slightly based on the mode.
     """
     try:
         g = gzip.open(filename, mode=mode)
@@ -400,3 +407,18 @@ def gzopen(filename, mode="rt"):
     except gzip.BadGzipFile:
         g.close()
         return open(filename, mode=mode)
+
+
+def count_occurences(fp: io.TextIOWrapper, pattern: str = "") -> int:
+    """
+    Counts the occurences of a certain string in a stream, line-by-line, without
+    necessarily loading the entire file into memory.
+
+    Equivalent to: ``grep -c 'pattern' <file>`` (but without regex support).
+
+    :param fp: the text stream
+    :param pattern: the substring to search for. if set to "", it will simply
+        count the lines in the file.
+    :returns: the number of matching lines
+    """
+    return sum(pattern in line for line in fp)

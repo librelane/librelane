@@ -17,3 +17,5 @@ if {[catch {source $::env(_MAGIC_SCRIPT)} err]} {
     puts "Error: $err"
     exit 1
 }
+
+exit 0

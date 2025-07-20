@@ -16,6 +16,7 @@ import sys
 import tempfile
 from math import isfinite
 from decimal import Decimal
+from weakref import finalize
 from collections import UserString
 from typing import Any, Union, ClassVar, Tuple, Optional
 
@@ -112,6 +113,4 @@ class ScopedFile(Path):
         super().__init__(self._ntf.name)
         self._ntf.write(contents)
         self._ntf.close()
-
-    def __del__(self):
-        os.unlink(self._ntf.name)
+        self._ntf_cleanup = finalize(self, os.unlink, self._ntf.name)

@@ -110,7 +110,7 @@ def create_config(
                 print("At least one source RTL file is required.", file=sys.stderr)
                 exit(1)
     source_rtl_key = "VERILOG_FILES"
-    if not all((file.endswith(".sv") or file.endswith(".v")) for file in source_rtl):
+    if not all(file.endswith(".sv") or file.endswith(".v") for file in source_rtl):
         print(
             "Only Verilog/SystemVerilog files are supported by create-config.",
             file=sys.stderr,

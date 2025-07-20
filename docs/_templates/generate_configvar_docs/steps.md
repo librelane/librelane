@@ -15,7 +15,7 @@ check the API reference [here](./api/steps/index).
   if-and-only-if the variables are otherwise identical, i.e., the name, type,
   and default value all match. Otherwise, the flow will not compile.
 * Some steps have a variable prefixed with `RUN_` that enables or disables said
-  step. This is a vestige from LibreLane 1 and it is recommended to explicitly
+  step. This is a vestige from OpenLane and it is recommended to explicitly
   specify your flow either by using the API or in your JSON configuration file's
   `meta` object.
 ```
@@ -43,7 +43,7 @@ of the page: <svg stroke="currentColor" fill="currentColor" stroke-width="0" vie
 %for category, steps in categories_sorted:
 ${"##"} ${category}
 %for key, step in steps:
-${step.get_help_md(use_dropdown=True)}
+${step.get_help_md(use_dropdown=True, myst_anchors=True)}
 <hr />
 
 %endfor
