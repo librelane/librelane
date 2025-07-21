@@ -85,7 +85,9 @@ def run(
 
         for config_file in config_files:
             # expands the pdk-root path
-            pdk_root = os.path.expanduser(pdk_root) if isinstance(pdk_root, str) else None
+            pdk_root = (
+                os.path.expanduser(pdk_root) if isinstance(pdk_root, str) else None
+            )
             if meta := Config.get_meta(config_file):
                 if isinstance(meta.flow, str):
                     if found := Flow.factory.get(meta.flow):
