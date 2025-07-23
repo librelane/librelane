@@ -429,7 +429,7 @@ ______________________________________________________________________
 
 ##### `Magic.DRC`
 
-Under the directory `xx-magic-drc`, you will find a file named `reports/drc.rpt`
+Under the directory `xx-magic-drc`, you will find a file named `reports/drc_violations.magic.rpt`
 that summarizes the DRC violations reported by Magic. The design is DRC clean so
 the report will look like this:
 
@@ -447,7 +447,7 @@ ______________________________________________________________________
 ##### `KLayout.DRC`
 
 Under the directory `xx-klayout-drc`, you will find a file named
-`violations.json` that summarizes the DRC violations reported by KLayout. The
+`reports/drc_violations.klayout.json` that summarizes the DRC violations reported by KLayout. The
 design is DRC clean so the report will look like this with `"total": 0` at the
 end:
 
