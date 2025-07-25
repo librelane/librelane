@@ -672,7 +672,7 @@ class OpenGUI(KLayoutStep):
 
         layout = state_in[DesignFormat.DEF]
         if self.config["KLAYOUT_GUI_USE_GDS"]:
-            if gds := state_in[DesignFormat.GDS]:
+            if gds := state_in.get(DesignFormat.GDS):
                 layout = gds
         assert isinstance(layout, Path)
 
