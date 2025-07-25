@@ -222,6 +222,10 @@
 
 ## Misc. Enhancements/Bugfixes
 
+* `librelane.common`
+
+  * `_eval_env`: Add support for nested dicts in tcl
+
 * `openlane.flows`
 
   * `SequentialFlow`
