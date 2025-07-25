@@ -84,7 +84,7 @@ since 3.5 and a number of internal tape-outs at Efabless Corporation.
 | Proprietary Tool Support | No | Yes | No | Yes (with Plugins) |
 | Pre-built Binaries | `.deb` (x86-64) | N/A | Docker (x86-64, ARM64) | * Natively through [Nix](https://nixos.org): Linux and macOS (x86-64, ARM64) <br /> * Docker (x86-64, ARM64)|
 | Open-Source PDK Support | `sky130`, `gf180mcu`, `nangate45`, `asap7`| `sky130`, `gf180mcu`, `asap7` | `sky130`, `gf180mcu` | `sky130`, `gf180mcu` |
-| Community Examples | Limited | Limited | [9+ public multi-project wafer shuttles](https://platform.efabless.com/projects/public) | Backwards Compatible with OL Examples |
+| Community Examples | Limited | Limited | 9+ public multi-project wafer shuttles with Efabless | Backwards Compatible with OL Examples |
 
 ## Setup
 

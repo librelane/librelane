@@ -17,7 +17,6 @@ import json
 import shutil
 from math import inf
 from decimal import Decimal
-from functools import reduce
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional, Tuple
@@ -418,9 +417,7 @@ class ManualMacroPlacement(OdbpyStep):
             )
             shutil.copyfile(cfg_ref, cfg_file)
         elif macros := self.config.get("MACROS"):
-            instance_count = reduce(
-                lambda x, y: x + len(y.instances), macros.values(), 0
-            )
+            instance_count = sum(len(m.instances) for m in macros.values())
             if instance_count >= 1:
                 with open(cfg_file, "w") as f:
                     for module, macro in macros.items():

@@ -287,6 +287,7 @@ class DRC:
         from lxml import etree as ET
 
         with ET.xmlfile(out, encoding="utf8", buffered=False) as xf:
+            xf.write_declaration()
             with xf.element("report-database"):
                 # 1. Cells
                 with xf.element("cells"):

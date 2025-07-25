@@ -440,6 +440,9 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
+                if validating_type == List[Path]:
+                    if any(isinstance(item, List) for item in raw):
+                        Variable.__flatten_list(value)
                 pass
             elif is_string(raw):
                 if not permissive_typing:
@@ -725,3 +728,16 @@ class Variable:
             and self.type == rhs.type
             and self.default == rhs.default
         )
+
+    # Flatten list. Note: Must modify value, not return a new list.
+    @staticmethod
+    def __flatten_list(value: list):
+        new_list = []
+        for item in value:
+            if isinstance(item, list):
+                for sub_item in item:
+                    new_list.append(sub_item)
+            else:
+                new_list.append(item)
+
+        value[:] = new_list

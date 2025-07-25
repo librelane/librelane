@@ -4,7 +4,7 @@
 You will need to enable LibreLane's
 [Binary Cache](https://nixos.wiki/wiki/Binary_Cache) manually.
 
-See <https://github.com/fossi-foundation/nix-eda/blob/main/Installation.md> for
+See <https://github.com/fossi-foundation/nix-eda/blob/main/docs/installation.md> for
 more info.
 
 ---

@@ -619,6 +619,7 @@ class Step(ABC):
         *,
         docstring_override: str = "",
         use_dropdown: bool = False,
+        myst_anchors: bool = False,
     ):  # pragma: no cover
         """
         Renders Markdown help for this step to a string.
@@ -676,11 +677,12 @@ class Step(ABC):
                 result += f"| {input_str} | {output_str} |\n"
 
         if len(Self.config_vars):
+            all_vars_anchor = f"({Self.id.lower()}-configuration-variables)="
             result += textwrap.dedent(
                 f"""
-                ({Self.id.lower()}-configuration-variables)=
+                {all_vars_anchor * myst_anchors}
                 #### Configuration Variables
-
+                
                 | Variable Name | Type | Description | Default | Units |
                 | - | - | - | - | - |
                 """
@@ -688,13 +690,15 @@ class Step(ABC):
             for var in Self.config_vars:
                 units = var.units or ""
                 pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                result += f"| `{var.name}`{{#{var._get_docs_identifier(Self.id)}}}{pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
+                var_anchor = f"{{#{var._get_docs_identifier(Self.id)}}}"
+                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
             result += "\n"
 
+        step_anchor = f"(step-{slugify(Self.id.lower())})="
         result = (
             textwrap.dedent(
                 f"""
-                (step-{slugify(Self.id.lower())})=
+                {step_anchor * myst_anchors}
                 ### {Self.__get_desc()}
                 """
             )
@@ -706,11 +710,22 @@ class Step(ABC):
     @classmethod
     def display_help(Self):  # pragma: no cover
         """
-        IPython-only. Displays Markdown help for a given step.
-        """
-        import IPython.display
+        Displays Markdown help for this Step.
 
-        IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        If in an IPython environment, it's rendered using ``IPython.display``.
+        Otherwise, it's rendered using ``rich.markdown``.
+        """
+        try:
+            get_ipython()  # type: ignore
+
+            import IPython.display
+
+            IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        except NameError:
+            from ..logging import console
+            from rich.markdown import Markdown
+
+            console.log(Markdown(Self.get_help_md()))
 
     def _repr_markdown_(self) -> str:  # pragma: no cover
         """
