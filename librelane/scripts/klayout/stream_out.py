@@ -162,7 +162,7 @@ def stream_out(
         print("[INFO] Checking for missing GDS…")
         missing_gds = False
         for i in top_only_layout.each_cell():
-            if i.is_empty():
+            if i.is_ghost_cell():
                 missing_gds = True
                 print(
                     f"[ERROR] LEF Cell '{i.name}' has no matching GDS cell.",
