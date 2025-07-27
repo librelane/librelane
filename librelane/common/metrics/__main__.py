@@ -158,7 +158,8 @@ def _compare_metric_folders(
                 continue
             basename = basename[: -len(".metrics.json")]
 
-            parts = basename.split("-", maxsplit=2)
+            # We have to rsplit, since ihp-sg13g2 contains a "-"
+            parts = basename.rsplit("-", maxsplit=2)
             if len(parts) != 3:
                 raise ValueError(
                     f"Invalid filename {basename}: not in the format {{pdk}}-{{scl}}-{{design_name}}"

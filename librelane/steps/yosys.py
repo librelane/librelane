@@ -48,7 +48,7 @@ def _generate_read_deps(
     commands = ""
 
     synth_defines = [
-        f"PDK_{config['PDK']}",
+        f"PDK_{config['PDK'].replace('-','_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
