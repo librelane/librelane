@@ -19,7 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos_2505";
+    nix-eda.url = "github:fossi-foundation/nix-eda/5.0.1";
     libparse.url = "github:efabless/libparse-python";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
@@ -67,7 +67,7 @@
         )
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
             mdformat = pypkgs.mdformat.overridePythonAttrs {
               version = "0.7.18";

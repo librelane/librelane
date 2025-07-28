@@ -16,6 +16,7 @@
   extra-python-packages ? [],
   extra-env ? [],
   librelane-plugins ? [],
+  librelane-extra-yosys-plugins ? [],
   include-librelane ? true,
 }: ({
   lib,
@@ -25,10 +26,13 @@
   gtkwave,
   coreutils,
   graphviz,
+  verilog,
   python3,
   devshell,
 }: let
-  librelane = python3.pkgs.librelane;
+  librelane = python3.pkgs.librelane.override {
+    extra-yosys-plugins = librelane-extra-yosys-plugins;
+  };
   librelane-env = (
     python3.withPackages (pp:
       (
@@ -51,6 +55,7 @@
       zsh
       delta
       gtkwave
+      verilog
       coreutils
       graphviz
     ]
