@@ -19,7 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos_2505";
+    nix-eda.url = "github:fossi-foundation/nix-eda/5.2.0";
     libparse.url = "github:efabless/libparse-python";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
