@@ -226,6 +226,7 @@
   * Updated Netgen to `1.5.295`
   * Updated Yosys to `0.54`
     * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
+  * Updated Verilator to `5.038`
 * Updated OpenROAD to `341650e`
 * Updated OpenSTA to `ffabd65`
 
