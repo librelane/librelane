@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "librelane"
-version = "2.4.0.dev12"
+version = "2.4.0.dev13"
 description = "An infrastructure for implementing chip design flows"
 # Technically, maintainer. We cannot use the maintainers field until
 # poetry-core>=2.0.0 which requires Python version 3.9+. This field does
@@ -65,6 +65,7 @@ librelane = "librelane.__main__:cli"
 "librelane.steps" = "librelane.steps.__main__:cli"
 "librelane.config" = "librelane.config.__main__:cli"
 "librelane.state" = "librelane.state.__main__:cli"
+"librelane.help" = "librelane.help.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
 
 [build-system]
