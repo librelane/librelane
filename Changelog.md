@@ -76,6 +76,10 @@ original authors after Efabless Corporation has ceased operations.
 
 * `CLI`
 
+  * New command, `librelane.help` that can be supplied with the ID of either a
+    flow or step and it prints the full markdown help for the flow or step in
+    the terminal.
+
   * Various fixes to `--ef-save-views-to` to better align with the Caravel User
     Project format: SDFs now save in the right spot and reports are saved
     correctly.
