@@ -448,6 +448,10 @@ original authors after Efabless Corporation has ceased operations.
 
 * `CLI`
 
+  * New command, `librelane.help` that can be supplied with the ID of either a
+    flow or step and it prints the full markdown help for the flow or step in
+    the terminal.
+
   * Various fixes to `--ef-save-views-to` to better align with the Caravel User
     Project format: SDFs now save in the right spot and reports are saved
     correctly.
@@ -496,6 +500,12 @@ original authors after Efabless Corporation has ceased operations.
 
   * Fixed crash associated with `__del__` when ScopedFile is declared at the
     top-level.
+
+* Enhanced resilience against permission issues with containerized setups.
+
+  * Temporary directories are no longer mounted.
+  
+  * Docker and Podman are both tested in CI.
 
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything

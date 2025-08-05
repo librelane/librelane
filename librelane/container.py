@@ -18,7 +18,6 @@ import re
 import uuid
 import shlex
 import pathlib
-import tempfile
 import subprocess
 from typing import List, NoReturn, Sequence, Optional, Union, Tuple
 
@@ -27,15 +26,15 @@ import semver
 
 from .common import mkdirp
 from .logging import err, info, warn
-from .env_info import OSInfo
+from .env_info import ContainerInfo, OSInfo
 
-CONTAINER_ENGINE = os.getenv("OPENLANE_CONTAINER_ENGINE", "docker")
+__file_dir__ = os.path.dirname(os.path.abspath(__file__))
 
 
 def permission_args(osinfo: OSInfo) -> List[str]:
     if (
         osinfo.kernel == "Linux"
-        and osinfo.container_info is not None
+        and isinstance(osinfo.container_info, ContainerInfo)
         and osinfo.container_info.engine == "docker"
         and not osinfo.container_info.rootless
     ):
@@ -70,9 +69,9 @@ def gui_args(osinfo: OSInfo) -> List[str]:
     return args
 
 
-def image_exists(image: str) -> bool:
+def image_exists(ce_path: str, image: str) -> bool:
     images = (
-        subprocess.check_output([CONTAINER_ENGINE, "images", image])
+        subprocess.check_output([ce_path, "images", image])
         .decode("utf8")
         .rstrip()
         .split("\n")[1:]
@@ -116,14 +115,14 @@ def remote_manifest_exists(image: str) -> bool:
     return True
 
 
-def ensure_image(image: str) -> bool:
-    if image_exists(image):
+def ensure_image(ce_path: str, image: str) -> bool:
+    if image_exists(ce_path, image):
         return True
 
     try:
-        subprocess.check_call([CONTAINER_ENGINE, "pull", image])
+        subprocess.check_call([ce_path, "pull", image])
     except subprocess.CalledProcessError:
-        err(f"Failed to pull image {image} from the container registries.")
+        err(f"Failed to pull image '{image}' from the container registries.")
         return False
 
     return True
@@ -150,6 +149,22 @@ def sanitize_path(path: Union[str, os.PathLike]) -> Tuple[str, str]:
     return (abspath, mountable_path)
 
 
+def container_version_error(input: str, against: str) -> Optional[str]:
+    if input == "UNKNOWN":
+        return (
+            "Could not determine version for %s. You may encounter unexpected issues."
+        )
+    if semver.compare(input, against) < 0:
+        return f"Your %s version ({input}) is out of date. You may encounter unexpected issues."
+    return None
+
+
+def ubuntu_version_at_least(current: str, minimum: str) -> bool:
+    if current == "UNKNOWN":
+        return False
+    return tuple(map(int, current.split("."))) >= tuple(map(int, minimum.split(".")))
+
+
 def run_in_container(
     image: str,
     args: Sequence[str],
@@ -169,20 +184,31 @@ def run_in_container(
             f"Unsupported host operating system '{osinfo.kernel}'. You may encounter unexpected issues."
         )
 
-    if osinfo.container_info is None:
+    if not isinstance(osinfo.container_info, ContainerInfo):
         raise FileNotFoundError("No compatible container engine found.")
 
-    if osinfo.container_info.engine.lower() == "docker":
-        if semver.compare(osinfo.container_info.version, "25.0.5") < 0:
+    ce_path = osinfo.container_info.path
+    assert ce_path is not None
+
+    engine_name = osinfo.container_info.engine.lower()
+    if engine_name == "docker":
+        if error := container_version_error(osinfo.container_info.version, "25.0.5"):
+            warn(error % engine_name)
+    elif engine_name == "podman":
+        if osinfo.distro.lower() == "ubuntu" and not ubuntu_version_at_least(
+            osinfo.distro_version, "24.04"
+        ):
             warn(
-                f"Your Docker engine version ({osinfo.container_info.version}) is out of date. You may encounter unexpected issues."
+                "Versions of Podman for Ubuntu before Ubuntu 24.04 are generally pretty buggy. We recommend using Docker instead if possible."
             )
+        elif error := container_version_error(osinfo.container_info.version, "4.1.0"):
+            warn(error % engine_name)
     else:
         warn(
-            f"Unsupported container engine '{osinfo.container_info.engine}'. You may encounter unexpected issues."
+            f"Unsupported container engine referenced by '{osinfo.container_info.path}'. You may encounter unexpected issues."
         )
 
-    if not ensure_image(image):
+    if not ensure_image(ce_path, image):
         raise ValueError(f"Failed to use image '{image}'.")
 
     terminal_args = ["-i"]
@@ -222,15 +248,6 @@ def run_in_container(
         mount_args += ["-v", f"{from_cwd}:{to_cwd}"]
     mount_args += ["-w", to_cwd]
 
-    tempdir = tempfile.mkdtemp("librelane_docker")
-
-    mount_args += [
-        "-v",
-        f"{tempdir}:/tmp",
-        "-e",
-        "TMPDIR=/tmp",
-    ]
-
     if other_mounts is not None:
         for mount in other_mounts:
             if os.path.isdir(mount):
@@ -242,9 +259,13 @@ def run_in_container(
 
     container_id = str(uuid.uuid4())
 
+    if os.getenv("_MOUNT_HOST_LIBRELANE") == "1":
+        host_librelane_pythonpath = os.path.dirname(__file_dir__)
+        mount_args += ["-v", f"{host_librelane_pythonpath}:/host_librelane"]
+
     cmd = (
         [
-            CONTAINER_ENGINE,
+            ce_path,
             "run",
             "--rm",
             "--name",
@@ -261,4 +282,4 @@ def run_in_container(
     info("Running containerized command:")
     print(shlex.join(cmd))
 
-    os.execlp(CONTAINER_ENGINE, *cmd)
+    os.execlp(ce_path, *cmd)

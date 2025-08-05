@@ -375,7 +375,7 @@ class Flow(ABC):
         self.progress_bar = FlowProgressBar(self.name)
 
     @classmethod
-    def get_help_md(Self, myst_anchors: bool = True) -> str:  # pragma: no cover
+    def get_help_md(Self, myst_anchors: bool = False) -> str:  # pragma: no cover
         """
         :returns: rendered Markdown help for this Flow
         """
@@ -415,10 +415,10 @@ class Flow(ABC):
         flow_config_vars = Self.config_vars
 
         if len(flow_config_vars):
+            config_var_anchors = f"({slugify(Self.__name__, lower=True)}-config-vars)="
             result += textwrap.dedent(
                 f"""
-                ({slugify(Self.__name__, lower=True)}-config-vars)=
-
+                {config_var_anchors * myst_anchors}
                 #### Flow-specific Configuration Variables
 
                 | Variable Name | Type | Description | Default | Units |
@@ -435,18 +435,14 @@ class Flow(ABC):
         if len(Self.Steps):
             result += "#### Included Steps\n"
             for step in Self.Steps:
-                if hasattr(step, "long_name"):
-                    name = step.long_name
-                elif hasattr(step, "name"):
-                    name = step.name
-                else:
-                    name = step.id
+                imp_id = step.get_implementation_id()
                 if myst_anchors:
-                    result += (
-                        f"* [`{step.id}`](./step_config_vars.md#{slugify(name)})\n"
-                    )
+                    result += f"* [`{step.id}`](./step_config_vars.md#step-{slugify(imp_id, lower=True)})\n"
                 else:
-                    result += f"* {step.id}"
+                    variant_str = ""
+                    if imp_id != step.id:
+                        variant_str = f" (implementation: `{imp_id}`)"
+                    result += f"* `{step.id}`{variant_str}\n"
 
         return result
 

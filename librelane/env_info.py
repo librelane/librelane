@@ -23,16 +23,15 @@ import os
 import re
 import sys
 import json
+import shutil
 import tempfile
 import platform
 import subprocess
 
 try:
-    from typing import Optional, Dict, List  # noqa: F401
+    from typing import Union, Optional, Dict, List  # noqa: F401
 except ImportError:
     pass
-
-CONTAINER_ENGINE = os.getenv("OPENLANE_CONTAINER_ENGINE", "docker")
 
 
 class StringRepresentable(object):
@@ -44,6 +43,7 @@ class StringRepresentable(object):
 
 
 class ContainerInfo(StringRepresentable):
+    path = None  # type: Optional[str]
     engine = "UNKNOWN"  # type: str
     version = "UNKNOWN"  # type: str
     conmon = False  # type: bool
@@ -54,63 +54,84 @@ class ContainerInfo(StringRepresentable):
         self.version = "UNKNOWN"
         self.conmon = False
         self.rootless = False
+        self.seccomp = False
+        self.selinux = False
+        self.apparmor = False
 
     @staticmethod
     def get():
-        # type: () -> Optional['ContainerInfo']
+        # type: () -> Union[ContainerInfo, str]
+        cinfo = ContainerInfo()
+        # Here are the rules:
+        # 1. If LIBRELANE_CONTAINER_ENGINE exists, use that uncritically.
+        # 2. Else, if OPENLANE_CONTAINER_ENGINE exists, use that uncritically.
+        # 3. Else, if "docker" is in PATH, always use it.
+        # 4. Else, see if "podman" is in PATH, and use THAT.
+        # 5. If none exist, halt and return early.
+
+        container_engine = os.getenv(
+            "LIBRELANE_CONTAINER_ENGINE", os.getenv("OPENLANE_CONTAINER_ENGINE")
+        )
+        if container_engine is None or container_engine == "":
+            container_engine = shutil.which("docker")
+            if container_engine is None:
+                container_engine = shutil.which("podman")
+                if container_engine is None:
+                    return "no compatible container engine found in PATH (tried docker, podman)"
         try:
-            cinfo = ContainerInfo()
-
-            try:
-                info_str = subprocess.check_output(
-                    [CONTAINER_ENGINE, "info", "--format", "{{json .}}"]
-                ).decode("utf8")
-            except Exception as e:
-                raise Exception("Failed to get Docker info: %s" % str(e)) from None
-
-            try:
-                info = json.loads(info_str)
-            except Exception as e:
-                raise Exception(
-                    "Result from 'docker info' was not valid JSON: %s" % str(e)
-                ) from None
-
-            if info.get("host") is not None:
-                if info["host"].get("conmon") is not None:
-                    cinfo.conmon = True
-                    if (
-                        info["host"].get("remoteSocket") is not None
-                        and "podman" in info["host"]["remoteSocket"]["path"]
-                    ):
-                        cinfo.engine = "podman"
-
-                        cinfo.version = info["version"]["Version"]
-            elif (
-                info.get("Docker Root Dir") is not None
-                or info.get("DockerRootDir") is not None
-            ):
-                cinfo.engine = "docker"
-
-                # Get Version
-                try:
-                    version_output = (
-                        subprocess.check_output([CONTAINER_ENGINE, "--version"])
-                        .decode("utf8")
-                        .strip()
-                    )
-                    cinfo.version = re.split(r"\s", version_output)[2].strip(",")
-                except Exception:
-                    print("Could not extract Docker version.", file=sys.stderr)
-
-                security_options = info.get("SecurityOptions")
-                for option in security_options:
-                    if "rootless" in option:
-                        cinfo.rootless = True
-
-            return cinfo
+            info_str = subprocess.check_output(
+                [container_engine, "info", "--format", "{{json .}}"]
+            ).decode("utf8")
         except Exception as e:
-            print(e, file=sys.stderr)
-            return None
+            return "failed to get container engine info: %s" % str(e)
+        cinfo.path = container_engine
+
+        try:
+            info = json.loads(info_str)
+        except Exception as e:
+            return "result from '%s info' was not valid JSON: %s" % (
+                container_engine,
+                str(e),
+            )
+
+        if (
+            info.get("Docker Root Dir") is not None
+            or info.get("DockerRootDir") is not None
+        ):
+            cinfo.engine = "docker"
+
+            # Get Version
+            try:
+                version_output = (
+                    subprocess.check_output([container_engine, "--version"])
+                    .decode("utf8")
+                    .strip()
+                )
+                cinfo.version = re.split(r"\s", version_output)[2].strip(",")
+            except Exception:
+                pass
+
+            security_options = info.get("SecurityOptions")
+            for option in security_options:
+                if "rootless" in option:
+                    cinfo.rootless = True
+        elif info.get("host") is not None:
+            host = info["host"]
+            conmon = host.get("conmon")
+            remote_socket = host.get("remoteSocket")
+            security = host.get("security")
+            if conmon is not None:
+                cinfo.conmon = True
+            if remote_socket is not None and "podman" in remote_socket["path"]:
+                cinfo.engine = "podman"
+                cinfo.version = info["version"]["Version"]
+            if security is not None:
+                cinfo.rootless = security.get("rootless", False)
+                cinfo.apparmor = security.get("apparmorEnabled", False)
+                cinfo.seccomp = security.get("seccompEnabled", False)
+                cinfo.selinux = security.get("selinuxEnabled", False)
+
+        return cinfo
 
 
 class NixInfo(StringRepresentable):
@@ -127,73 +148,65 @@ class NixInfo(StringRepresentable):
 
     @staticmethod
     def get():
-        # type: () -> Optional['NixInfo']
+        # type: () -> Union[NixInfo, str]
         ninfo = NixInfo()
+        if shutil.which("nix") is None:
+            return "nix not found in PATH"
         try:
-            try:
-                version_str = subprocess.check_output(
-                    ["nix", "--version"], encoding="utf8"
-                )
-                ninfo.version_string = version_str.strip()
-            except Exception as e:
-                raise Exception("Failed to get Nix info: %s" % str(e)) from None
+            version_str = subprocess.check_output(["nix", "--version"], encoding="utf8")
+            ninfo.version_string = version_str.strip()
+        except Exception as e:
+            return "could not get nix version: %s" % str(e)
 
-            try:
-                channels = {}
-                channels_raw = subprocess.check_output(
-                    ["nix-channel", "--list"], encoding="utf8"
-                )
-                for channel in channels_raw.splitlines():
-                    name, url = channel.split(maxsplit=1)
-                    channels[name] = url
-                ninfo.channels = channels
-            except Exception as e:
+        try:
+            channels = {}
+            channels_raw = subprocess.check_output(
+                ["nix-channel", "--list"], encoding="utf8"
+            )
+            for channel in channels_raw.splitlines():
+                name, url = channel.split(maxsplit=1)
+                channels[name] = url
+            ninfo.channels = channels
+        except Exception:
+            pass
+
+        with tempfile.TemporaryDirectory(prefix="librelane_env_report_") as d:
+            with open(os.path.join(d, "flake.nix"), "w") as f:
+                f.write("{}")
+            nix_command = subprocess.run(
+                ["nix", "eval"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=d,
+                encoding="utf8",
+            )
+            nix_command_result = nix_command.stdout
+            if "'nix-command'" in nix_command_result:
+                pass
+            elif "'flakes'" in nix_command_result:
+                ninfo.nix_command = True
+            elif "lacks attribute" in nix_command_result:
+                ninfo.nix_command = True
+                ninfo.flakes = True
+            else:
                 print(
-                    "Failed to get nix channels: %s" % str(e),
+                    "'nix flake' returned unexpected output: %s" % nix_command_result,
                     file=sys.stderr,
                 )
 
-            with tempfile.TemporaryDirectory(prefix="librelane_env_report_") as d:
-                with open(os.path.join(d, "flake.nix"), "w") as f:
-                    f.write("{}")
-                nix_command = subprocess.run(
-                    ["nix", "eval"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    cwd=d,
-                    encoding="utf8",
-                )
-                nix_command_result = nix_command.stdout
-                if "'nix-command'" in nix_command_result:
-                    pass
-                elif "'flakes'" in nix_command_result:
-                    ninfo.nix_command = True
-                elif "lacks attribute" in nix_command_result:
-                    ninfo.nix_command = True
-                    ninfo.flakes = True
-                else:
-                    print(
-                        "'nix flake' returned unexpected output: %s"
-                        % nix_command_result,
-                        file=sys.stderr,
-                    )
-
-            return ninfo
-        except Exception as e:
-            print(e, file=sys.stderr)
-            return None
+        return ninfo
 
 
 class OSInfo(StringRepresentable):
     kernel = ""  # type: str
     kernel_version = ""  # type: str
     supported = False  # type: bool
-    distro = None  # type: Optional[str]
-    distro_version = None  # type: Optional[str]
+    distro = "UNKNOWN"  # type: str
+    distro_version = "UNKNOWN"  # type: str
     python_version = ""  # type: str
     python_path = []  # type: List[str]
-    container_info = None  # type: Optional[ContainerInfo]
-    nix_info = None  # type: Optional[NixInfo]
+    container_info = None  # type: Union[ContainerInfo, str]
+    nix_info = None  # type: Union[NixInfo, str]
 
     def __init__(self):
         self.kernel = platform.system()
@@ -201,8 +214,8 @@ class OSInfo(StringRepresentable):
             platform.release()
         )  # Unintuitively enough, it's the kernel's release
         self.supported = self.kernel in ["Darwin", "Linux"]
-        self.distro = None
-        self.distro_version = None
+        self.distro = "UNKNOWN"
+        self.distro_version = "UNKNOWN"
         self.python_version = platform.python_version()
         self.python_path = sys.path.copy()
         self.tkinter = False
@@ -212,8 +225,8 @@ class OSInfo(StringRepresentable):
             self.tkinter = True
         except ImportError:
             pass
-        self.container_info = None
-        self.nix_info = None
+        self.container_info = ""
+        self.nix_info = ""
 
     @staticmethod
     def get():
@@ -253,13 +266,14 @@ class OSInfo(StringRepresentable):
 
                     config[key] = value
 
-                osinfo.distro = config.get("ID") or config.get("DISTRIB_ID")
-                osinfo.distro_version = config.get("VERSION_ID") or config.get(
-                    "DISTRIB_RELEASE"
+                osinfo.distro = (
+                    config.get("ID") or config.get("DISTRIB_ID") or "UNKNOWN"
                 )
-
-            else:
-                print("Failed to get distribution info.", file=sys.stderr)
+                osinfo.distro_version = (
+                    config.get("VERSION_ID")
+                    or config.get("DISTRIB_RELEASE")
+                    or "UNKNOWN"
+                )
 
         osinfo.container_info = ContainerInfo.get()
         osinfo.nix_info = NixInfo.get()

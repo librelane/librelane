@@ -41,6 +41,7 @@ from .misc import (
     format_size,
     format_elapsed_time,
     Filter,
+    recreate_tree,
     get_latest_file,
     process_list_file,
     count_occurences,

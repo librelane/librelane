@@ -21,6 +21,7 @@ import re
 import glob
 import gzip
 import yaml
+import shutil
 import typing
 import pathlib
 import fnmatch
@@ -328,6 +329,37 @@ class Filter(object):
                 yield input
 
 
+def recreate_tree(
+    source: AnyPath,
+    target: AnyPath,
+):
+    """
+    This function attempts to recreate a file tree from a source path in another
+    target path.
+
+    Permissions are not copied over. Symlinks and hardlinks are followed.
+
+    Directories are not recreated unless they contain files as (grand)children.
+
+    If the source and target are the same, the function returns early and does
+    nothing.
+
+    :param source: The source file tree to replicate
+    :param target: The target path to recreate the file tree within
+    """
+    source = os.path.abspath(source)
+    target = os.path.abspath(target)
+    if os.path.exists(target) and os.path.samefile(source, target):
+        return
+    for dirname, _, files in os.walk(source):
+        for file in files:
+            resolved = os.path.join(dirname, file)
+            resolved_target = os.path.join(target, os.path.relpath(resolved, source))
+            os.makedirs(os.path.dirname(resolved_target), exist_ok=True)
+            with open(resolved, "rb") as fi, open(resolved_target, "wb") as fo:
+                shutil.copyfileobj(fi, fo)
+
+
 def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional[Path]:
     """
     :param in_path: A directory to search in
@@ -394,7 +426,7 @@ def _get_process_limit() -> int:
 
 def gzopen(filename: AnyPath, mode="rt") -> IO[Any]:
     """
-    This method (tries to?) emulate the gzopen from the Linux Standard Base,
+    This function (tries to?) emulate the gzopen from the Linux Standard Base,
     specifically this part:
 
     If path refers to an uncompressed file, and mode refers to a read mode,
