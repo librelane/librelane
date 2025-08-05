@@ -341,6 +341,16 @@ jobs:
           echo "LIBRELANE_CONTAINER_ENGINE=podman" >> $GITHUB_ENV
           echo "lln_no_tty=--container-no-tty" >> $GITHUB_ENV
           echo "lln_containerized=--containerized" >> $GITHUB_ENV
+      - name: Download Image (Docker/x86_64)
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-x86_64
+          path: /tmp/docker
+      - name: Load Images (Docker)
+        run: |
+          for file in /tmp/docker/*; do
+            cat $file | $LIBRELANE_CONTAINER_ENGINE load
+          done
       # Do not cache the PDK. We would like to test the typical Docker flow here.
       - name: Smoke-Test Container Image
         run: |
