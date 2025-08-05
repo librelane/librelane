@@ -161,7 +161,8 @@ class TclStep(Step):
 
         for input in self.inputs:
             key = f"CURRENT_{input.id.upper()}"
-            env[key] = TclStep.value_to_tcl(state[input])
+            if input_path := state.get_by_df(input):
+                env[key] = TclStep.value_to_tcl(input_path)
 
         for output in self.outputs:
             if output.multiple:
