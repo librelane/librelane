@@ -14,7 +14,7 @@ on:
     - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.event.number || github.ref_name }}
   cancel-in-progress: true
@@ -298,24 +298,71 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.8"
-      # Do not cache the PDK. We want to test the typical Docker flow here.
-      - name: Smoke-Test Docker Image
-        if: ${{ matrix.os.arch != 'aarch64' }} # No KLayout wheels available for aarch64 yet
-        run: |
-          make venv
-          mkdir -p $HOME/.ciel
-          chmod -R 755 $HOME/.ciel
-          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-${{ matrix.os.arch }}-linux
-          ./venv/bin/python3 -m librelane\
-            --docker-no-tty\
-            --dockerized\
-            --pdk-root ./.ciel-sky130\
-            --smoke-test
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
+  test-containers:
+    strategy:
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+        engine: [podman, docker]
+      fail-fast: false
+    runs-on: ${{ matrix.runner }}
+    needs: [build-docker]
+    name: Test Containers (${{ matrix.runner }}/${{ matrix.engine }})
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+      - if: ${{ matrix.engine == 'docker' }}
+        name: Set up Docker (If applicable)
+        run: |
+          # Docker already installed
+          echo "LIBRELANE_CONTAINER_ENGINE=docker" >> $GITHUB_ENV
+          echo "lln_no_tty=--docker-no-tty" >> $GITHUB_ENV
+          echo "lln_containerized=--dockerized" >> $GITHUB_ENV
+      - if: ${{ matrix.engine == 'podman' }}
+        name: Set up Podman (If applicable)
+        run: |
+          sudo apt-get install -y podman
+          echo "LIBRELANE_CONTAINER_ENGINE=podman" >> $GITHUB_ENV
+          echo "lln_no_tty=--container-no-tty" >> $GITHUB_ENV
+          echo "lln_containerized=--containerized" >> $GITHUB_ENV
+      - name: Download Image (Docker/x86_64)
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-x86_64
+          path: /tmp/docker
+      - name: Load Images (Docker)
+        run: |
+          for file in /tmp/docker/*; do
+            cat $file | $LIBRELANE_CONTAINER_ENGINE load
+          done
+      # Do not cache the PDK. We would like to test the typical Docker flow here.
+      - name: Smoke-Test Container Image
+        run: |
+          make venv
+          mkdir -p $HOME/.ciel
+          chmod -R 755 $HOME/.ciel
+          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-x86_64-linux
+          ./venv/bin/python3 -m librelane\
+            $lln_no_tty\
+            $lln_containerized\
+            --pdk-root ./.ciel-sky130\
+            --smoke-test
   test:
     runs-on: ubuntu-22.04
     needs: [build-linux-x86_64, prepare-test-matrices]
@@ -424,8 +471,7 @@ jobs:
 
       - name: Propagate test failure after uploading metrics
         if: steps.test_run.outcome == 'failure'
-        run:
-          exit -1
+        run: exit -1
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
@@ -461,8 +507,8 @@ jobs:
           path: current
       - name: "[PRs] Compare to target branch and comment result (if the workflow has secrets access)"
         uses: actions/github-script@v6
-        env: 
-            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        env:
+          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
         if: github.event_name == 'pull_request' && env.bot_github_token != ''
         with:
           github-token: ${{ env.bot_github_token }}
@@ -477,8 +523,8 @@ jobs:
               metricsRepo: "${{ vars.METRICS_REPO }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
-        env: 
-            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        env:
+          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
         if: github.event_name == 'push' && env.bot_github_token != ''
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
@@ -495,7 +541,7 @@ jobs:
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [build-docker, build-py]
+    needs: [test-containers, build-py]
     name: Publish (If Applicable)
     steps:
       - name: Check out repo

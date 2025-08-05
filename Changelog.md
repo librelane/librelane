@@ -129,6 +129,12 @@ original authors after Efabless Corporation has ceased operations.
   * Fixed crash associated with `__del__` when ScopedFile is declared at the
     top-level.
 
+* Enhanced resilience against permission issues with containerized setups.
+
+  * Temporary directories are no longer mounted.
+  
+  * Docker and Podman are both tested in CI.
+
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything
   breaks.

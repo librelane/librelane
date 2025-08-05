@@ -56,6 +56,9 @@ in
     image-created = "now";
     image-extraCommands = ''
       mkdir -p ./etc
+      mkdir -p ./tmp
+      chmod 1777 ./tmp
+      
       cat <<HEREDOC > ./etc/zshrc
       autoload -U compinit && compinit
       autoload -U promptinit && promptinit && prompt suse && setopt prompt_sp
@@ -70,7 +73,7 @@ in
       "LC_ALL=C.UTF-8"
       "LC_CTYPE=C.UTF-8"
       "EDITOR=nvim"
-      "NIX_PYTHONPATH=${librelane-env-sitepackages}"
+      "NIX_PYTHONPATH=/host_librelane:${librelane-env-sitepackages}"
       "TMPDIR=/tmp"
     ];
     image-config-extra-path = [
