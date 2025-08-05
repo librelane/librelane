@@ -308,6 +308,7 @@ jobs:
       matrix:
         runner: [ubuntu-22.04, ubuntu-24.04]
         engine: [podman, docker]
+      fail-fast: false
     runs-on: ${{ matrix.runner }}
     needs: [build-docker]
     name: Test Containers (${{ matrix.runner }}/${{ matrix.engine }})

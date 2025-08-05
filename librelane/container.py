@@ -122,7 +122,7 @@ def ensure_image(ce_path: str, image: str) -> bool:
     try:
         subprocess.check_call([ce_path, "pull", image])
     except subprocess.CalledProcessError:
-        err(f"Failed to pull image {image} from the container registries.")
+        err(f"Failed to pull image '{image}' from the container registries.")
         return False
 
     return True
@@ -149,7 +149,7 @@ def sanitize_path(path: Union[str, os.PathLike]) -> Tuple[str, str]:
     return (abspath, mountable_path)
 
 
-def container_version_error(ce_path: str, against: str) -> Optional[str]:
+def container_version_error(input: str, against: str) -> Optional[str]:
     if input == "UNKNOWN":
         return (
             "Could not determine version for %s. You may encounter unexpected issues."

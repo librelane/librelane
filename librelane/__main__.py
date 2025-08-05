@@ -339,7 +339,11 @@ def cli_in_container(
             other_mounts=mounts,
             tty=tty,
         )
+    except ValueError as e:
+        err(e)
+        ctx.exit(1)
     except Exception as e:
+        traceback.print_exc(file=sys.stderr)
         err(e)
         ctx.exit(1)
 
