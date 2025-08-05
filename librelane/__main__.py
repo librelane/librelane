@@ -242,18 +242,6 @@ def run_included_example(
     example: Optional[str],
     **kwargs,
 ):
-    def fix_nix_permissions(path):
-        for parent, directories, files in os.walk(path):
-            for name in directories + files:
-                full_path = os.path.join(parent, name)
-                try:
-                    os.chmod(full_path, 0o755)
-                except Exception as e:
-                    print(
-                        f"error while fixing nix permissions for copied example: chmod failed for {full_path}: {e}",
-                        file=sys.stderr,
-                    )
-
     assert smoke_test or example is not None
     value = "spm"
     if not smoke_test and example is not None:
@@ -289,21 +277,12 @@ def run_included_example(
         if os.path.isdir(final_path):
             print(f"A directory named {value} already exists.", file=sys.stderr)
             ctx.exit(1)
+
         # 1. Copy the files
-        shutil.copytree(
-            example_path,
-            final_path,
-            symlinks=False,
-            copy_function=shutil.copy,
-        )
-
-        # 2. Make files writable
-        if os.name == "posix":
-            fix_nix_permissions(final_path)
-
+        common.recreate_tree(example_path, final_path)
         config_file = glob.glob(os.path.join(final_path, "config.*"))[0]
 
-        # 3. Run
+        # 2. Run
         run(
             ctx,
             config_files=[config_file],
