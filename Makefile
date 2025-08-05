@@ -7,12 +7,12 @@ dist: venv/manifest.txt
 mount:
 	@echo "make mount is not needed in LibreLane 2+. You may simply call 'librelane --dockerized'."
 
-.PHONY: pdk pull-librelane
-pdk pull-librelane:
-	@echo "LibreLane 2+ will automatically pull PDKs and/or Docker containers when it needs them."
+.PHONY: pdk pull-openlane pull-librelane
+pdk pull-openlane pull-librelane:
+	@echo "LibreLane will automatically pull PDKs and/or Docker containers when it needs them."
 
-.PHONY: librelane
-librelane:
+.PHONY: openlane librelane
+librelane openlane:
 	@echo "make librelane is deprecated. Please use make docker-image."
 	@echo "----"
 	@$(MAKE) docker-image

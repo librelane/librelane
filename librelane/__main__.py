@@ -22,7 +22,6 @@ import shutil
 import marshal
 import tempfile
 import traceback
-import subprocess
 from textwrap import dedent
 from functools import partial
 from typing import Any, Dict, Sequence, Tuple, Type, Optional, List
@@ -243,6 +242,18 @@ def run_included_example(
     example: Optional[str],
     **kwargs,
 ):
+    def fix_nix_permissions(path):
+        for parent, directories, files in os.walk(path):
+            for name in directories + files:
+                full_path = os.path.join(parent, name)
+                try:
+                    os.chmod(full_path, 0o755)
+                except Exception as e:
+                    print(
+                        f"error while fixing nix permissions for copied example: chmod failed for {full_path}: {e}",
+                        file=sys.stderr,
+                    )
+
     assert smoke_test or example is not None
     value = "spm"
     if not smoke_test and example is not None:
@@ -283,11 +294,12 @@ def run_included_example(
             example_path,
             final_path,
             symlinks=False,
+            copy_function=shutil.copy,
         )
 
         # 2. Make files writable
         if os.name == "posix":
-            subprocess.check_call(["chmod", "-R", "755", final_path])
+            fix_nix_permissions(final_path)
 
         config_file = glob.glob(os.path.join(final_path, "config.*"))[0]
 
@@ -321,26 +333,32 @@ def cli_in_container(
     if not value:
         return
 
-    docker_mounts = list(ctx.params.get("docker_mounts") or ())
-    docker_tty: bool = ctx.params.get("docker_tty", True)
+    mounts = list(ctx.params.get("docker_mounts") or ())
+    tty: bool = ctx.params.get("docker_tty", True)
     pdk_root = ctx.params.get("pdk_root")
-    argv = sys.argv[sys.argv.index("--dockerized") + 1 :]
+
+    try:
+        containerized_index = sys.argv.index("--dockerized")
+    except ValueError:
+        containerized_index = sys.argv.index("--containerized")
+
+    argv = sys.argv[containerized_index + 1 :]
 
     final_argv = ["zsh"]
     if len(argv) != 0:
-        final_argv = ["librelane"] + argv
+        final_argv = ["python3", "-m", "librelane"] + argv
 
-    docker_image = os.getenv(
+    container_image = os.getenv(
         "LIBRELANE_IMAGE_OVERRIDE", f"ghcr.io/librelane/librelane:{__version__}"
     )
 
     try:
         run_in_container(
-            docker_image,
+            container_image,
             final_argv,
             pdk_root=pdk_root,
-            other_mounts=docker_mounts,
-            tty=docker_tty,
+            other_mounts=mounts,
+            tty=tty,
         )
     except Exception as e:
         err(e)
@@ -377,25 +395,27 @@ o = partial(option, show_default=True)
     "Containerization options",
     o(
         "--docker-mount",
-        "-m",
+        "--container-mount" "-m",
         "docker_mounts",
         multiple=True,
-        is_eager=True,  # docker options should be processed before anything else
+        is_eager=True,  # container options should be processed before anything else
         default=(),
-        help="Used to mount more directories in dockerized mode. If a valid directory is specified, it will be mounted in the same path in the container. Otherwise, the value of the option will be passed to the Docker-compatible container engine verbatim. Must be passed before --dockerized, has no effect if --dockerized is not set.",
+        help="Used to mount more directories in dockerized mode. If a valid directory is specified, it will be mounted in the same path in the container. Otherwise, the value of the option will be passed to the container engine verbatim. Must be passed before --containerized/--dockerized, has no effect if not set.",
     ),
     o(
         "--docker-tty/--docker-no-tty",
-        is_eager=True,  # docker options should be processed before anything else
+        "--container-tty/--container-no-tty",
+        is_eager=True,  # container options should be processed before anything else
         default=True,
-        help="Controls the allocation of a virtual terminal by passing -t to the Docker-compatible container engine invocation. Must be passed before --dockerized, has no effect if --dockerized is not set.",
+        help="Controls the allocation of a virtual terminal by passing -t to the Docker-compatible container engine invocation. Must be passed before --containerized/--dockerized, has no effect if not set.",
     ),
     o(
         "--dockerized",
+        "--containerized",
         default=False,
         is_flag=True,
         is_eager=True,  # docker options should be processed before anything else
-        help="Run the remaining flags using a Docker container. Some caveats apply. Must precede all options except --docker-mount, --docker-tty/--docker-no-tty.",
+        help="Run the remaining flags using a containerized version of LibreLane. Some caveats apply. Must precede all options except --{docker,container}-mount, --{docker,container}-[no-]tty.",
         callback=cli_in_container,
     ),
 )
