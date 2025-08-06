@@ -378,7 +378,8 @@ o = partial(option, show_default=True)
     "Containerization options",
     o(
         "--docker-mount",
-        "--container-mount" "-m",
+        "--container-mount",
+        "-m",
         "docker_mounts",
         multiple=True,
         is_eager=True,  # container options should be processed before anything else
