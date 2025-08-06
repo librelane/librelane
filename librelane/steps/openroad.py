@@ -2741,7 +2741,7 @@ class OpenGUI(OpenSTAStep):
 
     inputs = [
         DesignFormat.ODB,
-        # DesignFormat.SPEF.mkOptional(),
+        DesignFormat.SPEF.mkOptional(),
     ]
     outputs = []
 
