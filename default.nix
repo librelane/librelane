@@ -93,7 +93,7 @@
     ];
 
     includedTools = [
-      opensta
+      opensta.out # HACK: for whatever reason, opensta.dev is prioritized by computed_PATH.
       yosys-env
       openroad-env
       netgen
@@ -131,10 +131,7 @@
     doCheck = true;
     checkInputs = [pytestCheckHook pytest-xdist pyfakefs];
 
-    computed_PATH =
-      "${opensta.out}:"
-      + # HACK: for whatever reason, opensta.dev is prioritized here.
-      (lib.makeBinPath self.propagatedBuildInputs);
+    computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
 
     # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
