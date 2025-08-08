@@ -93,7 +93,7 @@
     ];
 
     includedTools = [
-      opensta
+      opensta.out # HACK: for whatever reason, opensta.dev is prioritized by computed_PATH.
       yosys-env
       openroad-env
       netgen

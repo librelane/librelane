@@ -58,7 +58,7 @@ in
       mkdir -p ./etc
       mkdir -p ./tmp
       chmod 1777 ./tmp
-      
+
       cat <<HEREDOC > ./etc/zshrc
       autoload -U compinit && compinit
       autoload -U promptinit && promptinit && prompt suse && setopt prompt_sp
