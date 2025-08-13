@@ -18,9 +18,11 @@
 
 ## Steps
 
-  * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+* `SynthesisCommon`: Added `SYNTH_SHOW` to enable graphviz DOT file generation.
 
-    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+* `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+
+  * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
 
 * `KLayout.DRC`
 
