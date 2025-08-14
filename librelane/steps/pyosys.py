@@ -128,6 +128,11 @@ verilog_rtl_cfg_vars = [
         default=False,
         deprecated_names=["USE_SYNLIG"],
     ),
+    Variable(
+        "SLANG_ARGUMENTS",
+        Optional[List[str]],
+        "Pass arguments to the Slang frontend.",
+    ),
 ]
 
 DesignFormat(

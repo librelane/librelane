@@ -51,6 +51,7 @@ def _Design_read_verilog_files(
     includes: Iterable[str],
     defines: Iterable[str],
     use_slang: bool = False,
+    slang_arguments: Iterable[str],
 ):
     files = list(files)  # for easier concatenation
     include_args = [f"-I{dir}" for dir in includes]
@@ -72,6 +73,7 @@ def _Design_read_verilog_files(
             *define_args,
             *include_args,
             *slang_chparam_args,
+            *slang_arguments,
             *files,
         )
     else:
