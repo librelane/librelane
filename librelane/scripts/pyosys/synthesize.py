@@ -263,6 +263,7 @@ def synthesize(
             includes=includes,
             defines=defines,
             use_slang=False,
+            slang_arguments=[],
         )
     elif verilog_files := config.get("VERILOG_FILES"):
         d.read_verilog_files(
@@ -272,6 +273,7 @@ def synthesize(
             includes=includes,
             defines=defines,
             use_slang=config["USE_SLANG"],
+            slang_arguments=config["SLANG_ARGUMENTS"] or [],
         )
     elif vhdl_files := config.get("VHDL_FILES"):
         d.run_pass("plugin", "-i", "ghdl")
