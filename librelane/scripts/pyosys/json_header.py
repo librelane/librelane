@@ -63,6 +63,7 @@ def json_header(
         includes=includes,
         defines=defines,
         use_slang=config["USE_SLANG"],
+        slang_arguments=config["SLANG_ARGUMENTS"] or [],
     )
     d.run_pass(
         "hierarchy",
