@@ -67,7 +67,7 @@
         )
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
             mdformat = pypkgs.mdformat.overridePythonAttrs {
               version = "0.7.18";
@@ -140,7 +140,7 @@
     devShells = nix-eda.forAllSystems (
       system: let
         pkgs = self.legacyPackages."${system}";
-        callPackage = lib.callPackageWith pkgs;
+        callPackage = lib.callPackageWith (pkgs // pkgs.python3.pkgs);
       in {
         # These devShells are rather unorthodox for Nix devShells in that they
         # include the package itself. For a proper devShell, try .#dev.
@@ -158,24 +158,25 @@
             jdupes
             alejandra
           ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            pyfakefs
-            pytest
-            pytest-xdist
-            pytest-cov
-            pillow
-            mdformat
-            black
-            ipython
-            tokenize-rt
-            flake8
-            mypy
-            types-deprecated
-            types-pyyaml
-            types-psutil
-            lxml-stubs
-            pipx
-          ];
+          extra-python-packages = ps:
+            with ps; [
+              pyfakefs
+              pytest
+              pytest-xdist
+              pytest-cov
+              pillow
+              mdformat
+              black
+              ipython
+              tokenize-rt
+              flake8
+              mypy
+              types-deprecated
+              types-pyyaml
+              types-psutil
+              lxml-stubs
+              pipx
+            ];
           include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
@@ -185,26 +186,27 @@
             imagemagick
             nodejs.pkgs.nodemon
           ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            pyfakefs
-            pytest
-            pytest-xdist
-            pillow
-            mdformat
-            furo
-            docutils
-            sphinx
-            sphinx-autobuild
-            sphinx-autodoc-typehints
-            sphinx-design
-            myst-parser
-            docstring-parser
-            sphinx-copybutton
-            sphinxcontrib-spelling
-            sphinxcontrib-bibtex
-            sphinx-tippy
-            sphinx-subfigure
-          ];
+          extra-python-packages = ps:
+            with ps; [
+              pyfakefs
+              pytest
+              pytest-xdist
+              pillow
+              mdformat
+              furo
+              docutils
+              sphinx
+              sphinx-autobuild
+              sphinx-autodoc-typehints
+              sphinx-design
+              myst-parser
+              docstring-parser
+              sphinx-copybutton
+              sphinxcontrib-spelling
+              sphinxcontrib-bibtex
+              sphinx-tippy
+              sphinx-subfigure
+            ];
           include-librelane = false;
         }) {};
       }

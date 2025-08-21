@@ -121,13 +121,13 @@ def run(
                     err(f"Invalid initial state element override: '{element}'.")
                     ctx.exit(1)
                 df_id, path = element_split
-                design_format = DesignFormat.by_id(df_id)
+                design_format = DesignFormat.factory.get(df_id)
                 if design_format is None:
                     err(f"Invalid design format ID: '{df_id}'.")
                     ctx.exit(1)
                 overrides[design_format] = common.Path(path)
 
-            with_initial_state = with_initial_state.__class__(
+            with_initial_state = type(with_initial_state)(
                 with_initial_state,
                 overrides=overrides,
             )
