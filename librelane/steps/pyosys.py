@@ -214,6 +214,12 @@ class PyosysStep(Step):
             "A fully qualified IPVT corner to use during synthesis. If unspecified, the value for `DEFAULT_CORNER` from the PDK will be used.",
             pdk=True,
         ),
+        Variable(
+            "SYNTH_SHOW",
+            bool,
+            "Generate a graphviz DOT file for the design. This will fail on a completely empty design.",
+            default=False,
+        ),
     ]
 
     @classmethod

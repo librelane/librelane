@@ -18,11 +18,13 @@
 
 ## Steps
 
+* `SynthesisCommon`: Added `SYNTH_SHOW` to enable graphviz DOT file generation.
+
 * `Yosys.Synthesis`: Added `SLANG_ARGUMENTS`, which is used to pass arguments to the Slang frontend.
 
-  * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+* `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
 
-    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+  * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
 
 * `KLayout.DRC`
 

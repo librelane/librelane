@@ -294,12 +294,10 @@ def synthesize(
     )
     d.run_pass("rename", "-top", config["DESIGN_NAME"])
     d.run_pass("select", "-module", config["DESIGN_NAME"])
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show", "-format", "dot", "-prefix", os.path.join(step_dir, "hierarchy")
         )
-    except Exception:
-        pass
     if config["SYNTH_NORMALIZE_SINGLE_BIT_VECTORS"]:
         d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
@@ -361,7 +359,7 @@ def synthesize(
     d.run_pass("delete", "t:$print")
     d.run_pass("delete", "t:$assert")
 
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show",
             "-format",
@@ -369,8 +367,6 @@ def synthesize(
             "-prefix",
             os.path.join(step_dir, "primitive_techmap"),
         )
-    except Exception:
-        pass
 
     d.run_pass("opt")
     d.run_pass("opt_clean", "-purge")
