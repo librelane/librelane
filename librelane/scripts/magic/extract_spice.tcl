@@ -25,6 +25,7 @@ if { $::env(MAGIC_EXT_USE_GDS) } {
     source $::env(SCRIPTS_DIR)/magic/common/read.tcl
     read_tech_lef
     read_pdk_lef
+    read_pdk_spice
     read_macro_lef
     read_extra_lef
     read_pad_lef
