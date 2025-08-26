@@ -9,6 +9,7 @@ hardening macros and writing custom flows and scripts.
 
 pdn
 about_pdks
+using_vhdl
 timing_corners
 timing_closure/index
 using_macros
