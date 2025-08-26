@@ -256,6 +256,18 @@ Style Notes
 
     * `USE_SYNLIG` deprecated and replaced with `USE_SLANG`.
 
+  * Added variables to keep the hierarchy during flattening.
+
+    * `SYNTH_KEEP_HIERARCHY_MIN_COST`: Sets the `keep_hierarchy` attribute on
+      modules where the gate count is estimated to exceed the specified
+      threshold. This prevents larger modules from being flattened.
+
+    * `SYNTH_KEEP_HIERARCHY_INSTANCES`: A list of instances for which to set the
+      `keep_hierarchy` attribute.
+
+    * `SYNTH_KEEP_HIERARCHY_MODULES`: A list of modules for which to set the
+      `keep_hierarchy` attribute.
+
 ## Flows
 
 * Classic
