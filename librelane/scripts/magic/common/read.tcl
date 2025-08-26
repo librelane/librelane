@@ -144,6 +144,7 @@ proc read_def {} {
     if { $::env(MAGIC_DEF_LABELS) } {
         lappend def_read_args -labels
     }
+    load \(UNNAMED\)
     puts "> def read $def_read_args"
     def read {*}$def_read_args
 }
