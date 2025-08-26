@@ -444,7 +444,7 @@ class SynthesisCommon(VerilogStep):
         Variable(
             "SYNTH_HIERARCHY_MODE",
             Literal["flatten", "deferred_flatten", "keep"],
-            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it.",
+            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it. Please note that when using the Slang plugin, you need to pass '--keep-hierarchy' to `SLANG_ARGUMENTS` separately.",
             default="flatten",
             deprecated_names=[
                 (
