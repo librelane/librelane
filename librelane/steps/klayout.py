@@ -677,6 +677,8 @@ class SealRing(KLayoutStep):
         views_updates: ViewsUpdate = {}
         if self.config["PDK"] in ["ihp-sg13g2"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        if self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+            views_updates, metrics_updates = self.run_gf180mcu(state_in, **kwargs)
         else:
             self.warn(
                 f"KLayout.FillerGeneration is not supported for the {self.config['PDK']} PDK. This step will be skipped."
@@ -702,6 +704,40 @@ class SealRing(KLayoutStep):
             [
                 "python3",
                 os.path.join(get_script_dir(), "klayout", "ihp_seal_ring.py"),
+                "--input-gds",
+                abspath(input_gds),
+                "--output-gds",
+                abspath(output_gds),
+                "--die-width",
+                f"{self.config['DIE_AREA'][2]:f}",
+                "--die-height",
+                f"{self.config['DIE_AREA'][3]:f}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+    def run_gf180mcu(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        self.run_pya_script(
+            [
+                "python3",
+                os.path.join(get_script_dir(), "klayout", "gf180mcu_seal_ring.py"),
                 "--input-gds",
                 abspath(input_gds),
                 "--output-gds",
