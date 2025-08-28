@@ -523,9 +523,16 @@ padring_variables = [
         pdk=True,
     ),
     Variable(
-        "PAD_BONDPAD_SIZE",
+        "PAD_BONDPAD_WIDTH",
         Optional[Decimal],
-        "Size of the bondpad.",
+        "Width of the bondpad.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_HEIGHT",
+        Optional[Decimal],
+        "Height of the bondpad.",
         units="µm",
         pdk=True,
     ),
@@ -536,13 +543,38 @@ padring_variables = [
         pdk=True,
     ),
     Variable(
-        "PAD_SEALRING_OFFSET",
+        "PAD_SITES_OFFSET",
         Optional[Decimal],
-        "Account for the sealring when placing the pads.",
+        "Offset from the IO sites to the die boundary. Account for the sealring when placing the pads.",
         default=0,
         units="µm",
         pdk=True,
     ),
+    Variable(
+        "PAD_IO_SITE_HEIGHT",
+        Optional[Decimal],
+        "TODO.",
+        default=0,
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER_SITE_HEIGHT",
+        Optional[Decimal],
+        "TODO.",
+        default=0,
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER_SITE_WIDTH",
+        Optional[Decimal],
+        "TODO.",
+        default=0,
+        units="µm",
+        pdk=True,
+    ),
+    
 ]
 
 flow_common_variables = (
