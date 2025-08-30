@@ -74,6 +74,11 @@ def mock_macros_config():
 @pytest.fixture
 def sample_lib_files():
     return {
+        "bad_lib.lib": textwrap.dedent(
+            """
+            library (bad) }
+            """
+        ),
         "example_lib.lib": textwrap.dedent(
             """
             library ("example_lib") {
@@ -819,3 +824,5 @@ def test_voltage_lib_get(sample_lib_files, caplog: pytest.LogCaptureFixture):
     assert (
         "and the lib file has multiple operating conditions" in caplog.text
     ), "Library with multiple operating conditions and no default did not produce a warning"
+    with pytest.raises(RuntimeError):
+        toolbox.get_lib_voltage("bad_lib.lib")

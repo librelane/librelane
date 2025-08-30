@@ -14,6 +14,13 @@
 ## Documentation
 -->
 
+# 2.4.1
+
+## Misc. Enhancements/Bugfixes
+
+* Replaced libparse with a fork maintained by the LibreLane team to fix
+  LibreLane not being installable on Python 3.13.
+
 # 2.4.0: Hello, LibreLane
 
 2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its

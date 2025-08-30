@@ -542,6 +542,10 @@ jobs:
   publish:
     runs-on: ubuntu-22.04
     needs: [test-containers, build-py]
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     name: Publish (If Applicable)
     steps:
       - name: Check out repo
@@ -598,9 +602,7 @@ jobs:
           make dist
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
       - name: Tag Commit
         if: ${{ env.PUBLISH == '1' }}
         uses: tvdias/github-tagger@v0.0.1
