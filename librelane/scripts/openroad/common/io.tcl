@@ -99,6 +99,13 @@ proc read_current_sdc {} {
     }
 }
 
+proc read_pad_cfg {} {
+    if {[catch {source $::env(PAD_CFG)} errmsg]} {
+        puts stderr $errmsg
+        exit 1
+    }
+}
+
 proc read_pdn_cfg {} {
 
     # Compatibility Layer for Deprecated Variables That May Still Be Used By
@@ -303,12 +310,14 @@ proc read_pnr_libs {args} {
     }
 }
 
-proc read_lefs {{tlef_key "TECH_LEF"}} {
+proc read_tech_lef {{tlef_key "TECH_LEF"}} {
     set tlef $::env($tlef_key)
 
     puts "Reading technology LEF file at '$tlef'…"
     read_lef $tlef
+}
 
+proc read_other_lefs {} {
     foreach lef $::env(CELL_LEFS) {
         puts "Reading cell LEF file at '$lef'…"
         read_lef $lef
@@ -331,6 +340,11 @@ proc read_lefs {{tlef_key "TECH_LEF"}} {
             read_lef $lef
         }
     }
+}
+
+proc read_lefs {{tlef_key "TECH_LEF"}} {
+    read_tech_lef $tlef_key
+    read_other_lefs
 }
 
 proc set_dont_use_cells {} {

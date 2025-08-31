@@ -15,7 +15,15 @@ import pya
 
 # Try to load the seal ring library
 sys.path.insert(
-    1, os.path.join(os.getenv("PDK_ROOT"), os.getenv("PDK"), "libs.tech", "klayout", "tech", "pymacros")
+    1,
+    os.path.join(
+        os.getenv("PDK_ROOT"),
+        os.getenv("PDK"),
+        "libs.tech",
+        "klayout",
+        "tech",
+        "pymacros",
+    ),
 )
 
 try:
@@ -27,7 +35,6 @@ try:
 except:
     print("Error: Couldn't load the seal ring library.")
     sys.exit()
-
 
 
 @click.command()
@@ -56,7 +63,7 @@ def cli(input_gds, output_gds, die_width, die_height):
     layout.rename_cell(sealring_static_i, "sealring")
 
     # Insert seal ring cell
-    top.insert(pya.DCellInstArray(sealring_static, pya.Trans(25-16, 25-16)))
+    top.insert(pya.DCellInstArray(sealring_static, pya.Trans(25 - 16, 25 - 16)))
 
     # Save output layout
     layout.write(output_gds)

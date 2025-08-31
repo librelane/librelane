@@ -11,9 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+
 read_pnr_libs
-read_lefs
+read_tech_lef
+
+# Make fake I/O sites
+if { [info exists ::env(PAD_FAKE_IO_SITE_WIDTH)] || [info exists ::env(PAD_FAKE_IO_SITE_HEIGHT)] } {
+    make_fake_io_site -name $::env(PAD_IO_SITE_NAME) -width $::env(PAD_FAKE_IO_SITE_WIDTH) -height $::env(PAD_FAKE_IO_SITE_HEIGHT)
+}
+if { [info exists ::env(PAD_FAKE_CORNER_SITE_WIDTH)] || [info exists ::env(PAD_FAKE_CORNER_SITE_HEIGHT)] } {
+    make_fake_io_site -name $::env(PAD_CORNER_SITE_NAME) -width $::env(PAD_FAKE_CORNER_SITE_WIDTH) -height $::env(PAD_FAKE_CORNER_SITE_HEIGHT)
+}
+
+read_other_lefs
 read_current_netlist
 
 foreach lib $::libs {

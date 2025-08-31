@@ -1186,6 +1186,26 @@ class Padring(OpenROADStep):
 
     config_vars = OpenROADStep.config_vars + [
         Variable(
+            "PDN_CONNECT_MACROS_TO_GRID",
+            bool,
+            "Enables the connection of macros to the top level power grid.",
+            default=True,
+            deprecated_names=["FP_PDN_ENABLE_MACROS_GRID"],
+        ),
+        Variable(
+            "PDN_MACRO_CONNECTIONS",
+            Optional[List[str]],
+            "Specifies explicit power connections of internal macros to the top level power grid, in the format: regex matching macro instance names, power domain vdd and ground net names, and macro vdd and ground pin names `<instance_name_rx> <vdd_net> <gnd_net> <vdd_pin> <gnd_pin>`.",
+            deprecated_names=[("FP_PDN_MACRO_HOOKS", pdn_macro_migrator)],
+        ),
+        Variable(
+            "PDN_ENABLE_GLOBAL_CONNECTIONS",
+            bool,
+            "Enables the creation of global connections in PDN generation.",
+            default=True,
+            deprecated_names=["FP_PDN_ENABLE_GLOBAL_CONNECTIONS"],
+        ),
+        Variable(
             "PAD_CFG",
             Optional[Path],
             "A custom pad configuration file. If not provided, the default pad config will be used.",
@@ -1213,14 +1233,15 @@ class Padring(OpenROADStep):
     ]
 
     def get_script_path(self):
-        return self.config["PAD_CFG"]
+        return os.path.join(get_script_dir(), "openroad", "pad.tcl")
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         if self.config["PAD_CFG"] is None:
-            self.config = self.config.copy(
-                PAD_CFG=os.path.join(get_script_dir(), "openroad", "pad.tcl")
+            env["PAD_CFG"] = os.path.join(
+                get_script_dir(), "openroad", "common", "pad_cfg.tcl"
             )
+            info(f"'PAD_CFG' not explicitly set, setting it to {env['PAD_CFG']}…")
 
         return super().run(state_in, env=env, **kwargs)
 
