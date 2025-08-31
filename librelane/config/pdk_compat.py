@@ -160,9 +160,6 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
 
     # x2. Invalid Variables (gf180mcu)
     if new["PDK"].startswith("gf180mcu"):
-        del new["GPIO_PADS_LEF"]
-        del new["GPIO_PADS_VERILOG"]
-
         del new["CARRY_SELECT_ADDER_MAP"]
         del new["FULL_ADDER_MAP"]
         del new["RIPPLE_CARRY_ADDER_MAP"]
