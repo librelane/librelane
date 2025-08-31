@@ -171,13 +171,13 @@ puts "\[INFO\] Connecting ring signals…"
 connect_by_abutment
 
 # Place bondpads (if needed)
-if { [info exists ::env(PAD_BONDPAD)] } {
+if { [info exists ::env(PAD_BONDPAD_NAME)] } {
     puts "\[INFO\] Placing bondpads…"
     dict for {cellname_match offset} $::env(PAD_BONDPAD_OFFSETS) {
         set offset_x [lindex $offset 0]
         set offset_y [lindex $offset 1]
-        puts "\[INFO\] Placing bond pad $::env(PAD_BONDPAD) for cells $cellname_match at offset ($offset_x, $offset_y)"
-        place_bondpad -bond $::env(PAD_BONDPAD) $cellname_match -offset [list $offset_x $offset_y]
+        puts "\[INFO\] Placing bond pad $::env(PAD_BONDPAD_NAME) for cells $cellname_match at offset ($offset_x, $offset_y)"
+        place_bondpad -bond $::env(PAD_BONDPAD_NAME) $cellname_match -offset [list $offset_x $offset_y]
     }
 }
 
