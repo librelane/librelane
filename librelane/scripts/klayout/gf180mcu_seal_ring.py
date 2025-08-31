@@ -28,10 +28,10 @@ sys.path.insert(
 
 try:
     # Load the KLayout API based seal ring
-    from seal_ring_cells import gf180mcu_seal_ring
+    from sealring_cells import gf180mcu_sealring
 
     # Instantiate and register the library
-    gf180mcu_seal_ring()
+    gf180mcu_sealring()
 except:
     print("Error: Couldn't load the seal ring library.")
     sys.exit()
@@ -51,11 +51,11 @@ def cli(input_gds, output_gds, die_width, die_height):
 
     # Create the PCell
     params = {
-        "l": die_width,
-        "w": die_height,
+        "w": die_width,
+        "h": die_height,
     }
 
-    sealring_pcell = layout.create_cell("seal_ring", "gf180mcu_seal_ring", params)
+    sealring_pcell = layout.create_cell("sealring", "gf180mcu_sealring", params)
     sealring_pcell_i = sealring_pcell.cell_index()
     sealring_static_i = layout.convert_cell_to_static(sealring_pcell_i)
     sealring_static = layout.cell(sealring_static_i)
