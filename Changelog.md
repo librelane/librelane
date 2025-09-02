@@ -18,6 +18,10 @@
 
 ## Steps
 
+* `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace `MAGIC_NO_EXT_UNIQUE`
+
+  * Allowed values are: "all", "notopports", "noports", "none"
+
 * `Yosys.Synthesis`: Added `SLANG_ARGUMENTS`, which is used to pass arguments to the Slang frontend.
 
   * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
