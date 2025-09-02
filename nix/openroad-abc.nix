@@ -17,9 +17,9 @@
   fetchFromGitHub,
   zlib,
   abc-namespace-name ? "abc",
-  rev ? "5c9448c085eb8bf1e433a22a954532e44206c6f9",
-  rev-date ? "2024-12-31",
-  sha256 ? "sha256-5juDIbn77cqgqU2CQjIwYERemqs7XbqSJaT7VLtKWHc=",
+  rev ? "2bf0bb0ce35cda283d69c8b70c8e668e8511adc1",
+  rev-date ? "2025-07-03",
+  sha256 ? "sha256-Dth5B6C0ocp27L314VXJyL2HgypygU/cdzre68kO1jE=",
 }:
 abc-verifier.overrideAttrs (finalAttrs: previousAttrs: {
   name = "openroad-abc";
