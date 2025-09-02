@@ -7,9 +7,9 @@
   fetchFromGitHub,
   zlib,
   abc-namespace-name ? "abc",
-  rev ? "5c9448c085eb8bf1e433a22a954532e44206c6f9",
-  rev-date ? "2024-12-31",
-  sha256 ? "sha256-5juDIbn77cqgqU2CQjIwYERemqs7XbqSJaT7VLtKWHc=",
+  rev ? "4c756ffb8dff7c583e80c7970d117abd3dfddb5c",
+  rev-date ? "2026-01-04",
+  sha256 ? "sha256-oJ1ZyWdZefWqitXVtFwYRChsJkwGtUEc7h8RlEeBOzQ=",
 }:
 abc-verifier.overrideAttrs (
   finalAttrs: previousAttrs: {
@@ -32,6 +32,7 @@ abc-verifier.overrideAttrs (
       "-DUSE_SYSTEM_ZLIB:BOOL=ON"
       "-DABC_USE_NAMESPACE=${abc-namespace-name}"
       "-DABC_SKIP_TESTS:BOOL=ON"
+      "-DABC_USE_STDINT_H:BOOL=ON"
     ];
 
     buildInputs = [ zlib ];
