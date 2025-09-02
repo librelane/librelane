@@ -458,15 +458,18 @@ class SpiceExtraction(MagicStep):
         Variable(
             "MAGIC_EXT_ABSTRACT_CELLS",
             Optional[List[str]],
-            "A list of regular experssions which are matched against the cells of a "
+            "A list of regular expressions which are matched against the cells of a "
             + "the design. Matches are abstracted (black-boxed) during SPICE extraction.",
         ),
         Variable(
-            "MAGIC_NO_EXT_UNIQUE",
-            bool,
-            "Enables connections by label in LVS by skipping `extract unique` in Magic extractions.",
-            default=False,
-            deprecated_names=["LVS_CONNECT_BY_LABEL"],
+            "MAGIC_EXT_UNIQUE",
+            Literal["all", "notopports", "noports", "none"],
+            'Runs `extract unique` with the specified option. The default is "all", and "none" disables `extract unique`, allowing connections between separate nets by label in LVS.',
+            default="all",
+            deprecated_names=[
+                ("MAGIC_NO_EXT_UNIQUE", lambda o: "none" if o else "all"),
+                ("LVS_CONNECT_BY_LABEL", lambda o: "none" if o else "all"),
+            ],
         ),
         Variable(
             "MAGIC_EXT_SHORT_RESISTOR",
