@@ -63,27 +63,26 @@ proc get_buflist {} {
 set arg_list [list]
 lappend arg_list -buf_list [get_buflist]
 lappend arg_list -root_buf $::env(CTS_ROOT_BUFFER)
-lappend arg_list -sink_clustering_size $::env(CTS_SINK_CLUSTERING_SIZE)
-lappend arg_list -sink_clustering_max_diameter $::env(CTS_SINK_CLUSTERING_MAX_DIAMETER)
-lappend arg_list -sink_clustering_enable
+
+append_if_exists_argument arg_list CTS_SINK_CLUSTERING_SIZE -sink_clustering_size
+append_if_exists_argument arg_list CTS_SINK_CLUSTERING_MAX_DIAMETER -sink_clustering_max_diameter
+append_if_flag arg_list CTS_SINK_CLUSTERING_ENABLE -sink_clustering_enable
+append_if_exists_argument arg_list CTS_MACRO_CLUSTERING_SIZE -macro_clustering_size
+append_if_exists_argument arg_list CTS_MACRO_CLUSTERING_MAX_DIAMETER -macro_clustering_max_diameter
+append_if_flag arg_list CTS_DISABLE_POST_PROCESSING -post_cts_disable
+append_if_flag arg_list CTS_OBSTRUCTION_AWARE -obstruction_aware
+append_if_flag arg_list CTS_BALANCE_LEVELS -balance_levels
 
 if { $::env(CTS_DISTANCE_BETWEEN_BUFFERS) != 0 } {
     lappend arg_list -distance_between_buffers $::env(CTS_DISTANCE_BETWEEN_BUFFERS)
 }
-if { $::env(CTS_DISABLE_POST_PROCESSING) } {
-    lappend arg_list -post_cts_disable
-}
-if { [info exists ::env(CTS_OBSTRUCTION_AWARE)] && $::env(CTS_OBSTRUCTION_AWARE) } {
-    lappend arg_list -obstruction_aware
-}
+
 if { [info exists ::env(CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT)] } {
     lappend arg_list -sink_buffer_max_cap_derate [expr $::env(CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT) / 100.0]
 }
+
 if { [info exists ::env(CTS_DELAY_BUFFER_DERATE_PCT)] } {
     lappend arg_list -delay_buffer_derate [expr $::env(CTS_DELAY_BUFFER_DERATE_PCT) / 100]
-}
-if { [info exists ::env(CTS_BALANCE_LEVELS)] && $::env(CTS_BALANCE_LEVELS) } {
-    lappend arg_list -balance_levels
 }
 
 log_cmd clock_tree_synthesis {*}$arg_list
