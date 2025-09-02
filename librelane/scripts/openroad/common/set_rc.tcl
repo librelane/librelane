@@ -74,7 +74,7 @@ proc set_via_custom_r {args} {
 proc set_layers_default_rc {corners} {
     foreach layer [get_layers -type ROUTING] {
         set layer_name [$layer getName]
-        lassign [rsz::dblayer_wire_rc $layer] layer_wire_res_ohm_m layer_wire_cap_farad_m
+        lassign [est::dblayer_wire_rc $layer] layer_wire_res_ohm_m layer_wire_cap_farad_m
         set layer_wire_res_per_unit_distance [expr $layer_wire_res_ohm_m * [sta::unit_scale distance] / [sta::unit_scale resistance]]
         set layer_wire_cap_per_unit_distance [expr $layer_wire_cap_farad_m * [sta::unit_scale distance] / [sta::unit_scale capacitance]]
         foreach corner "$corners" {

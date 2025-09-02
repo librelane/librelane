@@ -47,13 +47,7 @@
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
           in {
-            or-tools_9_14 = callPackage ./nix/or-tools_9_14.nix {
-              inherit (pkgs'.darwin) DarwinTools;
-              stdenv =
-                if pkgs'.system == "x86_64-darwin"
-                then (pkgs'.overrideSDK pkgs'.stdenv "11.0")
-                else pkgs'.stdenv;
-            };
+            or-tools_9_14 = callPackage ./nix/or-tools_9_14.nix {};
             colab-env = callPackage ./nix/colab-env.nix {};
             opensta = callPackage ./nix/opensta.nix {};
             openroad-abc = callPackage ./nix/openroad-abc.nix {};
