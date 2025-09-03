@@ -74,7 +74,7 @@ class Path(CloupPath):
 
     def convert(
         self,
-        value: Union[str, os.PathLike[str]],
+        value: Union[str, os.PathLike],
         param: Optional[Parameter],
         ctx: Optional[Context],
     ):
