@@ -132,6 +132,9 @@ Style Notes
   * Added `CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT`
   * Added `CTS_DELAY_BUFFER_DERATE_PCT`
   * `CTS_CLK_BUFFERS` can now take wildcards.
+  * Added `CTS_SINK_CLUSTERING_ENABLE` to control sink clustering (default is enabled).
+  * Made `CTS_SINK_CLUSTERING_SIZE` and `CTS_SINK_CLUSTERING_MAX_DIAMETER` optional. OpenROAD determines the best values.
+  * Added `CTS_MACRO_CLUSTERING_SIZE` and `CTS_MACRO_CLUSTERING_MAX_DIAMETER`.
 
 * `OpenROAD.CutRows`
 

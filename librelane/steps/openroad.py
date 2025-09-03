@@ -2266,16 +2266,32 @@ class CTS(OpenROADStep):
                 + "This option may reduce legalizer displacement, leading to better latency, skew or timing QoR.",
             ),
             Variable(
+                "CTS_SINK_CLUSTERING_ENABLE",
+                bool,
+                "Enables pre-clustering of sinks to create one level of sub-tree before building the H-tree. "
+                + "Each cluster is driven by a buffer which becomes the end point of the H-tree structure.",
+                default=True,
+            ),
+            Variable(
                 "CTS_SINK_CLUSTERING_SIZE",
-                int,
+                Optional[int],
                 "Specifies the maximum number of sinks per cluster.",
-                default=25,
             ),
             Variable(
                 "CTS_SINK_CLUSTERING_MAX_DIAMETER",
-                Decimal,
-                "Specifies maximum diameter of the sink cluster.",
-                default=50,
+                Optional[Decimal],
+                "Specifies the maximum diameter of the sink cluster.",
+                units="µm",
+            ),
+            Variable(
+                "CTS_MACRO_CLUSTERING_SIZE",
+                Optional[int],
+                "Specifies the maximum number of sinks per cluster for the macro tree.",
+            ),
+            Variable(
+                "CTS_MACRO_CLUSTERING_MAX_DIAMETER",
+                Optional[Decimal],
+                "Specifies the maximum diameter of the sink cluster for the macro tree.",
                 units="µm",
             ),
             Variable(
