@@ -255,6 +255,16 @@ Style Notes
 
   * Writes the CDL netlists for a database.
 
+* `Verilator.Lint`
+
+  * Added `LINTER_DISABLE_WARNINGS` to disable linter warnings.
+
+  * Added `LINTER_DISABLE_WARNINGS_BLACKBOX` to disable linter warnings for
+    blackbox modules.
+
+  * Added `LINTER_VLT` as a user defined Verilator Configuration format file
+    (`.vlt`).
+
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
