@@ -1,9 +1,15 @@
 <!--
-  * Using my modified version of mdformat:
-  nix run .#mdformat -- --wrap 80 --end-of-line lf Changelog.md
--->
 
-<!--
+Formatting the Changelog
+------------------------
+
+* Using Donn's modified version of mdformat:
+
+  nix run .#mdformat -- --wrap 80 --end-of-line lf Changelog.md
+
+Section Order
+-------------
+
 ## CLI
 ## Steps
 ## Flows
@@ -12,38 +18,46 @@
 ## Misc. Enhancements/Bugfixes
 ## API Breaks
 ## Documentation
+
+Style Notes
+------------
+
+* Always list steps alphabetically.
+
+* Always use the past tense for actions (created, added…)
+
+* New steps are always "Created", new variables are always "Added".
+  * Variables are "removed" or "deprecated." Always explain why, and for
+    deprecated variables, mention the replacement.
+
 -->
 
 # 3.0.0
 
 ## Steps
 
-* `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace `MAGIC_NO_EXT_UNIQUE`
-
-  * Allowed values are: "all", "notopports", "noports", "none"
-
-* `Yosys.Synthesis`: Added `SLANG_ARGUMENTS`, which is used to pass arguments to the Slang frontend.
-
-  * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the conflict resolution if a cell name conflict arises. (Default: "RenameCell")
-
-    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
-
-* `KLayout.DRC`
-
-  * Add support for ihp-sg13g2
-
-* Add `KLayout.LVS` step
-
-  * Add support for ihp-sg13g2
-
-* Add `OpenROAD.WriteCDL` step
-
-  * Write the CDL netlist of a design
-
 * `Checker.HoldViolations`
 
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
     raise an error for hold violations on *any* corners.
+
+* `KLayout.DRC`
+
+  * Added support for ihp-sg13g2.
+
+* Created `KLayout.LVS`
+
+  * Currently only supports ihp-sg13g2.
+
+* `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the
+  conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+
+  * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
+* `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
+  `MAGIC_NO_EXT_UNIQUE`
+
+  * Allowed values are: "all", "notopports", "noports", "none"
 
 * `Odb.*`
 
@@ -69,10 +83,10 @@
 
 * `Odb.FuzzyDiodePlacement`, `Odb.HeuristicDiodeInsertion`
 
-* Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+  * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
 
-* `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
-  is unset.
+  * `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
+    is unset.
 
 * `OpenROAD.*`
 
@@ -209,18 +223,33 @@
 
   * Removes the placement status of all instances.
 
+* Created `OpenROAD.WriteCDL`
+
+  * Writes the CDL netlists for a database.
+
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
-  
+
   * Added `SYNTH_NORMALIZE_SINGLE_BIT_VECTORS`: `true` by default, it converts
     vectors with the shape `[0:0]` to normal wires for backwards compatibility
-    with older designs. See https://github.com/YosysHQ/yosys/pull/5095
-    for more info.
+    with older designs. See https://github.com/YosysHQ/yosys/pull/5095 for more
+    info.
+
+* `Yosys.Synthesis`
+
+  * `synlig` has been replaced by `yosys-slang` as the alternative frontend for
+    superior SystemVerilog support.
+
+    * Added `SLANG_ARGUMENTS`, which is used to pass arguments to the Slang
+      frontend at the user's own risk.
+
+    * `USE_SYNLIG` deprecated and replaced with `USE_SLANG`.
 
 ## Flows
 
 * Classic
+
   * Added `OpenROAD.DumpRCValues` immediately after floorplanning.
 
 ## Tool Updates
@@ -245,18 +274,21 @@
 
 ## Misc. Enhancements/Bugfixes
 
-* Store hashes for each PDK family separately
+* `CLI`
 
-  * Renamed `open_pdks_rev` to `pdk_hashes.yaml`
-  * Add hash for ihp-sg13g2
-  * Rename `PDK_ihp-sg13g2` define to `PDK_ihp_sg13g2`
-  * Metrics: split `pdk-scl-design_name` triple from the right, since ihp-sg13g2 contains a `-`
+  * Paths provided over the terminal that start with a tilde are now rejected
+    and result in an error, as they typically mean POSIX shell tilde expansion
+    has failed. This is a compromise solution as tilde expansion within
+    LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
+    tildes and then are surprised when it doesn't work.
+    * Relative paths that start with a genuine tilde must be provided as
+      absolute paths.
 
 * `librelane.common`
 
   * `_eval_env`: Add support for nested dicts in tcl
 
-* `openlane.flows`
+* `librelane.flows`
 
   * `SequentialFlow`
     * Substitutions are now to be strictly consumed by the subclass initializer,
@@ -269,12 +301,12 @@
       substitutions, instead of the second "original"
       `OpenROAD.DetailedPlacement` in the flow.
 
-* `openlane.config`
+* `librelane.config`
 
   * `meta.substituting_steps` now only apply to the sequential flow declared in
     `meta.flow` and not all flows.
 
-* `openlane.state`
+* `librelane.state`
 
   * `DesignFormat`
     * Now a dataclass encapsulating the information about the DesignFormat
@@ -291,12 +323,12 @@
     * States initialized with keys that have values that are `None` now remove
       said keys.
 
-* `openlane.steps`
+* `librelane.steps`
 
   * TclStep
     * All `Decimal` values are now passed to Tcl in exponent notation.
 
-* `openlane.config`
+* `librelane.config`
 
   * Moved a number of global variables:
     * `WIRE_LENGTH_THRESHOLD` moved from global variables to
@@ -310,14 +342,27 @@
   * Changed some `decimal.Decimal` initializations to use integers or strings
     instead of floats.
 
+* Store hashes for each PDK family separately
+
+  * Renamed `open_pdks_rev` to `pdk_hashes.yaml`
+  * Add hash for ihp-sg13g2
+  * Rename `PDK_ihp-sg13g2` define to `PDK_ihp_sg13g2`
+  * Metrics: split `pdk-scl-design_name` triple from the right, since ihp-sg13g2
+    contains a `-`
+
 ## API Breaks
 
-* `KLayout.StreamOut` now behaves differently as the default for cell conflict resolution has been changed from "AddToCell" to "RenameCell", which is a safer.
+* `CLI`
 
-	* To retain the old behavior, set `KLAYOUT_CONFLICT_RESOLUTION` to "AddToCell".
-	* It may be necessary to set `KLAYOUT_CONFLICT_RESOLUTION` to "SkipNewCell" to match the old macro integration behavior of magic.
+  * Paths provided over the terminal that start with a tilde are now rejected
+    and result in an error, as they typically mean POSIX shell tilde expansion
+    has failed. This is a compromise solution as tilde expansion within
+    LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
+    tildes and then are surprised when it doesn't work.
+    * Relative paths that start with a genuine tilde must be provided as
+      absolute paths.
 
-* `*`
+* All Steps
 
   * `{GPL,DPL}_CELL_PADDING`, `PL_MAX_DISPLACEMENT_{X,Y}` now all integers to
     match OpenROAD.
@@ -328,6 +373,15 @@
   * `HOLD_VIOLATION_CORNERS` now defaulting to all corners will require designs
     that have hold violations at non-typical corners to set its value explicitly
     to `["*tt*"]`.
+
+* `KLayout.StreamOut` now behaves differently as the default for cell conflict
+  resolution has been changed from "AddToCell" to "RenameCell", which is a
+  safer.
+
+  * To retain the old behavior, set `KLAYOUT_CONFLICT_RESOLUTION` to
+    "AddToCell".
+  * It may be necessary to set `KLAYOUT_CONFLICT_RESOLUTION` to "SkipNewCell" to
+    match the old macro integration behavior of magic.
 
 * `Odb.AddRoutingObstructions`, `Odb.AddPDNObstructions`
 
@@ -510,7 +564,7 @@ original authors after Efabless Corporation has ceased operations.
 * Enhanced resilience against permission issues with containerized setups.
 
   * Temporary directories are no longer mounted.
-  
+
   * Docker and Podman are both tested in CI.
 
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
