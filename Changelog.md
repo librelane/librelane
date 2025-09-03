@@ -88,6 +88,13 @@ Style Notes
   * `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
     is unset.
 
+* `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
+
+  * Steps now work with hierarchical netlists.
+
+  * Steps are skipped if `INSERT_ECO_BUFFERS` or `INSERT_ECO_DIODES` is
+    undefined.
+
 * `OpenROAD.*`
 
   * Added `PNR_CORNERS` which defaults to `STA_CORNERS`. An override for
