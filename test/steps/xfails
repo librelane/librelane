@@ -1,1 +1,5 @@
-openroad.detailedrouting/004-fail-range-max # temporary
+odb.applydeftemplate/002-bad_def
+openroad.detailedrouting/003-fail-range-min
+openroad.detailedrouting/004-fail-range-max
+openroad.globalplacement/002-fail-density
+openroad.ioplacement/003-fail-metal-layer
