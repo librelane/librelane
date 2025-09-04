@@ -1595,7 +1595,7 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
             "IO_PIN_PLACEMENT_MODE",
-            Literal["matching", "random_equidistant", "annealing"],
+            Literal["matching", "annealing"],
             "Decides the mode of the random IO placement option.",
             default="matching",
             deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
