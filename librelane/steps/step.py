@@ -1440,7 +1440,8 @@ class Step(ABC):
         A factory singleton for Steps, allowing steps types to be registered and then
         retrieved by name.
 
-        See https://en.wikipedia.org/wiki/Factory_(object-oriented_programming) for
+        See
+        `Factory (object-oriented programming) on Wikipedia <https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)>`_
         a primer.
         """
 

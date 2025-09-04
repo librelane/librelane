@@ -7,12 +7,12 @@ hardening macros and writing custom flows and scripts.
 :glob:
 :maxdepth: 2
 
-pdn
 about_pdks
-using_vhdl
+pdn
 timing_corners
 timing_closure/index
 using_macros
+using_vhdl
 caravel/index
 writing_custom_flows
 writing_custom_steps

@@ -1,24 +1,42 @@
 # Using VHDL
 
-LibreLane supports VHDL by using the GHDL plugin for Yosys.
+LibreLane supports VHDL **only on x86-64 platforms** by using the GHDL plugin
+for Yosys.
 
-Instead of Librelane's “Classic” flow with Verilog support, we need to activate the “VHDLClassic” flow with VHDL support. This can be done by passing `--flow VHDLClassic` in the CLI, or it can permanently set in the configuration file.
+Instead of Librelane's "Classic" flow which only has Verilog support, you will
+need to use the "VHDLClassic" flow with VHDL support. This can be done by
+either:
 
-As an example, take this `config.yaml` file:
+* Passing `--flow VHDLClassic` in the CLI
+* Permanently setting the default flow for your design in the configuration file
+  as follows:
 
-```yaml
-meta:
-  flow: VHDLClassic
+  <table>
+    <tr><th>JSON</th><th>YAML</tr></tr>
+    <tr><td>
 
-DESIGN_NAME: counter
-VHDL_FILES: dir::counter.vhd
-CLOCK_PORT: clk_i
-CLOCK_PERIOD: 20 # 20ns = 50MHz
-```
+    ```json
+    {
+        "meta": {
+            "flow": "VHDLClassic"
+        }
+    }
+    ```
 
-The only difference between the variables of the “Classic” flow  is that we use `VHDL_FILES` instead of `VERILOG_FILES`.
+    </td><td>
 
-The `counter.vhd` in the same directory may look like this:
+    ```yaml
+    meta:
+      flow: VHDLClassic
+    ```
+
+    </td></tr>
+  </table>
+
+When using the `VHDLClassic` flow, you need to specify the variable
+`VHDL_FILES` instead of `VERILOG_FILES`. 
+
+As an example, consider this VHDL design, `counter.vhd`:
 
 ```vhdl
 library ieee;
@@ -55,8 +73,39 @@ begin
 end architecture;
 ```
 
-Now the flow can be run as usual:
+To configure this design for LibreLane, you create a YAML file as follows:
 
+```yaml
+meta:
+  flow: VHDLClassic
+
+DESIGN_NAME: counter
+VHDL_FILES: dir::counter.vhd
+CLOCK_PORT: clk_i
+CLOCK_PERIOD: 20 # 20ns = 50MHz
 ```
-librelane config.yaml
+
+You may then run the flow as usual:
+
+```console
+$ librelane config.yaml
 ```
+
+## Limitations
+
+Unlike with Verilog, the LibreLane flow does not support:
+
+* VHDL headers for macros
+
+  If you use a macro, even if it is written in VHDL, the header exposing it to
+  Yosys must be in Verilog for now. Of course, you don't need a header if you
+  have a `.lib` file. See {doc}`/usage/using_macros` for more info.
+
+* Automatic power connections for macros
+
+  You will need to use the variable {var}`OpenROAD.GeneratePDN::PDN_MACRO_CONNECTIONS`:
+  
+  ```yaml
+  PDN_MACRO_CONNECTIONS:
+    - "<instance_name_regex> <vdd_net> <gnd_net> <vdd_pin> <gnd_pin>"
+  ```
