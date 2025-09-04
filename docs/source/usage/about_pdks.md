@@ -15,7 +15,8 @@ ordered by priority (from highest to lowest):
   with exactly one PDK.
 * The `--pdk` command-line flag
 * The `PDK` environment variable
-* The default PDK, i.e., the [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk).
+* The default PDK, i.e., the
+  [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk).
 
 Note that the PDK provided must be a fully qualified PDK variant, i.e.
 
@@ -43,14 +44,14 @@ want to anyway, ordered by priority (from highest to lowest):
 
 ## Building, location and downloading
 
-Most open-source PDKs are not usable in their default formats. This is the reason
-we rely on Open PDKs to build the PDK, which will not only place it an LibreLane-friendly
-layout but also generate views of the PDK that are usable by the aforementioned
-tools.
+Most open-source PDKs are not usable in their default formats. This is the
+reason we rely on Open PDKs to build the PDK, which will not only place it in a
+LibreLane-friendly layout but also generate views of the PDK that are usable by
+the aforementioned tools.
 
 Because of extended build times,
-the [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk) and
-the [GlobalFoundries/Google GF180MCU PDK](https://github.com/google/gf180mcu-pdk),
+the [Google/Skywater 130nm PDK](https://github.com/google/skywater-pdk) and the
+[Google/GlobalFoundries 180nm PDK](https://github.com/google/gf180mcu-pdk),
 are built and cached using [Ciel](https://github.com/fossi-foundation/ciel),
 a version manager by the LibreLane team built on top of Open PDKs.
 
@@ -95,9 +96,9 @@ today, please consult with your shuttle provider.
     according to GlobalFoundries.
 
 [GFMPW0](https://platform.efabless.com/shuttles/GFMPW-0) was run on `C`,
-but any and all future shuttles based on the Google/Skywater 180nm process will
-require `gf180mcuD` as per GlobalFoundry's recommendation. `A` and `B` were
-never used and are not supported by LibreLane.
+but any and all future shuttles based on the Google/GlobalFoundries 180nm
+process will require `gf180mcuD` as per GlobalFoundry's recommendation. `A`
+and `B` were never used and are not supported by LibreLane.
 
 LibreLane is tested with a specific revision of Open PDKs. By default, LibreLane
 will attempt to download a build done with that revision using Ciel to the
