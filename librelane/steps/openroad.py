@@ -1858,16 +1858,16 @@ class DetailedRouting(OpenROADStep):
                 "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
                 deprecated_names=["ROUTING_CORES"],
             ),
-            Variable(
-                "DRT_MIN_LAYER",
-                Optional[str],
-                "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
-            ),
-            Variable(
-                "DRT_MAX_LAYER",
-                Optional[str],
-                "An optional override to the highest layer used in detailed routing.",
-            ),
+            # Variable(
+            #    "DRT_MIN_LAYER",
+            #    Optional[str],
+            #    "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
+            # ),
+            # Variable(
+            #    "DRT_MAX_LAYER",
+            #    Optional[str],
+            #    "An optional override to the highest layer used in detailed routing.",
+            # ),
             Variable(
                 "DRT_OPT_ITERS",
                 int,
