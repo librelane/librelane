@@ -677,11 +677,11 @@ class SealRing(KLayoutStep):
         views_updates: ViewsUpdate = {}
         if self.config["PDK"] in ["ihp-sg13g2"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
-        if self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+        elif self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
             views_updates, metrics_updates = self.run_gf180mcu(state_in, **kwargs)
         else:
             self.warn(
-                f"KLayout.FillerGeneration is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+                f"KLayout.SealRing is not supported for the {self.config['PDK']} PDK. This step will be skipped."
             )
 
         return views_updates, metrics_updates
