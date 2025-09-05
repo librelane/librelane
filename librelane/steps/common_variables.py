@@ -243,6 +243,20 @@ pdn_variables = [
         deprecated_names=["FP_PDN_CORE_RING_HOFFSET"],
     ),
     Variable(
+        "PDN_CORE_RING_CONNECT_TO_PADS",
+        bool,
+        "If specified, the core side of the pad pins will be connected to the ring.",
+        default=False,
+        pdk=True,
+    ),
+    Variable(
+        "PDN_CORE_RING_ALLOW_OUT_OF_DIE",
+        bool,
+        "If specified, the ring shapes are allowed to be outside the die boundary.",
+        default=True,
+        pdk=True,
+    ),
+    Variable(
         "PDN_RAIL_LAYER",
         str,
         "Defines the metal layer used for PDN rails.",
@@ -272,24 +286,22 @@ pdn_variables = [
         pdk=True,
     ),
     Variable(
+        "PDN_CORE_HORIZONTAL_LAYER",
+        Optional[str],
+        "Defines the horizontal PDN layer for the core ring. Falls back to `PDN_HORIZONTAL_LAYER` if undefined.",
+        pdk=True,
+    ),
+    Variable(
+        "PDN_CORE_VERTICAL_LAYER",
+        Optional[str],
+        "Defines the vertical PDN layer for the core ring. Falls back to `PDN_VERTICAL_LAYER` if undefined.",
+        pdk=True,
+    ),
+    Variable(
         "PDN_EXTEND_TO",
         Literal["core_ring", "boundary"],
         "Defines how far the stripes and rings extend.",
         default="core_ring",
-        pdk=True,
-    ),
-    Variable(
-        "PDN_CORE_RING_CONNECT_TO_PADS",
-        bool,
-        "If specified, the core side of the pad pins will be connected to the ring.",
-        default=False,
-        pdk=True,
-    ),
-    Variable(
-        "PDN_CORE_RING_ALLOW_OUT_OF_DIE",
-        bool,
-        "If specified, the ring shapes are allowed to be outside the die boundary.",
-        default=True,
         pdk=True,
     ),
     Variable(

@@ -140,13 +140,43 @@ if { $::env(PDN_CORE_RING) == 1 } {
         append_if_flag arg_list PDN_CORE_RING_CONNECT_TO_PADS -connect_to_pads
         append_if_equals arg_list PDN_EXTEND_TO "boundary" -extend_to_boundary
 
+        set pdn_core_vertical_layer $::env(PDN_VERTICAL_LAYER)
+        set pdn_core_horizontal_layer $::env(PDN_HORIZONTAL_LAYER)
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] } {
+            set pdn_core_vertical_layer $::env(PDN_CORE_VERTICAL_LAYER)
+        }
+
+        if { [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            set pdn_core_horizontal_layer $::env(PDN_CORE_HORIZONTAL_LAYER)
+        }
+
         add_pdn_ring \
             -grid stdcell_grid \
-            -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)" \
+            -layers "$pdn_core_vertical_layer $pdn_core_horizontal_layer" \
             -widths "$::env(PDN_CORE_RING_VWIDTH) $::env(PDN_CORE_RING_HWIDTH)" \
             -spacings "$::env(PDN_CORE_RING_VSPACING) $::env(PDN_CORE_RING_HSPACING)" \
             -core_offset "$::env(PDN_CORE_RING_VOFFSET) $::env(PDN_CORE_RING_HOFFSET)" \
             {*}$arg_list
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+        }
+
+        if { [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_HORIZONTAL_LAYER) $::env(PDN_VERTICAL_LAYER)"
+        }
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] && [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_VERTICAL_LAYER) $::env(PDN_CORE_HORIZONTAL_LAYER)"
+        }
+
     } else {
         throw APPLICATION "PDN_CORE_RING cannot be used when PDN_MULTILAYER is set to false."
     }

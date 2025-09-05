@@ -187,6 +187,8 @@ Style Notes
 
   * Added `PDN_CORE_RING_ALLOW_OUT_OF_DIE` (default: True).
 
+  * Added `PDN_CORE_HORIZONTAL_LAYER` and `PDN_CORE_VERTICAL_LAYER`.
+
   * Added `PDN_ENABLE_PINS` (default: True) since padrings have pins on their
     bondpads.
 
