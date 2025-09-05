@@ -454,6 +454,21 @@ class SynthesisCommon(VerilogStep):
             ],
         ),
         Variable(
+            "SYNTH_KEEP_HIERARCHY_MIN_COST",
+            Optional[int],
+            "Sets the `keep_hierarchy` attribute on modules where the gate count is estimated to exceed the specified threshold. This prevents larger modules from being flattened.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_INSTANCES",
+            Optional[List[str]],
+            "A list of instances for which to set the `keep_hierarchy` attribute.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_MODULES",
+            Optional[List[str]],
+            "A list of modules for which to set the `keep_hierarchy` attribute.",
+        ),
+        Variable(
             "SYNTH_SHARE_RESOURCES",
             bool,
             "A flag that enables yosys to reduce the number of cells by determining shareable resources and merging them.",
