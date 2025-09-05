@@ -139,8 +139,10 @@ Style Notes
   * Added `CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT`
   * Added `CTS_DELAY_BUFFER_DERATE_PCT`
   * `CTS_CLK_BUFFERS` can now take wildcards.
-  * Added `CTS_SINK_CLUSTERING_ENABLE` to control sink clustering (default is enabled).
-  * Made `CTS_SINK_CLUSTERING_SIZE` and `CTS_SINK_CLUSTERING_MAX_DIAMETER` optional. OpenROAD determines the best values.
+  * Added `CTS_SINK_CLUSTERING_ENABLE` to control sink clustering (default is
+    enabled).
+  * Made `CTS_SINK_CLUSTERING_SIZE` and `CTS_SINK_CLUSTERING_MAX_DIAMETER`
+    optional. OpenROAD determines the best values.
   * Added `CTS_MACRO_CLUSTERING_SIZE` and `CTS_MACRO_CLUSTERING_MAX_DIAMETER`.
 
 * `OpenROAD.CutRows`
@@ -177,6 +179,18 @@ Style Notes
   * All variables prefixed `FP_PDN_` have been renamed to be prefixed simply
     `PDN`. Backwards compatibility wrapper code has been added for `PDN_CFG`
     files.
+
+  * Added `PDN_EXTEND_TO` with values "core_ring" and "boundary" (default:
+    "core_ring").
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PADS` to connect the core ring to the pads.
+
+  * Added `PDN_CORE_RING_ALLOW_OUT_OF_DIE` (default: True).
+
+  * Added `PDN_CORE_HORIZONTAL_LAYER` and `PDN_CORE_VERTICAL_LAYER`.
+
+  * Added `PDN_ENABLE_PINS` (default: True) since padrings have pins on their
+    bondpads.
 
 * `OpenROAD.GlobalPlacement`
 
