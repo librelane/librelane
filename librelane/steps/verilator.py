@@ -202,6 +202,8 @@ class Lint(Step):
             [
                 "verilator",
                 "--lint-only",
+                "--waiver-output",
+                os.path.join(self.step_dir, "_waivers_output.vlt"),
                 "--Wall",
                 "--top-module",
                 self.config["DESIGN_NAME"],
