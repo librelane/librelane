@@ -265,6 +265,8 @@ Style Notes
   * Added `LINTER_VLT` as a user defined Verilator Configuration format file
     (`.vlt`).
 
+  * Verilator now creates a `_waivers_output.vlt` file based on the encountered linter warnings.
+
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
