@@ -2394,7 +2394,7 @@ class RepairDesignPostGPL(ResizerStep):
         Variable(
             "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS",
             bool,
-            "Specifies whether or not to insert buffers on input ports when design repairs are run.",
+            "Specifies whether or not to insert buffers on output ports when design repairs are run.",
             default=True,
             deprecated_names=["PL_RESIZER_BUFFER_OUTPUT_PORTS"],
         ),

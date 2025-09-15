@@ -469,6 +469,22 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+# 2.4.2
+
+## Documentation
+
+* Added VHDL usage guide by [@mole99](https://github.com/mole99)
+* Fixed invalid path in PDK porting guide
+* Fixed documentation for `FP_IO_{V,H}_LAYER`
+* Various updates to the FAQ
+* Various docstring formatting fixes
+
+# 2.4.1
+
+## Misc. Enhancements/Bugfixes
+
+* Replaced libparse with a fork maintained by the LibreLane team to fix
+  LibreLane not being installable on Python 3.13.
 
 # 2.4.0: Hello, LibreLane
 
