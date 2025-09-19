@@ -580,7 +580,7 @@ padring_variables = [
     Variable(
         "PAD_PLACE_IO_TERMINALS",
         Optional[List[str]],
-        "Place I/O terminals for these instance/pin combinations.",
+        "Place I/O terminals for these master/pin combinations.",
         pdk=True,
     ),
     Variable(

@@ -54,7 +54,7 @@ foreach side $sides {
     
     foreach inst_name $::env($side) {
         if { [set inst [$block findInst $inst_name]] == "NULL" } {
-            puts stderr "\[ERROR\] No instance $instance_name found."
+            puts stderr "\[ERROR\] No instance $inst_name found."
             exit 1
         }
         set master_name [[$inst getMaster] getName]
@@ -163,8 +163,30 @@ if { [info exists ::env(PAD_BONDPAD_NAME)] } {
 # Place io terminals (if needed)
 if { [info exists ::env(PAD_PLACE_IO_TERMINALS)] } {
     puts "\[INFO\] Placing I/O terminals…"
-    foreach inst_pins $::env(PAD_PLACE_IO_TERMINALS) {
-        place_io_terminals $inst_pins
+    
+    foreach side $sides {
+        foreach inst_name $::env($side) {
+            if { [set inst [$block findInst $inst_name]] == "NULL" } {
+                puts stderr "\[ERROR\] No instance $inst_name found."
+                exit 1
+            }
+            set master_name [[$inst getMaster] getName]
+    
+            # Try to find the master in PAD_PLACE_IO_TERMINALS
+            foreach master_pin $::env(PAD_PLACE_IO_TERMINALS) {
+            
+                # Split the master name and the pin name
+                set parts [split $master_pin /]
+                set check_master_name [lindex $parts 0]
+                set pin_name [lindex $parts 1]
+                
+                # Found a match, place the terminal
+                if {$master_name == $check_master_name} {
+                    place_io_terminals $inst_name/$pin_name
+                    break
+                }
+            }
+        }
     }
 }
 
