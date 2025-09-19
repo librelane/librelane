@@ -1,0 +1,13 @@
+diff --git a/src/rsz/src/RepairSetup.cc b/src/rsz/src/RepairSetup.cc
+index 7ba89945f8..60bb526844 100644
+--- a/src/rsz/src/RepairSetup.cc
++++ b/src/rsz/src/RepairSetup.cc
+@@ -596,7 +596,7 @@ bool RepairSetup::repairPath(Path* path,
+       const Path* path = expanded.path(i);
+       Vertex* path_vertex = path->vertex(sta_);
+       const Pin* path_pin = path->pin(sta_);
+-      if (i > 0 && network_->isDriver(path_pin)
++      if (i > 0 && path_vertex->isDriver(network_)
+           && !network_->isTopLevelPort(path_pin)) {
+         const TimingArc* prev_arc = path->prevArc(sta_);
+         const TimingArc* corner_arc = prev_arc->cornerArc(lib_ap);

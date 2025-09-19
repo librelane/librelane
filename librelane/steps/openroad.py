@@ -1211,24 +1211,24 @@ class Padring(OpenROADStep):
             "A custom pad configuration file. If not provided, the default pad config will be used.",
         ),
         Variable(
-            "PAD_IO_SOUTH",
-            Optional[List[Tuple[Optional[str], Optional[str]]]],
-            "The IO pad cell name and cell instance tuples for the south row.",
+            "PAD_SOUTH",
+            Optional[List[str]],
+            "The pad instance names for the south pad row.",
         ),
         Variable(
-            "PAD_IO_EAST",
-            Optional[List[Tuple[Optional[str], Optional[str]]]],
-            "The IO pad cell name and cell instance tuples for the east row.",
+            "PAD_EAST",
+            Optional[List[str]],
+            "The pad instance names for the east pad row.",
         ),
         Variable(
-            "PAD_IO_NORTH",
-            Optional[List[Tuple[Optional[str], Optional[str]]]],
-            "The IO pad cell name and cell instance tuples for the north row.",
+            "PAD_NORTH",
+            Optional[List[str]],
+            "The pad instance names for the north pad row.",
         ),
         Variable(
-            "PAD_IO_WEST",
-            Optional[List[Tuple[Optional[str], Optional[str]]]],
-            "The IO pad cell name and cell instance tuples for the west row.",
+            "PAD_WEST",
+            Optional[List[str]],
+            "The pad instance names for the west pad row.",
         ),
     ]
 
