@@ -646,3 +646,21 @@ class HoldViolations(TimingViolations):
 
     metric_name = "timing__hold_vio__count"
     corner_override = ["*"]
+
+
+@Step.factory.register()
+class Density(MetricChecker):
+    id = "Checker.Density"
+    name = "Density Violations Checker"
+    long_name = "Density Violations Checker"
+
+    metric_name = "design__density_violations__count"
+    metric_description = "Density violations"
+
+    error_on_var = Variable(
+        "ERROR_ON_DENSITY_VIOLATIONS",
+        bool,
+        "Checks for density violations after density check is executed. If so, an error is raised at the end of the flow.",
+        default=True,
+    )
+    config_vars = [error_on_var]

@@ -63,7 +63,7 @@ def cli(input_gds, output_gds, die_width, die_height):
     layout.rename_cell(sealring_static_i, "sealring")
 
     # Insert seal ring cell
-    top.insert(pya.DCellInstArray(sealring_static, pya.Trans(25 - 16, 25 - 16)))
+    top.insert(pya.DCellInstArray(sealring_static, pya.Trans(0, 0)))
 
     # Save output layout
     layout.write(output_gds)

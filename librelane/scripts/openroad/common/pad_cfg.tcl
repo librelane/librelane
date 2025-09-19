@@ -17,139 +17,118 @@ set_global_connections
 
 puts "\[INFO\] Generating padring…"
 
-proc calc_horizontal_pad_location {index total cellname} {
-    set io_width ""
-    set io_height ""
-    
-    dict for {cellname_match size} $::env(PAD_CELLS) {
-        if {[regexp $cellname_match $cellname]} {
-            set io_width  [lindex $size 0]
-            set io_height [lindex $size 1]
-            break
-        }
-    }
-    
-    puts "\[INFO\] IO pad size ($io_width, $io_height)"
-    
-    if {($io_width == "") || ($io_height == "")} {
-        puts "\[ERROR\] Could not find a match for $cellname"
-    }
+# Pad Placement Algorithm
+#
+# For all sides:
+#
+# 1. Sum up all pad widths for the side
+# 2. If that value is larger than the side, throw an error
+# 3. Subtract that value from the side width
+# 4. Divide this value with the number of pads for this side + 1
+# 5. Round this value to the minimum site width (this is the spacing between pads)
+# 6. Multiply this value with the number of pads for this side minus one, subtract this value from the side width
+# 7. Divide this value by two, this is the spacing from pads to corners
+# 8. Throw an error if this spacing is not a multiple of the minimum site width
 
-    set DIE_WIDTH [expr {[lindex $::env(DIE_AREA) 2] - [lindex $::env(DIE_AREA) 0]}]
-    set PAD_OFFSET [expr {$io_height + $::env(PAD_EDGE_SPACING)}]
-    set PAD_AREA_WIDTH [expr {$DIE_WIDTH - ($PAD_OFFSET * 2)}]
-    #set HORIZONTAL_PAD_DISTANCE [expr {($PAD_AREA_WIDTH / $total) - $io_width}]
-    set SPACE_WIDTH [expr {$PAD_AREA_WIDTH - ($io_width * $total)}]
-    set HORIZONTAL_PAD_DISTANCE [expr {2 * floor($SPACE_WIDTH / (2 * $total))}]
-    set SPACE_LEFT [expr {$SPACE_WIDTH - $HORIZONTAL_PAD_DISTANCE * ($total - 1)}]
-
-    #return [expr {$PAD_OFFSET + (($io_width + $HORIZONTAL_PAD_DISTANCE) * $index) + ($HORIZONTAL_PAD_DISTANCE / 2)}]
-    return [expr {$PAD_OFFSET + ($SPACE_LEFT / 2) + (($io_width + $HORIZONTAL_PAD_DISTANCE) * $index)}]
-}
-
-proc calc_vertical_pad_location {index total cellname} {
-    set io_width ""
-    set io_height ""
-    
-    dict for {cellname_match size} $::env(PAD_CELLS) {
-        if {[regexp $cellname_match $cellname]} {
-            set io_width  [lindex $size 0]
-            set io_height [lindex $size 1]
-            break
-        }
-    }
-    
-    puts "\[INFO\] IO pad size ($io_width, $io_height)"
-    
-    if {($io_width == "") || ($io_height == "")} {
-        puts "\[ERROR\] Could not find a match for $cellname"
-    }
-
-    set DIE_HEIGHT [expr {[lindex $::env(DIE_AREA) 3] - [lindex $::env(DIE_AREA) 1]}]
-    set PAD_OFFSET [expr {$io_height + $::env(PAD_EDGE_SPACING)}]
-    set PAD_AREA_HEIGHT [expr {$DIE_HEIGHT - ($PAD_OFFSET * 2)}]
-    #set VERTICAL_PAD_DISTANCE [expr {($PAD_AREA_HEIGHT / $total) - $io_width}]
-    set SPACE_HEIGHT [expr {$PAD_AREA_HEIGHT - ($io_width * $total)}]
-    set VERTICAL_PAD_DISTANCE [expr {2 * floor($SPACE_HEIGHT / (2 * $total))}]
-    set SPACE_LEFT [expr {$SPACE_HEIGHT - $VERTICAL_PAD_DISTANCE * ($total - 1)}]
-
-    #return [expr {$PAD_OFFSET + (($io_width + $VERTICAL_PAD_DISTANCE) * $index) + ($VERTICAL_PAD_DISTANCE / 2)}]
-    return [expr {$PAD_OFFSET + ($SPACE_LEFT / 2) + (($io_width + $VERTICAL_PAD_DISTANCE) * $index)}]
-}
+set DIE_HEIGHT [expr {[lindex $::env(DIE_AREA) 3] - [lindex $::env(DIE_AREA) 1]}]
+set DIE_WIDTH [expr {[lindex $::env(DIE_AREA) 2] - [lindex $::env(DIE_AREA) 0]}]
 
 # Make IO sites
 make_io_sites \
-    -horizontal_site $::env(PAD_IO_SITE_NAME) \
-    -vertical_site $::env(PAD_IO_SITE_NAME) \
+    -horizontal_site $::env(PAD_SITE_NAME) \
+    -vertical_site $::env(PAD_SITE_NAME) \
     -corner_site $::env(PAD_CORNER_SITE_NAME) \
     -offset $::env(PAD_EDGE_SPACING)
 
-# Add SOUTH IO Pads
-set i 0
-foreach cellname_instancename $::env(PAD_IO_SOUTH) {
-    set cellname [lindex $cellname_instancename 0]
-    set instancename [lindex $cellname_instancename 1]
+set block [ord::get_db_block]
+set units [$block getDefUnits]
+
+set sides {PAD_SOUTH PAD_EAST PAD_NORTH PAD_WEST}
+set vertical_sides [list PAD_EAST PAD_WEST]
+set horizontal_sides [list PAD_SOUTH PAD_NORTH]
+set row_names [dict create PAD_SOUTH IO_SOUTH PAD_EAST IO_EAST PAD_NORTH IO_NORTH PAD_WEST IO_WEST]
+
+foreach side $sides {
+    puts "Placing pads for $side…"
+    set sum_of_cell_widths 0
     
-    if {$cellname == "None" || $instancename == "None"} {
-        incr i
-        continue
+    foreach inst_name $::env($side) {
+        if { [set inst [$block findInst $inst_name]] == "NULL" } {
+            puts stderr "\[ERROR\] No instance $instance_name found."
+            exit 1
+        }
+        set master_name [[$inst getMaster] getName]
+        
+        # Convert to micrometer
+        set width  [expr [[$inst getMaster] getWidth] / $units]
+        set height [expr [[$inst getMaster] getHeight] / $units]
+        
+        puts "$master_name: $width $height"
+        incr sum_of_cell_widths $width
+    }
+
+    puts "The sum of cell widths for $side: $sum_of_cell_widths"
+    
+    # Get the available space for the side
+    set side_width 0
+    if {[lsearch -exact $horizontal_sides $side] >= 0} {
+        set horizontal_side_width [expr ($DIE_WIDTH - $::env(PAD_EDGE_SPACING) * 2 - $::env(PAD_FAKE_CORNER_SITE_WIDTH) * 2)]
+        puts "horizontal_side_width: $horizontal_side_width"
+        set side_width $horizontal_side_width
+    }
+    if {[lsearch -exact $vertical_sides $side] >= 0} {
+        set vertical_side_width [expr ($DIE_HEIGHT - $::env(PAD_EDGE_SPACING) * 2 - $::env(PAD_FAKE_CORNER_SITE_HEIGHT) * 2)]
+        puts "vertical_side_width: $vertical_side_width"
+        set side_width $vertical_side_width
     }
     
-    puts "\[INFO\] Adding instance $instancename of cell $cellname to IO_SOUTH"
-    
-    place_pad -row IO_SOUTH -location [calc_horizontal_pad_location $i [llength $::env(PAD_IO_SOUTH)] $cellname] $instancename -master $cellname
-    incr i
-}
+    if {$sum_of_cell_widths > $side_width} {
+        puts "\[Error\] Sum of cell widths for $side is larger than the width of this side."
+        exit 1
+    }
 
-# Add EAST IO Pads
-set i 0
-foreach cellname_instancename $::env(PAD_IO_EAST) {
-    set cellname [lindex $cellname_instancename 0]
-    set instancename [lindex $cellname_instancename 1]
+    set space_for_fill [expr $side_width - $sum_of_cell_widths]
+    set space_between_pads [expr $space_for_fill / ([llength $::env($side)] + 1)]
     
-    if {$cellname == "None" || $instancename == "None"} {
-        incr i
-        continue
+    # Round to minimum site width (min. filler)
+    set space_between_pads_1um [expr floor($space_between_pads / $::env(PAD_FAKE_SITE_WIDTH)) * $::env(PAD_FAKE_SITE_WIDTH)]
+    puts "space_between_pads_1um: $space_between_pads_1um"
+    
+    # The spacing for the pads on the side (the remaining space)
+    set space_side [expr ($space_for_fill - $space_between_pads_1um * ([llength $::env($side)] - 1)) / 2]
+    
+    if { $space_side != floor($space_side / $::env(PAD_FAKE_SITE_WIDTH)) * $::env(PAD_FAKE_SITE_WIDTH) } {
+        puts "\[Error\] The remaining area for the pads on the side ($space_side) is not divisible by the minimum site width (minimum filler: $::env(PAD_FAKE_SITE_WIDTH))."
+        exit 1
     }
     
-    puts "\[INFO\] Adding instance $instancename of cell $cellname to IO_EAST"
-    
-    place_pad -row IO_EAST -location [calc_vertical_pad_location $i [llength $::env(PAD_IO_EAST)] $cellname] $instancename -master $cellname
-    incr i
-}
-
-# Add NORTH IO Pads
-set i 0
-foreach cellname_instancename $::env(PAD_IO_NORTH) {
-    set cellname [lindex $cellname_instancename 0]
-    set instancename [lindex $cellname_instancename 1]
-    
-    if {$cellname == "None" || $instancename == "None"} {
-        incr i
-        continue
+    # Get the start position for each side
+    set cur_pos 0.0
+    if {[lsearch -exact $horizontal_sides $side] >= 0} {
+        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $::env(PAD_FAKE_CORNER_SITE_WIDTH)]
+    }
+    if {[lsearch -exact $vertical_sides $side] >= 0} {
+        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $::env(PAD_FAKE_CORNER_SITE_HEIGHT)]
     }
     
-    puts "\[INFO\] Adding instance $instancename of cell $cellname to IO_NORTH"
-    
-    place_pad -row IO_NORTH -location [calc_horizontal_pad_location $i [llength $::env(PAD_IO_NORTH)] $cellname] $instancename -master $cellname
-    incr i
-}
-
-# Add WEST IO Pads
-set i 0
-foreach cellname_instancename $::env(PAD_IO_WEST) {
-    set cellname [lindex $cellname_instancename 0]
-    set instancename [lindex $cellname_instancename 1]
-    
-    if {$cellname == "None" || $instancename == "None"} {
-        incr i
-        continue
-    }    
-    
-    puts "\[INFO\] Adding instance $instancename of cell $cellname to IO_WEST"
-    
-    place_pad -row IO_WEST -location [calc_vertical_pad_location $i [llength $::env(PAD_IO_WEST)] $cellname] $instancename -master $cellname
-    incr i
+    # For all instances
+    foreach inst_name $::env($side) {
+        if { [set inst [$block findInst $inst_name]] == "NULL" } {
+            puts stderr "\[ERROR\] No instance $instance_name found."
+            exit 1
+        }
+        set master_name [[$inst getMaster] getName]
+        
+        # Convert to micrometer
+        set width  [expr [[$inst getMaster] getWidth] / $units]
+        set height [expr [[$inst getMaster] getHeight] / $units]
+        
+        # Place the pads        
+        place_pad -row [dict get $row_names $side] -location $cur_pos $inst_name -master $master_name
+        
+        # Increment current position
+        set cur_pos [expr $cur_pos + $space_between_pads_1um + $width]
+    }
 }
 
 puts "\[INFO\] Placing corner cells…"
@@ -173,11 +152,11 @@ connect_by_abutment
 # Place bondpads (if needed)
 if { [info exists ::env(PAD_BONDPAD_NAME)] } {
     puts "\[INFO\] Placing bondpads…"
-    dict for {cellname_match offset} $::env(PAD_BONDPAD_OFFSETS) {
+    dict for {inst_name_match offset} $::env(PAD_BONDPAD_OFFSETS) {
         set offset_x [lindex $offset 0]
         set offset_y [lindex $offset 1]
-        puts "\[INFO\] Placing bond pad $::env(PAD_BONDPAD_NAME) for cells $cellname_match at offset ($offset_x, $offset_y)"
-        place_bondpad -bond $::env(PAD_BONDPAD_NAME) $cellname_match -offset [list $offset_x $offset_y]
+        puts "\[INFO\] Placing bond pad $::env(PAD_BONDPAD_NAME) for cells $inst_name_match at offset ($offset_x, $offset_y)"
+        place_bondpad -bond $::env(PAD_BONDPAD_NAME) $inst_name_match -offset [list $offset_x $offset_y]
     }
 }
 

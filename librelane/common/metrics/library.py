@@ -352,3 +352,9 @@ Metric(
     higher_is_better=False,
     critical=True,
 )
+Metric(
+    "design__density_violations__count",
+    aggregator=sum_aggregator,
+    higher_is_better=False,
+    critical=True,
+)

@@ -18,10 +18,12 @@ read_pnr_libs
 read_tech_lef
 
 # Make fake I/O sites
-if { [info exists ::env(PAD_FAKE_IO_SITE_WIDTH)] || [info exists ::env(PAD_FAKE_IO_SITE_HEIGHT)] } {
-    make_fake_io_site -name $::env(PAD_IO_SITE_NAME) -width $::env(PAD_FAKE_IO_SITE_WIDTH) -height $::env(PAD_FAKE_IO_SITE_HEIGHT)
+if { [info exists ::env(PAD_FAKE_SITE_WIDTH)] || [info exists ::env(PAD_FAKE_SITE_HEIGHT)] } {
+    puts "Making fake IO site $::env(PAD_SITE_NAME) …"
+    make_fake_io_site -name $::env(PAD_SITE_NAME) -width $::env(PAD_FAKE_SITE_WIDTH) -height $::env(PAD_FAKE_SITE_HEIGHT)
 }
 if { [info exists ::env(PAD_FAKE_CORNER_SITE_WIDTH)] || [info exists ::env(PAD_FAKE_CORNER_SITE_HEIGHT)] } {
+    puts "Making fake IO site $::env(PAD_CORNER_SITE_NAME) …"
     make_fake_io_site -name $::env(PAD_CORNER_SITE_NAME) -width $::env(PAD_FAKE_CORNER_SITE_WIDTH) -height $::env(PAD_FAKE_CORNER_SITE_HEIGHT)
 }
 

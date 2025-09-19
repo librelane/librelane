@@ -665,9 +665,12 @@ class LVS(KLayoutStep):
 
 @Step.factory.register()
 class SealRing(KLayoutStep):
+    """
+    Adds a seal ring in the correct size to the GDS.
+    """
 
     id = "KLayout.SealRing"
-    name = "Adds Seal Ring to the GDS"
+    name = "Seal Ring Generation"
 
     inputs = [DesignFormat.GDS]
     outputs = [DesignFormat.GDS]
@@ -757,9 +760,12 @@ class SealRing(KLayoutStep):
 
 @Step.factory.register()
 class FillerGeneration(KLayoutStep):
+    """
+    Generates the filler cells according to the design rules and adds them to the GDS.
+    """
 
     id = "KLayout.FillerGeneration"
-    name = "Adds filler to the GDS"
+    name = "Filler Generation"
 
     inputs = [DesignFormat.GDS]
     outputs = [DesignFormat.GDS]
@@ -769,6 +775,8 @@ class FillerGeneration(KLayoutStep):
         views_updates: ViewsUpdate = {}
         if self.config["PDK"] in ["ihp-sg13g2"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        elif self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+            views_updates, metrics_updates = self.run_gf180mcu(state_in, **kwargs)
         else:
             self.warn(
                 f"KLayout.FillerGeneration is not supported for the {self.config['PDK']} PDK. This step will be skipped."
@@ -793,8 +801,6 @@ class FillerGeneration(KLayoutStep):
             "libs.tech/klayout/tech/scripts/filler.py",
         )
 
-        print(env)
-
         env["PDK_ROOT"] = self.config["PDK_ROOT"]
         env["PDK"] = self.config["PDK"]
 
@@ -816,6 +822,108 @@ class FillerGeneration(KLayoutStep):
         views_updates[DesignFormat.GDS] = Path(output_gds)
 
         return views_updates, {}
+
+    def run_gf180mcu(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = os.path.join(
+            self.config["PDK_ROOT"],
+            self.config["PDK"],
+            "libs.tech/klayout/tech/drc/filler_generation/fill_all.rb",
+        )
+
+        # Not a pya script
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"output={abspath(output_gds)}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+
+@Step.factory.register()
+class RunDensity(KLayoutStep):
+    """
+    Runs the density check of the GDS according to the design rules.
+    """
+
+    id = "KLayout.RunDensity"
+    name = "Run Density"
+
+    inputs = [DesignFormat.GDS]
+    outputs = []
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+            views_updates, metrics_updates = self.run_gf180mcu(state_in, **kwargs)
+        else:
+            self.warn(
+                f"KLayout.CheckDensity is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+
+        return views_updates, metrics_updates
+
+    def run_gf180mcu(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+
+        script = os.path.join(
+            self.config["PDK_ROOT"],
+            self.config["PDK"],
+            "libs.tech/klayout/tech/drc/rule_decks/density.drc",
+        )
+
+        # Not a pya script
+        subprocess_result = self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"input={abspath(input_gds)}",
+            ],
+            env=env,
+        )
+
+        density_violations = 0
+        with open(subprocess_result["log_path"]) as fh:
+            for line in fh:
+                if "[ERROR]" in line:
+                    density_violations += 1
+
+        metrics_updates: MetricsUpdate = {
+            "design__density_violations__count": density_violations,
+        }
+
+        return views_updates, metrics_updates
 
 
 @Step.factory.register()
