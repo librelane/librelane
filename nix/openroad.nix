@@ -87,6 +87,7 @@ in
       ];
 
     patches = [
+      ./patches/openroad/fix_rsz_repair_bidir_vertex.patch
     ];
 
     postPatch = ''
