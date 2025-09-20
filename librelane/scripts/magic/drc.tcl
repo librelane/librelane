@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Flatten cells
+if { [info exists ::env(MAGIC_GDS_FLATGLOB)] } {
+    foreach {gds_flatglob} $::env(MAGIC_GDS_FLATGLOB) {
+        gds flatglob $gds_flatglob
+    }
+}
+
 if { $::env(MAGIC_DRC_USE_GDS) } {
     gds read $::env(CURRENT_GDS)
 } else {
