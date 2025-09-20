@@ -54,6 +54,10 @@ Style Notes
 
   * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
 
+* `Magic.DRC`: Added `MAGIC_GDS_FLATGLOB`
+
+  * Used to flatten cells in order to prevent false positive DRC errors.
+
 * `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
   `MAGIC_NO_EXT_UNIQUE`
 
@@ -469,6 +473,7 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
 # 2.4.2
 
 ## Documentation

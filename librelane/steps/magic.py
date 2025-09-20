@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -398,6 +402,11 @@ class DRC(MagicStep):
             bool,
             "A flag to choose whether to run the Magic DRC checks on GDS or not. If not, then the checks will be done on the DEF view of the design, which is a bit faster, but may be less accurate as some DEF/LEF elements are abstract.",
             default=True,
+        ),
+        Variable(
+            "MAGIC_GDS_FLATGLOB",
+            Optional[List[str]],
+            "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
         ),
     ]
 
