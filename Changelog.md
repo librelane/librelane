@@ -200,6 +200,10 @@ Style Notes
 
   * Corrected `GPL_CELL_PADDING` to be an integer.
 
+* `OpenROAD.IOPlacement`
+
+  * Added optional variable `IO_EXCLUDE_PIN_REGION`
+
 * `OpenROAD.RepairAntennas`
 
   * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
