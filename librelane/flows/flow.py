@@ -534,8 +534,11 @@ class Flow(ABC):
 
         :param with_initial_state: An optional initial state object to use.
             If not provided:
+
             * If resuming a previous run, the latest ``state_out.json`` (by filesystem modification date)
+
             * If not, an empty state object is created.
+
         :param tag: A name for this invocation of the flow. If not provided,
             one based on a date string will be created.
 
@@ -999,8 +1002,9 @@ class Flow(ABC):
         A factory singleton for Flows, allowing Flow types to be registered and then
         retrieved by name.
 
-        See https://en.wikipedia.org/wiki/Factory_(object-oriented_programming) for
-        a primer.
+        See
+        `Factory (object-oriented programming) on Wikipedia <https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)>`_
+        for a primer.
         """
 
         __registry: ClassVar[Dict[str, Type[Flow]]] = {}

@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -399,6 +403,11 @@ class DRC(MagicStep):
             "A flag to choose whether to run the Magic DRC checks on GDS or not. If not, then the checks will be done on the DEF view of the design, which is a bit faster, but may be less accurate as some DEF/LEF elements are abstract.",
             default=True,
         ),
+        Variable(
+            "MAGIC_GDS_FLATGLOB",
+            Optional[List[str]],
+            "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
+        ),
     ]
 
     def get_script_path(self):
@@ -458,15 +467,18 @@ class SpiceExtraction(MagicStep):
         Variable(
             "MAGIC_EXT_ABSTRACT_CELLS",
             Optional[List[str]],
-            "A list of regular experssions which are matched against the cells of a "
+            "A list of regular expressions which are matched against the cells of a "
             + "the design. Matches are abstracted (black-boxed) during SPICE extraction.",
         ),
         Variable(
-            "MAGIC_NO_EXT_UNIQUE",
-            bool,
-            "Enables connections by label in LVS by skipping `extract unique` in Magic extractions.",
-            default=False,
-            deprecated_names=["LVS_CONNECT_BY_LABEL"],
+            "MAGIC_EXT_UNIQUE",
+            Literal["all", "notopports", "noports", "none"],
+            'Runs `extract unique` with the specified option. The default is "all", and "none" disables `extract unique`, allowing connections between separate nets by label in LVS.',
+            default="all",
+            deprecated_names=[
+                ("MAGIC_NO_EXT_UNIQUE", lambda o: "none" if o else "all"),
+                ("LVS_CONNECT_BY_LABEL", lambda o: "none" if o else "all"),
+            ],
         ),
         Variable(
             "MAGIC_EXT_SHORT_RESISTOR",

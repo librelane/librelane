@@ -549,6 +549,10 @@ jobs:
   publish:
     runs-on: ubuntu-22.04
     needs: [test-containers, build-py]
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     name: Publish (If Applicable)
     steps:
       - name: Maximize build space
@@ -614,8 +618,6 @@ jobs:
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Tag Commit
         if: ${{ env.PUBLISH == '1' }}
         uses: tvdias/github-tagger@v0.0.1

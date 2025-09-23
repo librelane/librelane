@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2022-2025 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -637,6 +641,13 @@ proc append_if_flag {list_arg glob_variable_name flag} {
 proc append_if_not_flag {list_arg glob_variable_name flag} {
     upvar $list_arg local_array
     if { [info exists ::env($glob_variable_name)] && !$::env($glob_variable_name) } {
+        lappend local_array $flag
+    }
+}
+
+proc append_if_equals {list_arg glob_variable_name value flag} {
+    upvar $list_arg local_array
+    if { [info exists ::env($glob_variable_name)] && $::env($glob_variable_name) == $value } {
         lappend local_array $flag
     }
 }
