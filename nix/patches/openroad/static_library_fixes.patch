@@ -1,0 +1,31 @@
+diff --git a/src/cut/src/CMakeLists.txt b/src/cut/src/CMakeLists.txt
+index 277c119062..ac1a6537a2 100644
+--- a/src/cut/src/CMakeLists.txt
++++ b/src/cut/src/CMakeLists.txt
+@@ -27,12 +27,11 @@ target_sources(cut
+ target_link_libraries(cut
+   PUBLIC
+     rsz_lib
+-    libabc
++    ${ABC_LIBRARY}
+   PRIVATE
+     odb
+     dbSta
+     OpenSTA
+     dbSta_lib
+     utl_lib
+-    ${ABC_LIBRARY}
+  )
+diff --git a/src/cut/test/cpp/CMakeLists.txt b/src/cut/test/cpp/CMakeLists.txt
+index 2e11fe794a..4c918db302 100644
+--- a/src/cut/test/cpp/CMakeLists.txt
++++ b/src/cut/test/cpp/CMakeLists.txt
+@@ -8,7 +8,7 @@ target_link_libraries(CutGTests
+         GTest::gmock
+         dbSta_lib
+         utl_lib
+-        libabc
++        ${ABC_LIBRARY}
+         cut
+         ${TCL_LIBRARY}
+ )

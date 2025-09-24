@@ -18,7 +18,7 @@
   zlib,
   abc-namespace-name ? "abc",
   rev ? "2bf0bb0ce35cda283d69c8b70c8e668e8511adc1",
-  rev-date ? "2025-07-03",
+  rev-date ? "2025-07-04",
   sha256 ? "sha256-Dth5B6C0ocp27L314VXJyL2HgypygU/cdzre68kO1jE=",
 }:
 abc-verifier.overrideAttrs (finalAttrs: previousAttrs: {
@@ -41,6 +41,7 @@ abc-verifier.overrideAttrs (finalAttrs: previousAttrs: {
     "-DUSE_SYSTEM_ZLIB:BOOL=ON"
     "-DABC_USE_NAMESPACE=${abc-namespace-name}"
     "-DABC_SKIP_TESTS:BOOL=ON"
+    "-DABC_USE_STDINT_H:BOOL=ON"
   ];
 
   buildInputs = [zlib];
