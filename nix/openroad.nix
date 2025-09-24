@@ -50,9 +50,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "c47bc3b81431e1ce5f305ab75bad126c3adb2858",
-  rev-date ? "2025-09-01",
-  sha256 ? "sha256-MtQe6CFFg9aJ3LOVjUZ5zD6QGPHNIV3ebNJhQoLCgSM=",
+  rev ? "6524d9a82df234e03c1c5c9b1785c76c5daf555e",
+  rev-date ? "2025-09-24",
+  sha256 ? "sha256-Jpk0u89qwp5q7Udfm/gUi29ooa8MQW0bae2jwD958qs=",
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -87,6 +87,7 @@ in
       ];
 
     patches = [
+      ./patches/openroad/static_library_fixes.patch
     ];
 
     postPatch = ''
