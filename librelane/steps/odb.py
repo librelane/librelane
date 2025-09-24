@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -979,7 +983,7 @@ class ManualGlobalPlacement(OdbpyStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         if self.config["MANUAL_GLOBAL_PLACEMENTS"] is None:
-            info(f"'MANUAL_GLOBAL_PLACEMENTS' not set, skipping '{self.id}'…")
+            info(f"'MANUAL_GLOBAL_PLACEMENTS' not set. Skipping '{self.id}'…")
             return {}, {}
         return super().run(state_in, **kwargs)
 
@@ -1039,6 +1043,12 @@ class InsertECOBuffers(OdbpyStep):
         assert self.config_path is not None, "get_command called before start()"
         return super().get_command() + ["--step-config", self.config_path]
 
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        if self.config["INSERT_ECO_BUFFERS"] is None:
+            info(f"'INSERT_ECO_BUFFERS' not set. Skipping '{self.id}'…")
+            return {}, {}
+        return super().run(state_in, **kwargs)
+
 
 @dataclass
 class ECODiode:
@@ -1091,5 +1101,8 @@ class InsertECODiodes(OdbpyStep):
     def run(self, state_in: State, **kwargs):
         if self.config["DIODE_CELL"] is None:
             info(f"'DIODE_CELL' not set. Skipping '{self.id}'…")
+            return {}, {}
+        if self.config["INSERT_ECO_DIODES"] is None:
+            info(f"'INSERT_ECO_DIODES' not set. Skipping '{self.id}'…")
             return {}, {}
         return super().run(state_in, **kwargs)

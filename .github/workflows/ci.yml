@@ -135,6 +135,7 @@ jobs:
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
+          determinate: false
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
@@ -168,6 +169,7 @@ jobs:
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
+          determinate: false
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
@@ -221,6 +223,7 @@ jobs:
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: DeterminateSystems/nix-installer-action@main
         with:
+          determinate: false
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
@@ -276,13 +279,14 @@ jobs:
           remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-        with:
-          determinate: true
-          extra-conf: |
+      - name: Install Lix # CppNix crashes on Docker build
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+            experimental-features = nix-command flakes
+          "
+          echo "extra-substituters = https://nix-cache.fossi-foundation.org" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=" | sudo tee -a /etc/nix/nix.conf
       - name: Build with Nix
         id: nix_build_action
         uses: ./.github/actions/build_nix
@@ -549,6 +553,10 @@ jobs:
   publish:
     runs-on: ubuntu-22.04
     needs: [test-containers, build-py]
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     name: Publish (If Applicable)
     steps:
       - name: Maximize build space
@@ -614,8 +622,6 @@ jobs:
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Tag Commit
         if: ${{ env.PUBLISH == '1' }}
         uses: tvdias/github-tagger@v0.0.1

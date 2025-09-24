@@ -19,8 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/5.3.0";
-    libparse.url = "github:efabless/libparse-python";
+    nix-eda.url = "github:fossi-foundation/nix-eda/5.5.0";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -28,12 +27,10 @@
 
   inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
-  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs = {
     self,
     nix-eda,
-    libparse,
     ciel,
     devshell,
     ...
@@ -45,7 +42,7 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [libparse ciel])
+        (nix-eda.flakesToOverlay [ciel])
         (
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
@@ -67,8 +64,9 @@
         )
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
+            libparse = callPythonPackage ./nix/libparse.nix {};
             mdformat = pypkgs.mdformat.overridePythonAttrs {
               version = "0.7.18";
               src = pypkgs'.fetchPypi {

@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1751196116,
-        "narHash": "sha256-y6w1MYMsgfSUPdJoKc+k+4xg0Zi1dUQtv+z71vyCLDU=",
+        "lastModified": 1758194402,
+        "narHash": "sha256-QoaS950TbRvvtndqHf8yz9VrQOZoTJCTPl4wWHgpRDM=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "1260b5f7d752e457d0bef3b1d9ab7fd044ad9c83",
+        "rev": "f4990f916c29f1cb7d890ab5b0716f63ce9de1b4",
         "type": "github"
       },
       "original": {
@@ -48,32 +48,11 @@
         "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
         "revCount": 69,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz?rev=ff81ac966bb2cae68946d5ed5fc4994f96d0ffec&revCount=69"
       },
       "original": {
         "type": "tarball",
         "url": "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz"
-      }
-    },
-    "libparse": {
-      "inputs": {
-        "nixpkgs": [
-          "nix-eda",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1713178934,
-        "narHash": "sha256-1w6HBBE2bWAD0GM98O8WZRmZDW9+EzD0KFvnnH2ho/k=",
-        "owner": "efabless",
-        "repo": "libparse-python",
-        "rev": "cec8b6dfd3d1c97bc5ccd1d0a41c44e51bc9c1eb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "efabless",
-        "repo": "libparse-python",
-        "type": "github"
       }
     },
     "nix-eda": {
@@ -81,16 +60,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1754134233,
-        "narHash": "sha256-RFApbuRqOG4ybeXg7TjUxtpaCGNAbU/8TqQ96Yxo/R0=",
+        "lastModified": 1756966633,
+        "narHash": "sha256-Gh+07iMmlV/HCLM3KlIGe12Oy7yM4Li0gSuvyEeoOuA=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "5908d9dbe2c94486926787dfe33ddfdc21863b60",
+        "rev": "396cbc9dba2b9746c43a33c2ff0636b098b1982f",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "5.3.0",
+        "ref": "5.5.0",
         "repo": "nix-eda",
         "type": "github"
       }
@@ -116,7 +95,6 @@
         "ciel": "ciel",
         "devshell": "devshell",
         "flake-compat": "flake-compat",
-        "libparse": "libparse",
         "nix-eda": "nix-eda"
       }
     }

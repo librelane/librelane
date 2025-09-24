@@ -79,9 +79,11 @@ extract no capacitance
 extract no coupling
 extract no resistance
 extract no adjust
-if { ! $::env(MAGIC_NO_EXT_UNIQUE) } {
-    extract unique
+
+if { $::env(MAGIC_EXT_UNIQUE) != "none" } {
+    extract unique $::env(MAGIC_EXT_UNIQUE)
 }
+
 # extract warn all
 extract
 
