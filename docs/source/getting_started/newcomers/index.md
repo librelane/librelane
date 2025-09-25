@@ -298,17 +298,18 @@ sequence of {py:class}`Step <librelane.steps.Step>`(s). Each step has its
 separate directory within the run directory.
 
 For example, the {step}`OpenROAD.TapEndCapInsertion` Step creates the following
-directory `14-openroad-tapendcapinsertion`.
+directory `18-openroad-tapendcapinsertion`.
 
 A step directory has log files, report files, {term}`metrics` and output
 artifacts created by the step.
 
-For example, these are the contents of `14-openroad-tapendcapinsertion`:
+For example, these are the contents of `18-openroad-tapendcapinsertion`:
 
 ```text
-14-openroad-tapendcapinsertion/
+18-openroad-tapendcapinsertion/
 ├── COMMANDS
 ├── config.json
+├── _env.tcl
 ├── openroad-tapendcapinsertion.log
 ├── openroad-tapendcapinsertion.process_stats.json
 ├── or_metrics_out.json
@@ -317,6 +318,7 @@ For example, these are the contents of `14-openroad-tapendcapinsertion`:
 ├── pm32.odb
 ├── pm32.pnl.v
 ├── pm32.sdc
+├── runtime.txt
 ├── state_in.json
 └── state_out.json
 ```
@@ -346,7 +348,7 @@ Here is a small description of each of those files:
 Using `state_out.json`, you can view the layout at intermediate steps as well!
 
 ```console
-[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json --with-initial-state ~/my_designs/pm32/runs/RUN_2023-12-27_16-59-15/14-openroad-tapendcapinsertion/state_out.json"
+[nix-shell:~/librelane]$ librelane --last-run --flow openinklayout ~/my_designs/pm32/config.json --with-initial-state ~/my_designs/pm32/runs/RUN_2023-12-27_16-59-15/18-openroad-tapendcapinsertion/state_out.json"
 ```
 ````
 
@@ -356,21 +358,21 @@ The run directory is composed of many of these step directories:
 
 ```text
 RUN_2023-12-27_16-59-15
-├── 01-verilator-lint/
-├── 02-checker-linttimingconstructs/
-├── 03-checker-linterrors/
-├── 04-yosys-jsonheader/
-├── 05-yosys-synthesis/
-├── 06-checker-yosysunmappedcells/
-├── 07-checker-yosyssynthchecks/
-├── 08-openroad-checksdcfiles/
-├── 09-openroad-staprepnr/
-├── 10-openroad-floorplan/
-├── 11-odb-setpowerconnections/
-├── 12-odb-manualmacroplacement/
-├── 13-openroad-cutrows/
-├── 14-openroad-tapendcapinsertion/
-├── 15-openroad-globalplacementskipio/
+├── 01-verilator-lint
+├── 02-checker-linttimingconstructs
+├── 03-checker-linterrors
+├── 04-checker-lintwarnings
+├── 05-yosys-jsonheader
+├── 06-yosys-synthesis
+├── 07-checker-yosysunmappedcells
+├── 08-checker-yosyssynthchecks
+├── 09-checker-netlistassignstatements
+├── 10-openroad-checksdcfiles
+├── 11-openroad-checkmacroinstances
+├── 12-openroad-staprepnr
+├── 13-openroad-floorplan
+├── 14-odb-checkmacroantennaproperties
+├── 15-odb-setpowerconnections
 ⋮
 ├── final/
 ├── tmp
@@ -405,6 +407,7 @@ final
 ├── sdf/
 ├── spef/
 ├── spice/
+├── vh/
 ├── metrics.csv
 └── metrics.json
 ```
@@ -465,10 +468,10 @@ Tools ► Marker Browser
 
 Click File ► Open and then select the DRC report file, of which you'll find two:
 One under `52-magic-drc/reports/drc.klayout.xml` and the other under
-`53-klayout-drc/report/drc.klayout.xml`.
+`63-klayout-drc/report/drc.klayout.xml`.
 
 ```{tip}
-The initial number in `53-klayout-drc` (`53`) may vary according to the
+The initial number in `63-klayout-drc` (`63`) may vary according to the
 flow's configuration.
 ```
 
@@ -516,7 +519,7 @@ Final result:
 Circuits match uniquely.
 ```
 
-In case of errors, there is also `lvs.rpt` which is more detailed. Inside it,
+In case of errors, there is also `lvs.netgen.rpt` which is more detailed. Inside it,
 you will find tables comparing nodes between the layout and the schematic. On
 the left is the layout (`GDS`) and the schematic (Verilog) is on the other side.
 Here is a sample of these tables:
