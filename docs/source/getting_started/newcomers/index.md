@@ -596,7 +596,7 @@ There is also a directory per corner inside the Step directory which contains
 all the log files and reports generated for each `IPVT corner`.
 
 ```text
-45-openroad-stapostpnr/
+54-openroad-stapostpnr/
 └── nom_tt_025C_1v80/
     ├── checks.rpt
     ├── filter_unannotated.log
