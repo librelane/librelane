@@ -34,6 +34,7 @@
 import os
 import json
 import shutil
+from typing import List, Optional
 
 import click
 
@@ -142,10 +143,36 @@ def librelane_opt(
 
 
 def librelane_synth(
-    d, top, flatten, report_dir, *, booth=False, abc_dff=False, undriven=True
+    d,
+    top,
+    flatten,
+    report_dir,
+    *,
+    booth=False,
+    abc_dff=False,
+    undriven=True,
+    keep_hierarchy_min_cost: Optional[int],
+    keep_hierarchy_instances: List[str],
+    keep_hierarchy_modules: List[str],
 ):
+
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
     librelane_proc(d, report_dir)
+
+    if keep_hierarchy_min_cost:
+        d.run_pass("keep_hierarchy", "-min_cost", str(keep_hierarchy_min_cost))
+
+    if keep_hierarchy_instances:
+        for keep_hierarchy_instance in keep_hierarchy_instances:
+            d.run_pass(
+                "setattr", "-set", "keep_hierarchy", "1", keep_hierarchy_instance
+            )
+
+    if keep_hierarchy_modules:
+        for keep_hierarchy_module in keep_hierarchy_modules:
+            d.run_pass(
+                "setattr", "-mod", "-set", "keep_hierarchy", "1", keep_hierarchy_module
+            )
 
     if flatten:
         d.run_pass("flatten")  # Flatten the design hierarchy
@@ -354,6 +381,9 @@ def synthesize(
         booth=config["SYNTH_MUL_BOOTH"],
         abc_dff=config["SYNTH_ABC_DFF"],
         undriven=config.get("SYNTH_TIE_UNDEFINED") is not None,
+        keep_hierarchy_min_cost=config["SYNTH_KEEP_HIERARCHY_MIN_COST"],
+        keep_hierarchy_instances=config["SYNTH_KEEP_HIERARCHY_INSTANCES"],
+        keep_hierarchy_modules=config["SYNTH_KEEP_HIERARCHY_MODULES"],
     )
 
     d.run_pass("delete", "t:$print")

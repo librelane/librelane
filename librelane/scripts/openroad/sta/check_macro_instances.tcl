@@ -27,7 +27,7 @@ read_timing_info
 
 set error_count 0
 foreach {instance_name macro_name} $::env(_check_macro_instances) {
-    set instances [get_cells -hierarchical $instance_name]
+    set instances [get_cells $instance_name]
     set instance_count [llength $instances]
     if { $instance_count < 1 } {
         puts stderr "\[ERROR\] No macro instance $instance_name found."
