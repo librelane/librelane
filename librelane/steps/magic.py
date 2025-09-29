@@ -393,7 +393,7 @@ class DRC(MagicStep):
     name = "DRC"
     long_name = "Design Rule Checks"
 
-    inputs = [DesignFormat.DEF, DesignFormat.GDS]
+    inputs = [DesignFormat.DEF.mkOptional(), DesignFormat.GDS]
     outputs = []
 
     config_vars = MagicStep.config_vars + [
@@ -416,6 +416,10 @@ class DRC(MagicStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         reports_dir = os.path.join(self.step_dir, "reports")
         mkdirp(reports_dir)
+
+        # Check that the DEF exists if needed
+        if not self.config["MAGIC_DRC_USE_GDS"]:
+            assert state_in.get(DesignFormat.DEF)
 
         views_updates, metrics_updates = super().run(state_in, **kwargs)
 

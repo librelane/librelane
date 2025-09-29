@@ -54,9 +54,13 @@ Style Notes
 
   * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
 
-* `Magic.DRC`: Added `MAGIC_GDS_FLATGLOB`
+* `Magic.DRC`
 
-  * Used to flatten cells in order to prevent false positive DRC errors.
+  * Added `MAGIC_GDS_FLATGLOB`
+
+    * Used to flatten cells in order to prevent false positive DRC errors.
+
+  * Made `DesignFormat.DEF` optional
 
 * `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
   `MAGIC_NO_EXT_UNIQUE`
@@ -265,7 +269,8 @@ Style Notes
   * Added `LINTER_VLT` as a user defined Verilator Configuration format file
     (`.vlt`).
 
-  * Verilator now creates a `_waivers_output.vlt` file based on the encountered linter warnings.
+  * Verilator now creates a `_waivers_output.vlt` file based on the encountered
+    linter warnings.
 
 * `Yosys.*Synthesis`
 
