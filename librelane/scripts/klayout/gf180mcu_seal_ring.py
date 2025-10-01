@@ -65,8 +65,13 @@ def cli(input_gds, output_gds, die_width, die_height):
     # Insert seal ring cell
     top.insert(pya.DCellInstArray(sealring_static, pya.Trans(0, 0)))
 
+    # Don't save PCell information in the "$$$CONTEXT_INFO$$$" cell
+    # as this could cause issues further downstream
+    options = pya.SaveLayoutOptions()
+    options.write_context_info = False
+
     # Save output layout
-    layout.write(output_gds)
+    layout.write(output_gds, options)
 
 
 if __name__ == "__main__":
