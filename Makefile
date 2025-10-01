@@ -21,8 +21,13 @@ librelane openlane:
 docker-image:
 	cat $(shell nix build --no-link --print-out-paths .#librelane-docker -L --verbose) | docker load
 
+DOC_PY_PKG := sphinx myst-parser sphinxcontrib.bibtex sphinx_design sphinx_tippy sphinx_copybutton sphinx_subfigure docstring_parser furo
+
 .PHONY: docs
 docs:
+	@for pkg in $(DOC_PY_PKG); do \
+		PYTHONPATH= ./venv/bin/python3 -m pip show $$pkg > /dev/null 2>&1 || PYTHONPATH= ./venv/bin/python3 -m pip install $$pkg; \
+	done
 	$(MAKE) -C docs html
 
 .PHONY: host-docs
