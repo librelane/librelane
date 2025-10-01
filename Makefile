@@ -76,7 +76,6 @@ venv/manifest.txt: ./pyproject.toml
 	python3 -m venv ./venv
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade pip
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade wheel poetry poetry-plugin-export
-	PYTHONPATH= ./venv/bin/python3 -m pip install sphinx myst-parser sphinxcontrib.bibtex sphinx_design sphinx_tippy sphinx_copybutton sphinx_subfigure docstring_parser furo
 	PYTHONPATH= ./venv/bin/poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade -r requirements_tmp.txt
 	PYTHONPATH= ./venv/bin/python3 -m pip freeze > $@
