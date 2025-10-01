@@ -19,7 +19,7 @@ For more complex documentation, it is recommended to follow these steps:
 1. Either create a new page in `docs/source/`. Then you need to add your page to the Table of Contents in `index.md`
 1. ... or open an existing one in the same folder.
 1. Follow these guidelines:
-   : - Begin with the general structure of the documentation. This step ensures continuity with the rest of the documentation and allows the writer to better organize their thoughts.
+   * Begin with the general structure of the documentation. This step ensures continuity with the rest of the documentation and allows the writer to better organize their thoughts.
    * Use reStructuredText and existing plugins to write the documentation.
    * Create as much visual documentation as possible. More is better.
    * Pictures, figures, tables significantly improve the quality of documentation and make the documentation available for beginners.
@@ -34,33 +34,35 @@ For more complex documentation, it is recommended to follow these steps:
 
 ## Building documentation locally
 
+```{warning} 
+Make sure your version of python3 satifies the librelane requirements. 
+```
+
 A Python virtual environment will need to be created in `<OPENLANE_ROOT>/venv` as follows:
 
 ```sh
 make venv
 ```
 
-After installation, every time you want to build the documentation proceed to enter the venv and run `sphinx-build` following commands:
+After installation, every time you want to build the documentation proceed to enter the venv and run `sphinx-build` via the following commands:
 
 ```sh
-cd LibreLane/
+cd ~/libreLane
+source ./venv/bin/activate
 make docs
 ```
 
 View the generated html files using your favorite web browser. Open this document in browser:
 
 ```sh
-# Assuming same folder as LibreLane
-cd LibreLane/
-
 # macOS
-open docs/build/html/docs/source/contributing_to_docs.html
+open docs/build/html/contributors/docs.html
 
 # Most GNU/Linux Distributions
-xdg-open docs/build/html/docs/source/contributing_to_docs.html
+xdg-open docs/build/html/contributors/docs.html
 ```
 
-Documentation [regarding reStructuredText can be found here:](https://sublime-and-sphinx-guide.readthedocs.io/en/latest/index.html).
+Documentation [regarding reStructuredText can be found here:](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html).
 
 ## Documentation organization
 
@@ -76,7 +78,7 @@ If you want to create new category than take a look at the source code of existi
 
 ## Writing Style and Consistency
 
-* New documentation should be written in \[MyST Markdown\](<https://myst-parser.readthedocs.io/en/latest/>), a flavor of Markdown with some RST extensions.
+* New documentation should be written in [MyST Markdown](https://myst-parser.readthedocs.io/en/latest/), a flavor of Markdown with some RST extensions.
 * Use `of` instead of `'`, for example: `Docker's Installation` → `after the installation of Docker`.
 * Avoid contractions: Substitute `don't` and `can't` for `do not` and `cannot`
 * The first command of the page should have `cd` in it to specify where you are running and all following commands assume the continuation of the session and don't need the cd command.
