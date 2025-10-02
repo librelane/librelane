@@ -899,6 +899,10 @@ class RunDensity(KLayoutStep):
             "libs.tech/klayout/tech/drc/rule_decks/density.drc",
         )
 
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        xml_report = os.path.join(reports_dir, "density_violations.klayout.xml")
+
         # Not a pya script
         subprocess_result = self.run_subprocess(
             [
@@ -909,6 +913,8 @@ class RunDensity(KLayoutStep):
                 script,
                 "-rd",
                 f"input={abspath(input_gds)}",
+                "-rd",
+                f"report={abspath(xml_report)}",
             ],
             env=env,
         )
