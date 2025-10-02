@@ -25,6 +25,7 @@
   tclreadline,
   python3,
   readline,
+  yaml-cpp,
   spdlog,
   libffi,
   lemon-graph,
@@ -50,9 +51,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "341650e72dad0dc8571822ff8c5d9c5e365327f7",
-  rev-date ? "2025-06-12",
-  sha256 ? "sha256-C/nB//s9h9fCeVe3CTVr9Xey7AhDZCPniHTXybtkJ88=",
+  rev ? "1fed54e7d9fd7973a77b0db72559d3a9bd159ffa",
+  rev-date ? "2025-09-29",
+  sha256 ? "sha256-4rp20rZ2vDCErgEQcYCOjNF2LPqU5uTdzWmhpB97nek=",
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -88,7 +89,6 @@ in
 
     patches = [
       ./patches/openroad/static_library_fixes.patch
-      ./patches/openroad/fix_def_diearea.patch
     ];
 
     postPatch = ''
@@ -119,6 +119,7 @@ in
       clp
       cbc
       gtest
+      yaml-cpp
 
       or-tools_9_14
     ];

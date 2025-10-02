@@ -26,9 +26,9 @@
   cudd,
   zlib,
   eigen,
-  rev ? "ffabd65e39f036b9eb511d3b9d9887772d56e72b",
-  rev-date ? "2025-06-06",
-  sha256 ? "sha256-EQCO82H8mYbRaXCbUhmI6HnzR6wK+eFDXv6Jd2IzqMw=",
+  rev ? "3b2961ebd2dff9561407f956b20a793c5a329f4d",
+  rev-date ? "2025-09-12",
+  sha256 ? "sha256-gPm0AD58TJglT+s9EFRvmwYMys+hH4VHDkPOctY1H98=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
@@ -45,6 +45,11 @@ clangStdenv.mkDerivation (finalAttrs: {
     inherit rev;
     inherit sha256;
   };
+  
+  postPatch = ''
+    # utter bazel nonsense
+    rm -f BUILD
+  '';
 
   cmakeFlags = [
     "-DTCL_LIBRARY=${tcl}/lib/libtcl${clangStdenv.hostPlatform.extensions.sharedLibrary}"
