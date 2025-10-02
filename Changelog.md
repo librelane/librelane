@@ -62,6 +62,10 @@ Style Notes
 
   * Made `DesignFormat.DEF` optional
 
+  * Added `MAGIC_DRC_MAGLEFS`
+
+    * Used to blackbox cells during DRC
+
 * `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
   `MAGIC_NO_EXT_UNIQUE`
 
