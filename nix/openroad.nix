@@ -25,6 +25,7 @@
   tclreadline,
   python3,
   readline,
+  yaml-cpp,
   spdlog,
   libffi,
   lemon-graph,
@@ -50,9 +51,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "6524d9a82df234e03c1c5c9b1785c76c5daf555e",
-  rev-date ? "2025-09-24",
-  sha256 ? "sha256-Jpk0u89qwp5q7Udfm/gUi29ooa8MQW0bae2jwD958qs=",
+  rev ? "1fed54e7d9fd7973a77b0db72559d3a9bd159ffa",
+  rev-date ? "2025-09-29",
+  sha256 ? "sha256-4rp20rZ2vDCErgEQcYCOjNF2LPqU5uTdzWmhpB97nek=",
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -118,6 +119,7 @@ in
       clp
       cbc
       gtest
+      yaml-cpp
 
       or-tools_9_14
     ];
