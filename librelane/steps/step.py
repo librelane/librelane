@@ -1580,8 +1580,15 @@ class WhileStep(Step):
     ``outputs`` may be set explicitly. If not set, it is automatically generated
     based on the constituent steps.
 
+    Each iteration will always start with the original input state.
+
     Unlike ``CompositeStep``, the steps can take additional ``config_vars``, which
     allows config that are specific to the loop and can be used to control its behavior.
+
+    Multiple callback function is provided to allow for custom behavior
+    at different points in the loop. For example to carry state across iterations,
+    you can use ``post_iteration_callback`` to store the iteration end state and set
+    starting state with ``pre_iteration_callback``.
     """
 
     Steps: list[type[Step]]
