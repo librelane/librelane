@@ -48,8 +48,6 @@ from typing import (
 import psutil
 from rich.markup import escape
 
-from librelane.flows.flow import FlowProgressBar
-
 from .. import logging
 from ..__version__ import __version__
 from ..common import (
@@ -72,6 +70,7 @@ from ..config import (
     Variable,
     universal_flow_config_variables,
 )
+from ..flows.flow import FlowProgressBar
 from ..logging import (
     debug,
     err,
