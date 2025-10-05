@@ -722,9 +722,8 @@ class Step(ABC):
 
             IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
         except NameError:
-            from rich.markdown import Markdown
-
             from ..logging import console
+            from rich.markdown import Markdown
 
             console.log(Markdown(Self.get_help_md()))
 
