@@ -57,10 +57,13 @@ def gui_args(osinfo: OSInfo) -> List[str]:
             args += [
                 "-e",
                 f"DISPLAY={os.environ.get('DISPLAY')}",
-                "-v",
-                "/tmp/.X11-unix:/tmp/.X11-unix",
-                "-v",
-                f"{os.path.expanduser('~')}/.Xauthority:/.Xauthority",
+            ]
+            if os.path.isdir("/tmp/.X11-unix"):
+                args += ["-v", "/tmp/.X11-unix:/tmp/.X11-unix"]
+            homedir = os.path.expanduser("~")
+            if os.path.isfile(f"{homedir}/.Xauthority"):
+                args += ["-v", f"{homedir}/.Xauthority:/.Xauthority"]
+            args += [
                 "--network",
                 "host",
                 "--security-opt",
