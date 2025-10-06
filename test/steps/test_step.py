@@ -115,7 +115,6 @@ def test_step_missing_state_in(mock_run):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_create(mock_run, mock_config):
-    from librelane.steps import Step
     from librelane.state import DesignFormat, State
 
     class TestStep(Step):
@@ -194,9 +193,9 @@ def test_mock_run(mock_run, mock_config):
     )
     views_update, metrics_update = step.run(state_in)
     assert step.id == "TestStep", "Wrong step id"
-    assert (
-        step.long_name == "longname"
-    ), "Wrong step long_name, declared via constructor"
+    assert step.long_name == "longname", (
+        "Wrong step long_name, declared via constructor"
+    )
     assert step.config == mock_config, "Wrong step config"
     assert views_update == {}, "Wrong step run -- tainted views_update"
     assert metrics_update == {}, "Wrong step run -- tainted metrics_update"
@@ -327,12 +326,12 @@ def test_step_factory(mock_run):
         id = "TestStep"
         long_name = "longname2"
 
-    assert (
-        "TestStep" in Step.factory.list()
-    ), "Step factory did not register step used for testing: TestStep"
-    assert (
-        Step.factory.get("TestStep") == TestStep
-    ), "Wrong type registered by StepFactor"
+    assert "TestStep" in Step.factory.list(), (
+        "Step factory did not register step used for testing: TestStep"
+    )
+    assert Step.factory.get("TestStep") == TestStep, (
+        "Wrong type registered by StepFactor"
+    )
 
 
 # Do NOT use the Fake FS for this test.
@@ -396,8 +395,8 @@ def test_run_subprocess(mock_run):
         {report_data}
         %OL_END_REPORT
         {extra_data}
-        %OL_METRIC_I new_metric {new_metric['new_metric']}
-        %OL_METRIC_F new_float_metric {new_metric['new_float_metric']}
+        %OL_METRIC_I new_metric {new_metric["new_metric"]}
+        %OL_METRIC_F new_float_metric {new_metric["new_float_metric"]}
         """
     ).strip()
 
@@ -414,15 +413,15 @@ def test_run_subprocess(mock_run):
     with open(report_file) as f:
         actual_report_data = f.read()
 
-    assert (
-        actual_result == subprocess_result
-    ), ".run_subprocess() generated invalid metrics"
-    assert (
-        actual_report_data.strip() == report_data
-    ), ".run_subprocess() generated invalid report"
-    assert (
-        actual_out_data == out_data
-    ), ".run_subprocess() generated mis-matched log file"
+    assert actual_result == subprocess_result, (
+        ".run_subprocess() generated invalid metrics"
+    )
+    assert actual_report_data.strip() == report_data, (
+        ".run_subprocess() generated invalid report"
+    )
+    assert actual_out_data == out_data, (
+        ".run_subprocess() generated mis-matched log file"
+    )
 
     with pytest.raises(subprocess.CalledProcessError):
         step.run_subprocess(["false"])
@@ -452,3 +451,86 @@ def test_run_subprocess(mock_run):
 
     with pytest.raises(StepException, match="non-UTF-8"):
         step.start(step_dir=".")
+
+
+def test_while_step(mock_run):
+    from librelane.common import Toolbox
+    from librelane.config import Config
+    from librelane.state import State
+    from librelane.steps.step import Step, StepException, WhileStep
+
+    # Define a simple step that increments a counter in metrics, but fails if input count is 1
+    class IncrementStep(Step):
+        inputs = []
+        outputs = []
+        id = "Increment"
+
+        def run(self, state_in, **kwargs):
+            count = state_in.metrics.get("count", 0)
+            if count == 1:
+                raise StepException("Test failure")
+            metrics = dict(state_in.metrics)
+            metrics["count"] = count + 1
+            return {}, metrics
+
+    # Define a WhileStep that tests all callbacks
+    class TestWhileStep(WhileStep):
+        Steps = [IncrementStep]
+        max_iterations = 10
+        id = "TestWhile"
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.expected_condition = [0, 1]
+            self.condition_index = 0
+            self.expected_pre = [0, 1]
+            self.pre_index = 0
+            self.expected_mid = [1]
+            self.mid_index = 0
+            self.expected_post = [(1, True)]
+            self.post_index = 0
+
+        def condition(self, state):
+            count = state.metrics.get("count", 0)
+            assert count == self.expected_condition[self.condition_index]
+            self.condition_index += 1
+            return count < 3
+
+        def mid_iteration_break(self, state, step):
+            count = state.metrics.get("count", 0)
+            assert count == self.expected_mid[self.mid_index]
+            self.mid_index += 1
+            return False  # No break, let it fail
+
+        def pre_iteration_callback(self, pre_iteration):
+            count = pre_iteration.metrics.get("count", 0)
+            assert count == self.expected_pre[self.pre_index]
+            self.pre_index += 1
+            return pre_iteration
+
+        def post_iteration_callback(self, post_iteration, full_iter_completed):
+            count = post_iteration.metrics.get("count", 0)
+            expected_count, expected_full = self.expected_post[self.post_index]
+            assert count == expected_count
+            assert full_iter_completed == expected_full
+            self.post_index += 1
+            return post_iteration
+
+        def post_loop_callback(self, state):
+            # Should not be called since it fails
+            assert False, "post_loop_callback should not be called on failure"
+
+    # Create config and initial state
+    config = Config({"DESIGN_NAME": "test"})
+    state_in = State({}, metrics={"count": 0})
+
+    # Instantiate and run the step
+    step = TestWhileStep(config=config, state_in=state_in)
+    with pytest.raises(StepException, match="Test failure"):
+        step.start(toolbox=Toolbox(tmp_dir="/tmp"), step_dir="/tmp/test_while")
+
+    # Assert that all callbacks were called the expected number of times before failure
+    assert step.condition_index == 2
+    assert step.pre_index == 2
+    assert step.mid_index == 1
+    assert step.post_index == 1
