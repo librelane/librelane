@@ -385,7 +385,7 @@ class DRC(KLayoutStep):
         ),
         Variable(
             "KLAYOUT_DRC_OPTIONS",
-            Optional[Dict[str, Union[bool, int]]],
+            Optional[Dict[str, Union[bool, int, str]]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
         ),
@@ -445,6 +445,71 @@ class DRC(KLayoutStep):
                 f"threads={threads}",
             ],
             env=env,
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(xml_report)}",
+                f"--json-file={abspath(json_report)}",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
+
+    def run_gf180mcu(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        xml_report = os.path.join(reports_dir, "drc_violations.klayout.xml")
+        json_report = os.path.join(reports_dir, "drc_violations.klayout.json")
+
+        input_view = state_in[DesignFormat.GDS]
+        assert isinstance(input_view, Path)
+
+        opts = []
+        for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+            opts.extend(
+                [
+                    "-rd",
+                    f"{k}={v}",
+                ]
+            )
+
+        threads = self.config["KLAYOUT_DRC_THREADS"] or str(_get_process_limit())
+        if threads != "1":
+            opts.extend(
+                [
+                    "-rd",
+                    f"thr={threads}",
+                ]
+            )
+
+        info(f"Running KLayout DRC with {threads} threads…")
+
+        # Not pya script - DRC script is not part of OpenLane
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                drc_script_path,
+                "-rd",
+                f"input={abspath(input_view)}",
+                "-rd",
+                f"report={abspath(xml_report)}",
+                *opts,
+            ]
         )
 
         subprocess_result = self.run_pya_script(
@@ -532,6 +597,8 @@ class DRC(KLayoutStep):
         metrics_updates: MetricsUpdate = {}
         if self.config["PDK"] in ["sky130A", "sky130B"]:
             metrics_updates = self.run_sky130(state_in, **kwargs)
+        elif self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+            metrics_updates = self.run_gf180mcu(state_in, **kwargs)
         elif self.config["PDK"] in ["ihp-sg13g2"]:
             metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:

@@ -166,7 +166,8 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         del new["SYNTH_LATCH_MAP"]
         del new["TRISTATE_BUFFER_MAP"]
 
-        del new["KLAYOUT_DRC_TECH_SCRIPT"]
+        if "KLAYOUT_DRC_TECH_SCRIPT" in new:
+            del new["KLAYOUT_DRC_TECH_SCRIPT"]
 
         new["SYNTH_CLK_DRIVING_CELL"] = (
             f"{config['SYNTH_CLK_DRIVING_CELL']}/{config['SYNTH_DRIVING_CELL_PIN']}"
