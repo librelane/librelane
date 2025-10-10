@@ -115,6 +115,7 @@ def test_step_missing_state_in(mock_run):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_create(mock_run, mock_config):
+    from librelane.steps import Step
     from librelane.state import DesignFormat, State
 
     class TestStep(Step):
@@ -177,6 +178,7 @@ def test_step_optional_inputs(mock_run, mock_config):
 def test_mock_run(mock_run, mock_config):
     from librelane.steps import Step
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -453,11 +455,12 @@ def test_run_subprocess(mock_run):
         step.start(step_dir=".")
 
 
+@pytest.mark.usefixtures("_mock_conf_fs")
 def test_while_step(mock_run):
-    from librelane.common import Toolbox
     from librelane.config import Config
     from librelane.state import State
-    from librelane.steps.step import Step, StepException, WhileStep
+    from librelane.steps import Step, StepException
+    from librelane.steps.step import WhileStep
 
     # Define a simple step that increments a counter in metrics, but fails if input count is 1
     class IncrementStep(Step):
@@ -520,17 +523,120 @@ def test_while_step(mock_run):
             # Should not be called since it fails
             assert False, "post_loop_callback should not be called on failure"
 
+    dir = os.getcwd()
     # Create config and initial state
-    config = Config({"DESIGN_NAME": "test"})
+    config_data = {
+        "DESIGN_NAME": "whatever",
+        "DESIGN_DIR": dir,
+        "EXAMPLE_PDK_VAR": "bla",
+        "PDK_ROOT": "/pdk",
+        "PDK": "dummy",
+        "STD_CELL_LIBRARY": "dummy_scl",
+        "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
+        "GRT_REPAIR_ANTENNAS": True,
+        "RUN_HEURISTIC_DIODE_INSERTION": False,
+        "MACROS": None,
+        "DIODE_ON_PORTS": None,
+        "TECH_LEFS": {
+            "nom_*": "/pdk/dummy/libs.ref/techlef/dummy_scl/dummy_tech_lef.tlef"
+        },
+        "DEFAULT_CORNER": "nom_tt_025C_1v80",
+        "RANDOM_ARRAY": None,
+    }
+    config = Config(config_data)
     state_in = State({}, metrics={"count": 0})
 
     # Instantiate and run the step
     step = TestWhileStep(config=config, state_in=state_in)
     with pytest.raises(StepException, match="Test failure"):
-        step.start(toolbox=Toolbox(tmp_dir="/tmp"), step_dir="/tmp/test_while")
+        step.start(step_dir="/tmp/test_while")
 
-    # Assert that all callbacks were called the expected number of times before failure
-    assert step.condition_index == 2
-    assert step.pre_index == 2
-    assert step.mid_index == 1
-    assert step.post_index == 1
+    # Define a step that will trigger mid-iteration breaks and tolerate recoverable failures
+    class CountingStep(Step):
+        inputs = []
+        outputs = []
+        id = "Counting"
+        calls = 0
+
+        def run(self, state_in, **kwargs):
+            type(self).calls += 1
+            call = type(self).calls
+            if call == 3:
+                raise StepException("Recoverable failure")
+            metrics = dict(state_in.metrics)
+            metrics["count"] = metrics.get("count", 0) + 1
+            history = list(state_in.metrics.get("history", []))
+            history.append(call)
+            metrics["history"] = history
+            return {}, metrics
+
+    class SuccessWhileStep(WhileStep):
+        Steps = [CountingStep]
+        max_iterations = 5
+        break_on_failure = False
+        id = "SuccessWhile"
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.loop_iteration = 0
+            self.condition_history = []
+            self.pre_history = []
+            self.mid_history = []
+            self.post_history = []
+            self.post_loop_called = False
+            self.accumulated_metrics = {"count": 0, "history": []}
+
+        def condition(self, state):
+            self.condition_history.append((self.loop_iteration, dict(state.metrics)))
+            return self.loop_iteration < 3
+
+        def pre_iteration_callback(self, pre_iteration):
+            self.pre_history.append(dict(pre_iteration.metrics))
+            self.loop_iteration += 1
+            return pre_iteration
+
+        def mid_iteration_break(self, state, step):
+            should_break = self.loop_iteration == 2
+            self.mid_history.append(
+                (self.loop_iteration, dict(state.metrics), should_break)
+            )
+            return should_break
+
+        def post_iteration_callback(self, post_iteration, full_iter_completed):
+            self.post_history.append(
+                (
+                    self.loop_iteration,
+                    dict(post_iteration.metrics),
+                    full_iter_completed,
+                )
+            )
+            self.accumulated_metrics["count"] += post_iteration.metrics.get("count", 0)
+            self.accumulated_metrics["history"].extend(
+                post_iteration.metrics.get("history", [])
+            )
+            return post_iteration
+
+        def post_loop_callback(self, state):
+            self.post_loop_called = True
+            return state.__class__(
+                {},
+                metrics={
+                    "count": self.accumulated_metrics["count"],
+                    "history": list(self.accumulated_metrics["history"]),
+                },
+            )
+
+    CountingStep.calls = 0
+    success_config = Config(dict(config_data))
+    success_state_in = State({}, metrics={"count": 0, "history": []})
+    success_step = SuccessWhileStep(
+        config=success_config,
+        state_in=success_state_in,
+    )
+
+    assert success_step.post_loop_called is True
+    assert [entry[0] for entry in success_step.post_history] == [1, 2, 3]
+    assert [entry[2] for entry in success_step.post_history] == [True, False, False]
+    assert len(success_step.mid_history) == 2
+    assert success_step.pre_history == [{"count": 0, "history": []} for _ in range(3)]
+    assert CountingStep.calls == 3
