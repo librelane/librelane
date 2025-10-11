@@ -13,72 +13,73 @@
 # limitations under the License.
 from __future__ import annotations
 
-import datetime
-import json
 import os
-import shutil
-import subprocess
 import sys
-import textwrap
+import json
 import time
-from abc import ABC, abstractmethod
-from concurrent.futures import Future
-from decimal import Decimal
-from inspect import isabstract
-from io import TextIOWrapper
-from itertools import zip_longest
+import psutil
+import shutil
+import textwrap
+import datetime
+import subprocess
 from signal import Signals
+from decimal import Decimal
+from io import TextIOWrapper
 from threading import Thread
+from inspect import isabstract
+from itertools import zip_longest
+from abc import abstractmethod, ABC
+from concurrent.futures import Future
 from typing import (
     Any,
-    Callable,
-    ClassVar,
-    Dict,
-    Generic,
     List,
+    Callable,
     Optional,
-    Sequence,
     Set,
-    Tuple,
-    Type,
-    TypeVar,
     Union,
+    Tuple,
+    Sequence,
+    Dict,
+    ClassVar,
+    Type,
+    Generic,
+    TypeVar,
 )
 
-import psutil
 from rich.markup import escape
 
-from .. import logging
-from ..__version__ import __version__
-from ..common import (
-    GenericDict,
-    GenericDictEncoder,
-    GenericImmutableDict,
-    Path,
-    RingBuffer,
-    Toolbox,
-    copy_recursive,
-    final,
-    format_elapsed_time,
-    format_size,
-    mkdirp,
-    protected,
-    slugify,
-)
 from ..config import (
     Config,
     Variable,
     universal_flow_config_variables,
 )
+from ..state import DesignFormat, State, InvalidState, StateElement
+from ..common import (
+    GenericDict,
+    GenericImmutableDict,
+    GenericDictEncoder,
+    Toolbox,
+    Path,
+    RingBuffer,
+    mkdirp,
+    slugify,
+    final,
+    protected,
+    copy_recursive,
+    format_size,
+    format_elapsed_time,
+)
+from .. import logging
 from ..logging import (
-    debug,
-    err,
-    info,
     rule,
     verbose,
+    info,
     warn,
+    err,
+    debug,
 )
-from ..state import DesignFormat, InvalidState, State, StateElement
+from ..__version__ import __version__
+
 
 VT = TypeVar("VT")
 
@@ -721,9 +722,8 @@ class Step(ABC):
 
             IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
         except NameError:
-            from rich.markdown import Markdown
-
             from ..logging import console
+            from rich.markdown import Markdown
 
             console.log(Markdown(Self.get_help_md()))
 
