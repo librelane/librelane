@@ -104,7 +104,7 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"] # , "3.14"] # lxml, klayout still not built
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
