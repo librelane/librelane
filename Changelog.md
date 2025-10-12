@@ -319,6 +319,8 @@ Style Notes
 
 ## Tool Updates
 
+* Python requirement bumped up to ≥3.10
+  * Does not affect Nix users where Python 3.12 is used anyway.
 * Updated nix-eda
   * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
   * Updated KLayout to `0.30.2`
@@ -418,6 +420,8 @@ Style Notes
 ## API Breaks
 
 * `CLI`
+
+  * `openlane` alias for entry point no longer exists, please use `librelane`.
 
   * Paths provided over the terminal that start with a tilde are now rejected
     and result in an error, as they typically mean POSIX shell tilde expansion
