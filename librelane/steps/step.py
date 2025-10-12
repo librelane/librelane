@@ -737,12 +737,12 @@ class Step(ABC):
             """
         state_in = self.state_in.result()
 
-        assert self.start_time is not None, (
-            "Start time not set even though self.state_out exists"
-        )
-        assert self.end_time is not None, (
-            "End time not set even though self.state_out exists"
-        )
+        assert (
+            self.start_time is not None
+        ), "Start time not set even though self.state_out exists"
+        assert (
+            self.end_time is not None
+        ), "End time not set even though self.state_out exists"
         result = f"#### Time Elapsed: {'%.2f' % (self.end_time - self.start_time)}s\n"
 
         views_updated = []
@@ -1662,8 +1662,8 @@ class WhileStep(Step):
         **kwargs,
     ) -> tuple[ViewsUpdate, MetricsUpdate]:
         current_state = state_in
-        total_views_update = {}
-        total_metrics_update = {}
+        total_views_update: ViewsUpdate = {}
+        total_metrics_update: MetricsUpdate = {}
 
         ordinal_length = len(str(len(self.Steps) - 1))
         start_state = state_in.copy()
@@ -1707,11 +1707,9 @@ class WhileStep(Step):
         current_state = self.post_loop_callback(current_state)
 
         for key in current_state:
-            if (
-                state_in.get(key) != current_state.get(key)
-                and DesignFormat.factory.get(key) in self.outputs
-            ):
-                total_views_update[key] = current_state[key]
+            key_df = DesignFormat.factory.get(key)
+            if state_in.get(key) != current_state.get(key) and key_df in self.outputs:
+                total_views_update[key_df] = current_state[key]
         for key in current_state.metrics:
             if state_in.metrics.get(key) != current_state.metrics.get(key):
                 total_metrics_update[key] = current_state.metrics[key]

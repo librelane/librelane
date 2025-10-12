@@ -195,9 +195,9 @@ def test_mock_run(mock_run, mock_config):
     )
     views_update, metrics_update = step.run(state_in)
     assert step.id == "TestStep", "Wrong step id"
-    assert step.long_name == "longname", (
-        "Wrong step long_name, declared via constructor"
-    )
+    assert (
+        step.long_name == "longname"
+    ), "Wrong step long_name, declared via constructor"
     assert step.config == mock_config, "Wrong step config"
     assert views_update == {}, "Wrong step run -- tainted views_update"
     assert metrics_update == {}, "Wrong step run -- tainted metrics_update"
@@ -328,12 +328,12 @@ def test_step_factory(mock_run):
         id = "TestStep"
         long_name = "longname2"
 
-    assert "TestStep" in Step.factory.list(), (
-        "Step factory did not register step used for testing: TestStep"
-    )
-    assert Step.factory.get("TestStep") == TestStep, (
-        "Wrong type registered by StepFactor"
-    )
+    assert (
+        "TestStep" in Step.factory.list()
+    ), "Step factory did not register step used for testing: TestStep"
+    assert (
+        Step.factory.get("TestStep") == TestStep
+    ), "Wrong type registered by StepFactor"
 
 
 # Do NOT use the Fake FS for this test.
@@ -415,15 +415,15 @@ def test_run_subprocess(mock_run):
     with open(report_file) as f:
         actual_report_data = f.read()
 
-    assert actual_result == subprocess_result, (
-        ".run_subprocess() generated invalid metrics"
-    )
-    assert actual_report_data.strip() == report_data, (
-        ".run_subprocess() generated invalid report"
-    )
-    assert actual_out_data == out_data, (
-        ".run_subprocess() generated mis-matched log file"
-    )
+    assert (
+        actual_result == subprocess_result
+    ), ".run_subprocess() generated invalid metrics"
+    assert (
+        actual_report_data.strip() == report_data
+    ), ".run_subprocess() generated invalid report"
+    assert (
+        actual_out_data == out_data
+    ), ".run_subprocess() generated mis-matched log file"
 
     with pytest.raises(subprocess.CalledProcessError):
         step.run_subprocess(["false"])
@@ -456,6 +456,7 @@ def test_run_subprocess(mock_run):
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
 def test_while_step(mock_run):
     from librelane.config import Config
     from librelane.state import State
@@ -528,7 +529,7 @@ def test_while_step(mock_run):
     config_data = {
         "DESIGN_NAME": "whatever",
         "DESIGN_DIR": dir,
-        "EXAMPLE_PDK_VAR": "bla",
+        "EXAMPLE_PDK_VAR": 0.0,
         "PDK_ROOT": "/pdk",
         "PDK": "dummy",
         "STD_CELL_LIBRARY": "dummy_scl",
@@ -536,7 +537,7 @@ def test_while_step(mock_run):
         "GRT_REPAIR_ANTENNAS": True,
         "RUN_HEURISTIC_DIODE_INSERTION": False,
         "MACROS": None,
-        "DIODE_ON_PORTS": None,
+        "DIODE_ON_PORTS": "none",
         "TECH_LEFS": {
             "nom_*": "/pdk/dummy/libs.ref/techlef/dummy_scl/dummy_tech_lef.tlef"
         },
