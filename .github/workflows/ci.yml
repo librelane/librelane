@@ -93,7 +93,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Install Linters
         run: make venv
       - name: Lint
@@ -104,7 +104,7 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
@@ -306,7 +306,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -335,7 +335,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - if: ${{ matrix.engine == 'docker' }}
         name: Set up Docker (If applicable)
         run: |
@@ -614,7 +614,7 @@ jobs:
         if: ${{ env.PUBLISH == '1' }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Build Distribution
         if: ${{ env.PUBLISH == '1' }}
         run: |

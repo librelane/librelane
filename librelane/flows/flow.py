@@ -916,9 +916,10 @@ class Flow(ABC):
                     # Despite the name, this is the Magic DRC report simply
                     # converted into a KLayout-compatible format. Confusing!
                     drc_xml_out = os.path.join(openlane_signoff_dir, "drc.klayout.xml")
-                    with open(drc_xml, encoding="utf8") as i, open(
-                        drc_xml_out, "w", encoding="utf8"
-                    ) as o:
+                    with (
+                        open(drc_xml, encoding="utf8") as i,
+                        open(drc_xml_out, "w", encoding="utf8") as o,
+                    ):
                         o.write(
                             "<!-- Despite the name, this is the Magic DRC report in KLayout format. -->\n"
                         )

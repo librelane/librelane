@@ -8,7 +8,7 @@
     * 6th Gen Intel® Core CPU or later OR AMD Ryzen™️ 1000-series or later
     * 16 GiB of RAM
 
-We will primarily support Ubuntu 20.04+ for LibreLane.
+We primarily support Ubuntu 22.04+ for LibreLane.
 
 If you're looking to build a virtual machine, we recommend [Ubuntu 22.04](https://releases.ubuntu.com/jammy/).
 

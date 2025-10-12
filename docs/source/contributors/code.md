@@ -19,7 +19,7 @@ ensure nothing has gone horribly wrong.
 
 ### Python
 
-Python code should be written for Python 3.8.1+, and be **typed**. i.e., we
+Python code should be written for Python 3.10+, and be **typed**. i.e., we
 require explicit type annotations for all major API functions.
 
 You will need to ensure that your Python code passes linting with our three
@@ -48,7 +48,7 @@ chosen tools:
 ```
 
 Do all arithmetic either in integers or using the Python
-[`decimal`](https://docs.python.org/3.6/library/decimal.html) library. All
+[`decimal`](https://docs.python.org/3.10/library/decimal.html) library. All
 (numerous) existing uses of IEEE-754 are bugs we are interested in fixing.
 
 ### Tcl
