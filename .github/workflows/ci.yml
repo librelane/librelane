@@ -33,7 +33,7 @@ jobs:
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
+          poetry export --all-groups --without-hashes --format=requirements.txt --output=requirements_tmp.txt
           pip3 install -r requirements_tmp.txt
       - name: Determine If Running Extended Test Set
         run: |
