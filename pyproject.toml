@@ -34,6 +34,7 @@ documentation = "https://librelane.readthedocs.io"
 [dependency-groups]
 
 lint = [
+    "black",
     "flake8",
     "flake8-pytest-style; python_version < '4'",
     "mypy>=1.18.2",
