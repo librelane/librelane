@@ -546,7 +546,7 @@ def test_while_step(mock_run):
         def post_loop_callback(self, state):
             assert state.metrics["count"] == 1
             # after 3 iterations, the final iteration count becomes 4
-            assert self.iteration_count == 3
+            assert self.iteration_count == 4
             return state
 
     dir = os.getcwd()
