@@ -69,9 +69,9 @@ librelane = "librelane.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
 
 [tool.ruff]
-# syntax-only check, make sure files are parseable under py38
+# syntax-only check, make sure files are parseable under py310
 # $ ruff check .
-target-version = "py38"
+target-version = "py310"
 lint.ignore = ["E", "F"] 
 
 [build-system]
