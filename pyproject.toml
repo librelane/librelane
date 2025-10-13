@@ -66,16 +66,8 @@ librelane = "librelane.__main__:cli"
 [tool.ruff]
 # syntax-only check, make sure files are parseable under py310
 # $ ruff check .
-target-version = "py310"
+target-version = "py38"
 lint.ignore = ["E", "F"]
-
-[tool.pytest.ini_options]
-pythonpath = "."
-addopts = "--strict-markers -m 'not step_impl_test'"
-markers = [
-    "all: all tests",
-    "step_impl_test: tests for specific step implementations (requires recursive git clone + more time)",
-]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3"]
