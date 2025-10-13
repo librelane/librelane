@@ -112,7 +112,14 @@ def _Design_add_blackbox_models(
 
         if ext in [".v", ".sv", ".vh"]:
             self.run_pass(
-                "read_verilog", "-sv", "-lib", *include_args, *define_args, model
+                "read_verilog",
+                "-sv",
+                "-setattr",
+                "keep_hierarchy",
+                "-lib",
+                *include_args,
+                *define_args,
+                model,
             )
         elif ext in [".lib"]:
             self.run_pass(
@@ -121,6 +128,8 @@ def _Design_add_blackbox_models(
                 "-ignore_miss_dir",
                 "-setattr",
                 "blackbox",
+                "-setattr",
+                "keep_hierarchy",
                 model,
             )
         else:

@@ -53,6 +53,12 @@ if { $::env(IO_PIN_PLACEMENT_MODE) == "annealing" } {
     lappend arg_list -annealing
 }
 
+if { [info exists ::env(IO_EXCLUDE_PIN_REGION)] } {
+    foreach exclude $::env(IO_EXCLUDE_PIN_REGION) {
+        lappend arg_list -exclude $exclude
+    }
+}
+
 set HMETAL $::env(FP_IO_HLAYER)
 set VMETAL $::env(FP_IO_VLAYER)
 

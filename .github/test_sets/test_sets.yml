@@ -16,6 +16,8 @@
     - io_placer
     - test_sram_macro
     - manual_macro_placement_test
+    - name: partial_hierarchy
+      config_file: config.yaml
     - name: regs_analog_ctrl_APB
       config_file: config.yaml
     - name: non_const_async_reset

@@ -440,7 +440,7 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
-                if validating_type == List[Path]:
+                if type_origin == list and type_args == (str,):
                     if any(isinstance(item, List) for item in raw):
                         Variable.__flatten_list(value)
                 pass

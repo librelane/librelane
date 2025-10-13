@@ -208,6 +208,10 @@ Style Notes
 
   * Corrected `GPL_CELL_PADDING` to be an integer.
 
+* `OpenROAD.IOPlacement`
+
+  * Added optional variable `IO_EXCLUDE_PIN_REGION`
+
 * `OpenROAD.RepairAntennas`
 
   * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
@@ -295,6 +299,18 @@ Style Notes
 
     * `USE_SYNLIG` deprecated and replaced with `USE_SLANG`.
 
+  * Added variables to keep the hierarchy during flattening.
+
+    * `SYNTH_KEEP_HIERARCHY_MIN_COST`: Sets the `keep_hierarchy` attribute on
+      modules where the gate count is estimated to exceed the specified
+      threshold. This prevents larger modules from being flattened.
+
+    * `SYNTH_KEEP_HIERARCHY_INSTANCES`: A list of instances for which to set the
+      `keep_hierarchy` attribute.
+
+    * `SYNTH_KEEP_HIERARCHY_MODULES`: A list of modules for which to set the
+      `keep_hierarchy` attribute.
+
 ## Flows
 
 * Classic
@@ -303,6 +319,8 @@ Style Notes
 
 ## Tool Updates
 
+* Python requirement bumped up to ≥3.10
+  * Does not affect Nix users where Python 3.12 is used anyway.
 * Updated nix-eda
   * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
   * Updated KLayout to `0.30.2`
@@ -402,6 +420,8 @@ Style Notes
 ## API Breaks
 
 * `CLI`
+
+  * `openlane` alias for entry point no longer exists, please use `librelane`.
 
   * Paths provided over the terminal that start with a tilde are now rejected
     and result in an error, as they typically mean POSIX shell tilde expansion
