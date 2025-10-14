@@ -44,7 +44,7 @@ proc dblayer_rc_values {header} {
     puts "=== Routing Layers ==="
     puts [format $rc_header "Name" "Direction" "Res/Unit Distance" "Cap/Unit Distance"]
     foreach layer [get_layers -types "ROUTING"] {
-        lassign [rsz::dblayer_wire_rc $layer] layer_wire_res_ohm_m layer_wire_cap_farad_m
+        lassign [est::dblayer_wire_rc $layer] layer_wire_res_ohm_m layer_wire_cap_farad_m
         puts [format $rc_entry [$layer getName] [$layer getDirection] [scale_ohm_per_meter $layer_wire_res_ohm_m] [scale_f_per_meter $layer_wire_cap_farad_m]]
     }
 
@@ -67,19 +67,19 @@ proc resizer_rc_values {header} {
         puts "=== Corner [$corner name] ==="
         puts "==== Estimation RC Values ===="
         puts [format $rc_header "Name" "Direction" "Res/Unit Distance" "Cap/Unit Distance"]
-        puts [format $rc_entry "Signal" "Avg" [scale_ohm_per_meter [rsz::wire_signal_resistance $corner]] [scale_f_per_meter [rsz::wire_signal_capacitance $corner]]]
-        puts [format $rc_entry "Clock" "Avg" [scale_ohm_per_meter [rsz::wire_clk_resistance $corner]] [scale_f_per_meter [rsz::wire_clk_capacitance $corner]]]
+        puts [format $rc_entry "Signal" "Avg" [scale_ohm_per_meter [est::wire_signal_resistance $corner]] [scale_f_per_meter [est::wire_signal_capacitance $corner]]]
+        puts [format $rc_entry "Clock" "Avg" [scale_ohm_per_meter [est::wire_clk_resistance $corner]] [scale_f_per_meter [est::wire_clk_capacitance $corner]]]
         puts "==== Rt. Layer RC Values ===="
         puts [format $rc_header "Name" "Direction" "Res/Unit Distance" "Cap/Unit Distance"]
         foreach layer [get_layers -types "ROUTING"] {
-            set resistance [expr [rsz::layer_resistance $layer $corner] / [sta::unit_scale resistance] * [sta::unit_scale distance]]
-            set capacitance [expr [rsz::layer_capacitance $layer $corner] / [sta::unit_scale capacitance] * [sta::unit_scale distance]]
+            set resistance [expr [est::layer_resistance $layer $corner] / [sta::unit_scale resistance] * [sta::unit_scale distance]]
+            set capacitance [expr [est::layer_capacitance $layer $corner] / [sta::unit_scale capacitance] * [sta::unit_scale distance]]
             puts [format $rc_entry [$layer getName] [$layer getDirection] $resistance $capacitance]
         }
         puts "==== Via R Values ===="
         puts [format $r_header "Name" "Res/Unit Distance"]
         foreach layer [get_layers -types "CUT"] {
-            set ohms_per_cut [rsz::layer_resistance $layer $corner]
+            set ohms_per_cut [est::layer_resistance $layer $corner]
             set units_resistance_per_cut [expr $ohms_per_cut / [sta::unit_scale resistance]]
             puts [format $r_entry [$layer getName] $units_resistance_per_cut]
         }

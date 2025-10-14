@@ -1188,8 +1188,14 @@ class IOPlacement(OpenROADStep):
         + io_layer_variables
         + [
             Variable(
+                "IO_PIN_CORNER_AVOIDANCE",
+                Optional[Decimal],
+                "The distance from each corner within which pin placement should be avoided.",
+                units="µm",
+            ),
+            Variable(
                 "IO_PIN_PLACEMENT_MODE",
-                Literal["matching", "random_equidistant", "annealing"],
+                Literal["matching", "annealing"],
                 "Decides the mode of the random IO placement option.",
                 default="matching",
                 deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
@@ -1201,6 +1207,12 @@ class IOPlacement(OpenROADStep):
                 units="µm",
                 pdk=True,
                 deprecated_names=["FP_IO_MIN_DISTANCE"],
+            ),
+            Variable(
+                "IO_PIN_MIN_DISTANCE_IN_TRACKS",
+                Optional[int],
+                "The minimum distance between two pins in number of tracks. If unspecified by a PDK, OpenROAD will use the length of two routing tracks.",
+                pdk=True,
             ),
             Variable(
                 "IO_PIN_ORDER_CFG",
@@ -1507,7 +1519,7 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
             "IO_PIN_PLACEMENT_MODE",
-            Literal["matching", "random_equidistant", "annealing"],
+            Literal["matching", "annealing"],
             "Decides the mode of the random IO placement option.",
             default="matching",
             deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
@@ -1784,16 +1796,16 @@ class DetailedRouting(OpenROADStep):
             "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
             deprecated_names=["ROUTING_CORES"],
         ),
-        Variable(
-            "DRT_MIN_LAYER",
-            Optional[str],
-            "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
-        ),
-        Variable(
-            "DRT_MAX_LAYER",
-            Optional[str],
-            "An optional override to the highest layer used in detailed routing.",
-        ),
+        # Variable(
+        #    "DRT_MIN_LAYER",
+        #    Optional[str],
+        #    "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
+        # ),
+        # Variable(
+        #    "DRT_MAX_LAYER",
+        #    Optional[str],
+        #    "An optional override to the highest layer used in detailed routing.",
+        # ),
         Variable(
             "DRT_OPT_ITERS",
             int,
