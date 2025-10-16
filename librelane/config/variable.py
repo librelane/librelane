@@ -230,7 +230,7 @@ def some_of(t: Type[Any]) -> Type[Any]:
 
     type_args = get_args(t)
 
-    args_without_none = [arg for arg in type_args if arg != type(None)]
+    args_without_none = [arg for arg in type_args if arg is type(None)]
     if len(args_without_none) == 1:
         return args_without_none[0]
 
@@ -440,7 +440,7 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
-                if type_origin == list and type_args == (str,):
+                if isinstance(type_origin, list) and type_args == (str,):
                     if any(isinstance(item, List) for item in raw):
                         Variable.__flatten_list(value)
                 pass
@@ -462,7 +462,7 @@ class Variable:
                     f"List provided for variable '{key_path}' is invalid: {value}"
                 )
 
-            if type_origin == tuple:
+            if type_origin is tuple:
                 if len(raw) != len(type_args):
                     raise ValueError(
                         f"Value provided for variable '{key_path}' of type {validating_type} is invalid: ({len(raw)}/{len(type_args)}) tuple entries provided"
@@ -481,11 +481,11 @@ class Variable:
                     )
                 )
 
-            if type_origin == tuple:
+            if isinstance(type_origin, tuple):
                 return tuple(return_value)
 
             return return_value
-        elif type_origin == dict:
+        elif type_origin is dict:
             raw = value
             key_type, value_type = type_args
             if isinstance(raw, dict):
@@ -584,9 +584,8 @@ class Variable:
                     explicitly_specified = True
                 field_value = raw.get(key)
                 field_default = None
-                if (
-                    current_field.default is not None
-                    and type(current_field.default) != _MISSING_TYPE
+                if current_field.default is not None and (
+                    not isinstance(current_field.default, _MISSING_TYPE)
                 ):
                     field_default = current_field.default
                 if current_field.default_factory != MISSING:
@@ -615,7 +614,7 @@ class Variable:
             result = Path(value)
             result.validate(f"Path provided for variable '{key_path}' is invalid")
             return result
-        elif validating_type == bool:
+        elif isinstance(validating_type, bool):
             if not permissive_typing and not isinstance(value, bool):
                 raise ValueError(
                     f"Refusing to automatically convert '{value}' at '{key_path}' to a Boolean"
@@ -628,8 +627,12 @@ class Variable:
                 raise ValueError(
                     f"Value provided for variable '{key_path}' of type {validating_type.__name__} is invalid: '{value}'"
                 )
+        elif not inspect.isclass(validating_type):
+            raise ValueError(
+                f"Variable '{key_path}' has an invalid type specified: '{validating_type}'"
+            )
         elif issubclass(validating_type, Enum):
-            if type(value) == validating_type:
+            if isinstance(value, validating_type):
                 return value
             try:
                 return validating_type[value]
