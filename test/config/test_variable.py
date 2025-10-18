@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from dataclasses import dataclass
-from decimal import Decimal
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union
-
 import pytest
+from decimal import Decimal
+from dataclasses import dataclass
 from pyfakefs.fake_filesystem_unittest import Patcher
+from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
 
 @pytest.fixture
