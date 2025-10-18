@@ -122,13 +122,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          determinate: false
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -156,13 +154,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          determinate: false
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -210,13 +206,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          determinate: false
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
@@ -390,12 +384,11 @@ jobs:
         run: |
           git status || true
           tree .git || true
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
