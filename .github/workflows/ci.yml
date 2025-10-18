@@ -7,6 +7,8 @@ env:
 on:
   # Runs on all pushes to branches
   push:
+    branches:
+      - "**"
     tags-ignore:
       - "**"
   # Runs on all PRs
