@@ -12,6 +12,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.10"
+  apt_packages:
+    - graphviz
+    - libgraphviz-dev
   commands:
     - pip3 install .
     - pip3 install -r ./docs/requirements.txt

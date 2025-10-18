@@ -1,0 +1,46 @@
+name: Install Nix
+description: Installs Nix or a Nix-compatible flake fork, while also enabling
+  the requisite caches.
+inputs:
+  shell:
+    description: "Shell to use for glue logic"
+    required: true
+    default: "bash"
+  github_token:
+    description: "A token for the Nix daemon to use when fetching information from GitHub"
+    required: false
+    default: ""
+  nix_cache_domain:
+    description: "An additional https-hosted Nix build cache"
+    required: false
+    default: ""
+  nix_public_key:
+    description: "The public key for the aforementioned Nix cache if specified"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Set GitHub Token Config String
+      if: inputs.github_token != ''
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "GITHUB_ACCESS_TOKEN_STR=${{ inputs.github_token }}" >> $GITHUB_ENV
+    - name: Set Nix Cache Config Strings
+      if: inputs.nix_cache_domain != '' && inputs.nix_public_key != ''
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "EXTRA_SUBSTITUTER_STR=https://${{ inputs.nix_cache_domain }}" >> $GITHUB_ENV
+        echo "EXTRA_TRUSTED_KEY_STR=${{ inputs.nix_public_key }}" >> $GITHUB_ENV
+    - uses: DeterminateSystems/nix-installer-action@main
+      with:
+        determinate: false
+        extra-conf: |
+          access-tokens = ${{ env.GITHUB_ACCESS_TOKEN_STR }}
+          extra-substituters = ${{ env.EXTRA_SUBSTITUTER_STR }} https://nix-cache.fossi-foundation.org
+          extra-trusted-public-keys = ${{ env.EXTRA_TRUSTED_KEY_STR }} nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+    - name: Inject GitHub Token into Environment
+      if: inputs.github_token != ''
+      uses: fossi-foundation/nix-eda/.github/actions/nix_daemon_inject_github_token@5.5.0
+      with:
+        github_token: ${{ inputs.github_token }}
