@@ -41,6 +41,6 @@ runs:
           extra-trusted-public-keys = ${{ env.EXTRA_TRUSTED_KEY_STR }} nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
     - name: Inject GitHub Token into Environment
       if: inputs.github_token != ''
-      uses: fossi-foundation/nix-eda/.github/actions/nix_daemon_inject_github_token/action.yml@5.5.0
+      uses: fossi-foundation/nix-eda/.github/actions/nix_daemon_inject_github_token@5.5.0
       with:
         github_token: ${{ inputs.github_token }}
