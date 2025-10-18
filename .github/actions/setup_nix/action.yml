@@ -25,7 +25,7 @@ runs:
       if: inputs.github_token != ''
       shell: ${{ inputs.shell }}
       run: |
-        echo "GITHUB_ACCESS_TOKEN_STR=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+        echo "GITHUB_ACCESS_TOKEN_STR=${{ inputs.github_token }}" >> $GITHUB_ENV
     - name: Set Nix Cache Config Strings
       if: inputs.nix_cache_domain != '' && inputs.nix_public_key != ''
       shell: ${{ inputs.shell }}
