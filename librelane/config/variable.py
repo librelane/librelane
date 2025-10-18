@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import shlex
 import inspect
-from enum import Enum
-from decimal import Decimal, InvalidOperation
+import types
+import shlex
 from dataclasses import (
     _MISSING_TYPE,
     MISSING,
@@ -24,24 +23,27 @@ from dataclasses import (
     fields,
     is_dataclass,
 )
+from decimal import Decimal, InvalidOperation
+from enum import Enum
 from typing import (
+    Any,
+    Callable,
     ClassVar,
     Dict,
     List,
     Literal,
+    Mapping,
     Optional,
     Set,
     Tuple,
-    Union,
-    Mapping,
-    Callable,
     Type,
-    Any,
-    get_origin,
+    Union,
     get_args,
+    get_origin,
 )
+
+from ..common import GenericDict, Number, Path, is_string, slugify, zip_first
 from ..state import DesignFormat, State
-from ..common import GenericDict, Path, is_string, zip_first, Number, slugify
 
 # Scalar = Union[Type[str], Type[Decimal], Type[Path], Type[bool]]
 # VType = Union[Scalar, List[Scalar]]
@@ -219,7 +221,9 @@ class Macro:
 
 def is_optional(t: Type[Any]) -> bool:
     type_args = get_args(t)
-    return get_origin(t) is Union and type(None) in type_args
+    origin = get_origin(t)
+    # Handle both typing.Union and types.UnionType (Python 3.10+ union syntax)
+    return (origin is Union or origin is types.UnionType) and type(None) in type_args
 
 
 def some_of(t: Type[Any]) -> Type[Any]:
@@ -229,11 +233,20 @@ def some_of(t: Type[Any]) -> Type[Any]:
     # t must be a Union with None if we're here
 
     type_args = get_args(t)
+    origin = get_origin(t)
 
-    args_without_none = [arg for arg in type_args if arg is type(None)]
+    args_without_none = [arg for arg in type_args if arg is not type(None)]
     if len(args_without_none) == 1:
         return args_without_none[0]
 
+    if origin is types.UnionType:
+        # Use the | operator to create a UnionType
+        result = args_without_none[0]
+        for arg in args_without_none[1:]:
+            result = result | arg
+        return result
+
+    # Otherwise, return a typing.Union
     new_union = Union[tuple(args_without_none)]  # type: ignore
     return new_union  # type: ignore
 
@@ -440,7 +453,7 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
-                if isinstance(type_origin, list) and type_args == (str,):
+                if type_origin is list and type_args == (str,):
                     if any(isinstance(item, List) for item in raw):
                         Variable.__flatten_list(value)
                 pass
@@ -481,7 +494,7 @@ class Variable:
                     )
                 )
 
-            if isinstance(type_origin, tuple):
+            if type_origin is tuple:
                 return tuple(return_value)
 
             return return_value
@@ -584,8 +597,9 @@ class Variable:
                     explicitly_specified = True
                 field_value = raw.get(key)
                 field_default = None
-                if current_field.default is not None and (
-                    not isinstance(current_field.default, _MISSING_TYPE)
+                if (
+                    current_field.default is not None
+                    and type(current_field.default) is _MISSING_TYPE
                 ):
                     field_default = current_field.default
                 if current_field.default_factory != MISSING:
@@ -614,7 +628,7 @@ class Variable:
             result = Path(value)
             result.validate(f"Path provided for variable '{key_path}' is invalid")
             return result
-        elif isinstance(validating_type, bool):
+        elif validating_type is bool:
             if not permissive_typing and not isinstance(value, bool):
                 raise ValueError(
                     f"Refusing to automatically convert '{value}' at '{key_path}' to a Boolean"
@@ -627,12 +641,8 @@ class Variable:
                 raise ValueError(
                     f"Value provided for variable '{key_path}' of type {validating_type.__name__} is invalid: '{value}'"
                 )
-        elif not inspect.isclass(validating_type):
-            raise ValueError(
-                f"Variable '{key_path}' has an invalid type specified: '{validating_type}'"
-            )
         elif issubclass(validating_type, Enum):
-            if isinstance(value, validating_type):
+            if type(value) is validating_type:
                 return value
             try:
                 return validating_type[value]

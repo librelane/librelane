@@ -132,7 +132,7 @@ def test_some_of():
     assert some_of(int | None) is int, (
         "some of failed to properly handle PEP 604 optional union"
     )
-    assert some_of(dict | list | None) is dict | list, (
+    assert some_of(dict | list | None) == dict | list, (
         "some of failed to properly handle PEP 604 flattened optional union"
     )
 
@@ -184,7 +184,7 @@ def test_variable_construction():
         int | Dict[str, str],
         description="x",
     )
-    assert variable_union_new == int | Dict[str, str], (
+    assert variable_union_new.type == int | Dict[str, str], (
         "PEP 604 union didn't match typing union"
     )
     assert variable_union.type == variable_union_new.type, (
@@ -385,6 +385,7 @@ def test_compile_invalid(variable_set: list):
             "OTHER_DICT_VAR": "bad tcl dictionary",
             "ANOTHER_DICT_VAR": ["1", "2", "3"],
             "UNION_VAR": "lol",
+            "UNION_VAR_2": "lol",
             "UNION_VAR2": "lol",
             "LITERAL_VAR": "no",
             "BOOL_VAR": "No",
@@ -422,6 +423,7 @@ def test_compile_permissive(variable_set: list, test_enum: Type):
             "OTHER_DICT_VAR": "key1 value1 key2 value2",
             "ANOTHER_DICT_VAR": ["key1", "value1", "key2", "value2"],
             "UNION_VAR": "4",
+            "UNION_VAR_2": "4",
             "BOOL_VAR": "0",
             "ENUM_VAR": "AValue",
             "NUMBER_VAR": "90123",
@@ -448,6 +450,7 @@ def test_compile_permissive(variable_set: list, test_enum: Type):
         "OTHER_DICT_VAR": {"key1": "value1", "key2": "value2"},
         "ANOTHER_DICT_VAR": {"key1": "value1", "key2": "value2"},
         "UNION_VAR": 4,
+        "UNION_VAR_2": 4,
         "BOOL_VAR": False,
         "ENUM_VAR": test_enum["AValue"],
         "NUMBER_VAR": Decimal("90123"),
