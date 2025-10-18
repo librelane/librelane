@@ -386,7 +386,6 @@ def test_compile_invalid(variable_set: list):
             "ANOTHER_DICT_VAR": ["1", "2", "3"],
             "UNION_VAR": "lol",
             "UNION_VAR_2": "lol",
-            "UNION_VAR2": "lol",
             "LITERAL_VAR": "no",
             "BOOL_VAR": "No",
             "ENUM_VAR": "NotAValue",
