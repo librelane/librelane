@@ -13,6 +13,7 @@ build:
   tools:
     python: "3.10"
   apt_packages:
+    - graphviz
     - libgraphviz-dev
   commands:
     - pip3 install .
