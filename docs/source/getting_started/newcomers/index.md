@@ -1,23 +1,9 @@
-# Newcomers
+# Newcomers' Tutorial
 
-VLSI, or Very Large-Scale Integration, is a cornerstone technology driving the
-modern world, silently powering the devices we rely on daily. Its importance
-stems from its profound impact on various aspects of our lives, making it
-ubiquitous. VLSI facilitated the fabrication of chips. A chip is a small piece
-of semiconductor material (usually silicon) containing integrated circuits.
-These circuits consist of millions or even billions of tiny switches called
-transistors and other electronic components that process information and perform
-various functions. These chips are the brains behind countless electronic
-devices, from smartphones and computers to cars and medical equipment.
-
-One class of chips is called {term}`ASIC`. ASIC is a type of chip
-custom-designed for a specific purpose, unlike general-purpose chips like
-microprocessors that can be used for various tasks. One of the most prominent
-examples of ASIC is smartphone processors. These chips are custom-designed for
-mobile devices, focusing on low power consumption and high performance for
-running apps, gaming, and streaming media. They often incorporate specialized
-cores for graphics processing, artificial intelligence, and image signal
-processing.
+```{note}
+This guide assumes that the reader has some basic knowledge of Digital Design,
+{term}`ASIC`, the JSON format and {term}`RTL`.
+```
 
 Designing an ASIC is a complex and fascinating process that entails various
 steps, from idea to the fabrication data. This process is filled with
@@ -32,8 +18,8 @@ powerful EDA (Electronic Design Automation) tools that facilitate the
 implementation of the design. The following are examples of steps needed to
 realize an ASIC.
 
-* Design Entry: In this step, the logic design is described using a Hardware
-  Description Language (HDL) like System Verilog. Typically, the description is
+* Design Entry: In this step, the logic design is described using an {term}`HDL`
+  like System Verilog. Typically, the description is
   done at the data flow (Register Transfer) or behavioral levels.
 * Functional Verification: It is essential to catch design errors early on. The
   description must be checked against the requirements, which can be done
@@ -54,10 +40,9 @@ realize an ASIC.
   ultimately delivers on its promise before sending your chip blueprint off to
   be carved in silicon.
 
-Please note that the five mentioned steps are the major ones. There are several
-other design steps that are not mentioned here such as scan chain insertion and
-test pattern generations that are essential to testing the fabricated chip
-against fabrication defects.
+Do note that these are only the broad strokes — there are many other steps that
+are quite important when making a chip — scan chain insertion, pattern
+generation, one or more {term}`ECO`s, et cetera.
 
 ```{figure} ./asic-flow-diagram.webp
 :align: center
@@ -67,19 +52,12 @@ ASIC Flow
 
 ## What is LibreLane?
 
-```{figure} ./flow.webp
-:scale: 30 %
-:align: right
-
-LibreLane Flow
-```
-
 LibreLane is a powerful and versatile infrastructure library that enables the
 construction of digital ASIC physical implementation flows based on open-source
 and commercial EDA tools. It includes a reference flow ({flow}`Classic`) that is
-constructed entirely using open-source EDA tools –abstracting their behavior and
-allowing the user to configure them using a single file (See Figure 1). LibreLane
-also supports extending or modifying flows using Python scripts and
+constructed entirely using open-source EDA tools — abstracting their behavior
+and allowing the user to configure them using a single file (See Figure 1).
+LibreLane also supports extending or modifying flows using Python scripts and
 utilities. Here are some of the key benefits of using LibreLane:
 
 * Flexibility and extensibility: LibreLane is designed to be flexible and
@@ -92,17 +70,6 @@ utilities. Here are some of the key benefits of using LibreLane:
 * Community support: LibreLane capitalizes on LibreLane's existing community of
   users and contributors, which means that a wealth of resources is available to
   help designers get started and troubleshoot any problems they encounter.
-
-```{seealso}
-You may want to check out [LibreLane using Google Colab directly in your browser](https://developers.google.com/silicon/guides/digital-inverter-librelane).
-
-It's free, and there's no need to install anything on your machine!
-```
-
-```{note}
-This guide assumes that the reader has some basic knowledge of Digital Design,
-{term}`ASIC`, the JSON format and {term}`RTL`.
-```
 
 ______________________________________________________________________
 

@@ -41,7 +41,7 @@ Instead of replacing, you can also emplace steps before or after steps. Simply
 put a `-` before the target step ID to place before, and a `+` to place after.
 
 Substitutions are more useful if you have custom steps registered in
-[LibreLane Plugins](./plugins.md).
+[LibreLane Plugins](./writing_plugins.md).
 
 (config-by-listing-steps)=
 #### By Listing Steps

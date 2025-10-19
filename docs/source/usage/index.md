@@ -1,4 +1,4 @@
-# Usage Guides
+# Usage Guides and Tutorials
 
 These are guides that are useful for learning how to use LibreLane, including
 hardening macros and writing custom flows and scripts.

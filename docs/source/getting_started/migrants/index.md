@@ -74,7 +74,7 @@ instructions at {ref}`nix-based-installation`.
 
 Afterwards, you can run an example as follows:
 
-```{include} ../common/nix_installation/_running_example.md
+```{include} /installation/nix_installation/_running_example.md
 
 ```
 

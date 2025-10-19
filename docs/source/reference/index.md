@@ -13,4 +13,5 @@ step_config_vars
 pin_placement_cfg
 architecture
 api/index
+api_stability_policy
 ```
