@@ -38,7 +38,8 @@ def cli(reader):
     # print(grt)
     grt_inc = GRT.IncrementalGRoute(grt, reader.block)
     i = 0
-    for target_info in reader.config["INSERT_ECO_DIODES"]:
+    diodes = reader.config["INSERT_ECO_DIODES"] or []
+    for target_info in diodes:
         target_name, target_pin = target_info["target"].split("/")
         name_escaped = reader.escape_verilog_name(target_name)
 

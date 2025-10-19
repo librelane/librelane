@@ -54,7 +54,9 @@ Steps should align themselves to one principle:
 In other words, for the same version of LibreLane, the output state is strictly
 a function of the input configuration and the input state.
 
-(ref-step-strictures)= This is applied as far as the functionality goes:
+(ref-step-strictures)=
+
+This is applied as far as the functionality goes:
 
 * Steps **do NOT** modify files in-place. New files must be created in the
   step's dedicated directory. If the tool does not support out-of-place

@@ -1,4 +1,4 @@
-# Installation Overview
+# Installation
 
 LibreLane offers two primary methods of installation: using **Nix** and using
 **Docker**.
@@ -37,7 +37,7 @@ Docker containers offer:
   Docker installed
 
 If Nix doesn't work for you for whatever reason, you may want to try Docker.
-Follow the installation guide here:
+Follow the installation guide here: {doc}`/installation/docker_installation`.
 [Docker-based Installation](./common/docker_installation/index.md).
 
 ## Other Options
@@ -54,3 +54,12 @@ list:
 
 However, as the versions will likely not match those packaged with LibreLane,
 some incompatibilities may arise, and we will not be able to support them.
+
+```{toctree}
+:hidden:
+:glob:
+:maxdepth: 2
+
+nix_installation/index
+docker_installation/index
+```

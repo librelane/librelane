@@ -78,6 +78,7 @@
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
+            py-mon = callPythonPackage ./nix/py-mon.nix {};
 
             # ---
             librelane = callPythonPackage ./default.nix {
@@ -170,7 +171,6 @@
             jdupes
             alejandra
             imagemagick
-            nodejs.pkgs.nodemon
           ];
           extra-python-packages = with pkgs.python3.pkgs; [
             pyfakefs
@@ -191,6 +191,7 @@
             sphinxcontrib-bibtex
             sphinx-tippy
             sphinx-subfigure
+            py-mon
           ];
           include-librelane = false;
         }) {};

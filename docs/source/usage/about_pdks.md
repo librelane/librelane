@@ -18,11 +18,6 @@ ordered by priority (from highest to lowest):
 * The default PDK, i.e., the
   [Skywater/Google 130nm PDK](https://github.com/google/skywater-pdk).
 
-Note that the PDK provided must be a fully qualified PDK variant, i.e.
-
-* `sky130` ❌
-* `sky130A` ⭕
-
 ## Standard Cell Libraries
 
 Standard cells are small silicon patterns that are used to implement basic

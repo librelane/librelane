@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 The LibreLane API
-----------------
+-----------------
 
 Documented elements of this API represent the primary programming interface for
 the LibreLane infrastructure.

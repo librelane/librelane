@@ -14,10 +14,6 @@ I am new to LibreLane
 I have previously used OpenLane
 </a></p>
 
-<p><a href="./installation_overview.html">
-Just show me installation instructions.
-</a></p>
-
 </div>
 
 ```{toctree}
@@ -27,9 +23,6 @@ Just show me installation instructions.
 
 migrants/index
 newcomers/index
-installation_overview
-common/nix_installation/index
-common/docker_installation/index
 ```
 
 ## Next Steps
