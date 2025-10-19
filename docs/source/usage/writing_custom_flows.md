@@ -14,16 +14,24 @@ This defines many of the terms used and enumerates strictures mentioned in this 
 
 ### In Configuration Files
 
+(config-substituting-steps)=
 #### By Substituting Steps
 
 If you're constructing a flow that is largely based on another flow, albeit
 with some substitutions or removals, you may declare your base flow and
 substitutions as follows:
 
+<table>
+<tr>
+  <th>JSON</th>
+  <th>YAML</th>
+</tr>
+<tr>
+  <td>
+
 ```json
 {
   "meta": {
-    "version": 2,
     "flow": "Classic",
     "substituting_steps": {
       "OpenROAD.STAMidPNR*": null,
@@ -32,6 +40,21 @@ substitutions as follows:
   }
 }
 ```
+
+  </td>
+  <td>
+
+```yaml
+meta:
+  flow: Classic
+  substituting_steps:
+    "OpenROAD.STAMidPnR*": null
+    "Magic.DRC": "KLayout.DRC"
+```
+
+  </td>
+</tr>
+</table>
 
 This replaces `Magic.DRC` with *another* `KLayout.DRC` step (which is
 useless but this is just for demonstration); and removes all steps starting

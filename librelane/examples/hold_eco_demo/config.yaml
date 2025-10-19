@@ -1,0 +1,18 @@
+DESIGN_NAME: hold_violation
+CLOCK_PORT: clk
+CLOCK_PERIOD: 5
+VERILOG_FILES: dir::demo.v
+RUN_POST_CTS_RESIZER_TIMING: false
+RUN_POST_GRT_RESIZER_TIMING: false
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 100, 100]
+INSERT_ECO_BUFFERS:
+  - target: u_ff1/Q
+    buffer: sky130_fd_sc_hd__buf_1
+  - target: u_ff1/Q
+    buffer: sky130_fd_sc_hd__buf_1
+meta:
+  flow: Classic
+  substituting_steps:
+    "+OpenROAD.DetailedRouting": "Odb.InsertECOBuffers"
+    "+Odb.InsertECOBuffers": "OpenROAD.DetailedRouting"

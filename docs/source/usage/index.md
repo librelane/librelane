@@ -13,6 +13,7 @@ timing_corners
 timing_closure/index
 using_macros
 using_vhdl
+using_ecos
 caravel/index
 writing_custom_flows
 writing_custom_steps

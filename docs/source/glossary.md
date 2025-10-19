@@ -442,4 +442,11 @@ tape-out
     quite literally submitted to the foundries on tape. Nowadays it's more like
     an FTP server, but the term stuck.
 
+ECO
+
+    Short for Engineering Change Order.
+
+    Used as a catch-all term for manual modifications of netlists that have been
+    processed by tools. Can be used for last-minute physical or timing violation
+    fixes and/or logical fixes.
 ```
