@@ -572,20 +572,28 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.BOT_GITHUB_TOKEN }}
+      # Splitting load to help with disk space issue
       - name: Download Image (Docker/x86_64)
         uses: actions/download-artifact@v4
         with:
           name: docker-image-x86_64
           path: /tmp/docker
+      - name: Load Image (Docker/x86_64)
+        run: |
+          for file in /tmp/docker/*; do
+            cat $file | docker load
+            rm $file
+          done
       - name: Download Image (Docker/aarch64)
         uses: actions/download-artifact@v4
         with:
           name: docker-image-aarch64
           path: /tmp/docker
-      - name: Load Images (Docker)
+      - name: Load Image (Docker/aarch64)
         run: |
           for file in /tmp/docker/*; do
             cat $file | docker load
+            rm $file
           done
       - name: Push (Docker)
         if: ${{ env.PUBLISH == '1' }}
