@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import inspect
-import types
 import shlex
+import inspect
+from enum import Enum
+from decimal import Decimal, InvalidOperation
 from dataclasses import (
     _MISSING_TYPE,
     MISSING,
@@ -23,27 +24,24 @@ from dataclasses import (
     fields,
     is_dataclass,
 )
-from decimal import Decimal, InvalidOperation
-from enum import Enum
 from typing import (
-    Any,
-    Callable,
     ClassVar,
     Dict,
     List,
     Literal,
-    Mapping,
     Optional,
     Set,
     Tuple,
-    Type,
     Union,
-    get_args,
+    Mapping,
+    Callable,
+    Type,
+    Any,
     get_origin,
+    get_args,
 )
-
-from ..common import GenericDict, Number, Path, is_string, slugify, zip_first
 from ..state import DesignFormat, State
+from ..common import GenericDict, Path, is_string, zip_first, Number, slugify
 
 # Scalar = Union[Type[str], Type[Decimal], Type[Path], Type[bool]]
 # VType = Union[Scalar, List[Scalar]]
@@ -222,7 +220,6 @@ class Macro:
 def is_optional(t: Type[Any]) -> bool:
     type_args = get_args(t)
     origin = get_origin(t)
-    # Handle both typing.Union and types.UnionType (Python 3.10+ union syntax)
     return (origin is Union or origin is types.UnionType) and type(None) in type_args
 
 
