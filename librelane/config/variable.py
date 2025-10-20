@@ -24,6 +24,7 @@ from dataclasses import (
     fields,
     is_dataclass,
 )
+import types
 from typing import (
     ClassVar,
     Dict,
