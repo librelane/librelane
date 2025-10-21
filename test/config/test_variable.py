@@ -102,12 +102,12 @@ def test_is_optional():
 
     assert is_optional(int) is False, "is_optional false positive"
     assert is_optional(Optional[int]) is True, "is_optional false negative"
-    assert is_optional(Optional[Union[int, dict]]) is True, (
-        "is_optional composite false negative"
-    )
-    assert is_optional(Union[None, int, dict]) is True, (
-        "is_optional flattened union false negative"
-    )
+    assert (
+        is_optional(Optional[Union[int, dict]]) is True
+    ), "is_optional composite false negative"
+    assert (
+        is_optional(Union[None, int, dict]) is True
+    ), "is_optional flattened union false negative"
     assert is_optional(int | None) is True
     assert is_optional(int | dict | None) is True
 
@@ -116,25 +116,25 @@ def test_some_of():
     from librelane.config.variable import some_of
 
     assert some_of(int) is int, "some_of changed the type of a non-option type"
-    assert some_of(List[str]) == List[str], (
-        "some_of changed the type of a non-option type"
-    )
-    assert some_of(Optional[int]) is int, (
-        "some_of failed to extract type from option type"
-    )
-    assert some_of(Optional[Union[Dict, List]]) is Union[Dict, List], (
-        "some of failed to properly handle optional union"
-    )
+    assert (
+        some_of(List[str]) == List[str]
+    ), "some_of changed the type of a non-option type"
+    assert (
+        some_of(Optional[int]) is int
+    ), "some_of failed to extract type from option type"
+    assert (
+        some_of(Optional[Union[Dict, List]]) is Union[Dict, List]
+    ), "some of failed to properly handle optional union"
 
-    assert some_of(Union[Dict, List, None]) is Union[Dict, List], (
-        "some of failed to properly handle flattened optional union"
-    )
-    assert some_of(int | None) is int, (
-        "some of failed to properly handle PEP 604 optional union"
-    )
-    assert some_of(dict | list | None) == dict | list, (
-        "some of failed to properly handle PEP 604 flattened optional union"
-    )
+    assert (
+        some_of(Union[Dict, List, None]) is Union[Dict, List]
+    ), "some of failed to properly handle flattened optional union"
+    assert (
+        some_of(int | None) is int
+    ), "some of failed to properly handle PEP 604 optional union"
+    assert (
+        some_of(dict | list | None) == dict | list
+    ), "some of failed to properly handle PEP 604 flattened optional union"
 
 
 def test_variable_construction():
@@ -156,9 +156,9 @@ def test_variable_construction():
         description="My Other Description",
     )
 
-    assert variable == variable_b, (
-        "Variable with different description or deprecated_name didn't match"
-    )
+    assert (
+        variable == variable_b
+    ), "Variable with different description or deprecated_name didn't match"
 
     variable_c = Variable(
         "EXAMPLE",
@@ -166,30 +166,30 @@ def test_variable_construction():
         description="My Description",
     )
 
-    assert variable == variable_c, (
-        "Variable with different description or deprecated_name didn't match"
-    )
+    assert (
+        variable == variable_c
+    ), "Variable with different description or deprecated_name didn't match"
 
     variable_union = Variable(
         "UNION_VAR",
         Union[int, Dict[str, str]],
         description="x",
     )
-    assert variable_union.type == Union[int, Dict[str, str]], (
-        "Union magically switched types"
-    )
+    assert (
+        variable_union.type == Union[int, Dict[str, str]]
+    ), "Union magically switched types"
 
     variable_union_new = Variable(
         "UNION_VAR",
         int | Dict[str, str],
         description="x",
     )
-    assert variable_union_new.type == int | Dict[str, str], (
-        "PEP 604 union didn't match typing union"
-    )
-    assert variable_union.type == variable_union_new.type, (
-        "Variable with different union syntax didn't match"
-    )
+    assert (
+        variable_union_new.type == int | Dict[str, str]
+    ), "PEP 604 union didn't match typing union"
+    assert (
+        variable_union.type == variable_union_new.type
+    ), "Variable with different union syntax didn't match"
 
 
 @pytest.fixture
@@ -271,9 +271,9 @@ def test_compile_deprecated(variable):
         deprecated_valid_input,
         warning_list,
     )
-    assert used_name == "OLD_EXAMPLE", (
-        "deprecated valid input returned incorrect used name"
-    )
+    assert (
+        used_name == "OLD_EXAMPLE"
+    ), "deprecated valid input returned incorrect used name"
     assert paths == [
         "/cwd/a",
         "/cwd/b",
