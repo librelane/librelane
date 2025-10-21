@@ -1382,6 +1382,7 @@ class _GlobalPlacement(OpenROADStep):
     config_vars = (
         OpenROADStep.config_vars
         + routing_layer_variables
+        + rsz_variables
         + [
             Variable(
                 "PL_TARGET_DENSITY_PCT",
