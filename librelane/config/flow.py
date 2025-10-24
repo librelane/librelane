@@ -460,7 +460,7 @@ option_variables = [
     ),
 ]
 
-padring_variables = [
+pad_variables = [
     Variable(
         "PAD_GDS",
         Optional[List[Path]],
@@ -574,7 +574,7 @@ padring_variables = [
     Variable(
         "PAD_BONDPAD_OFFSETS",
         Optional[Dict[str, Tuple[Decimal, Decimal]]],
-        "A dict of pad cell names or regular expressions to their bondpad (offset_x, offset_y) tuple.",
+        "A dict of pad master names or regular expressions to their bondpad (offset_x, offset_y) tuple.",
         pdk=True,
     ),
     Variable(
@@ -593,6 +593,4 @@ padring_variables = [
     ),
 ]
 
-flow_common_variables = (
-    pdk_variables + scl_variables + option_variables + padring_variables
-)
+flow_common_variables = pdk_variables + scl_variables + option_variables + pad_variables

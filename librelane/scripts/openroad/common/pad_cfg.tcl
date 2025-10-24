@@ -152,11 +152,25 @@ connect_by_abutment
 # Place bondpads (if needed)
 if { [info exists ::env(PAD_BONDPAD_NAME)] } {
     puts "\[INFO\] Placing bondpads…"
-    dict for {inst_name_match offset} $::env(PAD_BONDPAD_OFFSETS) {
-        set offset_x [lindex $offset 0]
-        set offset_y [lindex $offset 1]
-        puts "\[INFO\] Placing bond pad $::env(PAD_BONDPAD_NAME) for cells $inst_name_match at offset ($offset_x, $offset_y)"
-        place_bondpad -bond $::env(PAD_BONDPAD_NAME) $inst_name_match -offset [list $offset_x $offset_y]
+    
+    foreach side $sides {
+        foreach inst_name $::env($side) {
+            if { [set inst [$block findInst $inst_name]] == "NULL" } {
+                puts stderr "\[ERROR\] No instance $inst_name found."
+                exit 1
+            }
+            set master_name [[$inst getMaster] getName]
+
+            dict for {master_regex offset} $::env(PAD_BONDPAD_OFFSETS) {
+                set offset_x [lindex $offset 0]
+                set offset_y [lindex $offset 1]
+                
+                if {[regexp $master_regex $master_name match]} {
+                    puts "\[INFO\] Placing bondpad $::env(PAD_BONDPAD_NAME) for $inst_name of type $master_name at offset ($offset_x, $offset_y)…"
+                    place_bondpad -bond $::env(PAD_BONDPAD_NAME) $inst_name -offset [list $offset_x $offset_y]
+                }
+            }
+        }
     }
 }
 
