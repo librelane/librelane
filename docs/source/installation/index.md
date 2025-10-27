@@ -37,9 +37,7 @@ Docker containers offer:
   Docker installed
 
 If Nix doesn't work for you for whatever reason, you may want to try Docker.
-Follow the installation guide here: {doc}`/installation/docker_installation`.
-[Docker-based Installation](./common/docker_installation/index.md).
-
+Follow the installation guide here: {doc}`/installation/docker_installation/index`.
 ## Other Options
 
 You may elect to somehow provide the tools yourself. Here is a non-exhaustive

@@ -14,6 +14,38 @@
 ## Documentation
 -->
 
+# 2.4.4
+
+## Steps
+
+* `Checker.*`
+
+  * Dynamic docstring now actually assigned in `__init_subclass__` and is not
+    exclusive to `.get_help_md()`.
+
+* `OpenROAD.*`
+
+  * Fixed a number of double-represented variables.
+
+## Misc. Enhancements/Bugfixes
+
+* `tkinter` no longer required for any operations that do not require evaluating
+  Tcl. Useful for being able to run things like `librelane --version` without
+  the entire tool crashing.
+* Fixed missing docstrings for a number of steps used in the flow.
+* Fixed a crash when a plugin is missing `__version__` at the top level.
+
+## Documentation
+
+* Moved installation into its own separate section.
+* Codified API stability policy.
+* Updated Contributor's Guide with information about access control and
+  code ownership policy.
+* Updated `make docs` to only install dependencies if inside a venv.
+* Fixed all broken links.
+* Replaced nodemon with pymon.
+* Added a number of terms to the glossary.
+
 # 2.4.3
 
 ## Steps

@@ -112,7 +112,10 @@ def generate_module_docs(app: Sphinx, conf: Config):
             category, _ = step.split(".")
             if by_category.get(category) is None:
                 by_category[category] = []
-            by_category[category].append((step, step_factory.get(step)))
+            step_class = step_factory.get(step)
+            if step_class.__doc__ is None:
+                continue
+            by_category[category].append((step, step_class))
 
         misc = ("Misc", by_category["Misc"])
         del by_category["Misc"]

@@ -45,7 +45,7 @@ RTL
 
     Short for Register-Transfer Level.
 
-    An abstraction used in {term}`hardware description languages` like Verilog
+    An abstraction used in {term}`HDL`s like Verilog
     and VHDL to create high-level representations of a circuit, from which
     lower-level representations and ultimately actual wiring can be derived.
 
