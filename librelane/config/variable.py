@@ -16,7 +16,6 @@ import inspect
 from enum import Enum
 from decimal import Decimal, InvalidOperation
 from dataclasses import (
-    _MISSING_TYPE,
     MISSING,
     asdict,
     dataclass,
@@ -597,7 +596,7 @@ class Variable:
                 field_default = None
                 if (
                     current_field.default is not None
-                    and type(current_field.default) is _MISSING_TYPE
+                    and current_field.default != MISSING
                 ):
                     field_default = current_field.default
                 if current_field.default_factory != MISSING:
