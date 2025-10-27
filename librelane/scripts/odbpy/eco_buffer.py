@@ -43,7 +43,8 @@ def cli(reader):
     grt_inc = GRT.IncrementalGRoute(grt, reader.block)
     i = 0
 
-    for target_info in reader.config["INSERT_ECO_BUFFERS"]:
+    eco_buffers = reader.config["INSERT_ECO_BUFFERS"] or []
+    for target_info in eco_buffers:
         target_name, target_pin = target_info["target"].split("/")
         name_escaped = reader.escape_verilog_name(target_name)
         buffer_master = target_info["buffer"]

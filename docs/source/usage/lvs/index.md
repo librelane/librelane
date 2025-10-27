@@ -29,7 +29,7 @@ These mismatches can occur either by user misconfiguration
 When running the {flow}`Classic` flow, you may see this message at the end of
 the flow:
 
-```log
+```
 ERROR   The following error was encountered while running the flow:
         One or more deferred errors were encountered:
         1 LVS errors found.

@@ -21,13 +21,10 @@ librelane openlane:
 docker-image:
 	cat $(shell nix build --no-link --print-out-paths .#librelane-docker -L --verbose) | docker load
 
-DOC_PY_PKG := sphinx myst-parser sphinxcontrib.bibtex sphinx_design sphinx_tippy sphinx_copybutton sphinx_subfigure docstring_parser furo
-
+# double-installing is still fast
 .PHONY: docs
 docs:
-	@for pkg in $(DOC_PY_PKG); do \
-		PYTHONPATH= ./venv/bin/python3 -m pip show $$pkg > /dev/null 2>&1 || PYTHONPATH= ./venv/bin/python3 -m pip install $$pkg; \
-	done
+	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= python3 -m pip install -r ./docs/requirements.txt; fi
 	$(MAKE) -C docs html
 
 .PHONY: host-docs
@@ -36,13 +33,13 @@ host-docs:
 	
 .PHONY: watch-docs
 watch-docs:
-	nodemon\
-		-w .\
-		-e md,py,css\
-		-i "docs/build/**/*"\
-		-i "docs/build/*"\
-		-i "docs/source/reference/*_vars.md"\
-		-i "docs/source/reference/flows.md"\
+	pymon\
+		-d\
+		-w '*.md'\
+		-w '*.css'\
+		-i "*docs/build/*"\
+		-i "*docs/source/reference/*_vars.md"\
+		-i "*docs/source/reference/flows.md"\
 		-x "$(MAKE) docs && python3 -m http.server --directory docs/build/html"
 
 .PHONY: lint

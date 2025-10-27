@@ -220,7 +220,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
     if len(discovered_plugins) > 0:
         print("Discovered plugins:")
         for name, module in discovered_plugins.items():
-            print(f"{name} -> {module.__version__}")
+            if hasattr(module, "__version__"):
+                print(f"{name} -> {module.__version__}")
+            else:
+                print(f"{name}")
 
     ctx.exit(0)
 

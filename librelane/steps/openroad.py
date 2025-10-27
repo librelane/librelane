@@ -1052,11 +1052,6 @@ class IOPlacement(OpenROADStep):
                 "Path to a custom pin configuration file.",
             ),
             Variable(
-                "FP_DEF_TEMPLATE",
-                Optional[Path],
-                "Points to the DEF file to be used as a template.",
-            ),
-            Variable(
                 "FP_IO_VLENGTH",
                 Optional[Decimal],
                 """
@@ -1326,11 +1321,6 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
             "Decides the mode of the random IO placement option.",
             default="matching",
             deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode)],
-        ),
-        Variable(
-            "FP_DEF_TEMPLATE",
-            Optional[Path],
-            "Points to the DEF file to be used as a template.",
         ),
     ]
 

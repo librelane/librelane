@@ -38,6 +38,7 @@ get started.
 :glob:
 :hidden:
 
+installation/index
 getting_started/index
 usage/index
 reference/index
