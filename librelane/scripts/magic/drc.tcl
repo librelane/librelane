@@ -52,7 +52,7 @@ if { $::env(MAGIC_DRC_USE_GDS) } {
 
 set report_dir $::env(STEP_DIR)/reports
 
-set drc_rpt_path $report_dir/drc_violations.magic.rpt
+set drc_rpt_path $report_dir/drc.magic.rpt
 set fout [open $drc_rpt_path w]
 set oscale [cif scale out]
 set cell_name $::env(DESIGN_NAME)
