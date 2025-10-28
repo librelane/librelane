@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -456,32 +460,137 @@ option_variables = [
     ),
 ]
 
-__for_whenever_we_implement_padring = [
+pad_variables = [
     Variable(
-        "GPIO_PADS_LEF",
+        "PAD_GDS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad LEF file(s).",
+        "Path(s) to IO pad GDS file(s).",
         pdk=True,
     ),
     Variable(
-        "GPIO_PADS_LEF_CORE_SIDE",
+        "PAD_LEFS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad LEF file(s) as used for routing (?).",
+        "Path(s) to IO pad LEF file(s).",
         pdk=True,
     ),
     Variable(
-        "GPIO_PADS_VERILOG",
+        "PAD_VERILOG_MODELS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad Verilog models.",
+        "Path(s) to IO pads' Verilog model(s)",
         pdk=True,
     ),
     Variable(
-        "GPIO_PAD_CELLS",
+        "PAD_SPICE_MODELS",
+        Optional[List[Path]],
+        "Path(s) to IO pads' SPICE model(s)",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CDLS",
+        Optional[List[Path]],
+        description="A circuit-design language view of the io pad library.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_LIBS",
+        Optional[Dict[str, List[Path]]],
+        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER",
         Optional[List[str]],
-        "A list of pad cell name prefixes.",
-        deprecated_names=[("GPIO_PADS_PREFIX", _prefix_to_wildcard)],
+        "The pad corner cell.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FILLERS",
+        Optional[List[str]],
+        "A list of pad filler cells.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_SITE_NAME",
+        Optional[str],
+        "Name of the pad site.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER_SITE_NAME",
+        Optional[str],
+        "Name of the corner site.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FAKE_SITE_HEIGHT",
+        Optional[Decimal],
+        "Height of the pad site. Usually the height of the pad cells.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FAKE_SITE_WIDTH",
+        Optional[Decimal],
+        "Width of the pad site. This should be the width of the minimum filler cell.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FAKE_CORNER_SITE_HEIGHT",
+        Optional[Decimal],
+        "Height of the corner pad site. Usually the height of the corner pad cell.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FAKE_CORNER_SITE_WIDTH",
+        Optional[Decimal],
+        "Width of the corner pad site. Usually the width of the corner pad cell.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_NAME",
+        Optional[str],
+        "Name of the bondpad cell, if empty, bondpads won't be placed.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_WIDTH",
+        Optional[Decimal],
+        "Width of the bondpad.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_HEIGHT",
+        Optional[Decimal],
+        "Height of the bondpad.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_OFFSETS",
+        Optional[Dict[str, Tuple[Decimal, Decimal]]],
+        "A dict of pad master names or regular expressions to their bondpad (offset_x, offset_y) tuple.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_PLACE_IO_TERMINALS",
+        Optional[List[str]],
+        "Place I/O terminals for these master/pin combinations.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_EDGE_SPACING",
+        Optional[Decimal],
+        "Distance from the padring to the die boundary. Used to account for the sealring when placing the pads.",
+        default=0,
+        units="µm",
         pdk=True,
     ),
 ]
 
-flow_common_variables = pdk_variables + scl_variables + option_variables
+flow_common_variables = pdk_variables + scl_variables + option_variables + pad_variables

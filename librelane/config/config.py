@@ -37,7 +37,7 @@ from typing import (
 
 from .variable import Variable, MissingRequiredVariable
 from .removals import removed_variables
-from .flow import pdk_variables, scl_variables, flow_common_variables
+from .flow import pdk_variables, scl_variables, pad_variables, flow_common_variables
 from .pdk_compat import migrate_old_config
 from .preprocessor import preprocess_dict, Keys as SpecialKeys
 from ..logging import info, warn
@@ -305,9 +305,10 @@ class Config(GenericImmutableDict[str, Any]):
         """
         incremental_pdk_vars = [variable for variable in config_vars if variable.pdk]
 
-        mutable, _, _ = self.__get_pdk_config(
+        mutable, _, _, _ = self.__get_pdk_config(
             self["PDK"],
             self["STD_CELL_LIBRARY"],
+            self.get("PAD_CELL_LIBRARY", None),
             self["PDK_ROOT"],
             incremental_pdk_vars,
         )
@@ -387,6 +388,7 @@ class Config(GenericImmutableDict[str, Any]):
         DESIGN_NAME: str,
         PDK: str,
         STD_CELL_LIBRARY: Optional[str] = None,
+        PAD_CELL_LIBRARY: Optional[str] = None,
         PDK_ROOT: Optional[str] = None,
         **kwargs,
     ) -> "Config":
@@ -402,6 +404,7 @@ class Config(GenericImmutableDict[str, Any]):
         :param DESIGN_NAME: The name of the design to be used.
         :param PDK: The name of the PDK.
         :param STD_CELL_LIBRARY: The name of the standard cell library.
+        :param PAD_CELL_LIBRARY: The name of the pad cell library.
 
             If not specified, the PDK's default SCL will be used.
         :param PDK_ROOT: Required if Volare is not installed.
@@ -417,11 +420,12 @@ class Config(GenericImmutableDict[str, Any]):
         """
         PDK_ROOT = Self.__resolve_pdk_root(PDK_ROOT)
 
-        raw, _, _ = Self.__get_pdk_config(
+        raw, _, _, _ = Self.__get_pdk_config(
             PDK,
             STD_CELL_LIBRARY,
+            PAD_CELL_LIBRARY,
             PDK_ROOT,
-            pdk_variables + scl_variables,
+            pdk_variables + scl_variables + pad_variables,
         )
 
         kwargs["DESIGN_NAME"] = DESIGN_NAME
@@ -460,6 +464,7 @@ class Config(GenericImmutableDict[str, Any]):
         pdk: Optional[str] = None,
         pdk_root: Optional[str] = None,
         scl: Optional[str] = None,
+        pad: Optional[str] = None,
         design_dir: Optional[str] = None,
         _load_pdk_configs: bool = True,
     ) -> Tuple["Config", str]:
@@ -497,6 +502,9 @@ class Config(GenericImmutableDict[str, Any]):
 
         :param scl: A standard cell library to use. If not specified, the PDK's
             default standard cell library will be used instead.
+
+        :param pad: A pad cell library to use. If not specified, the PDK's
+            pad standard cell library will be used instead (if it exists).
 
         :returns: A tuple containing a Config object and the design directory.
         """
@@ -552,6 +560,7 @@ class Config(GenericImmutableDict[str, Any]):
                         pdk_root=pdk_root,
                         pdk=pdk,
                         scl=scl,
+                        pad=pad,
                     )
                 elif validated_type == "json":
                     mapping = json.load(
@@ -575,6 +584,7 @@ class Config(GenericImmutableDict[str, Any]):
                 pdk_root=pdk_root,
                 pdk=pdk,
                 scl=scl,
+                pad=pad,
                 meta=meta,
                 permissive_typing=meta.version < 2,
                 missing_ok=True,
@@ -597,6 +607,7 @@ class Config(GenericImmutableDict[str, Any]):
             pdk_root=pdk_root,
             pdk=pdk,
             scl=scl,
+            pad=pad,
             meta=config_obj.meta,  # carry forward
             missing_ok=False,  # must all exist
             permissive_typing=True,  # so we can parse things from the commandline
@@ -643,6 +654,7 @@ class Config(GenericImmutableDict[str, Any]):
         pdk_root: Optional[str] = None,
         pdk: Optional[str] = None,
         scl: Optional[str] = None,
+        pad: Optional[str] = None,
         full_pdk_warnings: bool = False,
         permissive_typing: bool = False,
         missing_ok: bool = False,
@@ -671,6 +683,7 @@ class Config(GenericImmutableDict[str, Any]):
 
         pdk = mutable.get(SpecialKeys.pdk) or pdk
         scl = mutable.get(SpecialKeys.scl) or scl
+        pad = mutable.get(SpecialKeys.pad) or pad
         pdkpath = ""
 
         mutable["PDK_ROOT"] = pdk_root
@@ -682,9 +695,10 @@ class Config(GenericImmutableDict[str, Any]):
                     "The pdk argument is required as the configuration object lacks a 'PDK' key."
                 )
 
-            mutable, pdkpath, scl = Self.__get_pdk_config(
+            mutable, pdkpath, scl, pad = Self.__get_pdk_config(
                 pdk=pdk,
                 scl=scl,
+                pad=pad,
                 pdk_root=pdk_root,
                 full_pdk_warnings=full_pdk_warnings,
                 flow_pdk_vars=flow_pdk_vars,
@@ -705,6 +719,7 @@ class Config(GenericImmutableDict[str, Any]):
                 pdk=pdk,
                 pdkpath=pdkpath,
                 scl=mutable[SpecialKeys.scl],
+                pad=mutable.get(SpecialKeys.pad, None),
                 design_dir=design_dir,
                 readable_paths=readable_paths,
             )
@@ -742,6 +757,7 @@ class Config(GenericImmutableDict[str, Any]):
         pdk_root: Optional[str] = None,
         pdk: Optional[str] = None,
         scl: Optional[str] = None,
+        pad: Optional[str] = None,
     ) -> Mapping[str, Any]:
         config_str = open(config, encoding="utf8").read()
 
@@ -758,6 +774,7 @@ class Config(GenericImmutableDict[str, Any]):
             }
         )
         tcl_vars_in[SpecialKeys.scl] = ""
+        tcl_vars_in[SpecialKeys.pad] = ""
         tcl_vars_in[SpecialKeys.design_dir] = design_dir
         tcl_config = GenericDict(TclUtils._eval_env(tcl_vars_in, config_str))
 
@@ -774,15 +791,17 @@ class Config(GenericImmutableDict[str, Any]):
                 "The pdk argument is required as the configuration object lacks a 'PDK' key."
             )
 
-        _, _, scl = Self.__get_pdk_config(
+        _, _, scl, pad = Self.__get_pdk_config(
             pdk=pdk,
             scl=scl,
+            pad=pad,
             pdk_root=pdk_root,
             full_pdk_warnings=False,
         )
 
         tcl_vars_in[SpecialKeys.pdk] = pdk
         tcl_vars_in[SpecialKeys.scl] = scl
+        tcl_vars_in[SpecialKeys.pad] = pad
         tcl_vars_in[SpecialKeys.design_dir] = design_dir
 
         tcl_mapping = GenericDict(TclUtils._eval_env(tcl_vars_in, config_str))
@@ -809,8 +828,8 @@ class Config(GenericImmutableDict[str, Any]):
     @staticmethod
     @lru_cache(1, True)
     def __get_pdk_raw(
-        pdk_root: str, pdk: str, scl: Optional[str]
-    ) -> Tuple[GenericImmutableDict[str, Any], str, str]:
+        pdk_root: str, pdk: str, scl: Optional[str], pad: Optional[str]
+    ) -> Tuple[GenericImmutableDict[str, Any], str, str, Optional[str]]:
         pdk_config: GenericDict[str, Any] = GenericDict(
             {
                 SpecialKeys.pdk_root: pdk_root,
@@ -820,6 +839,9 @@ class Config(GenericImmutableDict[str, Any]):
 
         if scl is not None:
             pdk_config[SpecialKeys.scl] = scl
+
+        if pad is not None:
+            pdk_config[SpecialKeys.pad] = pad
 
         pdkpath = os.path.join(pdk_root, pdk)
         if not os.path.exists(pdkpath):
@@ -851,7 +873,7 @@ class Config(GenericImmutableDict[str, Any]):
             open(pdk_config_path, encoding="utf8").read(),
         )
 
-        scl = pdk_env["STD_CELL_LIBRARY"]
+        scl = pdk_env.get("STD_CELL_LIBRARY", None)
         assert (
             scl is not None
         ), "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
@@ -865,7 +887,7 @@ class Config(GenericImmutableDict[str, Any]):
             )
             if not os.path.exists(scl_config_path_alt):
                 raise InvalidConfig(
-                    "PDk configuration",
+                    "PDK configuration",
                     [],
                     [
                         f"Neither '{scl_config_path}' nor '{scl_config_path_alt} were found.'"
@@ -873,30 +895,51 @@ class Config(GenericImmutableDict[str, Any]):
                 )
             scl_config_path = scl_config_path_alt
 
-        scl_env = migrate_old_config(
+        full_env = migrate_old_config(
             TclUtils._eval_env(
                 pdk_env,
                 open(scl_config_path, encoding="utf8").read(),
             )
         )
 
-        return GenericImmutableDict(scl_env), pdkpath, scl
+        pad = pdk_env.get("PAD_CELL_LIBRARY", None)
+
+        if pad is not None:
+            pad_config_path = os.path.join(
+                pdkpath, "libs.tech", "librelane", pad, "config.tcl"
+            )
+            if not os.path.exists(pad_config_path):
+                raise InvalidConfig(
+                    "PDK configuration",
+                    [],
+                    [f"'{pad_config_path}' was not found.'"],
+                )
+
+            full_env = migrate_old_config(
+                TclUtils._eval_env(
+                    full_env,
+                    open(pad_config_path, encoding="utf8").read(),
+                )
+            )
+
+        return GenericImmutableDict(full_env), pdkpath, scl, pad
 
     @staticmethod
     def __get_pdk_config(
         pdk: str,
         scl: Optional[str],
+        pad: Optional[str],
         pdk_root: str,
         flow_pdk_vars: Optional[List[Variable]] = None,
         full_pdk_warnings: Optional[bool] = False,
-    ) -> Tuple[GenericDict[str, Any], str, str]:
+    ) -> Tuple[GenericDict[str, Any], str, str, Optional[str]]:
         """
-        :returns: A tuple of the PDK configuration, the PDK path and the SCL.
+        :returns: A tuple of the PDK configuration, the PDK path, the SCL and the PAD.
         """
 
-        frozen, pdkpath, scl = Config.__get_pdk_raw(pdk_root, pdk, scl)
+        frozen, pdkpath, scl, pad = Config.__get_pdk_raw(pdk_root, pdk, scl, pad)
         if flow_pdk_vars is None or len(flow_pdk_vars) == 0:
-            return (GenericDict(), pdkpath, scl)
+            return (GenericDict(), pdkpath, scl, pad)
 
         raw: GenericDict[str, Any] = GenericDict(frozen)  # microwave
         processed, pdk_warnings, pdk_errors = Config.__process_variable_list(
@@ -920,7 +963,7 @@ class Config(GenericImmutableDict[str, Any]):
         processed["PDK_ROOT"] = pdk_root
         processed["PDK"] = pdk
 
-        return (processed, pdkpath, scl)
+        return (processed, pdkpath, scl, pad)
 
     def __process_variable_list(
         mutable: GenericDict[str, Any],

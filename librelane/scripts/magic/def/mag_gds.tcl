@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,18 +17,36 @@
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/magic/common/read.tcl
 drc off
+crashbackups disable
 
-read_pdk_gds
 gds noduplicates true
+gds readonly true
 
+# read stdcells
+read_pdk_gds
+# annotate with lef
+read_pdk_lef
+
+# read macros
 if { $::env(MAGIC_MACRO_STD_CELL_SOURCE) == "PDK" } {
     read_macro_gds
+    # annotate with lef
+    read_macro_lef
 } else {
     read_macro_gds_blackbox
+    # annotate with lef
+    read_macro_lef
 }
 
+# read extras
 read_extra_gds
+# annotate with lef
 read_extra_lef
+
+# read pads
+read_pad_gds
+# annotate with lef
+read_pad_lef
 
 load (NEWCELL)
 

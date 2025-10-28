@@ -154,6 +154,7 @@ def test_preprocess_dict():
         "PDK": "sky130A",
         "PDKPATH": "/cwd",
         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "PAD_CELL_LIBRARY": None,
         "DESIGN_DIR": "/cwd",
         "meta": {"version": 2},
         "DESIGN_NAME": "manual_macro_placement_test",

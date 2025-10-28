@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -270,15 +274,26 @@ class VerilogStep(PyosysStep):
         scl_lib_list = self.toolbox.filter_views(
             self.config, self.config["LIB"], self.config.get("SYNTH_CORNER")
         )
-        if self.power_defines and self.config["CELL_VERILOG_MODELS"] is not None:
-            blackbox_models.extend(
-                [
-                    self.toolbox.create_blackbox_model(
-                        frozenset(self.config["CELL_VERILOG_MODELS"]),
-                        frozenset(["USE_POWER_PINS"]),
-                    )
-                ]
-            )
+
+        if self.power_defines:
+            if self.config["CELL_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["CELL_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
+            if self.config["PAD_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["PAD_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
         else:
             blackbox_models.extend(str(f) for f in scl_lib_list)
 
