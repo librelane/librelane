@@ -43,7 +43,7 @@ from cloup.typing import Decorator
 
 from .flow import Flow
 from ..common import set_tpe, cli, get_pdk_hash, _get_process_limit
-from ..logging import set_log_level, verbose, info, err, options, LogLevels
+from ..logging import set_log_level, verbose, err, options, LogLevels
 from ..state import State, InvalidState
 
 
@@ -518,15 +518,6 @@ def cloup_flow_opts(
 
                     if pdk_family is None:
                         err(f"Could not resolve the PDK '{pdk}'.")
-                        exit(1)
-
-                    if pdk_family == "ihp-sg13g2":
-                        err(
-                            "The IHP Open PDK is only supported in the development version of LibreLane, specifically 3.0.0.dev28 or higher."
-                        )
-                        info(
-                            "If you're using Nix, switch to the 'dev' branch. If you're using the Python package, run \"python3 -m pip install 'librelane>=3.0.0.dev28'\"."
-                        )
                         exit(1)
 
                     try:
