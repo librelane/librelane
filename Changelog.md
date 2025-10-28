@@ -41,9 +41,39 @@ Style Notes
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
     raise an error for hold violations on *any* corners.
 
+* Created `Checker.KLayoutDensity`
+
+  * Uses `klayout__density_error__count`
+
+* Created `Checker.KLayoutAntenna`
+
+  * Uses `klayout__antenna_error__count`
+
 * `KLayout.DRC`
 
+  * Added generic implementation.
   * Added support for ihp-sg13g2.
+  * Added support for gf180mcu.
+  * Renamed `.xml` to `.lyrdb`.
+
+* Created `KLayout.SealRing`
+
+  * Added generic implementation.
+  * Added gf180mcu implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Filler`
+
+  * Add generic implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Density`
+
+  * Add generic implementation.
+
+* Created `KLayout.Antenna`
+
+  * Add generic implementation.
 
 * Created `KLayout.LVS`
 
@@ -57,6 +87,10 @@ Style Notes
   conflict resolution if a cell name conflict arises. (Default: "RenameCell")
 
   * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
+* `Magic.*`
+
+  * Updated scripts to annotated GDS with LEF.
 
 * `Magic.DRC`
 
@@ -196,6 +230,8 @@ Style Notes
     In that situation, flipping the sites for single-height cells resolves the
     issue.
 
+  * Make fake I/O sites if `PAD_FAKE_SITE_*` or `PAD_FAKE_CORNER_SITE_*` exists.
+
 * `OpenROAD.GeneratePDN`
 
   * All variables prefixed `FP_PDN_` have been renamed to be prefixed simply
@@ -236,6 +272,14 @@ Style Notes
   * Added optional variable `IO_PIN_CORNER_AVOIDANCE`.
 
   * Added optional variable `IO_PIN_MIN_DISTANCE_IN_TRACKS`.
+
+* Created `OpenROAD.PadRing`
+
+  * Added `PAD_*` PDK variables for the default pad config.
+
+  * Added `PAD_CFG` to override the default pad config (`pad_cfg.tcl`).
+
+  * Added `PAD_SOUTH`/`PAD_EAST`/`PAD_NORTH`/`PAD_WEST` to specify the placement of the pad cells.
 
 * `OpenROAD.RepairAntennas`
 
@@ -346,6 +390,12 @@ Style Notes
 
   * Added `OpenROAD.DumpRCValues` immediately after floorplanning.
 
+* Created "Chip" flow
+
+  * Added `OpenROAD.PadRing` for pad ring generation.
+  * Added new KLayout steps (filler, density etc.).
+  * Removed `Magic.WriteLEF`, `Odb.CheckDesignAntennaProperties`.
+
 ## Tool Updates
 
 * Python requirement bumped up to ≥3.10
@@ -369,6 +419,8 @@ Style Notes
   PDK variables.)
 
 ## Misc. Enhancements/Bugfixes
+
+- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
 
@@ -401,6 +453,8 @@ Style Notes
 
   * `meta.substituting_steps` now only apply to the sequential flow declared in
     `meta.flow` and not all flows.
+
+  * `pdk_compat` set some compatibility values only if necessary.
 
 * `librelane.state`
 
