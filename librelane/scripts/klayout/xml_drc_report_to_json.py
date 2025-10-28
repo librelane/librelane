@@ -21,7 +21,8 @@ import click
 @click.command()
 @click.option("--xml-file")
 @click.option("--json-file")
-def cli(xml_file, json_file):
+@click.option("--metric")
+def cli(xml_file, json_file, metric):
     database = ReportDatabase("Database")
     json_database = {}
     database.load(xml_file)
@@ -38,7 +39,7 @@ def cli(xml_file, json_file):
     with open(json_file, "w", encoding="utf8") as f:
         json.dump(json_database, f, indent=4)
 
-    print(f"%OL_METRIC_I klayout__drc_error__count {total}")
+    print(f"%OL_METRIC_I {metric} {total}")
 
 
 if __name__ == "__main__":
