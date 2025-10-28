@@ -46,7 +46,7 @@ def check_cells(odb_cells):
                 output_pins.append(pin_name)
         if inout_pins:
             print(
-                f"[WARNING] Cell '{cell_name}' has ({len(inout_pins)}) inout pin(s) without anetnna gate information not antenna diffusion information. They might be disconnected."
+                f"[WARNING] Cell '{cell_name}' has ({len(inout_pins)}) inout pin(s) without antenna gate information not antenna diffusion information. They might be disconnected."
             )
         if input_pins:
             print(
