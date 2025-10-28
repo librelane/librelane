@@ -37,7 +37,7 @@ set arg_list [list]
 
 lappend arg_list -density [expr $::env(PL_TARGET_DENSITY_PCT) / 100.0]
 
-if { [info exists ::env(PL_TIME_DRIVEN)] && $::env(PL_TIME_DRIVEN) } {
+if { [info exists ::env(PL_TIMING_DRIVEN)] && $::env(PL_TIMING_DRIVEN) } {
 	source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 	lappend arg_list -timing_driven
 }

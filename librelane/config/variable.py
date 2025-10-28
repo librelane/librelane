@@ -293,8 +293,8 @@ class Variable:
     Values supplied for configuration variables are the primary interface by
     which users configure LibreLane flows.
 
-    :param name: A string name for the Variable. Because of backwards compatibility
-        with LibreLane 1, the convention is ``UPPER_SNAKE_CASE``.
+    :param name: A string name for the Variable. Because of backwards
+        compatibility with OpenLane, the convention is ``UPPER_SNAKE_CASE``.
 
     :param type: A Python type object representing the variable.
 
@@ -317,6 +317,7 @@ class Variable:
         Other:
 
         - ``dataclass`` types composed of the above.
+        - Sum classes of the above.
 
     :param description: A human-readable description of the variable. Used to
         generate help strings and documentation.
@@ -327,13 +328,13 @@ class Variable:
 
     :param deprecated_names: A list of deprecated names for said variable.
 
-        An element of the list can alternative be a tuple of a name and a Callable
-        used to perform a translation for when a renamed variable is also slightly
-        modified.
+        An element of the list can alternative be a tuple of a name and a
+        Callable used to perform a translation for when a renamed variable is
+        also slightly modified.
 
     :param units: Used only in documentation: the unit corresponding to this
-        object, i.e., µm, pF, etc. Can be any string, but for consistency, SI units
-        must be represented in terms of their official symbols.
+        object, i.e., µm, pF, etc. Can be any string, but for consistency, SI
+        units must be represented in terms of their official symbols.
 
     :param pdk: Whether this variable is expected to be given a default value
         by a PDK or not.
@@ -349,6 +350,17 @@ class Variable:
         If this is false, a PDK is not allowed to set a default value for
         this variable. In current versions of LibreLane, the value will be
         silently ignored, but warnings or errors may occur in future versions.
+
+    :param validator: A customizable validator that is run AFTER type checks
+        and conversions. Takes three arguments:
+
+        * variable - the Variable object itself
+        * input - the user's input, whatever type it may be
+        * warning_list_ref - a list that may be appended to to emit warnings
+
+        The validator may update the value, however it is discouraged to do so
+        silently (i.e. it's best to emit a warning.) A validator may reject
+        user input by raising a ``ValueError``.
     """
 
     known_variable_names: ClassVar[Set[str]] = set()
@@ -363,6 +375,7 @@ class Variable:
 
     units: Optional[str] = None
     pdk: bool = False
+    validator: Callable[["Variable", Any, List[str]], Any] = lambda self, i, _: i
 
     def __post_init__(self):
         Variable.known_variable_names.add(self.name)
@@ -450,10 +463,11 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
-                if type_origin is list and type_args == (str,):
+                # HACK: Allow multiple globs within Path variables
+                if type_origin is list and type_args == (Path,):
                     if any(isinstance(item, List) for item in raw):
                         Variable.__flatten_list(value)
-                pass
+                pass  # do nothing, can be used as is
             elif is_string(raw):
                 if not permissive_typing:
                     raise ValueError(
@@ -685,12 +699,12 @@ class Variable:
         values_so_far: Optional[Mapping[str, Any]] = None,
         permissive_typing: bool = False,
     ) -> Tuple[Optional[str], Any]:
-        exists: Optional[str] = None
+        user_specified_key: Optional[str] = None
         value: Optional[Any] = None
 
         i = 0
         while (
-            not exists
+            user_specified_key is None
             and self.deprecated_names is not None
             and i < len(self.deprecated_names)
         ):
@@ -698,8 +712,8 @@ class Variable:
             deprecated_callable = lambda x: x
             if not isinstance(deprecated_name, str):
                 deprecated_name, deprecated_callable = deprecated_name
-            exists, value = mutable_config.check(deprecated_name)
-            if exists:
+            user_specified_key, value = mutable_config.check(deprecated_name)
+            if user_specified_key is not None:
                 warning_list_ref.append(
                     f"The configuration variable '{deprecated_name}' is deprecated. Please check the docs for the usage on the replacement variable '{self.name}'."
                 )
@@ -707,19 +721,22 @@ class Variable:
                 value = deprecated_callable(value)
             i = i + 1
 
-        if not exists:
-            exists, value = mutable_config.check(self.name)
+        if user_specified_key is None:
+            user_specified_key, value = mutable_config.check(self.name)
 
         processed = self.__process(
             key_path=self.name,
             value=value,
             default=self.default,
             validating_type=self.type,
-            explicitly_specified=exists is not None,
+            explicitly_specified=user_specified_key is not None,
             permissive_typing=permissive_typing,
         )
 
-        return (exists, processed)
+        if user_specified_key is not None:
+            processed = self.validator(self, processed, warning_list_ref)
+
+        return (user_specified_key, processed)
 
     def _get_docs_identifier(self, parent: Optional[str] = None) -> str:
         identifier = f"var-{self.name.lower()}"
