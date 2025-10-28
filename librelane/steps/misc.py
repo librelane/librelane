@@ -53,6 +53,11 @@ class LoadBaseSDC(Step):
 
 @Step.factory.register()
 class ReportManufacturability(Step):
+    """
+    Logs a simple "manufacturability report", i.e., the status of DRC, LVS, and
+    antenna violations.
+    """
+
     id = "Misc.ReportManufacturability"
     name = "Report Manufacturability"
     long_name = "Report Manufacturability (DRC, LVS, Antenna)"

@@ -1518,11 +1518,6 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
             "Path to a custom pin configuration file.",
             deprecated_names=["FP_PIN_ORDER_CFG"],
         ),
-        Variable(
-            "FP_DEF_TEMPLATE",
-            Optional[Path],
-            "Points to the DEF file to be used as a template.",
-        ),
     ]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:

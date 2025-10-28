@@ -79,22 +79,21 @@ class MetricChecker(Step):
     deferred: ClassVar[bool] = True
     error_on_var: Optional[Variable] = None
 
-    @classmethod
-    def get_help_md(Self, **kwargs):  # pragma: no cover
-        threshold_string = Self.get_threshold_description(None)
+    def __init_subclass__(cls):
+        threshold_string = cls.get_threshold_description(None)
         if threshold_string is None:
-            threshold_string = str(Self.get_threshold(None))
+            threshold_string = str(cls.get_threshold(None))
         dynamic_docstring = "Raises"
-        if Self.deferred:
+        if cls.deferred:
             dynamic_docstring += " a deferred error"
         else:
             dynamic_docstring += " an immediate error"
-        dynamic_docstring += f" if {Self.metric_description} (metric: ``{Self.metric_name}``) are >= {threshold_string}."
+        dynamic_docstring += f" if {cls.metric_description} (metric: ``{cls.metric_name}``) are >= {threshold_string}."
         dynamic_docstring += (
             " Doesn't raise an error depending on error_on_var if defined."
         )
-
-        return super().get_help_md(docstring_override=dynamic_docstring, **kwargs)
+        cls.__doc__ = dynamic_docstring
+        return super().__init_subclass__()
 
     def get_threshold(self: Optional["MetricChecker"]) -> Optional[Decimal]:
         return Decimal(0)

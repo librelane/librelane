@@ -43,7 +43,7 @@ from cloup.typing import Decorator
 
 from .flow import Flow
 from ..common import set_tpe, cli, get_pdk_hash, _get_process_limit
-from ..logging import set_log_level, verbose, err, options, LogLevels
+from ..logging import set_log_level, verbose, info, err, options, LogLevels
 from ..state import State, InvalidState
 
 
@@ -520,16 +520,29 @@ def cloup_flow_opts(
                         err(f"Could not resolve the PDK '{pdk}'.")
                         exit(1)
 
-                    version = ciel.fetch(
-                        ciel_home,
-                        pdk_family,
-                        opdks_rev,
-                        data_source=StaticWebDataSource(
-                            "https://fossi-foundation.github.io/ciel-releases"
-                        ),
-                        include_libraries=include_libraries,
-                    )
-                    pdk_root = version.get_dir(ciel_home)
+                    if pdk_family == "ihp-sg13g2":
+                        err(
+                            "The IHP Open PDK is only supported in the development version of LibreLane, specifically 3.0.0.dev28 or higher."
+                        )
+                        info(
+                            "If you're using Nix, switch to the 'dev' branch. If you're using the Python package, run \"python3 -m pip install 'librelane>=3.0.0.dev28'\"."
+                        )
+                        exit(1)
+
+                    try:
+                        version = ciel.fetch(
+                            ciel_home,
+                            pdk_family,
+                            opdks_rev,
+                            data_source=StaticWebDataSource(
+                                "https://fossi-foundation.github.io/ciel-releases"
+                            ),
+                            include_libraries=include_libraries,
+                        )
+                        pdk_root = version.get_dir(ciel_home)
+                    except ValueError as e:
+                        err(f"Failed to download PDK: {e}")
+                        exit(1)
 
                 return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, **kwargs)
 

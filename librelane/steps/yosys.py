@@ -258,6 +258,14 @@ class YosysStep(TclStep):
 
 @Step.factory.register()
 class EQY(Step):
+    """
+    Experimental: Uses the `EQY <https://github.com/yosyshq/eqy>`_ utility to
+    perform an RTL vs. Netlist equivalence check.
+
+    Currently, you are expected to provide your own EQY script if you want this
+    to work properly.
+    """
+
     id = "Yosys.EQY"
     name = "Equivalence Check"
     long_name = "RTL/Netlist Equivalence Check"
@@ -272,7 +280,7 @@ class EQY(Step):
             Variable(
                 "EQY_SCRIPT",
                 Optional[Path],
-                "An optional override for the automatically generated EQY script for more complex designs.",
+                "The EQY script to use. If unset, a generic EQY script will be generated, but this fails in a number of scenarios.",
             ),
             Variable(
                 "MACRO_PLACEMENT_CFG",

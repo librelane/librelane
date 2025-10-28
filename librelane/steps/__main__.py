@@ -47,8 +47,9 @@ def load_step_from_inputs(
         if Found := Step.factory.get(id):
             Target = Found
         else:
-            err(
-                f"No step registered with id '{id}'. Ensure all relevant plugins are installed."
+            err(f"No step registered with id '{id}'.")
+            info(
+                f"If the step '{id}' is part of a plugin, make sure the plugin's parent directory is in the PYTHONPATH environment variable."
             )
             ctx.exit(-1)
 

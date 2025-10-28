@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.0.0.dev41"
+version = "3.0.0.dev42"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "me@donn.website"}
@@ -67,6 +67,12 @@ librelane = "librelane.__main__:cli"
 "librelane.state" = "librelane.state.__main__:cli"
 "librelane.help" = "librelane.help.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
+
+[tool.ruff]
+# syntax-only check, make sure files are parseable under py310
+# $ ruff check .
+target-version = "py310"
+lint.ignore = ["E", "F"] 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3"]
