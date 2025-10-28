@@ -47,13 +47,14 @@
   ninja,
   git,
   gtest,
+  darwin,
   # environments,
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "1fed54e7d9fd7973a77b0db72559d3a9bd159ffa",
-  rev-date ? "2025-09-29",
-  sha256 ? "sha256-4rp20rZ2vDCErgEQcYCOjNF2LPqU5uTdzWmhpB97nek=",
+  rev ? "4534556345c94ba27a6ad69fb05594da80f0728b",
+  rev-date ? "2025-10-28",
+  sha256 ? "sha256-LgccZNAC7+O0VoTHIlBDCF06lWUOkvZsTOkYZRDeE0o=",
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -87,13 +88,17 @@ in
         "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
       ];
 
-    patches = [
-      ./patches/openroad/static_library_fixes.patch
-    ];
-
     postPatch = ''
-      sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
       patchShebangs ./etc
+
+      sed -i 's@cmake -B@cmake ${join_flags finalAttrs.cmakeFlags} -B@' ./etc/Env.sh
+      echo "#!/bin/bash" > ./openroad.build_env_info
+      echo "cat << EOF" >> ./openroad.build_env_info
+      bash ./etc/Env.sh >> ./openroad.build_env_info
+      echo "EOF" >> ./openroad.build_env_info
+      chmod +x ./openroad.build_env_info
+
+      sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
     '';
 
     buildInputs = [
@@ -136,6 +141,7 @@ in
       llvmPackages.clang-tools
       python3.pkgs.tclint
       ctestCheckHook
+      darwin.DarwinTools # sw_vers
     ];
 
     shellHook = ''
@@ -154,6 +160,10 @@ in
         debug:
         */
         false)} -G Ninja'
+    '';
+
+    postInstall = ''
+      cp ../openroad.build_env_info $out/bin/openroad.build_env_info
     '';
 
     # it takes 8 billion years set it to true on your own machine to test

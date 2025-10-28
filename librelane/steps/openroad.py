@@ -30,7 +30,17 @@ from decimal import Decimal
 from enum import Enum
 from glob import glob
 from math import inf
-from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    TypeAlias,
+    Union,
+)
 
 import rich
 import rich.table
@@ -451,9 +461,18 @@ class OpenROADStep(TclStep):
                     f"{self.id} failed with the following errors:\n{error_string}"
                 )
             else:
-                raise StepException(
-                    f"{self.id} failed unexpectedly. Please check the logs and file an issue."
-                )
+                step_exception_message = f"{self.id} failed with an unexpected error."
+                log_path = self.get_log_path()
+                if os.path.isfile(log_path):
+                    step_exception_message += f" Please check {repr(os.path.relpath(log_path))} and unless you wrote the step yourself, file an issue.\n"
+                    with open(log_path, "r", encoding="utf8") as f:
+                        last_n_lines = f.readlines()[-10:]
+                        step_exception_message += f"Last {len(last_n_lines)} lines:\n"
+                        for line in last_n_lines:
+                            step_exception_message += "\t" + line
+                else:
+                    step_exception_message += f" Please check the logs in {repr(self.step_dir)} and unless you wrote the step yourself, file an issue."
+                raise StepException(step_exception_message)
         # 2. Metrics
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         if os.path.exists(metrics_path):
@@ -1160,19 +1179,18 @@ class Floorplan(OpenROADStep):
         return super().run(state_in, env=env, **kwargs)
 
 
-def _migrate_ppl_mode(migrated):
-    as_int = None
-    try:
-        as_int = int(migrated)
-    except ValueError:
-        pass
-    if as_int is not None:
-        if as_int < 0 or as_int > 2:
-            raise ValueError(
-                f"Legacy variable FP_IO_MODE can only either be 0 for matching or 1 for random_equidistant-- '{as_int}' is invalid.\nPlease see the documentation for the usage of the replacement variable, 'FP_PIN_MODE'."
-            )
-        return ["matching", "random_equidistant"][as_int]
-    return migrated
+PPLMode: TypeAlias = Literal["matching", "annealing", "random_equidistant"]
+
+
+def _validate_io_ppl_mode(
+    variable: Variable, input: PPLMode, warning_list_ref: List[str]
+):
+    if input == "random_equidistant":
+        warning_list_ref.append(
+            f"The mode '{input}' for {variable.name} has been removed. Please update your configuration to use 'matching' instead."
+        )
+        return "matching"
+    return input
 
 
 @Step.factory.register()
@@ -1270,10 +1288,11 @@ class IOPlacement(OpenROADStep):
             ),
             Variable(
                 "IO_PIN_PLACEMENT_MODE",
-                Literal["matching", "annealing"],
+                PPLMode,
                 "Decides the mode of the random IO placement option.",
                 default="matching",
-                deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
+                deprecated_names=["FP_PPL_MODE"],
+                validator=_validate_io_ppl_mode,
             ),
             Variable(
                 "IO_PIN_MIN_DISTANCE",
@@ -1521,7 +1540,7 @@ class _GlobalPlacement(OpenROADStep):
             Variable(
                 "PL_KEEP_RESIZE_BELOW_OVERFLOW",
                 Optional[Decimal],
-                "Only applicable when PL_TIME_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
+                "Only applicable when PL_TIMING_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
             ),
         ]
     )
@@ -1559,10 +1578,11 @@ class GlobalPlacement(_GlobalPlacement):
 
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
-            "PL_TIME_DRIVEN",
+            "PL_TIMING_DRIVEN",
             bool,
-            "Specifies whether the placer should use time driven placement.",
-            default=True,
+            "Specifies whether the placer should use timing-driven placement.",
+            default=False,
+            deprecated_names=["PL_TIME_DRIVEN"],
         ),
         Variable(
             "PL_ROUTABILITY_DRIVEN",
@@ -1595,10 +1615,11 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
             "IO_PIN_PLACEMENT_MODE",
-            Literal["matching", "annealing"],
+            Literal["matching", "annealing", "random_equidistant"],
             "Decides the mode of the random IO placement option.",
             default="matching",
-            deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
+            deprecated_names=["FP_PPL_MODE"],
+            validator=_validate_io_ppl_mode,
         ),
         Variable(
             "IO_PIN_ORDER_CFG",

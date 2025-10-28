@@ -26,9 +26,9 @@
   cudd,
   zlib,
   eigen,
-  rev ? "3b2961ebd2dff9561407f956b20a793c5a329f4d",
-  rev-date ? "2025-09-12",
-  sha256 ? "sha256-gPm0AD58TJglT+s9EFRvmwYMys+hH4VHDkPOctY1H98=",
+  rev ? "254d0905827ba6129e07f53b682c6ea6de417d3d",
+  rev-date ? "2025-10-27",
+  sha256 ? "sha256-aLvEw81J4ZVEMYIcgsbdS9x+PedPGreh8+ccdX4i1ms=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
@@ -97,11 +97,11 @@ clangStdenv.mkDerivation (finalAttrs: {
     bison
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Gate-level static timing verifier";
     homepage = "https://parallaxsw.com";
     mainProgram = "sta";
-    license = licenses.gpl3Plus;
-    platforms = platforms.darwin ++ platforms.linux;
+    license = lib.licenses.gpl3Plus;
+    platforms = with lib.platforms; linux ++ darwin;
   };
 })

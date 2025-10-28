@@ -292,6 +292,60 @@ def test_enum():
     return TestEnum
 
 
+def test_compile_validators():
+    from librelane.config import Variable
+    from librelane.common import GenericDict
+
+    def zero_to_one_validator(variable: Variable, input, _):
+        if input < 0 or input > 1:
+            raise ValueError(
+                f"Value {input} for {variable.name} is invalid: must be between zero and one"
+            )
+        return input
+
+    def zero_to_one_updater(variable: Variable, input, warning_list_ref):
+        if input < 0:
+            warning_list_ref.append(
+                f"Value for {variable.name} less than 0. Setting to 0."
+            )
+            return type(input)(0)
+        if input > 1:
+            warning_list_ref.append(
+                f"Value for {variable.name} higher than 1. Setting to 1."
+            )
+            return type(input)(1)
+        return input
+
+    checked = Variable(
+        "TEST_VARIABLE_VALIDATOR", Decimal, "x", validator=zero_to_one_validator
+    )
+
+    warning_list_ref = []
+    checked.compile(
+        GenericDict({"TEST_VARIABLE_VALIDATOR": Decimal("0.5")}), warning_list_ref
+    )
+
+    with pytest.raises(ValueError, match="(must be between zero and one)"):
+        checked.compile(
+            GenericDict({"TEST_VARIABLE_VALIDATOR": Decimal("1.1")}), warning_list_ref
+        )
+
+    updated = Variable(
+        "TEST_VARIABLE_UPDATER", Decimal, "x", validator=zero_to_one_updater
+    )
+
+    _, result = updated.compile(
+        GenericDict({"TEST_VARIABLE_UPDATER": Decimal("0.5")}), warning_list_ref
+    )
+    assert result == Decimal("0.5"), "updater modified valid value"
+
+    _, result = updated.compile(
+        GenericDict({"TEST_VARIABLE_UPDATER": Decimal("24601")}), warning_list_ref
+    )
+    assert result == Decimal("1"), "updater did not modify out of scope value"
+    assert len(warning_list_ref), "invalid updated value did not emit a warning"
+
+
 @pytest.fixture
 def variable_set(variable, test_enum):
     from librelane.config import Variable
