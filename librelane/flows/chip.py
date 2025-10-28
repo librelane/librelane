@@ -101,6 +101,7 @@ class Chip(SequentialFlow):
         KLayout.Antenna,
         Checker.KLayoutAntenna,
         KLayout.SealRing,
+        KLayout.Filler,
         KLayout.Density,
         Checker.KLayoutDensity,
         Magic.DRC,

@@ -437,6 +437,42 @@ class KLayoutDRC(MetricChecker):
     config_vars = [error_on_var]
 
 
+@Step.factory.register()
+class KLayoutDensity(MetricChecker):
+    id = "Checker.KLayoutDensity"
+    name = "KLayout Density Checker"
+    long_name = "KLayout Density Checker"
+
+    metric_name = "klayout__density_error__count"
+    metric_description = "KLayout density errors"
+
+    error_on_var = Variable(
+        "ERROR_ON_KLAYOUT_DENSITY",
+        bool,
+        "Checks for density violations after KLayout density check is executed and exits the flow if any was found.",
+        default=True,
+    )
+    config_vars = [error_on_var]
+
+
+@Step.factory.register()
+class KLayoutAntenna(MetricChecker):
+    id = "Checker.KLayoutAntenna"
+    name = "KLayout Antenna Checker"
+    long_name = "KLayout Antenna Checker"
+
+    metric_name = "klayout__antenna_error__count"
+    metric_description = "KLayout antenna errors"
+
+    error_on_var = Variable(
+        "ERROR_ON_KLAYOUT_ANTENNA",
+        bool,
+        "Checks for antenna violations after KLayout antenna check is executed and exits the flow if any was found.",
+        default=True,
+    )
+    config_vars = [error_on_var]
+
+
 class TimingViolations(MetricChecker):
     """
     Abstract class for timing violations.
