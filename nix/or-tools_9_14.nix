@@ -40,7 +40,7 @@
   bzip2,
   cbc,
   cmake,
-  DarwinTools, # sw_vers
+  darwin, # .DarwinTools
   eigen,
   ensureNewerSourcesForZipFilesHook,
   fetchFromGitHub,
@@ -92,7 +92,7 @@ stdenv.mkDerivation (finalAttrs: {
       unzip
     ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      DarwinTools
+      darwin.DarwinTools # sw_vers
     ];
 
   buildInputs = [

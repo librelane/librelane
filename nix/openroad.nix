@@ -141,6 +141,7 @@ in
       llvmPackages.clang-tools
       python3.pkgs.tclint
       ctestCheckHook
+    ] ++ lib.optionals stdenv.isDarwin [
       darwin.DarwinTools # sw_vers
     ];
 
