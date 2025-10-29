@@ -270,7 +270,7 @@ jobs:
           ]
     runs-on: ${{ matrix.os.runner }}
     needs: [build-linux-x86_64, build-linux-aarch64]
-    name: Build Docker Image (${{ matrix.os.arch }})
+    name: Build AppImage (${{ matrix.os.arch }})
     steps:
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -300,8 +300,8 @@ jobs:
           IMAGE_PATH="$PWD/librelane-devshell-${{ matrix.os.arch }}.AppImage"
           nix bundle\
             --out-link $IMAGE_PATH\
-            --bundler github:ralismark/nix-appimage
-            .#devShells.${{ matrix.os.nix }}.default)
+            --bundler github:ralismark/nix-appimage\
+            .#devShells.${{ matrix.os.nix }}.default
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           $IMAGE_PATH librelane --smoke-test
       - name: Upload AppImage Artifact
