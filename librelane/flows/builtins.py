@@ -14,5 +14,6 @@
 # flake8: noqa
 from .optimizing import Optimizing
 from .classic import Classic, VHDLClassic
+from .chip import Chip
 from .misc import OpenInKLayout, OpenInOpenROAD
 from .synth_explore import SynthesisExploration
