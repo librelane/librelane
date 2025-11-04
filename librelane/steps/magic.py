@@ -408,6 +408,11 @@ class DRC(MagicStep):
             Optional[List[str]],
             "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
         ),
+        Variable(
+            "MAGIC_DRC_MAGLEFS",
+            Optional[List[Path]],
+            "A list of pre-processed abstract LEF views for cells. They are read in before the design and act as blackboxes during DRC.",
+        ),
     ]
 
     def get_script_path(self):
