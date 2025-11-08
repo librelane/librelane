@@ -172,7 +172,7 @@ This is a basic configuration file which has only these variables:
 * {var}`::CLOCK_PERIOD`: the period of the primary clock port in nanoseconds,
   used to determine the chip frequency. Generally, the lowest you can get away
   with is the best.
-  {math}`\text{f} = 1 / (\texttt{CLOCK_PERIOD}ns) = 1 / (25\text{ns}) = 25 \text{MHz}`
+  {math}`\text{f} = 1 / (\texttt{CLOCK_PERIOD}ns) = 1 / (25\text{ns}) = 40 \text{MHz}`
 * {var}`Yosys.Synthesis::VERILOG_FILES`: List of input Verilog files.
 * {var}`OpenROAD.Floorplan::FP_CORE_UTIL`: The core utilization. Typical values
   for the core utilization range from 25% to 60%. 40% is a good starting value -
