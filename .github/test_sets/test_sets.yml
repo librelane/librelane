@@ -138,7 +138,7 @@
       script: harden.py
     - name: hold_violations_3
       script: harden.py
-- scl: sky130A/sky130_fd_sc_hd
+- scl: ihp-sg13g2/sg13g2_stdcell
   name: extended_test_set
   designs:
     - BM64
