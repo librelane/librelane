@@ -46,7 +46,7 @@ Works for macOS and Linux (x86-64 and aarch64). Recommended, as it is more
 integrated with your filesystem and overall has less upload and download deltas.
 
 See
-[Nix-based installation](https://librelane.readthedocs.io/en/latest/getting_started/common/nix_installation/index.html)
+[Nix-based installation](https://librelane.readthedocs.io/en/latest/installation/nix_installation/index.html)
 in the docs for more info.
 
 ### Docker
@@ -54,7 +54,7 @@ in the docs for more info.
 Works for Windows, macOS and Linux (x86-64 and aarch64).
 
 See
-[Docker-based installation](https://librelane.readthedocs.io/en/latest/getting_started/common/docker_installation/index.html)
+[Docker-based installation](https://librelane.readthedocs.io/en/latest/installation/docker_installation/index.html)
 in the docs for more info.
 
 Do note you'll need to add `--dockerized` right after `librelane` in most CLI
