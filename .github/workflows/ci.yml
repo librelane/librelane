@@ -259,6 +259,67 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  build-appimages:
+    strategy:
+      matrix:
+        os:
+          [
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04",
+              arch: "x86_64",
+              nix: "x86_64-linux",
+            },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              arch: "aarch64",
+              nix: "aarch64-linux",
+            },
+          ]
+    runs-on: ${{ matrix.os.runner }}
+    needs: [build-linux-x86_64, build-linux-aarch64]
+    name: Build AppImage (${{ matrix.os.arch }})
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Install Lix
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            experimental-features = nix-command flakes
+          "
+          echo "extra-substituters = https://nix-cache.fossi-foundation.org" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=" | sudo tee -a /etc/nix/nix.conf
+      - name: Build with Nix
+        id: nix_build_action
+        uses: ./.github/actions/build_nix
+        with:
+          nix_system: ${{ matrix.os.nix }}
+      - name: Build AppImage
+        run: |
+          IMAGE_PATH="$PWD/librelane-devshell-${{ matrix.os.arch }}.AppImage"
+          nix bundle\
+            --out-link $IMAGE_PATH\
+            --bundler github:ralismark/nix-appimage\
+            .#devShells.${{ matrix.os.nix }}.default
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
+          $IMAGE_PATH librelane --smoke-test
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-${{ matrix.os.arch }}
+          path: ${{ env.IMAGE_PATH }}
   build-docker:
     strategy:
       matrix:
@@ -317,10 +378,6 @@ jobs:
             .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
-      - name: Set Up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -565,7 +622,7 @@ jobs:
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [test-containers, build-py]
+    needs: [test-containers, build-py, build-appimages]
     environment: pypi
     permissions:
       # IMPORTANT: this permission is mandatory for Trusted Publishing
@@ -631,6 +688,18 @@ jobs:
             ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
+
+          yes | docker system prune -a --volumes
+      - name: Download Image (AppImage/x86_64)
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-x86_64
+          path: /tmp/appimage
+      - name: Download Image (AppImage/aarch64)
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-aarch64
+          path: /tmp/appimage
       - name: Set Up Python
         if: ${{ env.PUBLISH == '1' }}
         uses: actions/setup-python@v4
@@ -649,3 +718,24 @@ jobs:
         with:
           tag: "${{ env.NEW_TAG }}"
           repo-token: "${{ secrets.BOT_GITHUB_TOKEN }}"
+      - name: Upload Release Asset
+        if: ${{ env.PUBLISH == '1' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          token: "${{ secrets.BOT_GITHUB_TOKEN }}"
+          tag_name: ${{ env.NEW_TAG }}
+          prerelease: ${{ contains(env.NEW_TAG, 'dev') || contains(env.NEW_TAG, 'b') || contains(env.NEW_TAG, 'a') }}
+          generate_release_notes: true
+          body: |+
+            📖 Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html
+            🧾 Full changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md
+
+            AppImage releases are provided for testing and are not currently the
+            primary supported method for installation.
+
+            ---
+
+
+          files: |
+            /tmp/appimage/librelane-devshell-x86_64.AppImage
+            /tmp/appimage/librelane-devshell-aarch64.AppImage

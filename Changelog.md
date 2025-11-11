@@ -523,6 +523,24 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+# 2.4.6
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed an issue where the "-" operand in an `expr::` would perform addition
+  instead of subtraction.
+
+# 2.4.5
+
+## Testing
+
+* Added AppImage generation using `nix bundle`. Releases are now created for
+  every new tag with the AppImages included as release assets.
+
+## Documentation
+
+* Fixed typos in the ECO guide.
+
 # 2.4.4
 
 ## Steps
