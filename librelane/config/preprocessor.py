@@ -190,7 +190,7 @@ class Expr(object):
                     elif token.value == "+":
                         result = number1 + number2
                     elif token.value == "-":
-                        result = number1 + number2
+                        result = number1 - number2
 
                     eval_stack.append(result)
                 except IndexError:

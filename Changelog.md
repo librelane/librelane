@@ -14,6 +14,13 @@
 ## Documentation
 -->
 
+# 2.4.6
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed an issue where the "-" operand in an `expr::` would perform addition
+  instead of subtraction.
+
 # 2.4.5
 
 ## Testing
