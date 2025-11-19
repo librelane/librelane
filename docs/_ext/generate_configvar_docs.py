@@ -87,6 +87,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
                     slugify=slugify,
                     pdk_variables=module.pdk_variables,
                     scl_variables=module.scl_variables,
+                    Variable=librelane.config.Variable,
                 )
             )
 
@@ -99,6 +100,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
                 template.render(
                     slugify=slugify,
                     option_variables=module.option_variables,
+                    Variable=librelane.config.Variable,
                 )
             )
 

@@ -12,8 +12,4 @@ can freely override these values.
 optional and behave accordingly.
 ```
 
-| Variable Name | Type | Description | Default | Units |
-| - | - | - | - | - |
-%for var in option_variables:
-| [`${var.name}`]{#${var._get_docs_identifier()}} | ${var.type_repr_md(for_document=True)} | ${var.desc_repr_md()} | `${var.default}` | ${var.units or ""} |
-%endfor
+${ Variable._render_table_md(option_variables, myst_anchor_owner_id='')}

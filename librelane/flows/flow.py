@@ -420,16 +420,12 @@ class Flow(ABC):
                 f"""
                 {config_var_anchors * myst_anchors}
                 #### Flow-specific Configuration Variables
-
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in flow_config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                var_anchor = f"{{#{var._get_docs_identifier(Self.__name__)}}}"
-                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md()} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
+            result += Variable._render_table_md(
+                flow_config_vars,
+                myst_anchor_owner_id=Self.__name__ if myst_anchors else None,
+            )
             result += "\n"
 
         if len(Self.Steps):

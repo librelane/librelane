@@ -14,6 +14,15 @@
 ## Documentation
 -->
 
+# 2.4.7
+
+## Documentation
+
+* Configuration variables now list deprecated names in a collapsible in the same
+  cell as the variable name.
+* Configuration variable tables now omit the units if all configuration
+  variables lack a unit, to save horizontal real estate.
+
 # 2.4.6
 
 ## Misc. Enhancements/Bugfixes
