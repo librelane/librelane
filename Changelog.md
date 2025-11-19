@@ -14,6 +14,13 @@
 ## Documentation
 -->
 
+# 2.4.8
+
+## Misc. Enhancements/Bugfixes
+
+* Change `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+  tables and other elements.
+
 # 2.4.7
 
 ## Documentation
@@ -66,8 +73,8 @@
 
 * Moved installation into its own separate section.
 * Codified API stability policy.
-* Updated Contributor's Guide with information about access control and
-  code ownership policy.
+* Updated Contributor's Guide with information about access control and code
+  ownership policy.
 * Updated `make docs` to only install dependencies if inside a venv.
 * Fixed all broken links.
 * Replaced nodemon with pymon.
