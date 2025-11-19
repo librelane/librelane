@@ -13,7 +13,7 @@ list all API breaks within a major version increment of LibreLane: anything
 missing is a bug.
 
 The API for LibreLane includes all functions, classes, methods and properties in
-{doc}`/reference/api`, with these exceptions:
+{doc}`/reference/api/index`, with these exceptions:
 
 ## Private
 
