@@ -188,7 +188,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
             # and terminal emulators will slow the flow down.
             self.current_rpt.write(line)
         elif not self.silent:
-            logging.subprocess(line.strip())
+            logging.subprocess(line.rstrip())
         return True
 
     def result(self) -> Dict[str, Any]:
