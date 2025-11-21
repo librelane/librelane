@@ -20,7 +20,7 @@ set_propagated_clock [all_clocks]
 source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
 
 set diode_split [split $::env(DIODE_CELL) "/"]
-repair_antennas "[lindex $diode_split 0]" -iterations $::env(GRT_ANTENNA_ITERS) -ratio_margin $::env(GRT_ANTENNA_MARGIN)
+repair_antennas "[lindex $diode_split 0]" -iterations $::env(GRT_ANTENNA_REPAIR_ITERS) -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
 
 source $::env(SCRIPTS_DIR)/openroad/common/dpl.tcl
 source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
