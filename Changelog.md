@@ -169,8 +169,9 @@ Style Notes
   * Added `DRT_SAVE_DRC_REPORT_ITERS`
   * Added `DRT_ANTENNA_REPAIR_ITERS`, which, if greater than zero and
     `DIODE_CELL` is set, enables antenna fixing after detailed routing
-  * Added `DRT_ANTENNA_MARGIN` which is similar to `GRT_ANTENNA_MARGIN` but for
-    the aforementioned antenna repair iterations
+  * Added `DRT_ANTENNA_REPAIR_MARGIN` which is similar to
+    `GRT_ANTENNA_REPAIR_MARGIN` but for the aforementioned antenna repair
+    iterations
   * DRC reports are now converted to `xml` and readable by KLayout
 
 * Created `OpenROAD.DumpRCValues`
@@ -219,6 +220,10 @@ Style Notes
 * `OpenROAD.RepairAntennas`
 
   * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
+
+  * Renamed `GRT_ANTENNA_ITERS` to `GRT_ANTENNA_REPAIR_ITERS`.
+
+  * Renamed `GRT_ANTENNA_MARGIN` to `GRT_ANTENNA_REPAIR_MARGIN`.
 
 * `OpenROAD.RepairDesignPostGPL`
 
@@ -432,6 +437,7 @@ Style Notes
     has failed. This is a compromise solution as tilde expansion within
     LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
     tildes and then are surprised when it doesn't work.
+
     * Relative paths that start with a genuine tilde must be provided as
       absolute paths.
 
@@ -523,6 +529,7 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
 # 2.4.6
 
 ## Misc. Enhancements/Bugfixes
@@ -566,8 +573,8 @@ Style Notes
 
 * Moved installation into its own separate section.
 * Codified API stability policy.
-* Updated Contributor's Guide with information about access control and
-  code ownership policy.
+* Updated Contributor's Guide with information about access control and code
+  ownership policy.
 * Updated `make docs` to only install dependencies if inside a venv.
 * Fixed all broken links.
 * Replaced nodemon with pymon.
