@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+source $::env(SCRIPTS_DIR)/openroad/common/resizer.tcl
+
 read_current_odb
+
+set_dont_touch_objects
 
 set ::insts [$::block getInsts]
 
@@ -77,6 +81,7 @@ append_if_exists_argument arg_list PL_KEEP_RESIZE_BELOW_OVERFLOW -keep_resize_be
 
 log_cmd global_placement {*}$arg_list
 
+unset_dont_touch_objects
 
 source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 estimate_parasitics -placement

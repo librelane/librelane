@@ -212,6 +212,8 @@ Style Notes
 
   * Corrected `GPL_CELL_PADDING` to be an integer.
 
+  * Enabled `dont_touch` around GPL as it does not prevent cell placement.
+
 * `OpenROAD.IOPlacement`
 
   * Added optional variable `IO_EXCLUDE_PIN_REGION`
@@ -432,6 +434,7 @@ Style Notes
     has failed. This is a compromise solution as tilde expansion within
     LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
     tildes and then are surprised when it doesn't work.
+
     * Relative paths that start with a genuine tilde must be provided as
       absolute paths.
 
@@ -523,6 +526,7 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
 # 2.4.6
 
 ## Misc. Enhancements/Bugfixes
@@ -566,8 +570,8 @@ Style Notes
 
 * Moved installation into its own separate section.
 * Codified API stability policy.
-* Updated Contributor's Guide with information about access control and
-  code ownership policy.
+* Updated Contributor's Guide with information about access control and code
+  ownership policy.
 * Updated `make docs` to only install dependencies if inside a venv.
 * Fixed all broken links.
 * Replaced nodemon with pymon.
