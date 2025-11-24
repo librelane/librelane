@@ -526,6 +526,21 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+# 2.4.8
+
+## Misc. Enhancements/Bugfixes
+
+* Change `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+  tables and other elements.
+
+# 2.4.7
+
+## Documentation
+
+* Configuration variables now list deprecated names in a collapsible in the same
+  cell as the variable name.
+* Configuration variable tables now omit the units if all configuration
+  variables lack a unit, to save horizontal real estate.
 
 # 2.4.6
 

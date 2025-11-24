@@ -124,6 +124,8 @@ def get_pdk_hash(pdk_variant) -> str:
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 def slugify(value: str, lower: bool = False) -> str:
     """
+    Adapted from Django slugify. In practice it works more like a kebabify…
+
     :param value: Input string
     :returns: The input string converted to lower case, with all characters
         except alphanumerics, underscores and hyphens removed, and spaces and\

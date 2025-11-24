@@ -205,14 +205,14 @@ jobs:
         os:
           [
             {
-              name: "macOS 13",
+              name: "macOS 15 (Intel)",
               family: "darwin",
-              runner: "macos-13",
+              runner: "macos-15-intel",
               arch: "x86_64",
               nix: "x86_64-darwin",
             },
             {
-              name: "macOS 14",
+              name: "macOS 15",
               family: "darwin",
               runner: "macos-15",
               arch: "aarch64",

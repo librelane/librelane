@@ -294,8 +294,9 @@ class XOR(KLayoutStep):
         Variable(
             "KLAYOUT_XOR_TILE_SIZE",
             Optional[int],
-            "A tile size for the XOR process in µm.",
+            "The tile size to parallelize the XOR process with.",
             pdk=True,
+            units="µm",
         ),
     ]
 
