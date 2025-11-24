@@ -182,7 +182,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
             # and terminal emulators will slow the flow down.
             self.current_rpt.write(line)
         elif not self.silent:
-            logging.subprocess(line.strip())
+            logging.subprocess(line.rstrip())
         return True
 
     def result(self) -> Dict[str, Any]:
@@ -677,22 +677,16 @@ class Step(ABC):
                 result += f"| {input_str} | {output_str} |\n"
 
         if len(Self.config_vars):
-            all_vars_anchor = f"({Self.id.lower()}-configuration-variables)="
+            config_var_anchors = f"({Self.id.lower()}-configuration-variables)="
             result += textwrap.dedent(
                 f"""
-                {all_vars_anchor * myst_anchors}
+                {config_var_anchors * myst_anchors}
                 #### Configuration Variables
-                
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in Self.config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                var_anchor = f"{{#{var._get_docs_identifier(Self.id)}}}"
-                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
-            result += "\n"
+            result += Variable._render_table_md(
+                Self.config_vars, myst_anchor_owner_id=Self.id if myst_anchors else None
+            )
 
         step_anchor = f"(step-{slugify(Self.id.lower())})="
         result = (

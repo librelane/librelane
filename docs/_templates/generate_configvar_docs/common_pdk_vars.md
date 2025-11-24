@@ -19,20 +19,11 @@ ${"##"} PDK-Level
 
 These are variables that affect the entire PDK.
 
-
-| Variable Name | Type | Description | Units |
-| - | - | - | - |
-%for var in pdk_variables:
-| `${var.name}`{#${var._get_docs_identifier()}} | ${var.type_repr_md(for_document=True)} | ${var.desc_repr_md()} | ${var.units or ""} |
-%endfor
+${ Variable._render_table_md(pdk_variables, myst_anchor_owner_id='')}
 
 (univ_flow_cvars_scl)=
 ${"##"} SCL-Level
 
 These are variables that affect a specific standard-cell library.
 
-| Variable Name | Type | Description | Units |
-| - | - | - | - |
-%for var in scl_variables:
-| `${var.name}`{#${var._get_docs_identifier()}} | ${var.type_repr_md(for_document=True)}  | ${var.desc_repr_md()} | ${var.units or ""} |
-%endfor
+${ Variable._render_table_md(scl_variables, myst_anchor_owner_id='')}
