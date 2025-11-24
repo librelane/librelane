@@ -1773,55 +1773,59 @@ class DetailedRouting(OpenROADStep):
     id = "OpenROAD.DetailedRouting"
     name = "Detailed Routing"
 
-    config_vars = OpenROADStep.config_vars + [
-        Variable(
-            "DRT_THREADS",
-            Optional[int],
-            "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
-            deprecated_names=["ROUTING_CORES"],
-        ),
-        Variable(
-            "DRT_MIN_LAYER",
-            Optional[str],
-            "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
-        ),
-        Variable(
-            "DRT_MAX_LAYER",
-            Optional[str],
-            "An optional override to the highest layer used in detailed routing.",
-        ),
-        Variable(
-            "DRT_OPT_ITERS",
-            int,
-            "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
-            default=64,
-        ),
-        Variable(
-            "DRT_SAVE_SNAPSHOTS",
-            bool,
-            "This is an experimental variable. Saves an odb snapshot of the layout each routing iteration. This generates multiple odb files increasing disk usage.",
-            default=False,
-        ),
-        Variable(
-            "DRT_ANTENNA_REPAIR_ITERS",
-            int,
-            "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
-            default=3,
-        ),
-        Variable(
-            "DRT_ANTENNA_REPAIR_MARGIN",
-            int,
-            "The margin to over fix antenna violations.",
-            default=10,
-            units="%",
-            deprecated_names=["DRT_ANTENNA_MARGIN"],
-        ),
-        Variable(
-            "DRT_SAVE_DRC_REPORT_ITERS",
-            Optional[int],
-            "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
-        ),
-    ]
+    config_vars = (
+        OpenROADStep.config_vars
+        + grt_variables
+        + [
+            Variable(
+                "DRT_THREADS",
+                Optional[int],
+                "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
+                deprecated_names=["ROUTING_CORES"],
+            ),
+            Variable(
+                "DRT_MIN_LAYER",
+                Optional[str],
+                "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
+            ),
+            Variable(
+                "DRT_MAX_LAYER",
+                Optional[str],
+                "An optional override to the highest layer used in detailed routing.",
+            ),
+            Variable(
+                "DRT_OPT_ITERS",
+                int,
+                "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
+                default=64,
+            ),
+            Variable(
+                "DRT_SAVE_SNAPSHOTS",
+                bool,
+                "This is an experimental variable. Saves an odb snapshot of the layout each routing iteration. This generates multiple odb files increasing disk usage.",
+                default=False,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_ITERS",
+                int,
+                "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
+                default=3,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_MARGIN",
+                int,
+                "The margin to over fix antenna violations.",
+                default=10,
+                units="%",
+                deprecated_names=["DRT_ANTENNA_MARGIN"],
+            ),
+            Variable(
+                "DRT_SAVE_DRC_REPORT_ITERS",
+                Optional[int],
+                "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
+            ),
+        ]
+    )
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "drt.tcl")
