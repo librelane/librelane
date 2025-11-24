@@ -485,6 +485,7 @@ class Step(ABC):
         flow: Optional[Any] = None,
         _config_quiet: bool = False,
         _no_revalidate_conf: bool = False,
+        _no_filter_conf: bool = False,
         **kwargs,
     ):
         self.__class__.assert_concrete()
@@ -521,11 +522,18 @@ class Step(ABC):
         elif not hasattr(self, "long_name"):
             self.long_name = self.name
 
+        if _no_filter_conf and _no_revalidate_conf:
+            raise ValueError(
+                "Cannot pass both _no_filter_conf and _no_revalidate_conf as True"
+            )
+
         if _no_revalidate_conf:
             self.config = config.copy_filtered(
                 self.get_all_config_variables(),
                 include_flow_variables=False,  # get_all_config_variables() gets them anyway
             )
+        elif _no_filter_conf:
+            self.config = config.copy()
         else:
             self.config = config.with_increment(
                 self.get_all_config_variables(),
@@ -635,7 +643,7 @@ class Step(ABC):
                 %s
                 ```
 
-                {':::{dropdown} Importing' if use_dropdown else '#### Importing'}
+                {":::{dropdown} Importing" if use_dropdown else "#### Importing"}
                 ```python
                 from {Self.__module__} import {Self.__name__}
 
@@ -645,7 +653,7 @@ class Step(ABC):
 
                 {Self.__name__} = Step.factory.get("{Self.id}")
                 ```
-                {':::' if use_dropdown else ''}
+                {":::" if use_dropdown else ""}
                 """
             )
             % doc_string
