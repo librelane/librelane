@@ -145,6 +145,8 @@ Style Notes
   * **Internal**: New convenience methods to append flags to calls based on
     environment variables
 
+  * Better error reporting for unexpected openroad failures.
+
 * `OpenROAD.CTS`
 
   * Added flags `CTS_OBSTRUCTION_AWARE` and `CTS_BALANCE_LEVELS`
@@ -214,9 +216,14 @@ Style Notes
 
   * Enabled `dont_touch` around GPL as it does not prevent cell placement.
 
+  * Renamed `PL_TIME_DRIVEN` to `PL_TIMING_DRIVEN`.
+
 * `OpenROAD.IOPlacement`
 
-  * Added optional variable `IO_EXCLUDE_PIN_REGION`
+  * Added optional variable `IO_EXCLUDE_PIN_REGION`.
+
+  * Added validator to deprecate `random_equidistant` of
+    `IO_PIN_PLACEMENT_MODE`.
 
 * `OpenROAD.RepairAntennas`
 
@@ -423,6 +430,9 @@ Style Notes
   * Metrics: split `pdk-scl-design_name` triple from the right, since ihp-sg13g2
     contains a `-`
 
+* validators: A customizable validator that is run AFTER type checks and
+  conversions.
+
 ## API Breaks
 
 * `CLI`
@@ -526,6 +536,7 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
