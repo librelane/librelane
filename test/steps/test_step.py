@@ -99,8 +99,8 @@ def test_step_missing_config(mock_run):
 
 
 def test_step_missing_state_in(mock_run):
-    from librelane.steps import Step
     from librelane.config import Config
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -115,8 +115,8 @@ def test_step_missing_state_in(mock_run):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_create(mock_run, mock_config):
-    from librelane.steps import Step
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -138,9 +138,9 @@ def test_step_create(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_optional_inputs(mock_run, mock_config):
-    from librelane.steps import Step, StepException
-    from librelane.state import DesignFormat, State
     from librelane.common import Path
+    from librelane.state import DesignFormat, State
+    from librelane.steps import Step, StepException
 
     class TestStep(Step):
         inputs = [DesignFormat.NETLIST, DesignFormat.DEF.mkOptional()]
@@ -176,8 +176,8 @@ def test_step_optional_inputs(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_mock_run(mock_run, mock_config):
-    from librelane.steps import Step
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -205,9 +205,9 @@ def test_mock_run(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_start_missing_step_dir(mock_run, mock_config):
-    from librelane.steps import Step
     from librelane.common import Toolbox
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -230,8 +230,8 @@ def test_step_start_missing_step_dir(mock_run, mock_config):
 @mock_variables([step])
 def test_step_start_invalid_state(mock_run, mock_config):
     from librelane.common import Toolbox
-    from librelane.steps import Step, StepException
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step, StepException
 
     class TestStep(Step):
         inputs = []
@@ -253,10 +253,9 @@ def test_step_start_invalid_state(mock_run, mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_start(mock_config):
-    from librelane.common import Path
-    from librelane.common import Toolbox
+    from librelane.common import Path, Toolbox
     from librelane.state import DesignFormat, State
-    from librelane.steps import Step, MetricsUpdate, ViewsUpdate
+    from librelane.steps import MetricsUpdate, Step, ViewsUpdate
 
     test_file = "test.nl.v"
     with open(test_file, "w") as f:
@@ -296,8 +295,8 @@ def test_step_start(mock_config):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_step_longname(mock_run, mock_config):
-    from librelane.steps import Step
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class TestStep(Step):
         inputs = []
@@ -341,9 +340,10 @@ def test_step_factory(mock_run):
 @mock_variables([step])
 def test_run_subprocess(mock_run):
     import subprocess
+
     from librelane.config import Config
-    from librelane.steps import Step, StepException
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step, StepException
 
     state_in = State({DesignFormat.NETLIST: "abc"})
 
@@ -396,8 +396,8 @@ def test_run_subprocess(mock_run):
         {report_data}
         %OL_END_REPORT
         {extra_data}
-        %OL_METRIC_I new_metric {new_metric['new_metric']}
-        %OL_METRIC_F new_float_metric {new_metric['new_float_metric']}
+        %OL_METRIC_I new_metric {new_metric["new_metric"]}
+        %OL_METRIC_F new_float_metric {new_metric["new_float_metric"]}
         """
     ).strip()
 
@@ -452,3 +452,129 @@ def test_run_subprocess(mock_run):
 
     with pytest.raises(StepException, match="non-UTF-8"):
         step.start(step_dir=".")
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_while_step(mock_run):
+    from librelane.config import Config
+    from librelane.state import State
+    from librelane.steps import Step, StepException
+    from librelane.steps.step import WhileStep
+
+    # Define two steps to test mid-iteration break
+    class FirstStep(Step):
+        inputs = []
+        outputs = []
+        id = "First"
+        call_count = 0
+
+        def run(self, state_in, **kwargs):
+            FirstStep.call_count += 1
+            count = state_in.metrics["count"]
+            metrics = dict(state_in.metrics)
+            metrics["count"] = count + 1
+            metrics["first_step_calls"] = FirstStep.call_count
+            return {}, metrics
+
+    class SecondStep(Step):
+        inputs = []
+        outputs = []
+        id = "Second"
+        call_count = 0
+
+        def run(self, state_in, **kwargs):
+            SecondStep.call_count += 1
+            if SecondStep.call_count == 2:
+                raise StepException("Test failure")
+            count = state_in.metrics["count"]
+            metrics = dict(state_in.metrics)
+            metrics["count"] = count + 10
+            metrics["second_step_calls"] = SecondStep.call_count
+            return {}, metrics
+
+    # Define a WhileStep that tests all callbacks
+    class TestWhileStep(WhileStep):
+        Steps = [FirstStep, SecondStep]
+        max_iterations = 10
+        id = "TestWhile"
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.iteration_count = 0
+            self.expected_condition = [0, 11, 1, 1]  # Extra condition call after iter_2
+            self.condition_index = 0
+            # Three iterations will run: iter_0, iter_1 (breaks), iter_2 (runs FirstStep)
+            self.expected_pre = [0, 0, 0]
+            self.pre_index = 0
+            # mid_iteration_break called: iter_0 (FirstStep=1, SecondStep=11), iter_1 (FirstStep=1), iter_2 (FirstStep=1)
+            self.expected_mid = [1, 11, 1, 1]
+            self.mid_index = 0
+            # iter_0 completes fully, iter_1 breaks, iter_2 completes (only FirstStep)
+            self.expected_post = [(11, True), (1, False), (1, False)]
+            self.post_index = 0
+
+        def condition(self, state):
+            count = state.metrics["count"]
+            assert count == self.expected_condition[self.condition_index]
+            self.condition_index += 1
+            # Stop after 3 iterations to test the mid-iteration break
+            self.iteration_count += 1
+            return self.iteration_count <= 3
+
+        def mid_iteration_break(self, state, step):
+            count = state.metrics["count"]
+            assert count == self.expected_mid[self.mid_index]
+            self.mid_index += 1
+            # Break after FirstStep completes in the second and third iterations
+            return step.id == "First" and count == 1 and FirstStep.call_count >= 2
+
+        def pre_iteration_callback(self, pre_iteration):
+            count = pre_iteration.metrics["count"]
+            assert count == self.expected_pre[self.pre_index]
+            self.pre_index += 1
+            return pre_iteration
+
+        def post_iteration_callback(self, post_iteration, full_iter_completed):
+            count = post_iteration.metrics["count"]
+            expected_count, expected_full = self.expected_post[self.post_index]
+            assert count == expected_count
+            assert full_iter_completed == expected_full
+            self.post_index += 1
+            return post_iteration
+
+        def post_loop_callback(self, state):
+            assert state.metrics["count"] == 1
+            # after 3 iterations, the final iteration count becomes 4
+            assert self.iteration_count == 4
+            return state
+
+    dir = os.getcwd()
+    # Create config and initial state
+    config_data = {
+        "DESIGN_NAME": "whatever",
+        "DESIGN_DIR": dir,
+        "EXAMPLE_PDK_VAR": 0.0,
+        "PDK_ROOT": "/pdk",
+        "PDK": "dummy",
+        "STD_CELL_LIBRARY": "dummy_scl",
+        "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
+        "GRT_REPAIR_ANTENNAS": True,
+        "RUN_HEURISTIC_DIODE_INSERTION": False,
+        "MACROS": None,
+        "DIODE_ON_PORTS": "none",
+        "TECH_LEFS": {
+            "nom_*": "/pdk/dummy/libs.ref/techlef/dummy_scl/dummy_tech_lef.tlef"
+        },
+        "DEFAULT_CORNER": "nom_tt_025C_1v80",
+        "RANDOM_ARRAY": None,
+    }
+    config = Config(config_data)
+    state_in = State({}, metrics={"count": 0})
+
+    # Instantiate and run the step
+    step = TestWhileStep(config=config, state_in=state_in)
+    final_state = step.start(step_dir="/tmp/test_while")
+
+    # Verify the final state is from the incomplete second iteration (count=1)
+    assert final_state.metrics["count"] == 1
