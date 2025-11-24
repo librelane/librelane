@@ -205,8 +205,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
         f"""
         LibreLane v{__version__}
 
-        Copyright ©2020-2025 Efabless Corporation, The American University in
-        Cairo, and other contributors.
+        Copyright ©2025-2026 LibreLane Contributors
+
+        Adapted from OpenLane 2.0
+        Copyright ©2020-2025 Efabless Corporation
 
         Available under the Apache License, version 2. Included with the source code,
         but you can also get a copy at https://www.apache.org/licenses/LICENSE-2.0
