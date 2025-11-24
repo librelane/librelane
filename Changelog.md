@@ -14,11 +14,23 @@
 ## Documentation
 -->
 
+# 2.4.9
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Fixed clock delay not being properly propagated to ABC scripts.
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed copyright information.
+
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
 
-* Change `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+* Changed `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
   tables and other elements.
 
 # 2.4.7
