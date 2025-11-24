@@ -907,9 +907,6 @@ class Step(ABC):
             form an indirect dependency on many `.mag` files or similar that
             cannot be enumerated by LibreLane.
 
-        Reproducibles are automatically generated for failed steps, but
-        this may be called manually on any step, too.
-
         :param target_dir: The directory in which to create the reproducible
         :param include_pdk: Include PDK files. If set to false, Path pointing
             to PDK files will be prefixed with ``pdk_dir::`` instead of being

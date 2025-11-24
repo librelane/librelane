@@ -120,9 +120,18 @@ class OdbpyStep(Step):
                     f"{self.id} failed with the following errors:\n{error_string}"
                 )
             else:
-                raise StepException(
-                    f"{self.id} failed unexpectedly. Please check the logs and file an issue."
-                )
+                step_exception_message = f"{self.id} failed with an unexpected error."
+                log_path = self.get_log_path()
+                if os.path.isfile(log_path):
+                    step_exception_message += f" Please check {repr(os.path.relpath(log_path))} and unless you wrote the step yourself, file an issue.\n"
+                    with open(log_path, "r", encoding="utf8") as f:
+                        last_n_lines = f.readlines()[-10:]
+                        step_exception_message += f"Last {len(last_n_lines)} lines:\n"
+                        for line in last_n_lines:
+                            step_exception_message += "\t" + line
+                else:
+                    step_exception_message += f" Please check the logs in {repr(self.step_dir)} and unless you wrote the step yourself, file an issue."
+                raise StepException(step_exception_message)
         # 2. Metrics
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         if os.path.exists(metrics_path):
