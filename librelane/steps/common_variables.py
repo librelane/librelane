@@ -389,11 +389,11 @@ grt_variables = routing_layer_variables + [
         default=False,
     ),
     Variable(
-        "GRT_ANTENNA_ITERS",
+        "GRT_ANTENNA_REPAIR_ITERS",
         int,
         "The maximum number of iterations for global antenna repairs.",
         default=3,
-        deprecated_names=["GRT_ANT_ITERS"],
+        deprecated_names=["GRT_ANT_ITERS", "GRT_ANTENNA_ITERS"],
     ),
     Variable(
         "GRT_OVERFLOW_ITERS",
@@ -402,12 +402,12 @@ grt_variables = routing_layer_variables + [
         default=50,
     ),
     Variable(
-        "GRT_ANTENNA_MARGIN",
+        "GRT_ANTENNA_REPAIR_MARGIN",
         int,
         "The margin to over fix antenna violations.",
         default=10,
         units="%",
-        deprecated_names=["GRT_ANT_MARGIN"],
+        deprecated_names=["GRT_ANT_MARGIN", "GRT_ANTENNA_MARGIN"],
     ),
 ]
 

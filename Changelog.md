@@ -169,8 +169,9 @@ Style Notes
   * Added `DRT_SAVE_DRC_REPORT_ITERS`
   * Added `DRT_ANTENNA_REPAIR_ITERS`, which, if greater than zero and
     `DIODE_CELL` is set, enables antenna fixing after detailed routing
-  * Added `DRT_ANTENNA_MARGIN` which is similar to `GRT_ANTENNA_MARGIN` but for
-    the aforementioned antenna repair iterations
+  * Added `DRT_ANTENNA_REPAIR_MARGIN` which is similar to
+    `GRT_ANTENNA_REPAIR_MARGIN` but for the aforementioned antenna repair
+    iterations
   * DRC reports are now converted to `xml` and readable by KLayout
 
 * Created `OpenROAD.DumpRCValues`
@@ -221,6 +222,10 @@ Style Notes
 * `OpenROAD.RepairAntennas`
 
   * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
+
+  * Renamed `GRT_ANTENNA_ITERS` to `GRT_ANTENNA_REPAIR_ITERS`.
+
+  * Renamed `GRT_ANTENNA_MARGIN` to `GRT_ANTENNA_REPAIR_MARGIN`.
 
 * `OpenROAD.RepairDesignPostGPL`
 
@@ -526,6 +531,7 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
