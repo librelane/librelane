@@ -105,7 +105,7 @@ When the CMOS cell output switches state, the switching speed is governed by how
 fast the capacitance on the output net can be charged or discharged. The
 capacitance on the output net is the sum of the parasitic capacitance, the
 interconnects (wires) capacitances, and the pin capacitances of the cells driven
-by this cell, as shown in Figure 5. The cell delay can be approximated as the
+by this cell, as shown in {numref}`u1-prop-delay`. The cell delay can be approximated as the
 product of the PUN/PDN resistance and the sum of the intrinsic and load
 capacitances. As $ R_{PUN} $ can be different from $ R_{PDN} $ the rising
 $ t_{pdr} $ and falling $ t_{pdf} $ delays are different.
@@ -243,17 +243,7 @@ capture_ff/D]
 ```
 
 To understand how to check whether the setup and hold constraints are met or
-not, let's consider the circuit and timing diagram in Figure 8. In this circuit
-the clock is skewed by the value t_{skew}. The clock skew is defined as the
-difference in clock arrival times to flip-flops. Here the clock edge arrives at
-the release flip-flop (U11) before the capture flip-flop (U14). In this scenario
-the skew is referred to as a positive skew. To observe a negative skew, the
-clock edge has to reach the release flip-flop after it reaches the capture
-flip-flop. In order for the capture flip-flop (U14) to function correctly the
-data released by U11 should arrive within the green window. If the data arrives
-early, hold constraint is violated and if it arrives late setup constraint is
-violated. The STA tool calculates the AAT of data to U14 for setup constraint
-check as follows:
+not, let's consider the circuit and timing diagram in {numref}`rat-att-calc`. 
 
 ```{figure} rat_att.webp
 :name: rat-att-calc
@@ -263,9 +253,7 @@ check as follows:
 RAT and AAT Calculation for Setup Constraint Check
 ```
 
-To understand how to check whether the setup and hold constraints are met or
-not, let's consider the circuit and timing diagram in {numref}`rat-att-calc`. In
-this circuit the clock is skewed by the value $ t_{skew} $. The clock skew is
+In this circuit the clock is skewed by the value $ t_{skew} $. The clock skew is
 defined as the difference in clock arrival times to flip-flops. Here the clock
 edge arrives at the release FF (U11) before the capture FF (U14). In this
 scenario the skew is referred to as a positive skew. To observe a negative skew,
@@ -273,19 +261,19 @@ the clock edge has to reach the release flip-flop after it reaches the capture
 flip-flop. In order for the capture flip-flop (U14) to function correctly the
 data released by U14 should arrive within the green window. If the data arrives
 early, hold constraint is violated and if it arrives late setup constraint is
-violated. The STA tool calculates the AAT of data to U14 for setup constraint
-check as follows:
+violated. The STA tool calculates the AAT (Actual Arrival Time) of data to U14 for 
+setup constraint check as follows:
 
 (1) $ AAT_{latest} = t_{ck} + t_{CQ} + t_{and} + t_{inv} + t_{xor} $
 
-The required time is calculated using the following:
+The RAT (Required Arrival Time) is calculated using the following:
 
-(2) $ RAT_{s} = t_{ck} + t_{skew} - t_{s} $
+(2) $ RAT_{setup} = t_{ck} + t_{skew} - t_{setup} $
 
-To satisfy the setup constraint, the latest AAT should be less than RAT_{s}. In
+To satisfy the setup constraint, the latest AAT should be less than $ RAT_{setup} $. In
 another words:
 
-(3) $ SLACK_{s} = RAT_{s} - ATT_{latest} > 0 $
+(3) $ SLACK_{setup} = RAT_{setup} - ATT_{latest} > 0 $
 
 For hold constraint check, we use the earliest arrival time
 
@@ -293,12 +281,12 @@ For hold constraint check, we use the earliest arrival time
 
 and the required time can be calculated
 
-(5) $ RAT_{h} = t_{skew} + t_{h} $
+(5) $ RAT_{hold} = t_{skew} + t_{hold} $
 
 To satisfy the hold constraint, the earliest AAT should be larger than the $
-RAT_{h} $, which means:
+RAT_{hold} $, which means:
 
-(6) $ SLACK_{s} = ATT_{earliest} - RAT_{h} > 0 $
+(6) $ SLACK_{hold} = ATT_{earliest} - RAT_{hold} > 0 $
 
 ### Timing Optimizations
 
@@ -350,9 +338,9 @@ Examples of Timing Optimizations
 ## Tips for Achieving Timing Closure
 
 LibreLane supports automatic timing closure; the {flow}`Classic` flow applies
-design optimizations that favor hold violations fixing after CTS and after
-global routing. These optimizations are controlled using some flow
-configurations such as those given by {numref}`timing-related-config-vars`.
+design optimizations that favor hold violations fixing after CTS (Clock Tree Synthesis) and after
+global routing. These two timing optimization attempts are controlled using some flow
+configuration variables such as those given by {numref}`timing-related-config-vars`.
 
 ```{list-table} LibreLane Timing-related Configuration Variables
 :name: timing-related-config-vars
@@ -365,16 +353,16 @@ configurations such as those given by {numref}`timing-related-config-vars`.
     after placement and CTS or not. 
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_SETUP_SLACK_MARGIN`
   - Used to guide timing optimization after placement. It instructs the
-    optimizer not to stop at zero slack and try to achieve a positive timing
-    slack.
+    optimizer not to stop at zero setup slack and try to achieve the specified 
+	positive timing slack.
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_HOLD_SLACK_MARGIN`
   - Used to guide timing optimization after placement. It instructs the
-    optimizer not to stop at zero slack and try to achieve a positive timing
-    slack.
+    optimizer not to stop at zero hold slack and try to achieve the specified
+	positive timing slack.
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_HOLD_MAX_BUFFER_PCT`
-  - Maximum % of hold buffers to insert to fix hold vios. (PL/CTS) 
+  - Maximum % of buffers to insert to fix hold violations. (PL/CTS) 
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_SETUP_MAX_BUFFER_PCT`
-  - Maximum % of hold buffers to insert to fix setup vios. (PL/CTS)
+  - Maximum % of buffers to insert to fix setup violations. (PL/CTS)
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_ALLOW_SETUP_VIOS`
   - Allow setup violations while fixing hold violations after placement and CTS.
 * - {var}`Classic::RUN_POST_GRT_RESIZER_TIMING`
@@ -382,16 +370,16 @@ configurations such as those given by {numref}`timing-related-config-vars`.
     experimental feature in OpenROAD and crashes may occur.
 * - {var}`OpenROAD.ResizerTimingPostGRT::GRT_RESIZER_SETUP_SLACK_MARGIN`
   - Used to guide timing optimization after global routing. It instructs the
-    optimizer not to stop at zero slack and try to achieve a positive slack
-    (the specified margin.)
+    optimizer not to stop at zero setup slack and try to achieve a positive 
+	setup slack (the specified margin).
 * - {var}`OpenROAD.ResizerTimingPostGRT::GRT_RESIZER_HOLD_SLACK_MARGIN`
   - Used to guide timing optimization after global routing. It instructs the
-    optimizer not to stop at zero slack and try to achieve a positive slack
-    (the specified margin.)
+    optimizer not to stop at zero hold and try to achieve a positive hold slack
+    (the specified margin).
 * - {var}`OpenROAD.ResizerTimingPostGRT::GRT_RESIZER_HOLD_MAX_BUFFER_PCT`
-  - Maximum % of hold buffers to insert to fix hold vios after global routing.
+  - Maximum % of buffers to insert to fix hold violations after global routing.
 * - {var}`OpenROAD.ResizerTimingPostGRT::GRT_RESIZER_SETUP_MAX_BUFFER_PCT`
-  - Maximum % of hold buffers to insert to fix setup vios after global routing.
+  - Maximum % of buffers to insert to fix setup violations after global routing.
 * - {var}`OpenROAD.ResizerTimingPostGRT::GRT_RESIZER_ALLOW_SETUP_VIOS`
   - Allow setup violations while fixing hold violations after global routing.
 ```
@@ -429,7 +417,10 @@ The files `max.rpt` and `min.rpt` contain the timing reports for setup and hold
 constraint analysis (respectively) sorted by the slack (worst first). Here is
 one such example showing a timing path from the `max.rpt` report:
 
-```
+``` {code-block} text
+:caption: : Max slack report
+:name: max-rpt-log
+:class: no-lines-numbers
 Startpoint: x[9] (input port clocked by clk)
 Endpoint: _618_ (rising edge-triggered flip-flop clocked by clk)
 Path Group: clk
@@ -456,8 +447,7 @@ Delay Time Description
 ---------------------------------------------------------
 0.39 slack (MET)
 ```
-
-The report snippet in Figure 12 contains a timing report for one of the min
+The report snippet {ref}`above <max-rpt-log>` contains a timing report for one of the min
 timing paths. The report for any timing path is comprised of 4 sections:
 
 * The header: contains basic information about the timing path, such as the
@@ -528,9 +518,9 @@ closure:
 1. It is recommended that you simulate the final gate-level netlist with SDF
    (Standard Delay Format) annotations. This simulation is the closest to what
    you see from the fabricated chip. Moreover, timing simulation can help
-   identify false paths. Section 3 gives an overview of how to perform this.
+   identify false paths. [Section 3](#sdf-annotated-gl-simulation-using-cvc) gives an overview of how to perform this.
 1. Violating maximum capacitance and maximum transition constraints are OK if
-   you don't have setup/hold vios. It is always good to check them as they are
+   you don't have setup/hold violations. It is always good to check them as they are
    indicators of design issues. For example, a high capacitance on a net means
    high fanout and/or long interconnect. Also, high transition time means a high
    capacitive load and leads to a higher short circuit power and delays.
@@ -616,6 +606,10 @@ The corrected files can be found
 AAT
 
     Actual Arrival Time
+
+
+RAT
+	Required Arrival Time
 
 CLA
 
