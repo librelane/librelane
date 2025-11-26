@@ -417,7 +417,10 @@ The files `max.rpt` and `min.rpt` contain the timing reports for setup and hold
 constraint analysis (respectively) sorted by the slack (worst first). Here is
 one such example showing a timing path from the `max.rpt` report:
 
-```
+``` {code-block} text
+:caption: : Max slack report
+:name: max-rpt-log
+:class: no-lines-numbers
 Startpoint: x[9] (input port clocked by clk)
 Endpoint: _618_ (rising edge-triggered flip-flop clocked by clk)
 Path Group: clk
@@ -444,8 +447,7 @@ Delay Time Description
 ---------------------------------------------------------
 0.39 slack (MET)
 ```
-
-The report snippet above contains a timing report for one of the min
+The report snippet {ref}`above <max-rpt-log>` contains a timing report for one of the min
 timing paths. The report for any timing path is comprised of 4 sections:
 
 * The header: contains basic information about the timing path, such as the
