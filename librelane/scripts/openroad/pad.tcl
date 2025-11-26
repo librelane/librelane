@@ -1,9 +1,5 @@
 # Copyright 2025 LibreLane Contributors
 #
-# Adapted from OpenLane
-#
-# Copyright 2024 Efabless Corporation
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,19 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-source $::env(_TCL_ENV_IN)
 
-if { $::env(MAGIC_GUI_USE_GDS) && [info exists ::env(CURRENT_GDS)] } {
-    gds read $::env(CURRENT_GDS)
-} else {
-    source $::env(SCRIPTS_DIR)/magic/common/read.tcl
-    read_tech_lef
-    read_pdk_lef
-    read_macro_lef
-    read_pad_lef
-    read_def
-}
+source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+read_current_odb
 
-set cell_name $::env(DESIGN_NAME)
-load $cell_name
-select top cell
+source $::env(SCRIPTS_DIR)/openroad/common/set_power_nets.tcl
+
+# load the pad configuration
+read_pad_cfg
+
+write_views
+report_design_area_metrics

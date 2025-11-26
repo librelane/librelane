@@ -59,6 +59,7 @@ def run(
     pdk_root: Optional[str],
     pdk: str,
     scl: Optional[str],
+    pad: Optional[str],
     config_files: Sequence[str],
     tag: Optional[str],
     last_run: bool,
@@ -140,6 +141,7 @@ def run(
             "pdk_root": pdk_root,
             "pdk": pdk,
             "scl": scl,
+            "pad": pad,
             "config_override_strings": config_override_strings,
             "design_dir": design_dir,
         }
@@ -262,6 +264,7 @@ def run_included_example(
         kwargs.update(
             flow_name=None,
             scl=None,
+            pad=None,
             tag=None,
             last_run=False,
             frm=None,
@@ -451,7 +454,7 @@ def cli(ctx, /, **kwargs):
 
     if len(args) == 1 and args[0].endswith(".marshalled"):
         run_kwargs = marshal.load(open(args[0], "rb"))
-        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl"]})
+        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl", "pad"]})
 
     smoke_test = kwargs.pop("smoke_test", False)
     example = kwargs.pop("run_example", None)
