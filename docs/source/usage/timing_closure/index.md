@@ -339,8 +339,8 @@ Examples of Timing Optimizations
 
 LibreLane supports automatic timing closure; the {flow}`Classic` flow applies
 design optimizations that favor hold violations fixing after CTS (Clock Tree Synthesis) and after
-global routing. Thes two timing optimizations attempts are controlled using some flow
-configurations such as those given by {numref}`timing-related-config-vars`.
+global routing. These two timing optimization attempts are controlled using some flow
+configuration variables such as those given by {numref}`timing-related-config-vars`.
 
 ```{list-table} LibreLane Timing-related Configuration Variables
 :name: timing-related-config-vars
@@ -362,7 +362,7 @@ configurations such as those given by {numref}`timing-related-config-vars`.
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_HOLD_MAX_BUFFER_PCT`
   - Maximum % of buffers to insert to fix hold violations. (PL/CTS) 
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_SETUP_MAX_BUFFER_PCT`
-  - Maximum % of buffers to insert to fix setup violationss. (PL/CTS)
+  - Maximum % of buffers to insert to fix setup violations. (PL/CTS)
 * - {var}`OpenROAD.ResizerTimingPostCTS::PL_RESIZER_ALLOW_SETUP_VIOS`
   - Allow setup violations while fixing hold violations after placement and CTS.
 * - {var}`Classic::RUN_POST_GRT_RESIZER_TIMING`
