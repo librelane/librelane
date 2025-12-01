@@ -30,6 +30,11 @@ proc drt_run {i args} {
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
+# We need to call grt once, so that options like allow_congestion can be set for repair_antennas.
+# This needs to be done before drt. If grt is called after drt, repair_antennas only uses the
+# routing information from grt for fixing the antennas = useless.
+source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
+
 set_thread_count $::env(DRT_THREADS)
 
 set min_layer $::env(RT_MIN_LAYER)
@@ -73,7 +78,7 @@ if { ![info exists ::env(DIODE_CELL)] } {
 
     while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
         puts "\[INFO\] Running antenna repair iteration $i…"
-        set diodes_inserted [log_cmd repair_antennas $diode_cell -ratio_margin $::env(DRT_ANTENNA_MARGIN)]
+        set diodes_inserted [log_cmd repair_antennas $diode_cell -ratio_margin $::env(DRT_ANTENNA_REPAIR_MARGIN)]
         if {$diodes_inserted} {
             drt_run $i {*}$drt_args
         } else {
