@@ -247,6 +247,7 @@ class Flow(ABC):
     :param pdk: See :meth:`librelane.config.Config.load`
     :param pdk_root: See :meth:`librelane.config.Config.load`
     :param scl: See :meth:`librelane.config.Config.load`
+    :param pad: See :meth:`librelane.config.Config.load`
     :param design_dir: See :meth:`librelane.config.Config.load`
 
     :cvar Steps:
@@ -341,6 +342,7 @@ class Flow(ABC):
         pdk: Optional[str] = None,
         pdk_root: Optional[str] = None,
         scl: Optional[str] = None,
+        pad: Optional[str] = None,
         design_dir: Optional[str] = None,
         config_override_strings: Optional[Sequence[str]] = None,
     ):
@@ -367,6 +369,7 @@ class Flow(ABC):
                 pdk=pdk,
                 pdk_root=pdk_root,
                 scl=scl,
+                pad=pad,
                 design_dir=design_dir,
             )
 
