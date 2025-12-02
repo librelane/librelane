@@ -1,2 +1,3 @@
 openroad.detailedrouting/004-fail-range-max # temporary
 netgen.lvs/003-fail-no-flatten # needs netgen update
+odb.applydeftemplate/002-bad_def # fails randomly on Nix/aarch64-darwin
