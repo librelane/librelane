@@ -22,9 +22,6 @@ source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
 set diode_split [split $::env(DIODE_CELL) "/"]
 repair_antennas "[lindex $diode_split 0]" -iterations $::env(GRT_ANTENNA_REPAIR_ITERS) -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
 
-source $::env(SCRIPTS_DIR)/openroad/common/dpl.tcl
-source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
-
 source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 estimate_parasitics -global_routing
 
