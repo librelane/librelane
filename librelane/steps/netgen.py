@@ -200,6 +200,9 @@ class LVS(NetgenStep):
             spice_files_commands.append(f"readnet spice {lib} $circuit2")
 
         macros_commands = []
+        macros_commands.append(
+            f"puts \"Reading Verilog netlist file '{state_in[DesignFormat.POWERED_NETLIST]}'...\""
+        )
         macros_commands += [
             f"readnet verilog {state_in[DesignFormat.POWERED_NETLIST]} $circuit2"
         ]
