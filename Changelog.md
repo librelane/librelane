@@ -49,6 +49,10 @@ Style Notes
 
   * Currently only supports ihp-sg13g2.
 
+* `Netgen.LVS`:
+
+  * Display the top-level Verilog file name.
+
 * `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the
   conflict resolution if a cell name conflict arises. (Default: "RenameCell")
 
