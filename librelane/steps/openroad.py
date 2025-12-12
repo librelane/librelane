@@ -1200,7 +1200,7 @@ class PadRing(OpenROADStep):
     """
 
     id = "OpenROAD.PadRing"
-    name = "Pad ring Generation"
+    name = "Pad Ring Generation"
 
     config_vars = OpenROADStep.config_vars + [
         Variable(
