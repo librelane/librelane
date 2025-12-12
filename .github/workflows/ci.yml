@@ -207,7 +207,7 @@ jobs:
             {
               name: "macOS 15 (Intel)",
               family: "darwin",
-              runner: "macos-15-intel",
+              runner: "macos-15",
               arch: "x86_64",
               nix: "x86_64-darwin",
             },
