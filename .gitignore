@@ -19,6 +19,7 @@ requirements_tmp.txt
 
 # Nix
 result
+.direnv/
 
 # Flow artefacts
 *.log
