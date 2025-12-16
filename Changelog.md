@@ -14,6 +14,14 @@
 ## Documentation
 -->
 
+# 2.4.9
+
+## Steps
+
+* `KLayout.OpenGUI`
+
+  * Fixed the technology not being registered.
+
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
