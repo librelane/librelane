@@ -843,6 +843,7 @@ class MultiCornerSTA(OpenSTAStep):
         table.add_column("of which reg to reg")
         table.add_column("Max Cap Violations")
         table.add_column("Max Slew Violations")
+        table.add_column("Max Frequency")
         for corner in ["Overall"] + self.config["STA_CORNERS"]:
             modifier = ""
             if corner != "Overall":
