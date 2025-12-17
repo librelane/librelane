@@ -37,15 +37,6 @@ source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
 
 set_thread_count $::env(DRT_THREADS)
 
-set min_layer $::env(RT_MIN_LAYER)
-if { [info exists ::env(DRT_MIN_LAYER)] } {
-    set min_layer $::env(DRT_MIN_LAYER)
-}
-
-set max_layer $::env(RT_MAX_LAYER)
-if { [info exists ::env(DRT_MAX_LAYER)] } {
-    set max_layer $::env(DRT_MAX_LAYER)
-}
 set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1
@@ -59,8 +50,6 @@ if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
 set i 0
 
 set drt_args [list]
-lappend drt_args -bottom_routing_layer $min_layer
-lappend drt_args -top_routing_layer $max_layer
 lappend drt_args -droute_end_iter $::env(DRT_OPT_ITERS)
 lappend drt_args -or_seed 42
 lappend drt_args -verbose 1
