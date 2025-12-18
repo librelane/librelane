@@ -428,8 +428,8 @@ class DRC(MagicStep):
 
         views_updates, metrics_updates = super().run(state_in, **kwargs)
 
-        report_path = os.path.join(reports_dir, "drc_violations.magic.rpt")
-        klayout_db_path = os.path.join(reports_dir, "drc_violations.magic.xml")
+        report_path = os.path.join(reports_dir, "drc.magic.rpt")
+        klayout_db_path = os.path.join(reports_dir, "drc.magic.lyrdb")
 
         # report_stats = os.stat(report_path)
         # drc_db_file = None
