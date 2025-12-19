@@ -14,6 +14,13 @@
 ## Documentation
 -->
 
+# 2.4.10
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed `common/cli.py` and `pyproject.toml` so click versions 8.2 and higher
+  are supported.
+
 # 2.4.9
 
 ## Steps
