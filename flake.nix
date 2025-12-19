@@ -19,7 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/5.5.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/5.10.0";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -139,7 +139,7 @@
     devShells = nix-eda.forAllSystems (
       system: let
         pkgs = self.legacyPackages."${system}";
-        callPackage = lib.callPackageWith pkgs;
+        callPackage = lib.callPackageWith (pkgs // pkgs.python3.pkgs);
       in {
         # These devShells are rather unorthodox for Nix devShells in that they
         # include the package itself. For a proper devShell, try .#dev.
@@ -157,24 +157,25 @@
             jdupes
             alejandra
           ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            pyfakefs
-            pytest
-            pytest-xdist
-            pytest-cov
-            pillow
-            mdformat
-            black
-            ipython
-            tokenize-rt
-            flake8
-            mypy
-            types-deprecated
-            types-pyyaml
-            types-psutil
-            lxml-stubs
-            pipx
-          ];
+          extra-python-packages = ps:
+            with ps; [
+              pyfakefs
+              pytest
+              pytest-xdist
+              pytest-cov
+              pillow
+              mdformat
+              black
+              ipython
+              tokenize-rt
+              flake8
+              mypy
+              types-deprecated
+              types-pyyaml
+              types-psutil
+              lxml-stubs
+              pipx
+            ];
           include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
@@ -183,27 +184,28 @@
             alejandra
             imagemagick
           ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            pyfakefs
-            pytest
-            pytest-xdist
-            pillow
-            mdformat
-            furo
-            docutils
-            sphinx
-            sphinx-autobuild
-            sphinx-autodoc-typehints
-            sphinx-design
-            myst-parser
-            docstring-parser
-            sphinx-copybutton
-            sphinxcontrib-spelling
-            sphinxcontrib-bibtex
-            sphinx-tippy
-            sphinx-subfigure
-            py-mon
-          ];
+          extra-python-packages = ps:
+            with ps; [
+              pyfakefs
+              pytest
+              pytest-xdist
+              pillow
+              mdformat
+              furo
+              docutils
+              sphinx
+              sphinx-autobuild
+              sphinx-autodoc-typehints
+              sphinx-design
+              myst-parser
+              docstring-parser
+              sphinx-copybutton
+              sphinxcontrib-spelling
+              sphinxcontrib-bibtex
+              sphinx-tippy
+              sphinx-subfigure
+              py-mon
+            ];
           include-librelane = false;
         }) {};
       }
