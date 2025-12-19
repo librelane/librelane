@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020-2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +20,24 @@ import sys
 from typing import Iterable, List, Union
 
 try:
-    import libyosys as ys
+    from pyosys import libyosys as ys
 except ImportError:
     try:
-        from pyosys import libyosys as ys
+        # flake8: noqa F401
+        import libyosys
+
+        ys.log_error("Current versions of LibreLane require Yosys 0.59.1 or higher.")
+        exit(-1)
     except ImportError:
         ys.log_error(
-            "Could not find pyosys in 'PYTHONPATH'-- make sure Yosys is compiled with ENABLE_PYTHON set to 1.",
+            "Failed to import pyosys -- make sure Yosys is compiled with ENABLE_PYTHON set to 1.",
             file=sys.stderr,
         )
         exit(-1)
 
 
 def _Design_run_pass(self, *command):
-    ys.Pass.call__YOSYS_NAMESPACE_RTLIL_Design__std_vector_string_(self, list(command))
+    ys.Pass.call(self, command)
 
 
 ys.Design.run_pass = _Design_run_pass  # type: ignore
