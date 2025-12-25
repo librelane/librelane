@@ -178,6 +178,9 @@ Style Notes
 
   * Better error reporting for unexpected openroad failures.
 
+* `OpenROAD.STA*`
+  * Add Max Frequency metric for each corner to summart.rpt
+  
 * `OpenROAD.CTS`
 
   * Added flags `CTS_OBSTRUCTION_AWARE` and `CTS_BALANCE_LEVELS`
