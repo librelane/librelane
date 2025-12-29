@@ -25,6 +25,6 @@ class Design:
 
 class Pass:
     @staticmethod
-    def call__YOSYS_NAMESPACE_RTLIL_Design__std_vector_string_(
+    def call(
         design: Design, cmd: List[str]
     ): ...
