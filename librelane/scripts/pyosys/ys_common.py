@@ -37,7 +37,10 @@ except ImportError:
 
 
 def _Design_run_pass(self, *command):
-    ys.Pass.call(self, command)
+    if hasattr(ys.Pass, "call"):
+        ys.Pass.call(self, list(command))
+    else:
+        ys.Pass.call__YOSYS_NAMESPACE_RTLIL_Design__std_vector_string_(self, list(command))
 
 ys.Design.run_pass = _Design_run_pass  # type: ignore
 
