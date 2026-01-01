@@ -56,7 +56,7 @@ pdk_variables = [
     Variable(
         "TECH_LEFS",
         Dict[str, Path],
-        "Map of corner patterns to to technology LEF files. A corner not matched here will not be supported by OpenRCX in the default flow.",
+        "Map of corner patterns to technology LEF files. A corner not matched here will not be supported by OpenRCX in the default flow.",
         pdk=True,
     ),
     Variable(
