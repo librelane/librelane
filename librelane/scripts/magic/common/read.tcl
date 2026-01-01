@@ -55,8 +55,8 @@ proc read_extra_gds {} {
     set old_readonly [gds readonly]
     gds rescale false
     gds readonly true
-    if {  [info exist ::env(EXTRA_GDS_FILES)] } {
-        set gds_files_in $::env(EXTRA_GDS_FILES)
+    if {  [info exist ::env(EXTRA_GDS)] } {
+        set gds_files_in $::env(EXTRA_GDS)
         foreach gds_file $gds_files_in {
             puts "> gds read $gds_file"
             gds read $gds_file

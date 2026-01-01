@@ -24,7 +24,6 @@ from typing import Callable, List, Mapping, Tuple, Union, Optional, Dict, Any
 
 from .design_format import (
     DesignFormat,
-    DesignFormatObject,
 )
 
 from ..common import (
@@ -93,26 +92,21 @@ class State(GenericImmutableDict[str, StateElement]):
         if c_mapping := copying:
             for key, value in c_mapping.items():
                 if isinstance(key, DesignFormat):
-                    copying_resolved[key.value.id] = value
+                    copying_resolved[key.id] = value
                 else:
                     copying_resolved[key] = value
-
-        for format in DesignFormat:
-            assert isinstance(format.value, DesignFormatObject)  # type checker shut up
-            if format.value.id not in copying_resolved:
-                copying_resolved[format.value.id] = None
 
         overrides_resolved = {}
         if o_mapping := overrides:
             for k, value in o_mapping.items():
                 if isinstance(k, DesignFormat):
-                    assert isinstance(
-                        k.value, DesignFormatObject
-                    )  # type checker shut up
-                    k = k.value.id
+                    k = k.id
                 overrides_resolved[k] = value
 
         self.metrics = GenericImmutableDict(metrics or {})
+        for key in list(copying_resolved.keys()):
+            if copying_resolved[key] is None:
+                del copying_resolved[key]
 
         super().__init__(
             copying_resolved,
@@ -121,21 +115,24 @@ class State(GenericImmutableDict[str, StateElement]):
             **kwargs,
         )
 
+    def get_by_df(self, key: DesignFormat) -> StateElement:
+        return self.get(key.id)
+
     def __getitem__(self, key: Union[DesignFormat, str]) -> StateElement:
         if isinstance(key, DesignFormat):
-            id: str = key.value.id
+            id: str = key.id
             key = id
         return super().__getitem__(key)
 
     def __setitem__(self, key: Union[DesignFormat, str], item: StateElement):
         if isinstance(key, DesignFormat):
-            id: str = key.value.id
+            id: str = key.id
             key = id
         return super().__setitem__(key, item)
 
     def __delitem__(self, key: Union[DesignFormat, str]):
         if isinstance(key, DesignFormat):
-            id: str = key.value.id
+            id: str = key.id
             key = id
         return super().__delitem__(key)
 
@@ -166,10 +163,8 @@ class State(GenericImmutableDict[str, StateElement]):
             if current_top_key is None:
                 current_top_key = key
             current_folder = key.strip("_*")
-            if df := DesignFormat.by_id(key):
-                # For type-checker: all guaranteed to be DesignFormatObjects
-                assert isinstance(df.value, DesignFormatObject)
-                current_folder = df.value.folder
+            if df := DesignFormat.factory.get(key):
+                current_folder = df.folder
 
             target_dir = os.path.join(save_directory, current_folder)
 
@@ -236,7 +231,11 @@ class State(GenericImmutableDict[str, StateElement]):
         """
 
         def visitor(key, value, top_key, _, depth):
-            if depth == 0 and DesignFormat.by_id(top_key) is None:
+            if (
+                depth == 0
+                and DesignFormat.factory.get(top_key) is None
+                and value is not None
+            ):
                 raise InvalidState(
                     f"Key '{top_key}' does not match a known design format."
                 )
@@ -322,8 +321,8 @@ class State(GenericImmutableDict[str, StateElement]):
                 continue
 
             key_content = id
-            if format := DesignFormat.by_id(id):
-                key_content = format.value.id
+            if format := DesignFormat.factory.get(id):
+                key_content = format.id
 
             value_content = str(value)
             if isinstance(value, Mapping):

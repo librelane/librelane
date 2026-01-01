@@ -265,7 +265,16 @@ class WireLength(MetricChecker):
         default=True,
         deprecated_names=["QUIT_ON_LONG_WIRE"],
     )
-    config_vars = [error_on_var]
+    config_vars = [
+        error_on_var,
+        Variable(
+            "WIRE_LENGTH_THRESHOLD",
+            Optional[Decimal],
+            "A value above which wire lengths generate warnings.",
+            units="µm",
+            pdk=True,
+        ),
+    ]
 
     def get_threshold(self) -> Optional[Decimal]:
         threshold = self.config["WIRE_LENGTH_THRESHOLD"]
@@ -476,6 +485,7 @@ class TimingViolations(MetricChecker):
             cls.base_corner_var_name.replace("TIMING", replace_by),
             Optional[List[str]],
             f"A list of wildcards matching IPVT corners to use during checking for {cls.violation_type} violations.",
+            pdk=True,
         )
         if cls.corner_override:
             variable.default = cls.corner_override
@@ -634,3 +644,4 @@ class HoldViolations(TimingViolations):
     violation_type = "hold"
 
     metric_name = "timing__hold_vio__count"
+    corner_override = ["*"]

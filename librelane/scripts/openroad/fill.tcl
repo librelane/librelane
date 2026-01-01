@@ -15,11 +15,11 @@ source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
 set fill_list [list]
-foreach {pattern} $::env(DECAP_CELL) {
+foreach {pattern} $::env(DECAP_CELLS) {
     set stripped [string map {' {}} $pattern]
     lappend fill_list $stripped
 }
-foreach {pattern} $::env(FILL_CELL) {
+foreach {pattern} $::env(FILL_CELLS) {
     set stripped [string map {' {}} $pattern]
     lappend fill_list $stripped
 }

@@ -48,7 +48,7 @@ from deprecated.sphinx import deprecated
 from librelane.common.types import Path
 
 from ..config import Config, Variable, universal_flow_config_variables, AnyConfigs
-from ..state import State, DesignFormat, DesignFormatObject
+from ..state import State, DesignFormat
 from ..steps import Step, StepNotFound
 from ..logging import (
     LevelFilter,
@@ -826,13 +826,10 @@ class Flow(ABC):
         }
 
         def visitor(key, value, top_key, _, __):
-            df = DesignFormat.by_id(top_key)
+            df = DesignFormat.factory.get(top_key)
             assert df is not None
             if df not in supported_formats:
                 return
-
-            dfo = df.value
-            assert isinstance(dfo, DesignFormatObject)
 
             subdirectory, extension = supported_formats[df]
 
@@ -859,7 +856,7 @@ class Flow(ABC):
                 return
 
             target_basename = os.path.basename(str(value))
-            target_basename = target_basename[: -len(dfo.extension)] + extension
+            target_basename = target_basename[: -len(df.extension)] + extension
             target_path = os.path.join(target_dir, target_basename)
             mkdirp(target_dir)
             shutil.copyfile(value, target_path, follow_symlinks=True)
@@ -915,9 +912,10 @@ class Flow(ABC):
                     # Despite the name, this is the Magic DRC report simply
                     # converted into a KLayout-compatible format. Confusing!
                     drc_xml_out = os.path.join(openlane_signoff_dir, "drc.klayout.xml")
-                    with open(drc_xml, encoding="utf8") as i, open(
-                        drc_xml_out, "w", encoding="utf8"
-                    ) as o:
+                    with (
+                        open(drc_xml, encoding="utf8") as i,
+                        open(drc_xml_out, "w", encoding="utf8") as o,
+                    ):
                         o.write(
                             "<!-- Despite the name, this is the Magic DRC report in KLayout format. -->\n"
                         )

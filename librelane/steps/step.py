@@ -53,13 +53,7 @@ from ..config import (
     Variable,
     universal_flow_config_variables,
 )
-from ..state import (
-    DesignFormat,
-    DesignFormatObject,
-    State,
-    InvalidState,
-    StateElement,
-)
+from ..state import DesignFormat, State, InvalidState, StateElement
 from ..common import (
     GenericDict,
     GenericImmutableDict,
@@ -679,7 +673,7 @@ class Step(ABC):
                         raise StepException(
                             f"Output '{output}' is not a valid DesignFormat enum object."
                         )
-                    output_str = f"{output.value.name} (.{output.value.extension})"
+                    output_str = f"{output.full_name} (.{output.extension})"
                 result += f"| {input_str} | {output_str} |\n"
 
         if len(Self.config_vars):
@@ -751,9 +745,9 @@ class Step(ABC):
                 continue
 
             if state_in.get(id) != value:
-                df = DesignFormat.by_id(id)
+                df = DesignFormat.factory.get(id)
                 assert df is not None
-                views_updated.append(df.value.name)
+                views_updated.append(df.full_name)
 
         if len(views_updated):
             result += "#### Views updated:\n"
@@ -907,9 +901,6 @@ class Step(ABC):
             form an indirect dependency on many `.mag` files or similar that
             cannot be enumerated by LibreLane.
 
-        Reproducibles are automatically generated for failed steps, but
-        this may be called manually on any step, too.
-
         :param target_dir: The directory in which to create the reproducible
         :param include_pdk: Include PDK files. If set to false, Path pointing
             to PDK files will be prefixed with ``pdk_dir::`` instead of being
@@ -1014,14 +1005,15 @@ class Step(ABC):
 
         # 2. State
         state_in: GenericDict[str, Any] = self.state_in.result().copy_mut()
-        for format in DesignFormat:
-            assert isinstance(format.value, DesignFormatObject)  # type checker shut up
+        for format_id in state_in:
+            format = DesignFormat.factory.get(format_id)
+            assert format is not None
             if format not in self.__class__.inputs and not (
                 format == DesignFormat.DEF
                 and DesignFormat.ODB
                 in self.__class__.inputs  # hack to write tests a bit more easily
             ):
-                state_in[format.value.id] = None
+                state_in[format.id] = None
         state_in["metrics"] = self.state_in.result().metrics.copy_mut()
         dumpable_state = copy_recursive(state_in, translator=visitor)
         state_path = os.path.join(target_dir, "state_in.json")
@@ -1158,10 +1150,10 @@ class Step(ABC):
         self.start_time = time.time()
 
         for input in self.inputs:
-            value = state_in_result[input]
-            if value is None and not input.value.optional:
+            value = state_in_result.get_by_df(input)
+            if value is None and not input.optional:
                 raise StepException(
-                    f"{type(self).__name__}: missing required input '{input.name}'"
+                    f"{type(self).__name__}: missing required input '{input.id}'"
                 ) from None
 
         try:
@@ -1333,9 +1325,12 @@ class Step(ABC):
             link_start = f"[link=file://{os.path.abspath(log_path)}]"
             link_end = "[/link]"
 
-        verbose(
-            f"Logging subprocess to [repr.filename]{link_start}'{os.path.relpath(log_path)}'{link_end}[/repr.filename]…"
-        )
+        msg = f"Logging subprocess to [repr.filename]{link_start}'{os.path.relpath(log_path)}'{link_end}[/repr.filename]…"
+        if logging.options.get_condensed_mode():
+            info(msg)
+        else:
+            verbose(msg)
+
         process = _popen_callable(
             cmd_str,
             encoding="utf8",
@@ -1556,7 +1551,7 @@ class CompositeStep(Step):
         for key in state:
             if (
                 state_in.get(key) != state.get(key)
-                and DesignFormat.by_id(key) in self.outputs
+                and DesignFormat.factory.get(key) in self.outputs
             ):
                 views_updates[key] = state[key]
         for key in state.metrics:

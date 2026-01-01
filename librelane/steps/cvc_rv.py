@@ -16,7 +16,7 @@ import re
 import json
 from enum import Enum
 from io import StringIO, TextIOWrapper
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from .step import StepException, ViewsUpdate, MetricsUpdate, Step
 from ..common import Path
@@ -124,13 +124,6 @@ class ERC(Step):
             description="",
             pdk=True,
         ),
-        Variable(
-            "CELL_CDLS",
-            List[Path],
-            description="A circuit-design language view of the standard cell library.",
-            pdk=True,
-            deprecated_names=["STD_CELL_LIBRARY_CDL"],
-        ),
     ]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
@@ -165,5 +158,5 @@ class ERC(Step):
             )
             return {}, {}
         except CVCNoSupport as e:
-            self.warn(f"Could not run CVC: {e}. Skipping…")
+            self.warn(f"Could not run CVC: {e}. Skipping '{self.id}'…")
             return {}, {}

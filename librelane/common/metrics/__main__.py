@@ -158,7 +158,8 @@ def _compare_metric_folders(
                 continue
             basename = basename[: -len(".metrics.json")]
 
-            parts = basename.split("-", maxsplit=2)
+            # We have to rsplit, since ihp-sg13g2 contains a "-"
+            parts = basename.rsplit("-", maxsplit=2)
             if len(parts) != 3:
                 raise ValueError(
                     f"Invalid filename {basename}: not in the format {{pdk}}-{{scl}}-{{design_name}}"
@@ -357,9 +358,10 @@ def compare_remote(
                 for chunk in r.iter_bytes(chunk_size=8192):
                     bio_gz.write(chunk)
             bio_gz.seek(0)
-            with gzip.GzipFile(fileobj=bio_gz) as bio, tarfile.TarFile(
-                fileobj=bio, mode="r"
-            ) as tf:
+            with (
+                gzip.GzipFile(fileobj=bio_gz) as bio,
+                tarfile.TarFile(fileobj=bio, mode="r") as tf,
+            ):
                 for file in tf:
                     if file.isdir():
                         continue

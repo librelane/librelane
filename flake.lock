@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1758194402,
-        "narHash": "sha256-QoaS950TbRvvtndqHf8yz9VrQOZoTJCTPl4wWHgpRDM=",
+        "lastModified": 1759919060,
+        "narHash": "sha256-/B4s0X+/2rTkR81zK5fwFKmMAgfFYH2n/6etH7WYyik=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "f4990f916c29f1cb7d890ab5b0716f63ce9de1b4",
+        "rev": "9620877bdf6792affd7b7941b4a5cc4c1004c5ba",
         "type": "github"
       },
       "original": {
@@ -48,7 +48,7 @@
         "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
         "revCount": 69,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz?rev=ff81ac966bb2cae68946d5ed5fc4994f96d0ffec&revCount=69"
       },
       "original": {
         "type": "tarball",
@@ -60,32 +60,32 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1758194255,
-        "narHash": "sha256-IyEhOQOtSoYOO0xdbYeoxOufBUdt7yDrYlJpQgVon8I=",
+        "lastModified": 1765535442,
+        "narHash": "sha256-mYhW/8X+3F0Y6PS2CCOTguSKm/9hjC902GtQs6VAuOM=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "f8fb90fb348f04d021ca773f268c6e15a24ae11f",
+        "rev": "22111da4e0517747360ed60c527c8e7609ea5a09",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "2.1.5",
+        "ref": "5.12.0",
         "repo": "nix-eda",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1717144377,
-        "narHash": "sha256-F/TKWETwB5RaR8owkPPi+SPJh83AQsm6KrQAlJ8v/uA=",
+        "lastModified": 1750400657,
+        "narHash": "sha256-3vkjFnxCOP6vm5Pm13wC/Zy6/VYgei/I/2DWgW4RFeA=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "805a384895c696f802a9bf5bf4720f37385df547",
+        "rev": "b2485d56967598da068b5a6946dadda8bfcbcd37",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "nixos-24.05",
+        "ref": "nixos-25.05",
         "repo": "nixpkgs",
         "type": "github"
       }

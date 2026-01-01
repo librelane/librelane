@@ -39,7 +39,7 @@ class LoadBaseSDC(Step):
     outputs = [DesignFormat.SDC]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        path = self.config["FALLBACK_SDC_FILE"]
+        path = self.config["FALLBACK_SDC"]
 
         target = os.path.join(self.step_dir, f"{self.config['DESIGN_NAME']}.sdc")
 

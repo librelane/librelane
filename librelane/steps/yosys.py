@@ -19,7 +19,13 @@ from typing import List, Literal, Optional, Set, Tuple
 
 from .tclstep import TclStep
 from .step import ViewsUpdate, MetricsUpdate, Step
-from .pyosys import JsonHeader, verilog_rtl_cfg_vars, Synthesis, VHDLSynthesis
+from .pyosys import (
+    PyosysStep,
+    JsonHeader,
+    verilog_rtl_cfg_vars,
+    Synthesis,
+    VHDLSynthesis,
+)
 
 from ..config import Variable, Config
 from ..state import State, DesignFormat
@@ -42,7 +48,7 @@ def _generate_read_deps(
     commands = ""
 
     synth_defines = [
-        f"PDK_{config['PDK']}",
+        f"PDK_{config['PDK'].replace('-','_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
@@ -210,9 +216,17 @@ class YosysStep(TclStep):
         ),
     ]
 
+    @classmethod
+    def get_yosys_path(Self) -> str:
+        return PyosysStep.get_yosys_path()
+
+    @abstractmethod
+    def get_script_path(self) -> str:
+        pass
+
     def get_command(self) -> List[str]:
         script_path = self.get_script_path()
-        cmd = ["yosys", "-c", script_path]
+        cmd = [self.get_yosys_path(), "-c", script_path]
         if self.config["YOSYS_LOG_LEVEL"] != "ALL":
             cmd += ["-Q"]
         if self.config["YOSYS_LOG_LEVEL"] == "WARNING":
@@ -220,10 +234,6 @@ class YosysStep(TclStep):
         elif self.config["YOSYS_LOG_LEVEL"] == "ERROR":
             cmd += ["-qq"]
         return cmd
-
-    @abstractmethod
-    def get_script_path(self) -> str:
-        pass
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         power_defines = False
@@ -305,7 +315,7 @@ class EQY(Step):
             )
         else:
             info(
-                f"PDK {self.config['PDK']} is not supported by the EQY step. Skipping…"
+                f"PDK {self.config['PDK']} is not supported by the EQY step. Skipping '{self.id}'…"
             )
             return {}, {}
 

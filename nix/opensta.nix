@@ -26,12 +26,18 @@
   cudd,
   zlib,
   eigen,
-  rev ? "b5f3a02b33b8ae1739ace8a329fde94434711dd6",
-  sha256 ? "sha256-s9Qn8Hkxuzvx7sZdaa/RX8X4Rp4w/kTVdnrmsRvC8wo=",
+  rev ? "ffabd65e39f036b9eb511d3b9d9887772d56e72b",
+  rev-date ? "2025-06-06",
+  sha256 ? "sha256-EQCO82H8mYbRaXCbUhmI6HnzR6wK+eFDXv6Jd2IzqMw=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
-  inherit rev;
+  version = rev-date;
+
+  outputs = [
+    "out"
+    "dev"
+  ];
 
   src = fetchFromGitHub {
     owner = "The-OpenROAD-Project";
@@ -54,20 +60,27 @@ clangStdenv.mkDerivation (finalAttrs: {
   ];
 
   # Files needed by OpenROAD when building with external OpenSTA
-  postInstall = ''
+  installPhase = ''
+    runHook preInstall
+    cd ../build
+    cmake --install . --prefix $out
+    mkdir -p $dev
+    mv $out/lib $dev/lib
     for file in $(find ${finalAttrs.src} | grep -v examples | grep -E "(\.tcl|\.i)\$"); do
       relative_dir=$(dirname $(realpath --relative-to=${finalAttrs.src} $file))
-      true_dir=$out/$relative_dir
+      true_dir=$dev/$relative_dir
       mkdir -p $true_dir
       cp $file $true_dir
     done
     for file in $(find ${finalAttrs.src} | grep -v examples | grep -E "(\.hh)\$"); do
       relative_dir=$(dirname $(realpath --relative-to=${finalAttrs.src} $file))
-      true_dir=$out/include/$relative_dir
+      true_dir=$dev/include/$relative_dir
       mkdir -p $true_dir
       cp $file $true_dir
     done
     find $out
+    find $dev
+    runHook postInstall
   '';
 
   nativeBuildInputs = [

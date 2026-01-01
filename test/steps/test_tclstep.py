@@ -179,8 +179,8 @@ def test_env(mock_config):  # noqa: F811
     assert (
         env["STEP_DIR"] == TclStepTest.step_dir
     ), "Wrong prepared env. Bad STEP_DIR value"
-    assert env["CURRENT_NETLIST"] == "abc", "Wrong prepared env. Bad CURRENT_ input"
-    assert "SAVE_NETLIST" in env, "Wrong prepared env. SAVE_NETLIST missing"
+    assert env["CURRENT_NL"] == "abc", "Wrong prepared env. Bad CURRENT_ input"
+    assert "SAVE_NL" in env, "Wrong prepared env. SAVE_NL missing"
     for var in mock_config:
         if mock_config[var] is not None:
             assert var in env, "Wrong prepared env. Missing config variable"

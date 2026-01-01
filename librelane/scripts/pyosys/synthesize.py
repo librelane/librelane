@@ -34,6 +34,7 @@
 import os
 import json
 import shutil
+from typing import List, Optional
 
 import click
 
@@ -142,10 +143,36 @@ def librelane_opt(
 
 
 def librelane_synth(
-    d, top, flatten, report_dir, *, booth=False, abc_dff=False, undriven=True
+    d,
+    top,
+    flatten,
+    report_dir,
+    *,
+    booth=False,
+    abc_dff=False,
+    undriven=True,
+    keep_hierarchy_min_cost: Optional[int],
+    keep_hierarchy_instances: List[str],
+    keep_hierarchy_modules: List[str],
 ):
+
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
     librelane_proc(d, report_dir)
+
+    if keep_hierarchy_min_cost:
+        d.run_pass("keep_hierarchy", "-min_cost", str(keep_hierarchy_min_cost))
+
+    if keep_hierarchy_instances:
+        for keep_hierarchy_instance in keep_hierarchy_instances:
+            d.run_pass(
+                "setattr", "-set", "keep_hierarchy", "1", keep_hierarchy_instance
+            )
+
+    if keep_hierarchy_modules:
+        for keep_hierarchy_module in keep_hierarchy_modules:
+            d.run_pass(
+                "setattr", "-mod", "-set", "keep_hierarchy", "1", keep_hierarchy_module
+            )
 
     if flatten:
         d.run_pass("flatten")  # Flatten the design hierarchy
@@ -227,7 +254,7 @@ def synthesize(
 
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
     defines = (config.get("VERILOG_DEFINES") or []) + [
-        f"PDK_{config['PDK']}",
+        f"PDK_{config['PDK'].replace('-','_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
@@ -262,8 +289,8 @@ def synthesize(
             synth_parameters=[],
             includes=includes,
             defines=defines,
-            use_synlig=False,
-            synlig_defer=False,
+            use_slang=False,
+            slang_arguments=[],
         )
     elif verilog_files := config.get("VERILOG_FILES"):
         d.read_verilog_files(
@@ -272,8 +299,8 @@ def synthesize(
             synth_parameters=config["SYNTH_PARAMETERS"] or [],
             includes=includes,
             defines=defines,
-            use_synlig=config["USE_SYNLIG"],
-            synlig_defer=config["SYNLIG_DEFER"],
+            use_slang=config["USE_SLANG"],
+            slang_arguments=config["SLANG_ARGUMENTS"] or [],
         )
     elif vhdl_files := config.get("VHDL_FILES"):
         d.run_pass("plugin", "-i", "ghdl")
@@ -294,12 +321,12 @@ def synthesize(
     )
     d.run_pass("rename", "-top", config["DESIGN_NAME"])
     d.run_pass("select", "-module", config["DESIGN_NAME"])
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show", "-format", "dot", "-prefix", os.path.join(step_dir, "hierarchy")
         )
-    except Exception:
-        pass
+    if config["SYNTH_NORMALIZE_SINGLE_BIT_VECTORS"]:
+        d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
 
     lib_arguments = []
@@ -354,12 +381,15 @@ def synthesize(
         booth=config["SYNTH_MUL_BOOTH"],
         abc_dff=config["SYNTH_ABC_DFF"],
         undriven=config.get("SYNTH_TIE_UNDEFINED") is not None,
+        keep_hierarchy_min_cost=config["SYNTH_KEEP_HIERARCHY_MIN_COST"],
+        keep_hierarchy_instances=config["SYNTH_KEEP_HIERARCHY_INSTANCES"],
+        keep_hierarchy_modules=config["SYNTH_KEEP_HIERARCHY_MODULES"],
     )
 
     d.run_pass("delete", "t:$print")
     d.run_pass("delete", "t:$assert")
 
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show",
             "-format",
@@ -367,8 +397,6 @@ def synthesize(
             "-prefix",
             os.path.join(step_dir, "primitive_techmap"),
         )
-    except Exception:
-        pass
 
     d.run_pass("opt")
     d.run_pass("opt_clean", "-purge")

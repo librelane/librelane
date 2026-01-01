@@ -1,4 +1,4 @@
-# Copyright 2023 Efabless Corporation
+# Copyright 2023-2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,23 +13,22 @@
 # limitations under the License.
 {
   lib,
-  clangStdenv,
+  llvmPackages,
   fetchFromGitHub,
   openroad-abc,
   libsForQt5,
   opensta,
-  boost183,
+  boost186,
   eigen,
   cudd,
   tcl,
+  tclreadline,
   python3,
   readline,
-  tclreadline,
-  spdlog-internal-fmt,
+  spdlog,
   libffi,
-  llvmPackages,
   lemon-graph,
-  or-tools,
+  or-tools_9_14,
   glpk,
   zlib,
   clp,
@@ -40,18 +39,36 @@
   gnumake,
   flex,
   bison,
-  clang-tools_14,
   buildEnv,
   makeBinaryWrapper,
-  rev ? "edf00dff99f6c40d67a30c0e22a8191c5d2ed9d6",
-  sha256 ? "sha256-J649SIC/IHtiKiMvY8XrteyFkNM0WeQ6hfKIYdtE81g=",
+  cmake,
+  ctestCheckHook,
+  ninja,
+  git,
+  gtest,
   # environments,
   openroad,
   buildPythonEnvForInterpreter,
+  # top
+  rev ? "341650e72dad0dc8571822ff8c5d9c5e365327f7",
+  rev-date ? "2025-06-12",
+  sha256 ? "sha256-C/nB//s9h9fCeVe3CTVr9Xey7AhDZCPniHTXybtkJ88=",
 }: let
-  self = clangStdenv.mkDerivation (finalAttrs: {
-    name = "openroad";
-    inherit rev;
+  stdenv = llvmPackages.stdenv;
+  cmakeFlagsCommon = debug: [
+    "-DTCL_LIBRARY=${tcl}/lib/libtcl${stdenv.hostPlatform.extensions.sharedLibrary}"
+    "-DTCL_HEADER=${tcl}/include/tcl.h"
+    "-DUSE_SYSTEM_BOOST:BOOL=ON"
+    "-DCMAKE_CXX_FLAGS=-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1 -I${eigen}/include/eigen3 ${lib.strings.optionalString debug "-g -O0"}"
+    "-DCUDD_LIB=${cudd}/lib/libcudd.a"
+  ];
+  join_flags = lib.strings.concatMapStrings (x: " \"${x}\" ");
+in
+  stdenv.mkDerivation (finalAttrs: {
+    __structuredAttrs = true; # better serialization; enables spaces in cmakeFlags
+
+    pname = "openroad";
+    version = rev-date;
 
     src = fetchFromGitHub {
       owner = "The-OpenROAD-Project";
@@ -59,80 +76,87 @@
       inherit rev;
       inherit sha256;
     };
-    
-    patches = [
-      ./patches/openroad/6743.patch
-    ];
-
-    cmakeFlagsAll = [
-      "-DTCL_LIBRARY=${tcl}/lib/libtcl${clangStdenv.hostPlatform.extensions.sharedLibrary}"
-      "-DTCL_HEADER=${tcl}/include/tcl.h"
-      "-DUSE_SYSTEM_BOOST:BOOL=ON"
-      "-DCMAKE_CXX_FLAGS=-I${openroad-abc}/include"
-      "-DENABLE_TESTS:BOOL=OFF"
-      "-DVERBOSE=1"
-    ];
 
     cmakeFlags =
-      finalAttrs.cmakeFlagsAll
+      (cmakeFlagsCommon false)
       ++ [
         "-DUSE_SYSTEM_ABC:BOOL=ON"
         "-DUSE_SYSTEM_OPENSTA:BOOL=ON"
-        "-DCMAKE_CXX_FLAGS=-I${eigen}/include/eigen3"
-        "-DOPENSTA_HOME=${opensta}"
+        "-DOPENSTA_HOME=${opensta.dev}"
         "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
       ];
 
-    preConfigure = ''
-      sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
-      patchShebangs ./etc/find_messages.py
+    patches = [
+      ./patches/openroad/static_library_fixes.patch
+      ./patches/openroad/fix_def_diearea.patch
+    ];
 
-      sed -i 's@#include "base/abc/abc.h"@#include <base/abc/abc.h>@' src/rmp/src/Restructure.cpp
-      sed -i 's@#include "base/main/abcapis.h"@#include <base/main/abcapis.h>@' src/rmp/src/Restructure.cpp
-      sed -i 's@# tclReadline@target_link_libraries(openroad readline)@' src/CMakeLists.txt
-      sed -i 's@%include "../../src/Exception.i"@%include "../../Exception.i"@' src/dbSta/src/dbSta.i
-      sed -i 's@''${TCL_LIBRARY}@''${TCL_LIBRARY}\n${cudd}/lib/libcudd.a@' src/CMakeLists.txt
+    postPatch = ''
+      sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
+      patchShebangs ./etc
     '';
 
     buildInputs = [
       openroad-abc
-      boost183
+      boost186
       eigen
       cudd
       tcl
       python3
       readline
       tclreadline
-      spdlog-internal-fmt
+      spdlog
       libffi
       libsForQt5.qtbase
       libsForQt5.qt5.qtcharts
       llvmPackages.openmp
+      llvmPackages.libunwind
 
       lemon-graph
-      or-tools
       opensta
       glpk
       zlib
       clp
       cbc
-      re2
+      gtest
+
+      or-tools_9_14
     ];
 
     nativeBuildInputs = [
       swig4
       pkg-config
-      python3.pkgs.cmake # TODO: Replace with top-level cmake, I'm just doing this to avoid a rebuild
+      cmake
       gnumake
       flex
       bison
+      ninja
       libsForQt5.wrapQtAppsHook
-      clang-tools_14
+      llvmPackages.clang-tools
+      python3.pkgs.tclint
+      ctestCheckHook
     ];
 
     shellHook = ''
-      export DEVSHELL_CMAKE_FLAGS="${builtins.concatStringsSep " " finalAttrs.cmakeFlagsAll}"
+      ord-format-changed() {
+        ${git}/bin/git diff --name-only | grep -E '\.(cpp|cc|c|h|hh)$' | xargs clang-format -i -style=file:.clang-format
+        ${git}/bin/git diff --name-only | grep -E '\.(tcl)$' | xargs tclfmt --in-place
+      }
+      alias ord-cmake-nix='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags finalAttrs.cmakeFlags} -G Ninja'
+      alias ord-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${join_flags (cmakeFlagsCommon
+        /*
+        debug:
+        */
+        true)} -G Ninja'
+      alias ord-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags (cmakeFlagsCommon
+        /*
+        debug:
+        */
+        false)} -G Ninja'
     '';
+
+    # it takes 8 billion years set it to true on your own machine to test
+    doCheck = false;
 
     passthru = {
       inherit python3;
@@ -144,14 +168,12 @@
       };
     };
 
-    meta = with lib; {
+    meta = {
       description = "OpenROAD's unified application implementing an RTL-to-GDS flow";
       homepage = "https://theopenroadproject.org";
       # OpenROAD code is BSD-licensed, but OpenSTA is GPLv3 licensed,
       # so the combined work is GPLv3
-      license = licenses.gpl3Plus;
-      platforms = platforms.linux ++ platforms.darwin;
+      license = lib.licenses.gpl3Plus;
+      platforms = lib.platforms.linux ++ lib.platforms.darwin;
     };
-  });
-in
-  self
+  })

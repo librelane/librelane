@@ -29,7 +29,7 @@ buildPythonPackage {
     inherit version;
     inherit sha256;
   };
-  
+
   buildInputs = [
     pybind11
   ];

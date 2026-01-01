@@ -23,7 +23,7 @@
   fetchFromGitHub,
   nix-gitignore,
   # Tools
-  klayout,
+  klayout-app,
   libparse,
   magic-vlsi,
   netgen,
@@ -36,7 +36,11 @@
   verilog,
   ciel,
   yosys,
-  yosysFull,
+  yosys-sby,
+  yosys-eqy,
+  yosys-lighter,
+  yosys-slang,
+  yosys-ghdl,
   # Python
   buildPythonPackage,
   poetry-core,
@@ -56,11 +60,18 @@
   pyfakefs,
   rapidfuzz,
   semver,
+  klayout,
 }: let
-  yosys-env = (yosys.withPythonPackages.override {target = yosysFull;}) (ps:
-    with ps; [
-      click
-    ]);
+  yosys-with-plugins = yosys.withPlugins (
+    [
+      yosys-sby
+      yosys-eqy
+      yosys-lighter
+      yosys-slang
+    ]
+    ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]
+  );
+  yosys-env = (yosys.withPythonPackages.override {target = yosys-with-plugins;}) (ps: with ps; [click]);
   openroad-env = openroad.withPythonPackages (ps:
     with ps; [
       click
@@ -69,22 +80,25 @@
     ]);
   self = buildPythonPackage {
     pname = "librelane";
-    version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.version;
+    version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).project.version;
     format = "pyproject";
 
-    src = if (flake != null) then flake else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
+    src =
+      if (flake != null)
+      then flake
+      else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     nativeBuildInputs = [
       poetry-core
     ];
 
     includedTools = [
-      opensta
+      opensta.out # HACK: for whatever reason, opensta.dev is prioritized by computed_PATH.
       yosys-env
       openroad-env
-      klayout
       netgen
       magic-vlsi
+      klayout-app
       verilog
       verilator
       tclFull
@@ -92,27 +106,27 @@
       ruby
     ];
 
-    propagatedBuildInputs =
-      [
-        # Python
-        click
-        cloup
-        pyyaml
-        yamlcore
-        rich
-        requests
-        pcpp
-        ciel
-        tkinter
-        lxml
-        deprecated
-        libparse
-        psutil
-        klayout.pymod
-        rapidfuzz
-        semver
-      ]
-      ++ self.includedTools;
+    propagatedBuildInputs = self.includedTools;
+
+    dependencies = [
+      # Python
+      click
+      cloup
+      pyyaml
+      yamlcore
+      rich
+      requests
+      pcpp
+      ciel
+      tkinter
+      lxml
+      deprecated
+      libparse
+      psutil
+      klayout
+      rapidfuzz
+      semver
+    ];
 
     doCheck = true;
     checkInputs = [pytestCheckHook pytest-xdist pyfakefs];

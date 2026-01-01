@@ -14,7 +14,6 @@
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 source $::env(SCRIPTS_DIR)/openroad/common/resizer.tcl
 
-load_rsz_corners
 read_current_odb
 
 unset_propagated_clock [all_clocks]
@@ -42,17 +41,25 @@ if { $::env(DESIGN_REPAIR_BUFFER_OUTPUT_PORTS) } {
     buffer_ports -outputs
 }
 
+set arg_list [list]
+lappend arg_list -verbose
+lappend arg_list -max_wire_length $::env(DESIGN_REPAIR_MAX_WIRE_LENGTH)
+lappend arg_list -slew_margin $::env(DESIGN_REPAIR_MAX_SLEW_PCT)
+lappend arg_list -cap_margin $::env(DESIGN_REPAIR_MAX_CAP_PCT)
+if { [info exists ::env(DESIGN_REPAIR_MAX_UTILIZATION)] } {
+    lappend arg_list -max_utilization $::env(DESIGN_REPAIR_MAX_UTILIZATION)
+}
+if { [info exists ::env(DESIGN_REPAIR_BUFFER_GAIN)] } {
+    lappend arg_list -buffer_gain $::env(DESIGN_REPAIR_BUFFER_GAIN)
+}
 # Repair Design
-repair_design -verbose \
-    -max_wire_length $::env(DESIGN_REPAIR_MAX_WIRE_LENGTH) \
-    -slew_margin $::env(DESIGN_REPAIR_MAX_SLEW_PCT) \
-    -cap_margin $::env(DESIGN_REPAIR_MAX_CAP_PCT)
+log_cmd repair_design {*}$arg_list
 
 if { $::env(DESIGN_REPAIR_TIE_FANOUT) } {
     # repair tie lo fanout
-    repair_tie_fanout -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIELO_CELL)
+    repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIELO_CELL)
     # repair tie hi fanout
-    repair_tie_fanout -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIEHI_CELL)
+    repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIEHI_CELL)
 }
 
 report_floating_nets -verbose

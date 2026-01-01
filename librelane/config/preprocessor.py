@@ -180,7 +180,7 @@ class Expr(object):
                     eval_stack.pop()
                     eval_stack.pop()
 
-                    result = Decimal(0.0)
+                    result = Decimal("0")
                     if token.value == "**":
                         result = number1**number2
                     elif token.value == "*":

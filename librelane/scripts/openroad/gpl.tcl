@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+source $::env(SCRIPTS_DIR)/openroad/common/resizer.tcl
+
 read_current_odb
+
+set_dont_touch_objects
 
 set ::insts [$::block getInsts]
 
@@ -26,18 +30,18 @@ foreach inst $::insts {
 }
 
 if { !$placement_needed } {
-	puts stderr "\[WARNING\] All instances are FIXED/FIRM."
-	puts stderr "\[WARNING\] No need to perform global placement."
-	puts stderr "\[WARNING\] Skipping…"
+	puts "\[INFO\] All instances are FIXED/FIRM."
+	puts "\[INFO\] No need to perform global placement."
+	puts "\[INFO\] Skipping…"
 	write_views
-	exit 0
+	exit_unless_gui
 }
 
 set arg_list [list]
 
 lappend arg_list -density [expr $::env(PL_TARGET_DENSITY_PCT) / 100.0]
 
-if { [info exists ::env(PL_TIME_DRIVEN)] && $::env(PL_TIME_DRIVEN) } {
+if { [info exists ::env(PL_TIMING_DRIVEN)] && $::env(PL_TIMING_DRIVEN) } {
 	source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 	lappend arg_list -timing_driven
 }
@@ -56,8 +60,7 @@ if { $::env(PL_SKIP_INITIAL_PLACEMENT) } {
 	lappend arg_list -skip_initial_place
 }
 
-
-if { [info exists ::env(__PL_SKIP_IO)] } {
+if { [info exists ::env(__PL_SKIP_IO)] && $::env(__PL_SKIP_IO) == "1" } {
 	lappend arg_list -skip_io
 }
 
@@ -74,10 +77,11 @@ set cell_pad_side [expr $::env(GPL_CELL_PADDING) / 2]
 lappend arg_list -pad_right $cell_pad_side
 lappend arg_list -pad_left $cell_pad_side
 lappend arg_list -init_wirelength_coef $::env(PL_WIRE_LENGTH_COEF)
+append_if_exists_argument arg_list PL_KEEP_RESIZE_BELOW_OVERFLOW -keep_resize_below_overflow
 
-puts "+ global_placement $arg_list"
-global_placement {*}$arg_list
+log_cmd global_placement {*}$arg_list
 
+unset_dont_touch_objects
 
 source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 estimate_parasitics -placement

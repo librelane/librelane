@@ -16,6 +16,10 @@
     - io_placer
     - test_sram_macro
     - manual_macro_placement_test
+    - name: partial_hierarchy
+      config_file: config.yaml
+    - name: regs_analog_ctrl_APB
+      config_file: config.yaml
     - name: non_const_async_reset
       config_file: config.yaml
     - name: aes_user_project_wrapper
@@ -49,6 +53,13 @@
       ipm: v1.0.0
     - name: dual_spm
       script: integrate.py
+    # Hold violations
+    - name: hold_violations_1
+      script: harden.py
+    - name: hold_violations_2
+      script: harden.py
+    - name: hold_violations_3
+      script: harden.py
 - scl: sky130A/sky130_fd_sc_hd
   name: extended_test_set
   designs:
@@ -80,9 +91,61 @@
     - name: latch
       test_name: latch_bad
       config_file: config_bad.json
+    # Hold violations
+    - name: hold_violations_1
+      script: harden.py
+    - name: hold_violations_2
+      script: harden.py
+    - name: hold_violations_3
+      script: harden.py
 - scl: gf180mcuD/gf180mcu_fd_sc_mcu7t5v0
   name: extended_test_set
   designs:
     - picorv32a
     - PPU
     - y_huff
+- scl: ihp-sg13g2/sg13g2_stdcell
+  name: fastest_test_set
+  designs:
+    - inverter
+    - wbqspiflash
+    - APU
+    - s44
+    - zipdiv
+    - blink
+    - usb
+    - usb_cdc_core
+    - cell_inverter
+    - spm
+    - name: non_const_async_reset
+      config_file: config.yaml
+    - name: xtea
+      config_file: config.tcl
+    - name: latch
+      test_name: latch_good
+      config_file: config_good.json
+    - name: latch
+      test_name: latch_bad
+      config_file: config_bad.json
+    - name: EF_PSRAM_CTRL_V2
+      ipm: v1.0.3
+    - name: EF_GPIO
+      ipm: v1.0.0
+    # Hold violations
+    - name: hold_violations_1
+      script: harden.py
+    - name: hold_violations_2
+      script: harden.py
+    - name: hold_violations_3
+      script: harden.py
+- scl: ihp-sg13g2/sg13g2_stdcell
+  name: extended_test_set
+  designs:
+    - BM64
+    - salsa20
+    - aes_core
+    - blabla
+    - picorv32a
+    - PPU
+    - y_huff
+    - aes

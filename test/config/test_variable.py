@@ -108,25 +108,33 @@ def test_is_optional():
     assert (
         is_optional(Union[None, int, dict]) is True
     ), "is_optional flattened union false negative"
+    assert is_optional(int | None) is True
+    assert is_optional(int | dict | None) is True
 
 
 def test_some_of():
     from librelane.config.variable import some_of
 
-    assert some_of(int) == int, "some_of changed the type of a non-option type"
+    assert some_of(int) is int, "some_of changed the type of a non-option type"
     assert (
         some_of(List[str]) == List[str]
     ), "some_of changed the type of a non-option type"
     assert (
-        some_of(Optional[int]) == int
+        some_of(Optional[int]) is int
     ), "some_of failed to extract type from option type"
     assert (
-        some_of(Optional[Union[Dict, List]]) == Union[Dict, List]
+        some_of(Optional[Union[Dict, List]]) is Union[Dict, List]
     ), "some of failed to properly handle optional union"
 
     assert (
-        some_of(Union[Dict, List, None]) == Union[Dict, List]
+        some_of(Union[Dict, List, None]) is Union[Dict, List]
     ), "some of failed to properly handle flattened optional union"
+    assert (
+        some_of(int | None) is int
+    ), "some of failed to properly handle PEP 604 optional union"
+    assert (
+        some_of(dict | list | None) == dict | list
+    ), "some of failed to properly handle PEP 604 flattened optional union"
 
 
 def test_variable_construction():
@@ -140,7 +148,7 @@ def test_variable_construction():
     )
 
     assert variable.optional, ".optional property incorrectly set"
-    assert variable.some == int, ".some property incorrectly set"
+    assert variable.some is int, ".some property incorrectly set"
 
     variable_b = Variable(
         "EXAMPLE",
@@ -152,6 +160,16 @@ def test_variable_construction():
         variable == variable_b
     ), "Variable with different description or deprecated_name didn't match"
 
+    variable_c = Variable(
+        "EXAMPLE",
+        int | None,
+        description="My Description",
+    )
+
+    assert (
+        variable == variable_c
+    ), "Variable with different description or deprecated_name didn't match"
+
     variable_union = Variable(
         "UNION_VAR",
         Union[int, Dict[str, str]],
@@ -160,6 +178,18 @@ def test_variable_construction():
     assert (
         variable_union.type == Union[int, Dict[str, str]]
     ), "Union magically switched types"
+
+    variable_union_new = Variable(
+        "UNION_VAR",
+        int | Dict[str, str],
+        description="x",
+    )
+    assert (
+        variable_union_new.type == int | Dict[str, str]
+    ), "PEP 604 union didn't match typing union"
+    assert (
+        variable_union.type == variable_union_new.type
+    ), "Variable with different union syntax didn't match"
 
 
 @pytest.fixture
@@ -262,6 +292,60 @@ def test_enum():
     return TestEnum
 
 
+def test_compile_validators():
+    from librelane.config import Variable
+    from librelane.common import GenericDict
+
+    def zero_to_one_validator(variable: Variable, input, _):
+        if input < 0 or input > 1:
+            raise ValueError(
+                f"Value {input} for {variable.name} is invalid: must be between zero and one"
+            )
+        return input
+
+    def zero_to_one_updater(variable: Variable, input, warning_list_ref):
+        if input < 0:
+            warning_list_ref.append(
+                f"Value for {variable.name} less than 0. Setting to 0."
+            )
+            return type(input)(0)
+        if input > 1:
+            warning_list_ref.append(
+                f"Value for {variable.name} higher than 1. Setting to 1."
+            )
+            return type(input)(1)
+        return input
+
+    checked = Variable(
+        "TEST_VARIABLE_VALIDATOR", Decimal, "x", validator=zero_to_one_validator
+    )
+
+    warning_list_ref = []
+    checked.compile(
+        GenericDict({"TEST_VARIABLE_VALIDATOR": Decimal("0.5")}), warning_list_ref
+    )
+
+    with pytest.raises(ValueError, match="(must be between zero and one)"):
+        checked.compile(
+            GenericDict({"TEST_VARIABLE_VALIDATOR": Decimal("1.1")}), warning_list_ref
+        )
+
+    updated = Variable(
+        "TEST_VARIABLE_UPDATER", Decimal, "x", validator=zero_to_one_updater
+    )
+
+    _, result = updated.compile(
+        GenericDict({"TEST_VARIABLE_UPDATER": Decimal("0.5")}), warning_list_ref
+    )
+    assert result == Decimal("0.5"), "updater modified valid value"
+
+    _, result = updated.compile(
+        GenericDict({"TEST_VARIABLE_UPDATER": Decimal("24601")}), warning_list_ref
+    )
+    assert result == Decimal("1"), "updater did not modify out of scope value"
+    assert len(warning_list_ref), "invalid updated value did not emit a warning"
+
+
 @pytest.fixture
 def variable_set(variable, test_enum):
     from librelane.config import Variable
@@ -309,6 +393,11 @@ def variable_set(variable, test_enum):
             description="x",
         ),
         Variable(
+            "UNION_VAR_2",
+            int | Dict[str, str],
+            description="x",
+        ),
+        Variable(
             "LITERAL_VAR",
             Literal["yes"],
             description="x",
@@ -350,6 +439,7 @@ def test_compile_invalid(variable_set: list):
             "OTHER_DICT_VAR": "bad tcl dictionary",
             "ANOTHER_DICT_VAR": ["1", "2", "3"],
             "UNION_VAR": "lol",
+            "UNION_VAR_2": "lol",
             "LITERAL_VAR": "no",
             "BOOL_VAR": "No",
             "ENUM_VAR": "NotAValue",
@@ -386,6 +476,7 @@ def test_compile_permissive(variable_set: list, test_enum: Type):
             "OTHER_DICT_VAR": "key1 value1 key2 value2",
             "ANOTHER_DICT_VAR": ["key1", "value1", "key2", "value2"],
             "UNION_VAR": "4",
+            "UNION_VAR_2": "4",
             "BOOL_VAR": "0",
             "ENUM_VAR": "AValue",
             "NUMBER_VAR": "90123",
@@ -412,6 +503,7 @@ def test_compile_permissive(variable_set: list, test_enum: Type):
         "OTHER_DICT_VAR": {"key1": "value1", "key2": "value2"},
         "ANOTHER_DICT_VAR": {"key1": "value1", "key2": "value2"},
         "UNION_VAR": 4,
+        "UNION_VAR_2": 4,
         "BOOL_VAR": False,
         "ENUM_VAR": test_enum["AValue"],
         "NUMBER_VAR": Decimal("90123"),

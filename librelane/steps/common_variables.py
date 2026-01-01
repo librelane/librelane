@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,210 +16,299 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from decimal import Decimal
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 from ..config import Variable
 
 io_layer_variables = [
     Variable(
-        "FP_IO_VEXTEND",
+        "IO_PIN_V_EXTENSION",
         Decimal,
         "Extends the vertical io pins outside of the die by the specified units.",
         default=0,
         units="µm",
+        deprecated_names=["FP_IO_VEXTEND"],
     ),
     Variable(
-        "FP_IO_HEXTEND",
+        "IO_PIN_H_EXTENSION",
         Decimal,
         "Extends the horizontal io pins outside of the die by the specified units.",
         default=0,
         units="µm",
+        deprecated_names=["FP_IO_HEXTEND"],
     ),
     Variable(
-        "FP_IO_VTHICKNESS_MULT",
+        "IO_PIN_V_THICKNESS_MULT",
         Decimal,
         "A multiplier for vertical pin thickness. Base thickness is the pins layer min width.",
         default=2,
+        deprecated_names=["FP_IO_VTHICKNESS_MULT"],
     ),
     Variable(
-        "FP_IO_HTHICKNESS_MULT",
+        "IO_PIN_H_THICKNESS_MULT",
         Decimal,
         "A multiplier for horizontal pin thickness. Base thickness is the pins layer min width.",
         default=2,
+        deprecated_names=["FP_IO_HTHICKNESS_MULT"],
+    ),
+    Variable(
+        "IO_PIN_V_LENGTH",
+        Optional[Decimal],
+        """
+        The length of the pins with a north or south orientation. If unspecified by a PDK, OpenROAD will use whichever is higher of the following two values:
+            * The pin width
+            * The minimum value satisfying the minimum area constraint given the pin width
+        """,
+        units="µm",
+        pdk=True,
+        deprecated_names=["FP_IO_VLENGTH"],
+    ),
+    Variable(
+        "IO_PIN_H_LENGTH",
+        Optional[Decimal],
+        """
+        The length of the pins with an east or west orientation. If unspecified by a PDK, OpenROAD will use whichever is higher of the following two values:
+            * The pin width
+            * The minimum value satisfying the minimum area constraint given the pin width
+        """,
+        units="µm",
+        pdk=True,
+        deprecated_names=["FP_IO_HLENGTH"],
     ),
 ]
 
 pdn_variables = [
     Variable(
-        "FP_PDN_SKIPTRIM",
+        "PDN_SKIPTRIM",
         bool,
         "Enables `-skip_trim` option during pdngen which skips the metal trim step, which attempts to remove metal stubs.",
         default=False,
+        deprecated_names=["FP_PDN_SKIPTRIM"],
     ),
     Variable(
-        "FP_PDN_CORE_RING",
+        "PDN_CORE_RING",
         bool,
         "Enables adding a core ring around the design. More details on the control variables in the PDK config documentation.",
         default=False,
+        deprecated_names=["FP_PDN_CORE_RING"],
     ),
     Variable(
-        "FP_PDN_ENABLE_RAILS",
+        "PDN_ENABLE_RAILS",
         bool,
         "Enables the creation of rails in the power grid.",
         default=True,
+        deprecated_names=["FP_PDN_ENABLE_RAILS"],
     ),
     Variable(
-        "FP_PDN_HORIZONTAL_HALO",
+        "PDN_HORIZONTAL_HALO",
         Decimal,
         "Sets the horizontal halo around the macros during power grid insertion.",
         default=10,
         units="µm",
+        deprecated_names=["FP_PDN_HORIZONTAL_HALO"],
     ),
     Variable(
-        "FP_PDN_VERTICAL_HALO",
+        "PDN_VERTICAL_HALO",
         Decimal,
         "Sets the vertical halo around the macros during power grid insertion.",
         default=10,
         units="µm",
+        deprecated_names=["FP_PDN_VERTICAL_HALO"],
     ),
     Variable(
-        "FP_PDN_MULTILAYER",
+        "PDN_MULTILAYER",
         bool,
         "Controls the layers used in the power grid. If set to false, only the lower layer will be used, which is useful when hardening a macro for integrating into a larger top-level design.",
         default=True,
-        deprecated_names=["DESIGN_IS_CORE"],
+        deprecated_names=["FP_PDN_MULTILAYER", "DESIGN_IS_CORE"],
     ),
     Variable(
-        "FP_PDN_RAIL_OFFSET",
+        "PDN_RAIL_OFFSET",
         Decimal,
         "The offset for the power distribution network rails for first metal layer.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_RAIL_OFFSET"],
     ),
     Variable(
-        "FP_PDN_VWIDTH",
+        "PDN_VWIDTH",
         Decimal,
         "The strap width for the vertical layer in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_VWIDTH"],
     ),
     Variable(
-        "FP_PDN_HWIDTH",
+        "PDN_HWIDTH",
         Decimal,
         "The strap width for the horizontal layer in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_HWIDTH"],
     ),
     Variable(
-        "FP_PDN_VSPACING",
+        "PDN_VSPACING",
         Decimal,
         "Intra-spacing (within a set) of vertical straps in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_VSPACING"],
     ),
     Variable(
-        "FP_PDN_HSPACING",
+        "PDN_HSPACING",
         Decimal,
         "Intra-spacing (within a set) of horizontal straps in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_HSPACING"],
     ),
     Variable(
-        "FP_PDN_VPITCH",
+        "PDN_VPITCH",
         Decimal,
         "Inter-distance (between sets) of vertical power straps in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_VPITCH"],
     ),
     Variable(
-        "FP_PDN_HPITCH",
+        "PDN_HPITCH",
         Decimal,
         "Inter-distance (between sets) of horizontal power straps in generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_HPITCH"],
     ),
     Variable(
-        "FP_PDN_VOFFSET",
+        "PDN_VOFFSET",
         Decimal,
         "Initial offset for sets of vertical power straps.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_VOFFSET"],
     ),
     Variable(
-        "FP_PDN_HOFFSET",
+        "PDN_HOFFSET",
         Decimal,
         "Initial offset for sets of horizontal power straps.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_HOFFSET"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_VWIDTH",
+        "PDN_CORE_RING_VWIDTH",
         Decimal,
         "The width for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_VWIDTH"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_HWIDTH",
+        "PDN_CORE_RING_HWIDTH",
         Decimal,
         "The width for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_HWIDTH"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_VSPACING",
+        "PDN_CORE_RING_VSPACING",
         Decimal,
         "The spacing for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_VSPACING"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_HSPACING",
+        "PDN_CORE_RING_HSPACING",
         Decimal,
         "The spacing for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_HSPACING"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_VOFFSET",
+        "PDN_CORE_RING_VOFFSET",
         Decimal,
         "The offset for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_VOFFSET"],
     ),
     Variable(
-        "FP_PDN_CORE_RING_HOFFSET",
+        "PDN_CORE_RING_HOFFSET",
         Decimal,
         "The offset for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_CORE_RING_HOFFSET"],
     ),
     Variable(
-        "FP_PDN_RAIL_LAYER",
-        str,
-        "Defines the metal layer used for PDN rails.",
-        deprecated_names=["FP_PDN_RAILS_LAYER"],
+        "PDN_CORE_RING_CONNECT_TO_PADS",
+        bool,
+        "If specified, the core side of the pad pins will be connected to the ring.",
+        default=False,
         pdk=True,
     ),
     Variable(
-        "FP_PDN_RAIL_WIDTH",
+        "PDN_CORE_RING_ALLOW_OUT_OF_DIE",
+        bool,
+        "If specified, the ring shapes are allowed to be outside the die boundary.",
+        default=True,
+        pdk=True,
+    ),
+    Variable(
+        "PDN_RAIL_LAYER",
+        str,
+        "Defines the metal layer used for PDN rails.",
+        deprecated_names=["FP_PDN_RAIL_LAYER", "FP_PDN_RAILS_LAYER"],
+        pdk=True,
+    ),
+    Variable(
+        "PDN_RAIL_WIDTH",
         Decimal,
         "Defines the width of PDN rails on the `FP_PDN_RAILS_LAYER` layer.",
         units="µm",
         pdk=True,
+        deprecated_names=["FP_PDN_RAIL_WIDTH"],
     ),
     Variable(
-        "FP_PDN_HORIZONTAL_LAYER",
+        "PDN_HORIZONTAL_LAYER",
         str,
         "Defines the horizontal PDN layer.",
-        deprecated_names=["FP_PDN_UPPER_LAYER"],
+        deprecated_names=["FP_PDN_HORIZONTAL_LAYER", "FP_PDN_UPPER_LAYER"],
         pdk=True,
     ),
     Variable(
-        "FP_PDN_VERTICAL_LAYER",
+        "PDN_VERTICAL_LAYER",
         str,
         "Defines the vertical PDN layer.",
-        deprecated_names=["FP_PDN_LOWER_LAYER"],
+        deprecated_names=["FP_PDN_VERTICAL_LAYER", "FP_PDN_LOWER_LAYER"],
+        pdk=True,
+    ),
+    Variable(
+        "PDN_CORE_HORIZONTAL_LAYER",
+        Optional[str],
+        "Defines the horizontal PDN layer for the core ring. Falls back to `PDN_HORIZONTAL_LAYER` if undefined.",
+        pdk=True,
+    ),
+    Variable(
+        "PDN_CORE_VERTICAL_LAYER",
+        Optional[str],
+        "Defines the vertical PDN layer for the core ring. Falls back to `PDN_VERTICAL_LAYER` if undefined.",
+        pdk=True,
+    ),
+    Variable(
+        "PDN_EXTEND_TO",
+        Literal["core_ring", "boundary"],
+        "Defines how far the stripes and rings extend.",
+        default="core_ring",
+        pdk=True,
+    ),
+    Variable(
+        "PDN_ENABLE_PINS",
+        bool,
+        "If specified, the power straps will be promoted to block pins.",
+        default=True,
         pdk=True,
     ),
 ]
@@ -261,21 +354,21 @@ dpl_variables = [
     ),
     Variable(
         "PL_MAX_DISPLACEMENT_X",
-        Decimal,
+        int,
         "Specifies how far an instance can be moved along the X-axis when finding a site where it can be placed during detailed placement.",
         default=500,
         units="µm",
     ),
     Variable(
         "PL_MAX_DISPLACEMENT_Y",
-        Decimal,
+        int,
         "Specifies how far an instance can be moved along the Y-axis when finding a site where it can be placed during detailed placement.",
         default=100,
         units="µm",
     ),
     Variable(
         "DPL_CELL_PADDING",
-        Decimal,
+        int,
         "Cell padding value (in sites) for detailed placement. The number will be integer divided by 2 and placed on both sides. Should be <= global placement.",
         units="sites",
         pdk=True,
@@ -296,11 +389,11 @@ grt_variables = routing_layer_variables + [
         default=False,
     ),
     Variable(
-        "GRT_ANTENNA_ITERS",
+        "GRT_ANTENNA_REPAIR_ITERS",
         int,
         "The maximum number of iterations for global antenna repairs.",
         default=3,
-        deprecated_names=["GRT_ANT_ITERS"],
+        deprecated_names=["GRT_ANT_ITERS", "GRT_ANTENNA_ITERS"],
     ),
     Variable(
         "GRT_OVERFLOW_ITERS",
@@ -309,12 +402,12 @@ grt_variables = routing_layer_variables + [
         default=50,
     ),
     Variable(
-        "GRT_ANTENNA_MARGIN",
+        "GRT_ANTENNA_REPAIR_MARGIN",
         int,
         "The margin to over fix antenna violations.",
         default=10,
         units="%",
-        deprecated_names=["GRT_ANT_MARGIN"],
+        deprecated_names=["GRT_ANT_MARGIN", "GRT_ANTENNA_MARGIN"],
     ),
 ]
 
@@ -335,6 +428,6 @@ rsz_variables = dpl_variables + [
     Variable(
         "RSZ_CORNERS",
         Optional[List[str]],
-        "A list of fully-qualified IPVT corners to use during resizer optimizations. If unspecified, the value for `STA_CORNERS` from the PDK will be used.",
+        "Resizer step-specific override for PNR_CORNERS.",
     ),
 ]

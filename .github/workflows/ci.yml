@@ -39,13 +39,15 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
-      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
+      sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
+      gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
       - uses: actions/checkout@v4
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
+          poetry export --all-groups --without-hashes --format=requirements.txt --output=requirements_tmp.txt
           pip3 install -r requirements_tmp.txt
       - name: Determine If Running Extended Test Set
         run: |
@@ -54,35 +56,44 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         run: |
-          python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 $TEST_SETS
-          echo "design_matrix=$(python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 $TEST_SETS)" >> $GITHUB_OUTPUT
+          python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 --scl ihp-sg13g2/sg13g2_stdcell $TEST_SETS
+          echo "design_matrix=$(python3 ./.github/test_sets/get_test_matrix.py --scl sky130A/sky130_fd_sc_hd --scl gf180mcuD/gf180mcu_fd_sc_mcu7t5v0 --scl ihp-sg13g2/sg13g2_stdcell $TEST_SETS)" >> $GITHUB_OUTPUT
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./librelane/open_pdks_rev)" >> $GITHUB_OUTPUT
+          echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
+          echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
+          echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
           path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-sky130-pdk-${{ steps.set-rev.outputs.sky130_hash }}
           enableCrossOsArchive: true
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v4
         with:
           path: ./.ciel-gf180mcu
-          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.gf180mcu_hash }}
           enableCrossOsArchive: true
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
-      - name: Download IPM
+          ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      - name: Cache ihp-sg13g2 PDK
+        uses: actions/cache@v4
+        with:
+          path: ./.ciel-ihp-sg13g2
+          key: cache-ihp-sg13g2-pdk-${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
+          enableCrossOsArchive: true
+      - name: Enable ihp-sg13g2 PDK
         run: |
-          python3 -m pip install git+https://github.com/efabless/IPM
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          ciel enable --pdk ihp-sg13g2 --pdk-root ./.ciel-ihp-sg13g2 ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
       - name: Checkout submodules
         uses: actions/checkout@v4
         with:
@@ -96,7 +107,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Install Linters
         run: make venv
       - name: Lint
@@ -107,7 +118,7 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"] # , "3.14"] # lxml, klayout still not built
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
@@ -196,7 +207,7 @@ jobs:
             {
               name: "macOS 15 (Intel)",
               family: "darwin",
-              runner: "macos-15-intel",
+              runner: "macos-15",
               arch: "x86_64",
               nix: "x86_64-darwin",
             },
@@ -241,7 +252,7 @@ jobs:
       - name: Cache to S3
         uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
         with:
-          flake_outputs: .#packages.${{ matrix.os. nix}}.librelane
+          flake_outputs: .#packages.${{ matrix.os.nix }}.librelane
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
           nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
           s3_bucket_name: ${{ vars.NIX_CACHE }}
@@ -395,7 +406,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - if: ${{ matrix.engine == 'docker' }}
         name: Set up Docker (If applicable)
         run: |
@@ -468,30 +479,32 @@ jobs:
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-librelane || true
+      - name: Get PDK hash
+        run: |
+          echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v4
         with:
           path: ./.ciel-${{ matrix.design.pdk_family }}
-          key: cache-${{ matrix.design.pdk_family }}-pdk-${{ needs.prepare-test-matrices.outputs.opdks_rev }}
+          key: cache-${{ matrix.design.pdk_family }}-pdk-${{ env.PDK_HASH }}
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
-          pip3 install poetry poetry-plugin-export
-          poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
-          pip3 install -r requirements_tmp.txt
-          ciel enable --pdk ${{ matrix.design.pdk_family }} \
+          pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
+            -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
-            ${{ needs.prepare-test-matrices.outputs.opdks_rev }}
-
+            ${{ env.PDK_HASH }}
       - name: Download IPM designs
         id: download-ipm-design
         if: matrix.design.ipm_version != 'None'
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          python3 -m pip install git+https://github.com/efabless/IPM
-          ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
+          pipx run ipmgr \
+            -- install --ip-root $(realpath $IP_ROOT) \
+            --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} \
+            ${{ matrix.design.name }}
 
       - name: Run Test
         id: test_run
@@ -616,6 +629,14 @@ jobs:
       id-token: write
     name: Publish (If Applicable)
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v4
         with:
@@ -683,7 +704,7 @@ jobs:
         if: ${{ env.PUBLISH == '1' }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Build Distribution
         if: ${{ env.PUBLISH == '1' }}
         run: |

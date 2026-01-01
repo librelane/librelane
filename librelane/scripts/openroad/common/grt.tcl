@@ -26,7 +26,7 @@ lappend arg_list -verbose
 if { $::env(GRT_ALLOW_CONGESTION) == 1 } {
     lappend arg_list -allow_congestion
 }
-puts $arg_list
-global_route {*}$arg_list
+
+log_cmd global_route {*}$arg_list
 
 write_guide $::env(STEP_DIR)/after_grt.guide

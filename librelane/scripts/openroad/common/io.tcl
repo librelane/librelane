@@ -1,4 +1,8 @@
-# Copyright 2022-2024 Efabless Corporation
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
+# Copyright 2022-2025 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -99,23 +103,35 @@ proc read_pdn_cfg {} {
 
     # Compatibility Layer for Deprecated Variables That May Still Be Used By
     # User Files
-    set ::env(DESIGN_IS_CORE) $::env(FP_PDN_MULTILAYER)
-    set ::env(FP_PDN_ENABLE_MACROS_GRID) $::env(PDN_CONNECT_MACROS_TO_GRID)
-    set ::env(FP_PDN_RAILS_LAYER) $::env(FP_PDN_RAIL_LAYER)
-    set ::env(FP_PDN_UPPER_LAYER) $::env(FP_PDN_HORIZONTAL_LAYER)
-    set ::env(FP_PDN_LOWER_LAYER) $::env(FP_PDN_VERTICAL_LAYER)
+    set unset_list {
+        DESIGN_IS_CORE
+        PDN_ENABLE_MACROS_GRID
+        PDN_RAILS_LAYER
+        PDN_UPPER_LAYER
+        PDN_LOWER_LAYER
+    }
+    set ::env(DESIGN_IS_CORE) $::env(PDN_MULTILAYER)
+    set ::env(PDN_ENABLE_MACROS_GRID) $::env(PDN_CONNECT_MACROS_TO_GRID)
+    set ::env(PDN_RAILS_LAYER) $::env(PDN_RAIL_LAYER)
+    set ::env(PDN_UPPER_LAYER) $::env(PDN_HORIZONTAL_LAYER)
+    set ::env(PDN_LOWER_LAYER) $::env(PDN_VERTICAL_LAYER)
+    foreach key [array names ::env] {
+        if { [string match PDN_* $key] } {
+            set fp_name FP_$key
+            lappend unset_list $fp_name
+            set ::env($fp_name) $::env($key)
+        }
+    }
 
-    if {[catch {source $::env(FP_PDN_CFG)} errmsg]} {
+    if {[catch {source $::env(PDN_CFG)} errmsg]} {
         puts stderr $errmsg
         exit 1
     }
 
     # Restore Environment
-    unset ::env(DESIGN_IS_CORE)
-    unset ::env(FP_PDN_ENABLE_MACROS_GRID)
-    unset ::env(FP_PDN_RAILS_LAYER)
-    unset ::env(FP_PDN_UPPER_LAYER)
-    unset ::env(FP_PDN_LOWER_LAYER)
+    foreach unsettable $unset_list {
+        unset ::env($unsettable)
+    }
 }
 
 
@@ -125,14 +141,14 @@ proc read_current_netlist {args} {
         flags {-powered}
 
     if { [info exists flags(-powered)] } {
-        puts "Reading top-level powered netlist at '$::env(CURRENT_POWERED_NETLIST)'…"
-        if {[catch {read_verilog $::env(CURRENT_POWERED_NETLIST)} errmsg]} {
+        puts "Reading top-level powered netlist at '$::env(CURRENT_PNL)'…"
+        if {[catch {read_verilog $::env(CURRENT_PNL)} errmsg]} {
             puts stderr $errmsg
             exit 1
         }
     } else {
-        puts "Reading top-level netlist at '$::env(CURRENT_NETLIST)'…"
-        if {[catch {read_verilog $::env(CURRENT_NETLIST)} errmsg]} {
+        puts "Reading top-level netlist at '$::env(CURRENT_NL)'…"
+        if {[catch {read_verilog $::env(CURRENT_NL)} errmsg]} {
             puts stderr $errmsg
             exit 1
         }
@@ -153,7 +169,7 @@ proc read_timing_info {args} {
         return
     }
     set corner_name $::env(_CURRENT_CORNER_NAME)
-    define_corners $corner_name
+    log_cm define_corners $corner_name
 
     puts "Reading timing models for corner $corner_name…"
 
@@ -174,9 +190,9 @@ proc read_timing_info {args} {
     foreach nl $::env(_CURRENT_CORNER_NETLISTS) {
         puts "Reading macro netlist at '$nl'…"
         if { [catch {read_verilog $nl} err] } {
-            puts "Error while reading macro netlist '$nl':"
-            puts $err
-            puts "Make sure that this a gate-level netlist and not an RTL file."
+            puts stderr "Error while reading macro netlist '$nl':"
+            puts stderr $err
+            puts stderr "Make sure that this a gate-level netlist and not an RTL file."
             exit 1
         }
     }
@@ -185,9 +201,9 @@ proc read_timing_info {args} {
             if { [string_in_file $verilog_file $blackbox_wildcard] } {
                 puts "Found '$blackbox_wildcard' in '$verilog_file', skipping…"
             } elseif { [catch {puts "Reading Verilog model at '$verilog_file'…"; read_verilog $verilog_file} err] } {
-                puts "Error while reading $verilog_file:"
-                puts $err
-                puts "Make sure that this a gate-level netlist and not an RTL file, otherwise, you can add the following comment '$blackbox_wildcard' in the file to skip it and blackbox the modules inside if needed."
+                puts stderr "Error while reading $verilog_file:"
+                puts stderr $err
+                puts stderr "Make sure that this a gate-level netlist and not an RTL file, otherwise, you can add the following comment '$blackbox_wildcard' in the file to skip it and blackbox the modules inside if needed."
                 exit 1
             }
         }
@@ -240,31 +256,35 @@ proc read_spefs {} {
 }
 
 proc read_pnr_libs {args} {
-    # _PNR_LIBS contains all libs and extra libs but with known-bad cells
-    # excluded, so OpenROAD can use cells by functionality and come up
-    # with a valid design.
-
-    # If there are ANY libs already read- just leave
-    if { [get_libs -quiet *] != {} } {
-        return
+    set i "0"
+    set tc_key "_LIB_CORNER_$i"
+    set corner_names [list]
+    while { [info exists ::env($tc_key)] } {
+        set corner_name [lindex $::env($tc_key) 0]
+        set corner_libs [lreplace $::env($tc_key) 0 0]
+        set corner($corner_name) $corner_libs
+        incr i
+        set tc_key "_LIB_CORNER_$i"
+        lappend corner_names $corner_name
     }
 
-    define_corners $::env(DEFAULT_CORNER)
+    define_corners {*}[array name corner]
 
-    foreach lib $::env(_PNR_LIBS) {
-        puts "Reading library file at '$lib'…"
-        read_liberty $lib
-    }
-    if { [info exists ::env(_MACRO_LIBS) ] } {
-        foreach macro_lib $::env(_MACRO_LIBS) {
-            puts "Reading macro library file at '$macro_lib'…"
-            read_liberty $macro_lib
+    foreach corner_name [array name corner] {
+        puts "Reading timing models for corner $corner_name…"
+
+        set corner_models $corner($corner_name)
+        foreach model $corner_models {
+            puts "Reading timing library for the '$corner_name' corner at '$model'…"
+            read_liberty -corner $corner_name $model
         }
-    }
-    if { [info exists ::env(EXTRA_LIBS) ] } {
-        foreach extra_lib $::env(EXTRA_LIBS) {
-            puts "Reading extra library file at '$extra_lib'…"
-            read_liberty $extra_lib
+
+        if { [info exists ::env(EXTRA_LIBS) ] } {
+            puts "Reading explicitly-specified extra libs for $corner_name…"
+            foreach extra_lib $::env(EXTRA_LIBS) {
+                puts "Reading extra timing library for the '$corner_name' corner at '$extra_lib'…"
+                read_liberty -corner $corner_name $extra_lib
+            }
         }
     }
 }
@@ -302,6 +322,7 @@ proc read_current_odb {args} {
         keys {}\
         flags {}
 
+    read_pnr_libs
     puts "Reading OpenROAD database at '$::env(CURRENT_ODB)'…"
     if { [ catch {read_db $::env(CURRENT_ODB)} errmsg ]} {
         puts stderr $errmsg
@@ -311,7 +332,6 @@ proc read_current_odb {args} {
     set_global_vars
 
     # Read supporting views (if applicable)
-    read_pnr_libs
     read_current_sdc
     set_dont_use_cells
 }
@@ -402,32 +422,39 @@ proc write_views {args} {
         write_db $::env(SAVE_ODB)
     }
 
-    if { [info exists ::env(SAVE_NETLIST)] } {
-        puts "Writing netlist to '$::env(SAVE_NETLIST)'…"
-        write_verilog $::env(SAVE_NETLIST)
+    if { [info exists ::env(SAVE_NL)] } {
+        puts "Writing netlist to '$::env(SAVE_NL)'…"
+        write_verilog $::env(SAVE_NL)
     }
 
-    if { [info exists ::env(SAVE_POWERED_NETLIST)] } {
-        puts "Writing powered netlist to '$::env(SAVE_POWERED_NETLIST)'…"
-        write_verilog -include_pwr_gnd $::env(SAVE_POWERED_NETLIST)
+    if { [info exists ::env(SAVE_LOGICAL_NL)] } {
+        puts "Writing logic-only netlist to '$::env(SAVE_LOGICAL_NL)'…"
+        write_verilog\
+            -remove_cells "[get_physical_cells]"\
+            $::env(SAVE_LOGICAL_NL)
     }
 
-    if { [info exists ::env(SAVE_POWERED_NETLIST_SDF_FRIENDLY)] } {
+    if { [info exists ::env(SAVE_PNL)] } {
+        puts "Writing powered netlist to '$::env(SAVE_PNL)'…"
+        write_verilog -include_pwr_gnd $::env(SAVE_PNL)
+    }
+
+    if { [info exists ::env(SAVE_SDF_PNL)] } {
         set exclude_cells "[get_timing_excluded_cells]"
-        puts "Writing nofill powered netlist to '$::env(SAVE_POWERED_NETLIST_SDF_FRIENDLY)'…"
+        puts "Writing nofill powered netlist to '$::env(SAVE_SDF_PNL)'…"
         puts "Excluding $exclude_cells"
         write_verilog -include_pwr_gnd \
-            -remove_cells "$exclude_cells"\
-            $::env(SAVE_POWERED_NETLIST_SDF_FRIENDLY)
+            -remove_cells "[get_timing_excluded_cells]"\
+            $::env(SAVE_SDF_PNL)
     }
 
-    if { [info exists ::env(SAVE_POWERED_NETLIST_NO_PHYSICAL_CELLS)] } {
+    if { [info exists ::env(SAVE_LOGICAL_PNL)] } {
         set exclude_cells "[get_physical_cells]"
-        puts "Writing nofilldiode powered netlist to '$::env(SAVE_POWERED_NETLIST_NO_PHYSICAL_CELLS)'…"
+        puts "Writing nofilldiode powered netlist to '$::env(SAVE_LOGICAL_PNL)'…"
         puts "Excluding $exclude_cells"
         write_verilog -include_pwr_gnd \
-            -remove_cells "$exclude_cells"\
-            $::env(SAVE_POWERED_NETLIST_NO_PHYSICAL_CELLS)
+            -remove_cells "[get_physical_cells]"\
+            $::env(SAVE_LOGICAL_PNL)
     }
 
     if { [info exists ::env(SAVE_OPENROAD_LEF)] } {
@@ -537,4 +564,126 @@ if { [namespace exists utl] } {
     proc write_metric_str {metric value} {
         puts "%OL_METRIC $metric $value"
     }
+}
+
+proc exit_unless_gui {{status 0}} {
+    if { ![info exists ::env(_OPENROAD_GUI)] || !$::env(_OPENROAD_GUI) } {
+        exit $status
+    }
+}
+
+proc find_unfixed_macros {} {
+    set macros [list]
+
+    foreach inst [$::block getInsts] {
+        set inst_master [$inst getMaster]
+
+        # BLOCK means MACRO cells
+        if { ![string match [$inst_master getType] "BLOCK"] } {
+            continue
+        }
+
+        if { [$inst isFixed] } {
+            continue
+        }
+
+        lappend macros $inst
+    }
+    return $macros
+}
+
+proc get_layers {args} {
+    sta::parse_key_args "get_layers" args \
+        keys {-types -map}\
+        flags {-constrained}
+
+    if { ![info exists keys(-types)] } {
+        puts stderr "\[ERROR\] Invalid usage of get_layers: -types is required."
+        return -code error
+    }
+
+    set layers [$::tech getLayers]
+    set result [list]
+    set adding [expr ![info exists flags(-constrained)]]
+    foreach layer $layers {
+        set name [$layer getName]
+        if {"$::env(RT_MIN_LAYER)" == "$name"} {
+            set adding 1
+        }
+        if { [lsearch $keys(-types) [$layer getType]] != -1 && $adding} {
+            lappend result $layer
+        }
+
+        if {"$::env(RT_MAX_LAYER)" == "$name"} {
+            set adding [info exists flags(-constrained)]
+        }
+
+    }
+    if { [info exists keys(-map)] } {
+        set result [lmap layer $result "\$layer $keys(-map)"]
+    }
+    return $result
+}
+
+proc append_if_exists_argument {list_arg glob_variable_name option} {
+    upvar $list_arg local_array
+    if [info exists ::env($glob_variable_name) ] {
+        lappend local_array $option $::env($glob_variable_name)
+    }
+}
+
+proc append_if_flag {list_arg glob_variable_name flag} {
+    upvar $list_arg local_array
+    if { [info exists ::env($glob_variable_name)] && $::env($glob_variable_name) } {
+        lappend local_array $flag
+    }
+}
+proc append_if_not_flag {list_arg glob_variable_name flag} {
+    upvar $list_arg local_array
+    if { [info exists ::env($glob_variable_name)] && !$::env($glob_variable_name) } {
+        lappend local_array $flag
+    }
+}
+
+proc append_if_equals {list_arg glob_variable_name value flag} {
+    upvar $list_arg local_array
+    if { [info exists ::env($glob_variable_name)] && $::env($glob_variable_name) == $value } {
+        lappend local_array $flag
+    }
+}
+
+# Code below adapted from OpenROAD Flow Scripts under the following license:
+#
+# BSD 3-Clause License
+#
+# Copyright (c) 2018-2023, The Regents of the University of California
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+proc log_cmd {cmd args} {
+    puts "+ $cmd [join $args " "]"
+    return [$cmd {*}$args]
 }

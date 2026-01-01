@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set f [open $::env(STEP_DIR)/cif_scale.txt "w"]
-puts $f "[magic::i2u 1]"
+puts $f [expr {((round([magic::cif scale output] * 10000)) / 10000.0) * 1}]
 close $f
 
 if { $::env(MAGIC_EXT_USE_GDS) } {
@@ -79,9 +79,11 @@ extract no capacitance
 extract no coupling
 extract no resistance
 extract no adjust
-if { ! $::env(MAGIC_NO_EXT_UNIQUE) } {
-    extract unique
+
+if { $::env(MAGIC_EXT_UNIQUE) != "none" } {
+    extract unique $::env(MAGIC_EXT_UNIQUE)
 }
+
 # extract warn all
 extract
 

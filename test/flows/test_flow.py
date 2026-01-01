@@ -70,7 +70,9 @@ def MockStepTuple(variable: Variable):
             json.dump(
                 {
                     "probably_a_valid_header": False,
-                    "previous_invalid_header": str(state_in[DesignFormat.JSON_HEADER]),
+                    "previous_invalid_header": str(
+                        state_in.get(DesignFormat.JSON_HEADER)
+                    ),
                 },
                 open(out_file, "w", encoding="utf8"),
             )

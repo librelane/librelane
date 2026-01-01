@@ -12,6 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+crashbackups disable
+
+# Read in maglef views in order to blackbox cells
+if { [info exists ::env(MAGIC_DRC_MAGLEFS)] } {
+    foreach {maglef} $::env(MAGIC_DRC_MAGLEFS) {
+        puts "Loading maglef view: $maglef"
+        load $maglef
+    }
+}
+
+# Enable gds noduplicates to ignore cells
+# that have been previously loaded as maglef
+gds noduplicates true
+gds readonly true
+
+# Flatten cells
+if { [info exists ::env(MAGIC_GDS_FLATGLOB)] } {
+    foreach {gds_flatglob} $::env(MAGIC_GDS_FLATGLOB) {
+        gds flatglob $gds_flatglob
+    }
+}
+
 if { $::env(MAGIC_DRC_USE_GDS) } {
     gds read $::env(CURRENT_GDS)
 } else {

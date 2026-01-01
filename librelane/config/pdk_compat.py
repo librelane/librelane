@@ -1,4 +1,4 @@
-# Copyright 2023 Efabless Corporation
+# Copyright 2023-2025 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 import os
 import re
 from glob import glob
-from typing import Any, List, Mapping, Dict
+from typing import Any, Dict, List, Mapping
 
 
 def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
@@ -214,6 +214,83 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
                 "max_ss_100C_1v60",
                 "max_ff_n40C_1v95",
             ]
+
+        # Code below adapted from OpenROAD Flow Scripts under the following license:
+        #
+        # BSD 3-Clause License
+        #
+        # Copyright (c) 2018-2023, The Regents of the University of California
+        # All rights reserved.
+        #
+        # Redistribution and use in source and binary forms, with or without
+        # modification, are permitted provided that the following conditions are met:
+
+        # * Redistributions of source code must retain the above copyright notice, this
+        #   list of conditions and the following disclaimer.
+        #
+        # * Redistributions in binary form must reproduce the above copyright notice,
+        #   this list of conditions and the following disclaimer in the documentation
+        #   and/or other materials provided with the distribution.
+        #
+        # * Neither the name of the copyright holder nor the names of its
+        #   contributors may be used to endorse or promote products derived from
+        #   this software without specific prior written permission.
+        #
+        # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+        # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+        # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+        # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+        # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+        # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+        # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+        # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+        # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+        #            new["LAYERS_RC"] = {
+        #                "*tt*": {
+        #                    "li1": {"res": 7.176e-02, "cap": 1.499e-04},
+        #                    "met1": {"res": 8.929e-04, "cap": 1.72375e-04},
+        #                    "met2": {"res": 8.929e-04, "cap": 1.36233e-04},
+        #                    "met3": {"res": 1.567e-04, "cap": 2.14962e-04},
+        #                    "met4": {"res": 1.567e-04, "cap": 1.54087e-04},
+        #                    "met5": {"res": 1.781e-05, "cap": 1.54087e-04},
+        #                },
+        #                "*ff*": {
+        #                    "li1": {"res": 0.050232, "cap": 0.00010493},
+        #                    "met1": {"res": 0.0006250299999999999, "cap": 0.0001206625},
+        #                    "met2": {"res": 0.0006250299999999999, "cap": 9.53631e-05},
+        #                    "met3": {
+        #                        "res": 0.00010968999999999999,
+        #                        "cap": 0.00015047339999999998,
+        #                    },
+        #                    "met4": {
+        #                        "res": 0.00010968999999999999,
+        #                        "cap": 0.00010786089999999998,
+        #                    },
+        #                    "met5": {"res": 1.2467e-05, "cap": 0.00010786089999999998},
+        #                },
+        #                "*ss*": {
+        #                    "li1": {"res": 0.09328800000000001, "cap": 0.00019487},
+        #                    "met1": {"res": 0.00116077, "cap": 0.00022408750000000002},
+        #                    "met2": {"res": 0.00116077, "cap": 0.0001771029},
+        #                    "met3": {"res": 0.00020370999999999999, "cap": 0.0002794506},
+        #                    "met4": {
+        #                        "res": 0.00020370999999999999,
+        #                        "cap": 0.00020031309999999998,
+        #                    },
+        #                    "met5": {"res": 2.3153e-05, "cap": 0.00020031309999999998},
+        #                },
+        #            }
+        #            new["VIAS_RC"] = {
+        #                "*": {
+        #                    "mcon": {"res": 9.249146e-3},
+        #                    "via": {"res": 4.5e-3},
+        #                    "via2": {"res": 3.368786e-3},
+        #                    "via3": {"res": 0.376635e-3},
+        #                    "via4": {"res": 0.00580e-3},
+        #                }
+        #            }
         elif new["PDK"].startswith("gf180mcu"):
             new["STA_CORNERS"] = [
                 "nom_tt_025C_5v00",

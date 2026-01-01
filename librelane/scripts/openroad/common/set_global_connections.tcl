@@ -45,7 +45,7 @@ proc set_global_connections {} {
 
             if { $power_pin == "" || $ground_pin == "" } {
                 puts "PDN_MACRO_CONNECTIONS missing power and ground pin names"
-                exit -1
+                exit_unless_gui 1
             }
 
             set matched 0
@@ -56,8 +56,8 @@ proc set_global_connections {} {
                 }
             }
             if { $matched != 1 } {
-                puts "\[ERROR\] No match found for regular expression '$instance_name' defined in PDN_MACRO_CONNECTIONS."
-                exit 1
+                puts stderr "\[ERROR\] No match found for regular expression '$instance_name' defined in PDN_MACRO_CONNECTIONS."
+                exit_unless_gui 1
             }
 
             add_global_connection \

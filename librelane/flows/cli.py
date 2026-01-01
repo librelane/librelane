@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import sys
 from functools import partial, wraps
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Union
@@ -21,12 +26,15 @@ from click import (
     Parameter,
     echo,
 )
+from click.formatting import join_options
 from cloup import (
     option,
     argument,
     option_group,
     Choice,
-    Path,
+    Argument,
+    Option as CloupOption,
+    Path as CloupPath,
 )
 from cloup.constraints import (
     mutually_exclusive,
@@ -34,9 +42,73 @@ from cloup.constraints import (
 from cloup.typing import Decorator
 
 from .flow import Flow
-from ..common import set_tpe, cli, get_opdks_rev, _get_process_limit
-from ..logging import set_log_level, verbose, info, err, options, LogLevels
+from ..common import set_tpe, cli, get_pdk_hash, _get_process_limit
+from ..logging import set_log_level, verbose, err, options, LogLevels
 from ..state import State, InvalidState
+
+
+class Option(CloupOption):
+    """
+    A slight modification of cloup.Option that consumes the environment
+    variable(s) in envvar upon use.
+    """
+
+    def resolve_envvar_value(self, ctx: Context) -> Optional[str]:
+        if self.envvar is None:
+            return None
+        evs = self.envvar
+        if isinstance(evs, str):
+            evs = [evs]
+        for envvar in self.envvar:
+            rv = os.environ.pop(envvar, None)
+            if rv:
+                return rv
+        return None
+
+
+class Path(CloupPath):
+    """
+    A modification of cloup.Path that rejects paths starting with a tilde (~)
+    as too ambiguous. This is because of user confusion.
+    """
+
+    def convert(
+        self,
+        value: Union[str, os.PathLike],
+        param: Optional[Parameter],
+        ctx: Optional[Context],
+    ):
+        value = str(value)
+        assert param is not None
+        assert ctx is not None
+
+        is_cmd = False
+        if sys.platform == "win32":
+            import psutil
+
+            is_cmd = psutil.Process(os.getppid()).name().lower().endswith("cmd.exe")
+        if not is_cmd and value.startswith("~"):
+            usage, _ = join_options(param.opts)
+            if isinstance(param, Argument):
+                usage = ""
+            buffer = f"'{value}' starts with a tilde, which is ambiguous.\n"
+            buffer += "  * If you meant your home directory, make sure your POSIX shell is able to expand the tilde:\n"
+            buffer += f"    * GOOD: {ctx.command_path} {usage} {value}   …\n"
+            if usage != "":
+                buffer += f"    * BAD:  {ctx.command_path} {usage}={value}   …\n"
+            buffer += f'    * BAD:  {ctx.command_path} {usage} "{value}" …\n'
+            env_vars = []
+            if param.envvar is not None:
+                if isinstance(param.envvar, str):
+                    env_vars = [param.envvar]
+                else:
+                    env_vars = list(param.envvar)
+            for var in env_vars:
+                buffer += f"    * GOOD: {var}={value}   {ctx.command_path} …\n"
+                buffer += f'    * BAD:  {var}="{value}" {ctx.command_path} …\n'
+            buffer += '  * If you want a relative file or directory that starts with a literal "~", use an absolute path.\n'
+            self.fail(buffer, param, ctx)
+        return super().convert(value, param, ctx)
 
 
 def set_log_level_cb(
@@ -184,7 +256,7 @@ def cloup_flow_opts(
         Ciel is used by default for this CLI or not.
     :returns: The wrapper
     """
-    o = partial(option, show_default=True)
+    o = partial(option, cls=CloupOption, show_default=True)
 
     def decorate(f):
         if config_options:
@@ -358,21 +430,23 @@ def cloup_flow_opts(
                         dir_okay=True,
                     ),
                     is_eager=True,
-                    default=os.environ.pop("PDK_ROOT", None),
+                    envvar=["PDK_ROOT"],
                     help="Override Ciel PDK root folder. Required if Ciel is not installed, but a default value can also be set via the environment variable PDK_ROOT.",
                 ),
                 o(
                     "-p",
                     "--pdk",
                     type=str,
-                    default=os.environ.pop("PDK", "sky130A"),
+                    envvar=["PDK"],
+                    default="sky130A",
                     help="The process design kit to use.",
                 ),
                 o(
                     "-s",
                     "--scl",
                     type=str,
-                    default=os.environ.pop("STD_CELL_LIBRARY", None),
+                    envvar=["STD_CELL_LIBRARY"],
+                    # no default, default is obtained dynamically from PDK
                     help="The standard cell library to use. If None, the PDK's default standard cell library is used.",
                 ),
             )(f)
@@ -424,7 +498,7 @@ def cloup_flow_opts(
                     import ciel
                     from ciel.source import StaticWebDataSource
 
-                    opdks_rev = volare_pdk_override or get_opdks_rev()
+                    opdks_rev = volare_pdk_override or get_pdk_hash(pdk)
                     ciel_home = ciel.get_ciel_home(pdk_root)
 
                     include_libraries = ["default"]
@@ -444,15 +518,6 @@ def cloup_flow_opts(
 
                     if pdk_family is None:
                         err(f"Could not resolve the PDK '{pdk}'.")
-                        exit(1)
-
-                    if pdk_family == "ihp-sg13g2":
-                        err(
-                            "The IHP Open PDK is only supported in the development version of LibreLane, specifically 3.0.0.dev28 or higher."
-                        )
-                        info(
-                            "If you're using Nix, switch to the 'dev' branch. If you're using the Python package, run \"python3 -m pip install 'librelane>=3.0.0.dev28'\"."
-                        )
                         exit(1)
 
                     try:
