@@ -385,6 +385,18 @@ foreach clock [all_clocks] {
     puts "report_clock_min_period"
     puts "============================================================================"
     report_clock_min_period -clocks [get_property $clock name]
+
+    set include_port_paths [info exists flags(-include_port_paths)]
+    set min_period [sta::find_clk_min_period $clock $include_port_paths ]
+    if { $min_period == 0.0 } {
+      set min_period 0
+      set fmax "INF"
+    } else {
+      # max frequency in MHz
+      set fmax [expr 1.0e-6 / $min_period]
+    }
+    
+    write_metric_num "fmax__clk__corner:[$corner name]" $fmax
 }
 
 puts "%OL_END_REPORT"
