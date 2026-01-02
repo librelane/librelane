@@ -343,12 +343,12 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda
+* Updated nix-eda to 5.12.0
   * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
-  * Updated KLayout to `0.30.2`
-  * Updated Magic to `8.3.528`
-  * Updated Netgen to `1.5.295`
-  * Updated Yosys to `0.54`
+  * Updated KLayout to `0.30.4`
+  * Updated magic to `8.3.581`
+  * Updated netgen to `1.5.308`
+  * Updated Yosys to `0.60`
     * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
   * Updated Verilator to `5.038`
 * Updated OpenROAD to `341650e`
@@ -545,6 +545,21 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+
+# 2.4.10
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed `common/cli.py` and `pyproject.toml` so click versions 8.2 and higher
+  are supported.
+
+# 2.4.9
+
+## Steps
+
+* `KLayout.OpenGUI`
+
+  * Fixed the technology not being registered.
 
 # 2.4.8
 

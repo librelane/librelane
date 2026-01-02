@@ -27,6 +27,13 @@ def open_design(input_lefs: Tuple[str, ...], lyt: str, lyp: str, lym: str, input
 
         tech = pya.Technology()
         tech.load(lyt)
+        # Register the technology.
+        # Throws an exception if a technology
+        # with the same name already exists.
+        try:
+            pya.Technology().register_technology(tech)
+        except Exception:
+            print(f"Could not register the technology: {tech.name}.")
 
         layout_options = tech.load_layout_options
         layout_options.keep_other_cells = True
@@ -35,7 +42,7 @@ def open_design(input_lefs: Tuple[str, ...], lyt: str, lyp: str, lym: str, input
         layout_options.lefdef_config.lef_files = list(input_lefs)
         layout_options.lefdef_config.map_file = lym
 
-        cell_view = main_window.load_layout(input, layout_options, 0)
+        cell_view = main_window.load_layout(input, layout_options, tech.name, False)
         layout_view = cell_view.view()
         layout_view.load_layer_props(lyp)
     except Exception as e:
