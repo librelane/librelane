@@ -41,13 +41,9 @@ if {$::env(IO_PIN_V_THICKNESS_MULT) != "" && $::env(IO_PIN_H_THICKNESS_MULT) != 
 }
 
 set arg_list [list]
-if { $::env(IO_PIN_PLACEMENT_MODE) == "random_equidistant" } {
-    lappend arg_list -random
-}
-
-if { [info exists ::env(IO_PIN_MIN_DISTANCE)] } {
-    lappend arg_list -min_distance $::env(IO_PIN_MIN_DISTANCE)
-}
+append_if_exists_argument arg_list IO_PIN_CORNER_AVOIDANCE -corner_avoidance
+append_if_exists_argument arg_list IO_PIN_MIN_DISTANCE -min_distance
+append_if_exists_argument arg_list IO_PIN_MIN_DISTANCE_IN_TRACKS -min_distance_in_tracks
 
 if { $::env(IO_PIN_PLACEMENT_MODE) == "annealing" } {
     lappend arg_list -annealing
@@ -63,7 +59,6 @@ set HMETAL $::env(FP_IO_HLAYER)
 set VMETAL $::env(FP_IO_VLAYER)
 
 log_cmd place_pins {*}$arg_list \
-    -random_seed 42 \
     -hor_layers $HMETAL \
     -ver_layers $VMETAL
 
