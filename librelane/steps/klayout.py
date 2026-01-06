@@ -381,7 +381,7 @@ class DRC(KLayoutStep):
         ),
         Variable(
             "KLAYOUT_DRC_OPTIONS",
-            Optional[Dict[str, Union[bool, int]]],
+            Optional[Dict[str, Union[bool, int, str]]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
         ),
@@ -501,9 +501,11 @@ class DRC(KLayoutStep):
                 "-r",
                 drc_script_path,
                 "-rd",
-                f"in_gds={abspath(input_view)}",
+                f"input={abspath(input_view)}",
                 "-rd",
-                f"report_file={abspath(xml_report)}",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(xml_report)}",
                 *opts,
             ]
         )
