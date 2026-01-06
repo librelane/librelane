@@ -58,11 +58,6 @@
   designs:
     - name: xtea
       config_file: config.yaml
-- scl: sky130A/sky130_fd_sc_hdll
-  name: fastest_test_set
-  designs:
-    - name: xtea
-      config_file: config.yaml
 - scl: sky130A/sky130_fd_sc_ls
   name: fastest_test_set
   designs:
