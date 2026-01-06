@@ -496,15 +496,6 @@ jobs:
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ env.PDK_HASH }}
-      - name: Download IPM designs
-        id: download-ipm-design
-        if: matrix.design.ipm_version != 'None'
-        run: |
-          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          pipx run ipmgr \
-            -- install --ip-root $(realpath $IP_ROOT) \
-            --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} \
-            ${{ matrix.design.name }}
 
       - name: Run Test
         id: test_run

@@ -30,7 +30,7 @@
       config_file: config_old.json
     - user_proj_timer
     - name: xtea
-      config_file: config.tcl
+      config_file: config.yaml
     - name: latch
       test_name: latch_good
       config_file: config_good.json
@@ -38,19 +38,12 @@
       test_name: latch_bad
       config_file: config_bad.json
     - name: EF_PSRAM_CTRL_V2
-      ipm: v1.0.3
     - name: EF_UART
-      ipm: v1.0.0
     - name: MS_SPI_XIP_CACHE
-      ipm: v1.0.0
     - name: MS_DMAC_AHBL
-      ipm: v1.0.2
     - name: MS_CLK_RST
-      ipm: v1.0.1
     - name: EF_TCC32
-      ipm: v1.0.1
     - name: EF_GPIO
-      ipm: v1.0.0
     - name: dual_spm
       script: integrate.py
     # Hold violations
@@ -60,6 +53,32 @@
       script: harden.py
     - name: hold_violations_3
       script: harden.py
+- scl: sky130A/sky130_fd_sc_hdll
+  name: fastest_test_set
+  designs:
+    - name: xtea
+      config_file: config.yaml
+- scl: sky130A/sky130_fd_sc_hdll
+  name: fastest_test_set
+  designs:
+    - name: xtea
+      config_file: config.yaml
+- scl: sky130A/sky130_fd_sc_ls
+  name: fastest_test_set
+  designs:
+    - name: xtea
+      config_file: config.yaml
+- scl: sky130A/sky130_fd_sc_ms
+  name: fastest_test_set
+  designs:
+    - name: xtea
+      config_file: config.yaml
+# TODO fix
+#- scl: sky130A/sky130_fd_sc_hvl
+#  name: fastest_test_set
+#  designs:
+#    - name: xtea
+#      config_file: config.yaml
 - scl: sky130A/sky130_fd_sc_hd
   name: extended_test_set
   designs:
@@ -120,7 +139,7 @@
     - name: non_const_async_reset
       config_file: config.yaml
     - name: xtea
-      config_file: config.tcl
+      config_file: config.yaml
     - name: latch
       test_name: latch_good
       config_file: config_good.json
@@ -128,9 +147,7 @@
       test_name: latch_bad
       config_file: config_bad.json
     - name: EF_PSRAM_CTRL_V2
-      ipm: v1.0.3
     - name: EF_GPIO
-      ipm: v1.0.0
     # Hold violations
     - name: hold_violations_1
       script: harden.py
