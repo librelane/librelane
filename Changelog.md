@@ -343,7 +343,7 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 5.12.0
+* Updated nix-eda to 5.13.0
   * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
   * Updated KLayout to `0.30.4`
   * Updated magic to `8.3.581`
