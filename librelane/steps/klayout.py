@@ -567,6 +567,12 @@ class DRC(KLayoutStep):
     def run_gf180mcu(self, state_in: State, **kwargs) -> MetricsUpdate:
         kwargs, env = self.extract_env(kwargs)
 
+        if not self.config["KLAYOUT_DRC_RUNSET"]:
+            self.warn(
+                f"KLAYOUT_DRC_RUNSET is unset. KLayout.DRC may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return {}
+
         drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
 
         reports_dir = os.path.join(self.step_dir, "reports")
