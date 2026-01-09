@@ -15,20 +15,7 @@
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 
 read_pnr_libs
-read_tech_lef
-
-# Make fake I/O sites
-if { [info exists ::env(PAD_FAKE_SITES)] } {
-    dict for {site_name size} $::env(PAD_FAKE_SITES) {
-        set width [lindex $size 0]
-        set height [lindex $size 1]
-
-        puts "Making fake IO site $site_name…"
-        make_fake_io_site -name $site_name -width $width -height $height
-    }
-}
-
-read_other_lefs
+read_lefs
 read_current_netlist
 
 foreach lib $::libs {
