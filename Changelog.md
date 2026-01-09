@@ -230,7 +230,7 @@ Style Notes
     In that situation, flipping the sites for single-height cells resolves the
     issue.
 
-  * Make fake I/O sites if `PAD_FAKE_SITE_*` or `PAD_FAKE_CORNER_SITE_*` exists.
+  * Make fake I/O sites if `PAD_FAKE_SITES` exists.
 
 * `OpenROAD.GeneratePDN`
 
