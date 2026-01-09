@@ -17,6 +17,9 @@ set_global_connections
 
 puts "\[INFO\] Generating padring…"
 
+set block [ord::get_db_block]
+set units [$block getDefUnits]
+
 # Pad Placement Algorithm
 #
 # For all sides:
@@ -33,17 +36,45 @@ puts "\[INFO\] Generating padring…"
 set DIE_HEIGHT [expr {[lindex $::env(DIE_AREA) 3] - [lindex $::env(DIE_AREA) 1]}]
 set DIE_WIDTH [expr {[lindex $::env(DIE_AREA) 2] - [lindex $::env(DIE_AREA) 0]}]
 
+# Get pad and corner site
+set pad_site [pad::find_site $::env(PAD_SITE_NAME)]
+set pad_corner_site [pad::find_site $::env(PAD_CORNER_SITE_NAME)]
+
+if { $pad_site == "NULL" } {
+    puts stderr "\[ERROR\] No pad site $::env(PAD_SITE_NAME) found."
+    exit 1
+}
+
+if { $pad_corner_site == "NULL" } {
+    puts stderr "\[ERROR\] No pad corner site $::env(PAD_CORNER_SITE_NAME) found."
+    exit 1
+}
+
+if { [$pad_site getClass] != "PAD" } {
+    puts stderr "\[ERROR\] Wrong class for pad site $::env(PAD_SITE_NAME): [$pad_site getClass] (expected PAD)."
+    exit 1
+}
+
+if { [$pad_corner_site getClass] != "PAD" } {
+    puts stderr "\[ERROR\] Wrong class for pad corner site $::env(PAD_CORNER_SITE_NAME): [$pad_corner_site getClass] (expected PAD)."
+    exit 1
+}
+
+set pad_site_width [expr double([$pad_site getWidth]) / $units]
+set pad_site_height [expr double([$pad_site getHeight]) / $units]
+
+set pad_corner_site_width [expr double([$pad_corner_site getWidth]) / $units]
+set pad_corner_site_height [expr double([$pad_corner_site getHeight]) / $units]
+
+puts "\[INFO\] $::env(PAD_SITE_NAME): $pad_site_width μm by $pad_site_height μm"
+puts "\[INFO\] $::env(PAD_CORNER_SITE_NAME): $pad_corner_site_width μm by $pad_corner_site_height μm"
+
 # Make IO sites
 make_io_sites \
     -horizontal_site $::env(PAD_SITE_NAME) \
     -vertical_site $::env(PAD_SITE_NAME) \
     -corner_site $::env(PAD_CORNER_SITE_NAME) \
     -offset $::env(PAD_EDGE_SPACING)
-
-set block [ord::get_db_block]
-set units [$block getDefUnits]
-
-
 
 set sides {PAD_SOUTH PAD_EAST PAD_NORTH PAD_WEST}
 set vertical_sides [list PAD_EAST PAD_WEST]
@@ -74,12 +105,12 @@ foreach side $sides {
     # Get the available space for the side
     set side_width 0
     if {[lsearch -exact $horizontal_sides $side] >= 0} {
-        set horizontal_side_width [expr ($DIE_WIDTH - $::env(PAD_EDGE_SPACING) * 2 - $::env(PAD_FAKE_CORNER_SITE_WIDTH) * 2)]
+        set horizontal_side_width [expr ($DIE_WIDTH - $::env(PAD_EDGE_SPACING) * 2 - $pad_corner_site_width * 2)]
         puts "horizontal_side_width: $horizontal_side_width"
         set side_width $horizontal_side_width
     }
     if {[lsearch -exact $vertical_sides $side] >= 0} {
-        set vertical_side_width [expr ($DIE_HEIGHT - $::env(PAD_EDGE_SPACING) * 2 - $::env(PAD_FAKE_CORNER_SITE_HEIGHT) * 2)]
+        set vertical_side_width [expr ($DIE_HEIGHT - $::env(PAD_EDGE_SPACING) * 2 - $pad_corner_site_height * 2)]
         puts "vertical_side_width: $vertical_side_width"
         set side_width $vertical_side_width
     }
@@ -96,24 +127,24 @@ foreach side $sides {
     puts "space_between_pads: $space_between_pads"
     
     # Round to minimum site width (min. filler)
-    set space_between_pads_min_filler [expr round(floor($space_between_pads / $::env(PAD_FAKE_SITE_WIDTH)) * $::env(PAD_FAKE_SITE_WIDTH) * 1000) / 1000]
+    set space_between_pads_min_filler [expr round(floor($space_between_pads / $pad_site_width) * $pad_site_width * 1000) / 1000]
     puts "space_between_pads_min_filler: $space_between_pads_min_filler"
 
     # The spacing for the pads on the side (the remaining space)
     set space_side [expr round(($space_for_fill - $space_between_pads_min_filler * ([llength $::env($side)] - 1)) / 2 * 1000) / 1000]
     
-    if { $space_side != round(floor($space_side / $::env(PAD_FAKE_SITE_WIDTH)) * $::env(PAD_FAKE_SITE_WIDTH) * 1000) / 1000 } {
-        puts "\[Error\] The remaining area for the pads on the side ($space_side) is not divisible by the minimum site width (minimum filler: $::env(PAD_FAKE_SITE_WIDTH))."
+    if { $space_side != round(floor($space_side / $pad_site_width) * $pad_site_width * 1000) / 1000 } {
+        puts "\[Error\] The remaining area for the pads on the side ($space_side) is not divisible by the minimum site width (minimum filler: $pad_site_width)."
         exit 1
     }
     
     # Get the start position for each side
     set cur_pos 0.0
     if {[lsearch -exact $horizontal_sides $side] >= 0} {
-        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $::env(PAD_FAKE_CORNER_SITE_WIDTH)]
+        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $pad_corner_site_width]
     }
     if {[lsearch -exact $vertical_sides $side] >= 0} {
-        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $::env(PAD_FAKE_CORNER_SITE_HEIGHT)]
+        set cur_pos [expr $cur_pos + $space_side + $::env(PAD_EDGE_SPACING) + $pad_corner_site_height]
     }
     
     # For all instances
