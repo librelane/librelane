@@ -27,7 +27,7 @@ buildPythonPackage {
     pybind11
   ];
 
-  pythonImportsCheck = ["libparse"];
+  pythonImportsCheck = [ "libparse" ];
 
   doCheck = false;
 }

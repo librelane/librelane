@@ -10,7 +10,8 @@
   setuptools,
   version ? "0.0.2",
   sha256 ? "sha256-iy65VBy+Fq+XsSy9w2+rkqjG9Y/ImL1oZR6Vnn2Okm8=",
-}: let
+}:
+let
   self = buildPythonPackage {
     pname = "yamlcore";
     inherit version;
@@ -25,12 +26,12 @@
       setuptools
     ];
 
-    meta = with lib; {
+    meta = {
       description = "YAML 1.2 Core Schema Support for PyYAML";
       homepage = "https://github.com/perlpunk/pyyaml-core";
-      license = licenses.mit;
+      license = lib.licenses.mit;
       inherit (pyyaml.meta) platforms;
     };
   };
 in
-  self
+self

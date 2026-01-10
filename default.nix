@@ -45,7 +45,8 @@
   rapidfuzz,
   semver,
   klayout,
-}: let
+}:
+let
   yosys-with-plugins = yosys.withPlugins (
     [
       yosys-sby
@@ -53,31 +54,33 @@
       yosys-lighter
       yosys-slang
     ]
-    ++ lib.optionals (lib.lists.any (el: el == clangStdenv.hostPlatform.system) yosys-ghdl.meta.platforms) [yosys-ghdl]
+    ++ lib.optionals (lib.lists.any (
+      el: el == clangStdenv.hostPlatform.system
+    ) yosys-ghdl.meta.platforms) [ yosys-ghdl ]
   );
-  yosys-env = (yosys.withPythonPackages.override {target = yosys-with-plugins;}) (ps: with ps; [click]);
-  openroad-env = openroad.withPythonPackages (ps:
-    with ps; [
+  yosys-env = (yosys.withPythonPackages.override { target = yosys-with-plugins; }) (
+    ps: with ps; [ click ]
+  );
+  openroad-env = openroad.withPythonPackages (
+    ps: with ps; [
       click
       rich
       pyyaml
-    ]);
+    ]
+  );
   self = buildPythonPackage {
     pname = "librelane";
     version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).project.version;
     format = "pyproject";
 
-    src =
-      if (flake != null)
-      then flake
-      else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
+    src = if (flake != null) then flake else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     nativeBuildInputs = [
       poetry-core
     ];
 
     includedTools = [
-      opensta.out # HACK: for whatever reason, opensta.dev is prioritized by computed_PATH.
+      opensta
       yosys-env
       openroad-env
       netgen
@@ -113,9 +116,13 @@
     ];
 
     doCheck = true;
-    checkInputs = [pytestCheckHook pytest-xdist pyfakefs];
+    checkInputs = [
+      pytestCheckHook
+      pytest-xdist
+      pyfakefs
+    ];
 
-    computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
+    computed_PATH = lib.makeBinPath (lib.map lib.getBin self.propagatedBuildInputs);
 
     # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
@@ -131,4 +138,4 @@
     };
   };
 in
-  self
+self

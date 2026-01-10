@@ -53,34 +53,32 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-FxKe3uY4L33mavwC2aanji3fY9dPqpkwVqi6PNjovSA=";
   };
 
-  cmakeFlags =
-    [
-      "-DCMAKE_CXX_STANDARD=14"
-      "-DBUILD_DEPS:BOOL=OFF"
-      "-DBUILD_SAMPLES:BOOL=OFF"
-      "-DBUILD_EXAMPLES:BOOL=OFF"
-      "-DCMAKE_INSTALL_BINDIR=bin"
-      "-DCMAKE_INSTALL_INCLUDEDIR=include"
-      "-DCMAKE_INSTALL_LIBDIR=lib"
-      "-DUSE_GLPK=ON"
-      "-DUSE_SCIP=OFF"
-      "-DPROTOC_PRG=${protobuf}/bin/protoc"
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin ["-DCMAKE_MACOSX_RPATH=OFF"];
+  cmakeFlags = [
+    "-DCMAKE_CXX_STANDARD=14"
+    "-DBUILD_DEPS:BOOL=OFF"
+    "-DBUILD_SAMPLES:BOOL=OFF"
+    "-DBUILD_EXAMPLES:BOOL=OFF"
+    "-DCMAKE_INSTALL_BINDIR=bin"
+    "-DCMAKE_INSTALL_INCLUDEDIR=include"
+    "-DCMAKE_INSTALL_LIBDIR=lib"
+    "-DUSE_GLPK=ON"
+    "-DUSE_SCIP=OFF"
+    "-DPROTOC_PRG=${protobuf}/bin/protoc"
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isDarwin [ "-DCMAKE_MACOSX_RPATH=OFF" ];
 
   strictDeps = true;
 
-  nativeBuildInputs =
-    [
-      cmake
-      ensureNewerSourcesForZipFilesHook
-      pkg-config
-      swig
-      unzip
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      DarwinTools
-    ];
+  nativeBuildInputs = [
+    cmake
+    ensureNewerSourcesForZipFilesHook
+    pkg-config
+    swig
+    unzip
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isDarwin [
+    DarwinTools
+  ];
 
   buildInputs = [
     abseil-cpp_202407
@@ -119,7 +117,7 @@ stdenv.mkDerivation (finalAttrs: {
     cmake --install .
   '';
 
-  outputs = ["out"];
+  outputs = [ "out" ];
 
   meta = {
     homepage = "https://github.com/google/or-tools";
