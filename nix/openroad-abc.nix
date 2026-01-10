@@ -27,6 +27,11 @@ abc-verifier.overrideAttrs (
       ./patches/openroad-abc/zlib.patch
     ];
 
+    postPatch = ''
+      # utter bazel nonsense
+      rm -f BUILD
+    '';
+
     cmakeFlags = [
       "-DREADLINE_FOUND=FALSE"
       "-DUSE_SYSTEM_ZLIB:BOOL=ON"
