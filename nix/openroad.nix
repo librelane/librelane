@@ -1,16 +1,6 @@
-# Copyright 2023-2024 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2023-2025 UmbraLogic Technologies LLC
 {
   lib,
   llvmPackages,
@@ -34,7 +24,7 @@
   clp,
   cbc,
   re2,
-  swig4,
+  swig,
   pkg-config,
   gnumake,
   flex,
@@ -53,6 +43,9 @@
   rev ? "341650e72dad0dc8571822ff8c5d9c5e365327f7",
   rev-date ? "2025-06-12",
   sha256 ? "sha256-C/nB//s9h9fCeVe3CTVr9Xey7AhDZCPniHTXybtkJ88=",
+  # tests tend to time out and fail, esp on Darwin. imperatively it's easy to
+  # re-run them but in Nix it starts the long compile all over again.
+  enableTesting ? false, 
 }: let
   stdenv = llvmPackages.stdenv;
   cmakeFlagsCommon = debug: [
@@ -80,6 +73,7 @@ in
     cmakeFlags =
       (cmakeFlagsCommon false)
       ++ [
+        "-DENABLE_TESTS:BOOL=${if enableTesting then "ON" else "OFF"}"
         "-DUSE_SYSTEM_ABC:BOOL=ON"
         "-DUSE_SYSTEM_OPENSTA:BOOL=ON"
         "-DOPENSTA_HOME=${opensta.dev}"
@@ -92,7 +86,8 @@ in
     ];
 
     postPatch = ''
-      sed -i "s/GITDIR-NOTFOUND/${rev}/" ./cmake/GetGitRevisionDescription.cmake
+      substituteInPlace ./cmake/GetGitRevisionDescription.cmake\
+        --replace-fail "GITDIR-NOTFOUND" "${rev}"
       patchShebangs ./etc
     '';
 
@@ -124,7 +119,7 @@ in
     ];
 
     nativeBuildInputs = [
-      swig4
+      swig
       pkg-config
       cmake
       gnumake
@@ -155,8 +150,7 @@ in
         false)} -G Ninja'
     '';
 
-    # it takes 8 billion years set it to true on your own machine to test
-    doCheck = false;
+    doCheck = enableTesting;
 
     passthru = {
       inherit python3;

@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.0.0.dev45"
+version = "3.0.0.dev47"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "me@donn.website"}
@@ -9,7 +9,7 @@ readme = "Readme.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
-  "click>=8,<8.2",
+  "click>=8,<8.3",
   "cloup>=3.0.5,<4",
   "pyyaml>=5,<7",
   "rich>=12,<15",

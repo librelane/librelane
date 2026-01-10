@@ -1,25 +1,11 @@
-# Copyright 2025 LibreLane Contributors
-#
-# Adapted from OpenLane
-#
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2023-2025 UmbraLogic Technologies LLC
 {
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/5.13.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.0";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -41,18 +27,13 @@
     # Common
     overlays = {
       default = lib.composeManyExtensions [
-        (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [ciel])
+        (ciel.overlays.default)
         (
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';
           in {
             or-tools_9_14 = callPackage ./nix/or-tools_9_14.nix {
               inherit (pkgs'.darwin) DarwinTools;
-              stdenv =
-                if pkgs'.system == "x86_64-darwin"
-                then (pkgs'.overrideSDK pkgs'.stdenv "11.0")
-                else pkgs'.stdenv;
             };
             colab-env = callPackage ./nix/colab-env.nix {};
             opensta = callPackage ./nix/opensta.nix {};
@@ -67,6 +48,18 @@
             callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
             libparse = callPythonPackage ./nix/libparse.nix {};
+
+            # warning with every single click invocation
+            cloup = pypkgs.cloup.overridePythonAttrs {
+              postPatch = ''
+                substituteInPlace cloup/_util.py \
+                  --replace-fail \
+                    "tuple(click.__version__.split('.'))" \
+                    "tuple('${pypkgs'.click.version}'.split('.'))"
+              '';
+            };
+
+            # customize mdformat to match style guide
             mdformat = pypkgs.mdformat.overridePythonAttrs {
               version = "0.7.18";
               src = pypkgs'.fetchPypi {
@@ -81,10 +74,6 @@
 
               doCheck = false;
             };
-            ciel = pkgs.ciel.overrideAttrs (attrs': attrs: {
-              buildInputs = attrs.buildInputs ++ [pypkgs'.pythonRelaxDepsHook];
-              pythonRelaxDeps = ["rich"];
-            });
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
@@ -154,7 +143,6 @@
         # Normal devShells
         dev = callPackage (self.createOpenLaneShell {
           extra-packages = with pkgs; [
-            jdupes
             alejandra
           ];
           extra-python-packages = with pkgs.python3.pkgs; [
@@ -172,14 +160,13 @@
             types-deprecated
             types-pyyaml
             types-psutil
-            lxml-stubs
+            types-lxml
             pipx
           ];
           include-librelane = false;
         }) {};
         docs = callPackage (self.createOpenLaneShell {
           extra-packages = with pkgs; [
-            jdupes
             alejandra
             imagemagick
           ];

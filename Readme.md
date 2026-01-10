@@ -112,13 +112,16 @@ If you use LibreLane in your research, please cite the following paper.
 LibreLane is a trademark of the [FOSSi Foundation](https://fossi-foundation.org).
 
 LibreLane code and binaries are available under
-[The Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).
+[The Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt),
+except Nix-language files ending with `.nix`, which are available under the
+[MIT License](https://opensource.org/license/mit) as published by the
+Open Source Initiative.
 
 LibreLane is based on [OpenLane 2](https://github.com/efabless/openlane2)
-by Efabless Corporation:
+by Efabless Corporation (assets owned by UmbraLogic Technologies LLC):
 
 ```
-Copyright 2022-2025 Efabless Corporation
+Copyright 2022-2025 UmbraLogic Technologies LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -132,3 +135,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ``` 
+
+UmbraLogic Technologies LLC has agreed to relicense all OpenLane 2 Nix code as
+MIT, for which we are grateful.
