@@ -44,7 +44,6 @@ def pytest_assertrepr_compare(op, left, right):
 @pytest.fixture
 def _mock_conf_fs():
     with Patcher() as patcher:
-        rmtree("/run", ignore_errors=True)
         patcher.fs.create_dir("/cwd/src")
         patcher.fs.create_file("/cwd/src/a.v")
         patcher.fs.create_file("/cwd/src/b.v")

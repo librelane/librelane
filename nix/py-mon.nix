@@ -5,11 +5,12 @@
   fetchPypi,
   colorama,
   watchdog,
-}: buildPythonPackage rec {
+}:
+buildPythonPackage rec {
   pname = "py-mon";
   version = "2.1.0";
   format = "wheel";
-  
+
   src = fetchPypi {
     pname = "py_mon";
     inherit version format;
@@ -17,6 +18,9 @@
     dist = "py3";
     python = "py3";
   };
-  
-  dependencies = [colorama watchdog];
+
+  dependencies = [
+    colorama
+    watchdog
+  ];
 }

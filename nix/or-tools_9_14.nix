@@ -1,20 +1,6 @@
-# Copyright 2024 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-###############################################################################
-# ---
-# Original license follows:
-#
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2024 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2024 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -36,7 +22,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
-  abseil-cpp,
+  abseil-cpp_202407,
   bzip2,
   cbc,
   cmake,
@@ -67,36 +53,35 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-FxKe3uY4L33mavwC2aanji3fY9dPqpkwVqi6PNjovSA=";
   };
 
-  cmakeFlags =
-    [
-      "-DBUILD_DEPS:BOOL=OFF"
-      "-DBUILD_SAMPLES:BOOL=OFF"
-      "-DBUILD_EXAMPLES:BOOL=OFF"
-      "-DCMAKE_INSTALL_BINDIR=bin"
-      "-DCMAKE_INSTALL_INCLUDEDIR=include"
-      "-DCMAKE_INSTALL_LIBDIR=lib"
-      "-DUSE_GLPK=ON"
-      "-DUSE_SCIP=OFF"
-      "-DPROTOC_PRG=${protobuf}/bin/protoc"
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin ["-DCMAKE_MACOSX_RPATH=OFF"];
+  cmakeFlags = [
+    "-DCMAKE_CXX_STANDARD=14"
+    "-DBUILD_DEPS:BOOL=OFF"
+    "-DBUILD_SAMPLES:BOOL=OFF"
+    "-DBUILD_EXAMPLES:BOOL=OFF"
+    "-DCMAKE_INSTALL_BINDIR=bin"
+    "-DCMAKE_INSTALL_INCLUDEDIR=include"
+    "-DCMAKE_INSTALL_LIBDIR=lib"
+    "-DUSE_GLPK=ON"
+    "-DUSE_SCIP=OFF"
+    "-DPROTOC_PRG=${protobuf}/bin/protoc"
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isDarwin [ "-DCMAKE_MACOSX_RPATH=OFF" ];
 
   strictDeps = true;
 
-  nativeBuildInputs =
-    [
-      cmake
-      ensureNewerSourcesForZipFilesHook
-      pkg-config
-      swig
-      unzip
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      DarwinTools
-    ];
+  nativeBuildInputs = [
+    cmake
+    ensureNewerSourcesForZipFilesHook
+    pkg-config
+    swig
+    unzip
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isDarwin [
+    DarwinTools
+  ];
 
   buildInputs = [
-    abseil-cpp
+    abseil-cpp_202407
     bzip2
     cbc
     eigen
@@ -105,7 +90,7 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   propagatedBuildInputs = [
-    abseil-cpp
+    abseil-cpp_202407
     protobuf
     re2
     highs
@@ -132,7 +117,7 @@ stdenv.mkDerivation (finalAttrs: {
     cmake --install .
   '';
 
-  outputs = ["out"];
+  outputs = [ "out" ];
 
   meta = {
     homepage = "https://github.com/google/or-tools";

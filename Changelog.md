@@ -343,14 +343,14 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 5.13.0
-  * Updated nixpkgs to nixos-25.05 (@ `b2485d5`)
+* Updated nix-eda to 6.0.1
+  * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
   * Updated KLayout to `0.30.4`
-  * Updated magic to `8.3.581`
-  * Updated netgen to `1.5.308`
+  * Updated Magic to `8.3.581`
+  * Updated Netgen to `1.5.308`
   * Updated Yosys to `0.60`
     * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
-  * Updated Verilator to `5.038`
+  * Updated Verilator to `5.042`
 * Updated OpenROAD to `341650e`
 * Updated OpenSTA to `ffabd65`
 
@@ -541,6 +541,11 @@ Style Notes
 
   * `BoundingBox` changed from `Tuple` to `dataclass` with additional optional
     `info` property.
+
+* Nix
+
+  * `createOpenLaneShell` has been renamed `createLibreLaneShell` and is now in
+    pkgs rather than the flake top-level (which is quite unorthodox.)
 
 ## Documentation
 
