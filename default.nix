@@ -79,7 +79,7 @@ let
       poetry-core
     ];
 
-    includedTools = [
+    includedTools = lib.map lib.getBin [
       opensta
       yosys-env
       openroad-env
@@ -89,8 +89,6 @@ let
       iverilog
       verilator
       tcl
-      tclPackages.tcllib
-      tclPackages.tclx
       ruby
     ];
 
@@ -122,7 +120,7 @@ let
       pyfakefs
     ];
 
-    computed_PATH = lib.makeBinPath (lib.map lib.getBin self.propagatedBuildInputs);
+    computed_PATH = lib.makeBinPath self.includedTools;
 
     # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
