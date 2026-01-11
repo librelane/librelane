@@ -99,6 +99,13 @@ proc read_current_sdc {} {
     }
 }
 
+proc read_pad_cfg {} {
+    if {[catch {source $::env(PAD_CFG)} errmsg]} {
+        puts stderr $errmsg
+        exit 1
+    }
+}
+
 proc read_pdn_cfg {} {
 
     # Compatibility Layer for Deprecated Variables That May Still Be Used By
@@ -183,6 +190,13 @@ proc read_timing_info {args} {
         foreach extra_lib $::env(EXTRA_LIBS) {
             puts "Reading extra timing library for the '$corner_name' corner at '$extra_lib'…"
             read_liberty -corner $corner_name $extra_lib
+        }
+    }
+    
+    if { [info exists ::env(PAD_LIBS) ] } {
+        foreach lib $::env(PAD_LIBS) {
+            puts "Reading gpio pad timing for the '$corner_name' corner at '$lib'…"
+            read_liberty -corner $corner_name $lib
         }
     }
 
@@ -286,15 +300,35 @@ proc read_pnr_libs {args} {
                 read_liberty -corner $corner_name $extra_lib
             }
         }
+        
+        if { [info exists ::env(PAD_LIBS) ] } {
+            foreach pad_lib $::env(PAD_LIBS) {
+                puts "Reading gpio pad timing library for the '$corner_name' corner at '$pad_lib'…"
+                read_liberty -corner $corner_name $pad_lib
+            }
+        }
     }
 }
 
-proc read_lefs {{tlef_key "TECH_LEF"}} {
+proc read_tech_lef {{tlef_key "TECH_LEF"}} {
     set tlef $::env($tlef_key)
 
     puts "Reading technology LEF file at '$tlef'…"
     read_lef $tlef
 
+    # Make fake I/O sites
+    if { [info exists ::env(PAD_FAKE_SITES)] } {
+        dict for {site_name size} $::env(PAD_FAKE_SITES) {
+            set width [lindex $size 0]
+            set height [lindex $size 1]
+
+            puts "Making fake IO site $site_name…"
+            make_fake_io_site -name $site_name -width $width -height $height
+        }
+    }
+}
+
+proc read_other_lefs {} {
     foreach lef $::env(CELL_LEFS) {
         puts "Reading cell LEF file at '$lef'…"
         read_lef $lef
@@ -305,12 +339,23 @@ proc read_lefs {{tlef_key "TECH_LEF"}} {
             read_lef $lef
         }
     }
+    if { [info exist ::env(PAD_LEFS)] } {
+        foreach lef $::env(PAD_LEFS) {
+            puts "Reading gpio pad LEF file at '$lef'…"
+            read_lef $lef
+        }
+    }
     if { [info exist ::env(EXTRA_LEFS)] } {
         foreach lef $::env(EXTRA_LEFS) {
             puts "Reading extra LEF file at '$lef'…"
             read_lef $lef
         }
     }
+}
+
+proc read_lefs {{tlef_key "TECH_LEF"}} {
+    read_tech_lef $tlef_key
+    read_other_lefs
 }
 
 proc set_dont_use_cells {} {

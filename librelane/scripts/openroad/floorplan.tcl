@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+
 read_pnr_libs
 read_lefs
 read_current_netlist
