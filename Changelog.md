@@ -179,6 +179,9 @@ Style Notes
     `GRT_ANTENNA_REPAIR_MARGIN` but for the aforementioned antenna repair
     iterations
   * DRC reports are now converted to `xml` and readable by KLayout
+  * Removed `DRT_MIN_LAYER` and `DRT_MAX_LAYER` due to an update in OpenROAD.
+    `RT_MIN_LAYER`/`RT_MAX_LAYER`/`RT_CLOCK_MIN_LAYER`/`RT_CLOCK_MAX_LAYER` is
+    considered instead.
 
 * Created `OpenROAD.DumpRCValues`
 
@@ -229,6 +232,10 @@ Style Notes
 
   * Added validator to deprecate `random_equidistant` of
     `IO_PIN_PLACEMENT_MODE`.
+
+  * Added optional variable `IO_PIN_CORNER_AVOIDANCE`.
+
+  * Added optional variable `IO_PIN_MIN_DISTANCE_IN_TRACKS`.
 
 * `OpenROAD.RepairAntennas`
 
@@ -441,6 +448,10 @@ Style Notes
 
 * validators: A customizable validator that is run AFTER type checks and
   conversions.
+
+* global connections: due to an update in OpenROAD, global connections are not
+  overriden by default. To match the old behavior as much as possible we now
+  create the `PDN_MACRO_CONNECTIONS` before the SCL connections.
 
 ## API Breaks
 

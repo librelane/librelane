@@ -15,6 +15,7 @@
   tclreadline,
   python3,
   readline,
+  yaml-cpp,
   spdlog,
   libffi,
   lemon-graph,
@@ -36,13 +37,14 @@
   ninja,
   git,
   gtest,
+  darwin,
   # environments,
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "341650e72dad0dc8571822ff8c5d9c5e365327f7",
-  rev-date ? "2025-06-12",
-  sha256 ? "sha256-C/nB//s9h9fCeVe3CTVr9Xey7AhDZCPniHTXybtkJ88=",
+  rev ? "dfc4f595dfb2e1c346492ff1f0274abb28725acf",
+  rev-date ? "2026-01-06",
+  sha256 ? "sha256-CVsWiOIYJSei2ur7KPlFu5CfLv3CBhvVSnzoAcKJNhs=",
   # tests tend to time out and fail, esp on Darwin. imperatively it's easy to
   # re-run them but in Nix it starts the long compile all over again.
   enableTesting ? false,
@@ -79,15 +81,17 @@ stdenv.mkDerivation (finalAttrs: {
     "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
   ];
 
-  patches = [
-    ./patches/openroad/static_library_fixes.patch
-    ./patches/openroad/fix_def_diearea.patch
-  ];
-
   postPatch = ''
     substituteInPlace ./cmake/GetGitRevisionDescription.cmake\
       --replace-fail "GITDIR-NOTFOUND" "${rev}"
     patchShebangs ./etc
+    
+    sed -i 's@cmake -B@cmake ${join_flags finalAttrs.cmakeFlags} -B@' ./etc/Env.sh
+    echo "#!/bin/bash" > ./openroad.build_env_info
+    echo "cat << EOF" >> ./openroad.build_env_info
+    bash ./etc/Env.sh >> ./openroad.build_env_info
+    echo "EOF" >> ./openroad.build_env_info
+    chmod +x ./openroad.build_env_info
   '';
 
   buildInputs = [
@@ -113,6 +117,7 @@ stdenv.mkDerivation (finalAttrs: {
     clp
     cbc
     gtest
+    yaml-cpp
 
     or-tools_9_14
   ];
@@ -129,6 +134,8 @@ stdenv.mkDerivation (finalAttrs: {
     llvmPackages.clang-tools
     python3.pkgs.tclint
     ctestCheckHook
+  ] ++ lib.optionals stdenv.isDarwin [
+    darwin.DarwinTools # sw_vers
   ];
 
   shellHook = ''
@@ -151,6 +158,10 @@ stdenv.mkDerivation (finalAttrs: {
           false
       )
     } -G Ninja'
+  '';
+
+  postInstall = ''
+    cp ../openroad.build_env_info $out/bin/openroad.build_env_info
   '';
 
   doCheck = enableTesting;

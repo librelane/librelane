@@ -15,24 +15,8 @@
 # Power nets
 proc set_global_connections {} {
     puts "\[INFO\] Setting global connections..."
-    if { [info exists ::env(PDN_ENABLE_GLOBAL_CONNECTIONS) ] } {
-        if { $::env(PDN_ENABLE_GLOBAL_CONNECTIONS) == 1 } {
-            foreach power_pin $::env(SCL_POWER_PINS) {
-                add_global_connection \
-                    -net $::env(VDD_NET) \
-                    -inst_pattern .* \
-                    -pin_pattern $power_pin \
-                    -power
-            }
-            foreach ground_pin $::env(SCL_GROUND_PINS) {
-                add_global_connection \
-                    -net $::env(GND_NET) \
-                    -inst_pattern .* \
-                    -pin_pattern $ground_pin \
-                    -ground
-            }
-        }
-    }
+
+    # Make global connections for macros
     if { $::env(PDN_CONNECT_MACROS_TO_GRID) == 1 &&
         [info exists ::env(PDN_MACRO_CONNECTIONS)]} {
         foreach pdn_hook $::env(PDN_MACRO_CONNECTIONS) {
@@ -74,5 +58,25 @@ proc set_global_connections {} {
         }
     }
 
-    global_connect
+    # Make global connections for SCLs
+    if { [info exists ::env(PDN_ENABLE_GLOBAL_CONNECTIONS) ] } {
+        if { $::env(PDN_ENABLE_GLOBAL_CONNECTIONS) == 1 } {
+            foreach power_pin $::env(SCL_POWER_PINS) {
+                add_global_connection \
+                    -net $::env(VDD_NET) \
+                    -inst_pattern .* \
+                    -pin_pattern $power_pin \
+                    -power
+            }
+            foreach ground_pin $::env(SCL_GROUND_PINS) {
+                add_global_connection \
+                    -net $::env(GND_NET) \
+                    -inst_pattern .* \
+                    -pin_pattern $ground_pin \
+                    -ground
+            }
+        }
+    }
+
+    global_connect -verbose
 }

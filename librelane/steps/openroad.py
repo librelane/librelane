@@ -1206,6 +1206,12 @@ class IOPlacement(OpenROADStep):
         + io_layer_variables
         + [
             Variable(
+                "IO_PIN_CORNER_AVOIDANCE",
+                Optional[Decimal],
+                "The distance from each corner within which pin placement should be avoided.",
+                units="µm",
+            ),
+            Variable(
                 "IO_PIN_PLACEMENT_MODE",
                 PPLMode,
                 "Decides the mode of the random IO placement option.",
@@ -1216,10 +1222,16 @@ class IOPlacement(OpenROADStep):
             Variable(
                 "IO_PIN_MIN_DISTANCE",
                 Optional[Decimal],
-                "The minimum distance between two pins. If unspecified by a PDK, OpenROAD will use the length of two routing tracks.",
-                units="µm",
+                "The minimum distance between two pins. The unit is microns or routing tracks, depending on whether IO_PIN_MIN_DISTANCE_IN_TRACKS is set. If unspecified by a PDK, OpenROAD will use the length of two routing tracks.",
+                units="µm or routing tracks",
                 pdk=True,
                 deprecated_names=["FP_IO_MIN_DISTANCE"],
+            ),
+            Variable(
+                "IO_PIN_MIN_DISTANCE_IN_TRACKS",
+                Optional[bool],
+                "Setting this variable to true allows IO_PIN_MIN_DISTANCE to be set in number of tracks instead of microns.",
+                pdk=True,
             ),
             Variable(
                 "IO_PIN_ORDER_CFG",
@@ -1803,16 +1815,6 @@ class DetailedRouting(OpenROADStep):
                 Optional[int],
                 "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
                 deprecated_names=["ROUTING_CORES"],
-            ),
-            Variable(
-                "DRT_MIN_LAYER",
-                Optional[str],
-                "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
-            ),
-            Variable(
-                "DRT_MAX_LAYER",
-                Optional[str],
-                "An optional override to the highest layer used in detailed routing.",
             ),
             Variable(
                 "DRT_OPT_ITERS",

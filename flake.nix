@@ -46,6 +46,11 @@
               openroad = callPackage ./nix/openroad.nix {
                 llvmPackages = pkgs'.llvmPackages_18;
               };
+              lemon-graph = pkgs.lemon-graph.overrideAttrs (finalAttrs: previousAttrs: {
+                patches = previousAttrs.patches ++ [
+                  ./nix/patches/lemon-graph/update_cxx20.patch
+                ];
+              });
             }
           )
           (nix-eda.composePythonOverlay (
