@@ -67,11 +67,11 @@ class IntEnumChoice(Choice):
                 f"{value} is not a not a valid value for IntEnum {self.__enum.__name__}"
             )
 
-    def get_metavar(self, param: Parameter, *args: Any, **kwargs: Any) -> Optional[str]:
-        _bk = self.choices
-        self.choices = [f"{e.name} or {e.value}" for e in self.__enum]
-
-        result = super().get_metavar(param, *args, **kwargs)
-
-        self.choices = _bk
-        return result
+    def get_metavar(self, param: Parameter, *args: Any) -> str:  # type: ignore[override]
+            _bk = self.choices
+            self.choices = [f"{e.name} or {e.value}" for e in self.__enum]
+    
+            result = super().get_metavar(param, *args) or ""
+    
+            self.choices = _bk
+            return result
