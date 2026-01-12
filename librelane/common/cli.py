@@ -68,10 +68,10 @@ class IntEnumChoice(Choice):
             )
 
     def get_metavar(self, param: Parameter, *args: Any) -> str:  # type: ignore[override]
-            _bk = self.choices
-            self.choices = [f"{e.name} or {e.value}" for e in self.__enum]
-    
-            result = super().get_metavar(param, *args) or ""
-    
-            self.choices = _bk
-            return result
+        _bk = self.choices
+        self.choices = [f"{e.name} or {e.value}" for e in self.__enum]
+
+        result = super().get_metavar(param, *args) or ""
+
+        self.choices = _bk
+        return result
