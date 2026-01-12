@@ -17,7 +17,7 @@ from cloup import (
     HelpTheme,
     Style,
 )
-from typing import Optional, Type, Union
+from typing import Any, Optional, Type, Union
 
 from click import (
     Choice,
