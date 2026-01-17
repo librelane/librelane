@@ -253,7 +253,7 @@ class State(GenericImmutableDict[str, StateElement]):
         self._walk(self.to_raw_dict(metrics=False), "", visit=visitor)
 
     @classmethod
-    def __loads_recursive(
+    def __load_recursive(
         Self,
         views: Dict,
         validate_path: bool = True,
@@ -267,7 +267,7 @@ class State(GenericImmutableDict[str, StateElement]):
                 continue
 
             if isinstance(value, dict):
-                target[key] = Self.__loads_recursive(
+                target[key] = Self.__load_recursive(
                     value,
                     validate_path,
                     key_path=current_key_path,
@@ -281,6 +281,15 @@ class State(GenericImmutableDict[str, StateElement]):
         return target
 
     @classmethod
+    def load(Self, dict_in: dict, validate_path: bool = True) -> "State":
+        metrics = dict_in.get("metrics")
+        if metrics is not None:
+            del dict_in["metrics"]
+
+        views = Self.__load_recursive(dict_in, validate_path)
+        return Self(views, metrics=metrics)
+
+    @classmethod
     def loads(Self, json_in: str, validate_path: bool = True) -> "State":
         try:
             raw = json.loads(json_in, parse_float=Decimal)
@@ -290,14 +299,7 @@ class State(GenericImmutableDict[str, StateElement]):
         if not isinstance(raw, dict):
             raise InvalidState("Failed to load state: JSON result is not a dictionary")
 
-        metrics = raw.get("metrics")
-        if metrics is not None:
-            del raw["metrics"]
-
-        views = Self.__loads_recursive(raw, validate_path)
-        state = Self(views, metrics=metrics)
-
-        return state
+        return Self.load(raw, validate_path=validate_path)
 
     def __mapping_to_html_rec(
         self,

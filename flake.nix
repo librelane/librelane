@@ -5,7 +5,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.1";
+    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.2";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -170,24 +170,25 @@
             extra-packages = with pkgs; [
               alejandra
             ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              pyfakefs
-              pytest
-              pytest-xdist
-              pytest-cov
-              pillow
-              mdformat
-              black
-              ipython
-              tokenize-rt
-              flake8
-              mypy
-              types-deprecated
-              types-pyyaml
-              types-psutil
-              types-lxml
-              pipx
-            ];
+            extra-python-packages =
+              ps: with ps; [
+                pyfakefs
+                pytest
+                pytest-xdist
+                pytest-cov
+                pillow
+                mdformat
+                black
+                ipython
+                tokenize-rt
+                flake8
+                mypy
+                types-deprecated
+                types-pyyaml
+                types-psutil
+                types-lxml
+                pipx
+              ];
             include-librelane = false;
           }) { };
           docs = callPackage (pkgs.createLibreLaneShell {
@@ -195,27 +196,28 @@
               alejandra
               imagemagick
             ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              pyfakefs
-              pytest
-              pytest-xdist
-              pillow
-              mdformat
-              furo
-              docutils
-              sphinx
-              sphinx-autobuild
-              sphinx-autodoc-typehints
-              sphinx-design
-              myst-parser
-              docstring-parser
-              sphinx-copybutton
-              sphinxcontrib-spelling
-              sphinxcontrib-bibtex
-              sphinx-tippy
-              sphinx-subfigure
-              py-mon
-            ];
+            extra-python-packages =
+              ps: with ps; [
+                pyfakefs
+                pytest
+                pytest-xdist
+                pillow
+                mdformat
+                furo
+                docutils
+                sphinx
+                sphinx-autobuild
+                sphinx-autodoc-typehints
+                sphinx-design
+                myst-parser
+                docstring-parser
+                sphinx-copybutton
+                sphinxcontrib-spelling
+                sphinxcontrib-bibtex
+                sphinx-tippy
+                sphinx-subfigure
+                py-mon
+              ];
             include-librelane = false;
           }) { };
         }

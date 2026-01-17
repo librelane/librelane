@@ -249,12 +249,14 @@ class PyosysStep(Step):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         cmd = self.get_command(state_in)
+        kwargs, env = self.extract_env(kwargs)
         # HACK: Get Colab working
         if "google.colab" in sys.modules:
-            kwargs, env = self.extract_env(kwargs)
             env.pop("PATH", "")
-            kwargs["env"] = env
-        subprocess_result = super().run_subprocess(cmd, **kwargs)
+        env["PYTHONPATH"] = ":".join(
+            (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "pyosys"))
+        )
+        subprocess_result = super().run_subprocess(cmd, env=env, **kwargs)
         return {}, subprocess_result["generated_metrics"]
 
 
@@ -462,7 +464,9 @@ class SynthesisCommon(VerilogStep):
                 (
                     "SYNTH_NO_FLAT",
                     lambda x: "deferred_flatten" if x else "flatten",
-                )
+                ),
+                ("SYNTH_ELABORATE_FLATTEN", lambda x: "flatten" if x else "keep"),
+                ("SYNTH_FLAT_TOP", lambda x: "flatten" if x else "keep"),
             ],
         ),
         Variable(
@@ -502,13 +506,6 @@ class SynthesisCommon(VerilogStep):
             bool,
             '"Elaborate" the design only without attempting any logic mapping. Useful when dealing with structural Verilog netlists.',
             default=False,
-        ),
-        Variable(
-            "SYNTH_ELABORATE_FLATTEN",
-            bool,
-            "If `SYNTH_ELABORATE_ONLY` is specified, this variable controls whether or not the top level should be flattened.",
-            default=True,
-            deprecated_names=["SYNTH_FLAT_TOP"],
         ),
         Variable(
             "SYNTH_MUL_BOOTH",
