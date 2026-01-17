@@ -335,7 +335,7 @@ def synthesize(
 
     if config["SYNTH_ELABORATE_ONLY"]:
         librelane_proc(d, report_dir)
-        if config["SYNTH_ELABORATE_FLATTEN"]:
+        if config["SYNTH_HIERARCHY_MODE"] in ["deferred_flatten", "flatten"]:
             d.run_pass("flatten", "-noscopeinfo")
         d.run_pass("setattr", "-set", "keep", "1")
         d.run_pass("splitnets")
