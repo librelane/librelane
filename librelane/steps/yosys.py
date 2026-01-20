@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,12 +80,19 @@ def _generate_read_deps(
                 commands += f"lappend ::_synlig_defines {TclUtils.escape(f'+define+{power_define}')}\n"
 
     # Try your best to use powered blackbox models if power_defines is true
-    if power_defines and config["CELL_VERILOG_MODELS"] is not None:
-        scl_blackbox_models = toolbox.create_blackbox_model(
-            frozenset(config["CELL_VERILOG_MODELS"]),
-            frozenset(["USE_POWER_PINS"]),
-        )
-        commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+    if power_defines:
+        if config["CELL_VERILOG_MODELS"] is not None:
+            scl_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["CELL_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+        if config["PAD_VERILOG_MODELS"] is not None:
+            pad_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["PAD_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {pad_blackbox_models}\n"
     else:
         # Fall back to scl_lib_list if you cant
         for lib in scl_lib_list:

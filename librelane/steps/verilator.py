@@ -126,6 +126,14 @@ class Lint(Step):
                 )
             )
 
+        if pad_verilog_models := self.config["PAD_VERILOG_MODELS"]:
+            blackboxes.append(
+                self.toolbox.create_blackbox_model(
+                    frozenset(pad_verilog_models),
+                    frozenset(["USE_POWER_PINS"]),
+                )
+            )
+
         macro_views = self.toolbox.get_macro_views_by_priority(
             self.config,
             [

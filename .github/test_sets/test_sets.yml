@@ -131,6 +131,8 @@
     - usb_cdc_core
     - cell_inverter
     - spm
+    - name: full_chip
+      config_file: config.yaml
     - name: non_const_async_reset
       config_file: config.yaml
     - name: xtea

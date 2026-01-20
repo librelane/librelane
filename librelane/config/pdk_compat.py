@@ -28,6 +28,14 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
             f"{config['SYNTH_DRIVING_CELL']}/{config['SYNTH_DRIVING_CELL_PIN']}"
         )
 
+    # 1.a Migrate SYNTH_CLK_DRIVING_CELL
+    if "SYNTH_CLK_DRIVING_CELL_PIN" in new:
+        del new["SYNTH_CLK_DRIVING_CELL"]
+        del new["SYNTH_CLK_DRIVING_CELL_PIN"]
+        new["SYNTH_CLK_DRIVING_CELL"] = (
+            f"{config['SYNTH_CLK_DRIVING_CELL']}/{config['SYNTH_CLK_DRIVING_CELL_PIN']}"
+        )
+
     # 2. Migrate SYNTH_TIE{HI,LO}_CELL
     if "SYNTH_TIEHI_PORT" in new:
         del new["SYNTH_TIEHI_PORT"]
@@ -156,24 +164,24 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
 
     # x1. Disconnected Modules (sky130)
     if new["PDK"].startswith("sky130"):
-        new["IGNORE_DISCONNECTED_MODULES"] = "sky130_fd_sc_hd__conb_1"
+        if "IGNORE_DISCONNECTED_MODULES" not in config:
+            new["IGNORE_DISCONNECTED_MODULES"] = "sky130_fd_sc_hd__conb_1"
 
     # x2. Invalid Variables (gf180mcu)
     if new["PDK"].startswith("gf180mcu"):
-        del new["GPIO_PADS_LEF"]
-        del new["GPIO_PADS_VERILOG"]
+        if "CARRY_SELECT_ADDER_MAP" in new:
+            del new["CARRY_SELECT_ADDER_MAP"]
+        if "FULL_ADDER_MAP" in new:
+            del new["FULL_ADDER_MAP"]
+        if "RIPPLE_CARRY_ADDER_MAP" in new:
+            del new["RIPPLE_CARRY_ADDER_MAP"]
+        if "SYNTH_LATCH_MAP" in new:
+            del new["SYNTH_LATCH_MAP"]
+        if "TRISTATE_BUFFER_MAP" in new:
+            del new["TRISTATE_BUFFER_MAP"]
 
-        del new["CARRY_SELECT_ADDER_MAP"]
-        del new["FULL_ADDER_MAP"]
-        del new["RIPPLE_CARRY_ADDER_MAP"]
-        del new["SYNTH_LATCH_MAP"]
-        del new["TRISTATE_BUFFER_MAP"]
-
-        del new["KLAYOUT_DRC_TECH_SCRIPT"]
-
-        new["SYNTH_CLK_DRIVING_CELL"] = (
-            f"{config['SYNTH_CLK_DRIVING_CELL']}/{config['SYNTH_DRIVING_CELL_PIN']}"
-        )
+        if "KLAYOUT_DRC_TECH_SCRIPT" in new:
+            del new["KLAYOUT_DRC_TECH_SCRIPT"]
 
     # x3. Timing Corners
     lib_sta: Dict[str, List[str]] = {}
@@ -310,23 +318,36 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
 
     # x4. Constraints (sky130/gf180mcu)
     if new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu"):
-        new["MAX_FANOUT_CONSTRAINT"] = 10
-        new["CLOCK_UNCERTAINTY_CONSTRAINT"] = 0.25
-        new["CLOCK_TRANSITION_CONSTRAINT"] = 0.15
-        new["TIME_DERATING_CONSTRAINT"] = 5
-        new["IO_DELAY_CONSTRAINT"] = 20
-        new["FP_IO_MIN_DISTANCE"] = 3
-        new["FP_IO_HLENGTH"] = 4
-        new["FP_IO_VLENGTH"] = 4
+        if "MAX_FANOUT_CONSTRAINT" not in config:
+            new["MAX_FANOUT_CONSTRAINT"] = 10
+        if "CLOCK_UNCERTAINTY_CONSTRAINT" not in config:
+            new["CLOCK_UNCERTAINTY_CONSTRAINT"] = 0.25
+        if "CLOCK_TRANSITION_CONSTRAINT" not in config:
+            new["CLOCK_TRANSITION_CONSTRAINT"] = 0.15
+        if "TIME_DERATING_CONSTRAINT" not in config:
+            new["TIME_DERATING_CONSTRAINT"] = 5
+        if "IO_DELAY_CONSTRAINT" not in config:
+            new["IO_DELAY_CONSTRAINT"] = 20
+
+        # Unspecififed is fine
+        # if "FP_IO_MIN_DISTANCE" not in config:
+        #    new["FP_IO_MIN_DISTANCE"] = 3
+        # if "FP_IO_HLENGTH" not in config:
+        #    new["FP_IO_HLENGTH"] = 4
+        # if "FP_IO_VLENGTH" not in config:
+        #    new["FP_IO_VLENGTH"] = 4
 
     # x5. Primary Signoff Tool
     if new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu"):
-        new["PRIMARY_GDSII_STREAMOUT_TOOL"] = "magic"
+        if "PRIMARY_GDSII_STREAMOUT_TOOL" not in config:
+            new["PRIMARY_GDSII_STREAMOUT_TOOL"] = "magic"
 
     # x6. Heuristic Antenna Thresholds
     if new["PDK"].startswith("sky130"):
-        new["HEURISTIC_ANTENNA_THRESHOLD"] = 90
+        if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
+            new["HEURISTIC_ANTENNA_THRESHOLD"] = 90
     elif new["PDK"].startswith("gf180mcu"):
-        new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
+        if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
+            new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
 
     return new
