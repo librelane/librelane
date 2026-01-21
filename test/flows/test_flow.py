@@ -21,6 +21,8 @@ from librelane.flows import flow
 from librelane.config import Variable
 from librelane.steps import step
 
+pytestmark = pytest.mark.all
+
 mock_variables = pytest.mock_variables
 
 

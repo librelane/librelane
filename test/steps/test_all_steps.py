@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 import sys
 import shutil
 import inspect
@@ -22,12 +21,7 @@ from typing import Callable, Optional, Tuple
 import pytest
 from _pytest.fixtures import SubRequest
 
-
-@pytest.fixture
-def _step_enabled(request: SubRequest, test: str):
-    step_rx = request.config.option.step_rx
-    if re.search(step_rx, test) is None:
-        pytest.skip()
+pytestmark = pytest.mark.all
 
 
 @pytest.fixture
@@ -85,8 +79,9 @@ def attribute_from_file(file: str, attribute: str):
         pass
 
 
+@pytest.mark.step_impl_test
 @pytest.mark.parametrize("test", pytest.tests)
-@pytest.mark.usefixtures("_chdir_tmp", "_step_enabled", "create_reproducible_on_fail")
+@pytest.mark.usefixtures("_chdir_tmp", "create_reproducible_on_fail")
 def test_step_folder(
     test: Tuple[str, bool],
     pdk_root: str,

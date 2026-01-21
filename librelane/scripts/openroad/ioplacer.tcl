@@ -55,12 +55,9 @@ if { [info exists ::env(IO_EXCLUDE_PIN_REGION)] } {
     }
 }
 
-set HMETAL $::env(FP_IO_HLAYER)
-set VMETAL $::env(FP_IO_VLAYER)
-
 log_cmd place_pins {*}$arg_list \
-    -hor_layers $HMETAL \
-    -ver_layers $VMETAL
+    -hor_layers $::env(IO_PIN_H_LAYER) \
+    -ver_layers $::env(IO_PIN_V_LAYER)
 
 write_views
 

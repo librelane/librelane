@@ -17,6 +17,8 @@ from typing import Dict
 import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
+pytestmark = pytest.mark.all
+
 
 @pytest.fixture
 def _mock_fs():

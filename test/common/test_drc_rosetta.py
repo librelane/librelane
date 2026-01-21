@@ -15,6 +15,8 @@ import io
 from decimal import Decimal
 import pytest
 
+pytestmark = pytest.mark.all
+
 MAGIC_EXAMPLE = """RAM8
 ----------------------------------------
 P-diff distance to N-tap must be < 15.0um (LU.3)

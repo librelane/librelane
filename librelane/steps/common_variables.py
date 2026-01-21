@@ -22,6 +22,20 @@ from ..config import Variable
 
 io_layer_variables = [
     Variable(
+        "IO_PIN_H_LAYER",
+        str,
+        "The metal layer on which to place horizontally-aligned (long side parallel with the horizon) pins alongside the east and west edges of the die.",
+        pdk=True,
+        deprecated_names=["FP_IO_HLAYER"],
+    ),
+    Variable(
+        "IO_PIN_V_LAYER",
+        str,
+        "The metal layer on which to place vertically-aligned (long side perpendicular to the horizon) pins alongside the north and south edges of the die.",
+        pdk=True,
+        deprecated_names=["FP_IO_VLAYER"],
+    ),
+    Variable(
         "IO_PIN_V_EXTENSION",
         Decimal,
         "Extends the vertical io pins outside of the die by the specified units.",

@@ -239,6 +239,23 @@ class OpenROADStep(TclStep):
             pdk=True,
         ),
         Variable(
+            "SIGNAL_WIRE_RC_LAYERS",
+            Optional[List[str]],
+            "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction.",
+            pdk=True,
+            deprecated_names=[
+                ("WIRE_RC_LAYER", lambda x: [x]),
+                ("DATA_WIRE_RC_LAYER", lambda x: [x]),
+            ],
+        ),
+        Variable(
+            "CLOCK_WIRE_RC_LAYERS",
+            Optional[List[str]],
+            "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction.",
+            pdk=True,
+            deprecated_names=[("CLOCK_WIRE_RC_LAYER", lambda x: [x])],
+        ),
+        Variable(
             "PDN_CONNECT_MACROS_TO_GRID",
             bool,
             "Enables the connection of macros to the top level power grid.",
