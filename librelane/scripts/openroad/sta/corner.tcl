@@ -49,6 +49,10 @@ sta::set_cmd_corner $corner
 
 set clocks [sta::sort_by_name [sta::all_clocks]]
 
+if {  [info exist ::env(STA_EXTRA_CORNER_TCL_FILE)] } {
+    source $::env(STA_EXTRA_CORNER_TCL_FILE)
+}
+
 puts "%OL_CREATE_REPORT min.rpt"
 puts "\n==========================================================================="
 puts "report_checks -path_delay min (Hold)"
