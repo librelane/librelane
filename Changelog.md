@@ -1,12 +1,5 @@
 <!--
 
-Formatting the Changelog
-------------------------
-
-* Using Donn's modified version of mdformat:
-
-  nix run .#mdformat -- --wrap 80 --end-of-line lf Changelog.md
-
 Section Order
 -------------
 
@@ -413,10 +406,15 @@ Style Notes
 
 ## Testing
 
-* Step unit tests now load the PDK configs first before overriding them. This
-  has a minor performance penalty compared to the previous "raw" load, but
-  allows unit tests to be updated less frequently (especially to work with new
-  PDK variables.)
+* Custom pytest `--step-rx` option replaced with a proper pytest marker,
+  `step_impl_tests`.
+  * Default option uses the marker `no step_impl_tests`, i.e., all other tests.
+  * To run all tests, pass `-m all`.
+
+* Step implementation tests now load the PDK configs first before overriding
+  them. This has a minor performance penalty compared to the previous "raw"
+  load, but allows unit tests to be updated less frequently (especially to work
+  with new PDK variables.)
 
 ## Misc. Enhancements/Bugfixes
 
@@ -485,6 +483,8 @@ Style Notes
       `Checker.WireLength`
     * `GPIO_PAD_*` removed- no step currently uses them
     * `FP_TRACKS_INFO`, `FP_TAPCELL_DIST` moved to relevant steps
+    * `FP_IO_HLAYER` and `FP_IO_VLAYER` renamed to `IO_PIN_{H,V}_LAYER` and
+      moved to relevant steps
     * `FILL_CELL` and `DECAP_CELL` renamed to `FILL_CELLS` and `DECAP_CELLS` as
       they are both lists
     * `EXTRA_GDS_FILES` and `FALLBACK_SDC_FILE` renamed to `EXTRA_GDS` and
@@ -534,6 +534,10 @@ Style Notes
     that have hold violations at non-typical corners to set its value explicitly
     to `["*tt*"]`.
 
+* `CVCRV.ERC`
+
+  * Removed non-functional step.
+
 * `KLayout.StreamOut` now behaves differently as the default for cell conflict
   resolution has been changed from "AddToCell" to "RenameCell", which is a
   safer.
@@ -555,6 +559,10 @@ Style Notes
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+
+* `OpenROAD.BasicMacroPlacement`
+
+  * Removed non-functional step.
 
 * `OpenROAD.GeneratePDN`
 
@@ -596,8 +604,12 @@ Style Notes
   * `meta.substituting_steps` now only apply to the sequential flow declared in
     `meta.flow` and not all flows.
 
-  * `WIRE_LENGTH_THRESHOLD`, `GPIO_PAD_*`, `FP_TRACKS_INFO`, `FP_TAPCELL_DIST`
-    are no longer global variables.
+  * PDK/SCL variables `WIRE_LENGTH_THRESHOLD`, `GPIO_PAD_*`, `FP_TRACKS_INFO`,
+    `FP_TAPCELL_DIST`, `FP_IO_HLAYER`, `FP_IO_VLAYER`, `SIGNAL_WIRE_RC_LAYERS`,
+    and `CLOCK_WIRE_RC_LAYERS` are no longer global variables and have been
+    moved to relevant steps.
+
+  * Global SCL variable `VDD_PIN_VOLTAGE` has been removed.
 
   * `FILL_CELL`, `DECAP_CELL`, `EXTRA_GDS_FILES`, `FALLBACK_SDC_FILE` were all
     renamed, see Misc. Enhancements/Bugfixes.

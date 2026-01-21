@@ -18,6 +18,9 @@ import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 
+pytestmark = pytest.mark.all
+
+
 @pytest.fixture(autouse=True)
 def _mock_fs():
     with Patcher() as patcher:

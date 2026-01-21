@@ -20,6 +20,8 @@ from unittest import mock
 import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
+pytestmark = pytest.mark.all
+
 
 @pytest.fixture
 def mock_macros_config():

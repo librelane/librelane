@@ -14,6 +14,8 @@
 import pytest
 from pyfakefs.fake_filesystem import FakeFilesystem
 
+pytestmark = pytest.mark.all
+
 
 def test_cli_basic():
     import click

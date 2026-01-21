@@ -18,6 +18,7 @@ import pytest
 from librelane.flows import flow as flow_module, sequential as sequential_flow_module
 from librelane.steps import Step, step as step_module
 
+pytestmark = pytest.mark.all
 
 mock_variables = pytest.mock_variables
 

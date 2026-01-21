@@ -46,12 +46,6 @@ pdk_variables = [
         pdk=True,
     ),
     Variable(
-        "VDD_PIN_VOLTAGE",
-        Decimal,
-        "The voltage of the VDD pin.",
-        pdk=True,
-    ),
-    Variable(
         "GND_PIN",
         str,
         "The ground pin for the cells.",
@@ -79,23 +73,6 @@ pdk_variables = [
         pdk=True,
     ),
     Variable(
-        "SIGNAL_WIRE_RC_LAYERS",
-        Optional[List[str]],
-        "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
-        pdk=True,
-        deprecated_names=[
-            ("WIRE_RC_LAYER", lambda x: [x]),
-            ("DATA_WIRE_RC_LAYER", lambda x: [x]),
-        ],
-    ),
-    Variable(
-        "CLOCK_WIRE_RC_LAYERS",
-        Optional[List[str]],
-        "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
-        pdk=True,
-        deprecated_names=[("CLOCK_WIRE_RC_LAYER", lambda x: [x])],
-    ),
-    Variable(
         "DEFAULT_CORNER",
         str,
         "The interconnect/process/voltage/temperature corner (IPVT) to use the characterized lib files compatible with by default.",
@@ -108,18 +85,6 @@ pdk_variables = [
         pdk=True,
     ),
     # Floorplanning
-    Variable(
-        "FP_IO_HLAYER",
-        str,
-        "The metal layer on which to place horizontally-aligned (long side parallel with the horizon) pins alongside the east and west edges of the die.",
-        pdk=True,
-    ),
-    Variable(
-        "FP_IO_VLAYER",
-        str,
-        "The metal layer on which to place vertically-aligned (long side perpendicular to the horizon) pins alongside the north and south edges of the die.",
-        pdk=True,
-    ),
     Variable("RT_MIN_LAYER", str, "The lowest metal layer to route on.", pdk=True),
     Variable("RT_MAX_LAYER", str, "The highest metal layer to route on.", pdk=True),
 ]

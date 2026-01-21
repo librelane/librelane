@@ -21,6 +21,8 @@ import pytest
 
 from librelane.steps import step
 
+pytestmark = pytest.mark.all
+
 mock_variables = pytest.mock_variables
 
 
