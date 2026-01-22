@@ -423,6 +423,18 @@ grt_variables = routing_layer_variables + [
         units="%",
         deprecated_names=["GRT_ANT_MARGIN", "GRT_ANTENNA_MARGIN"],
     ),
+    Variable(
+        "GRT_ANTENNA_REPAIR_JUMPER_ONLY",
+        bool,
+        "Only use jumpers to fix antenna violations. Cannot be used in conjunction with GRT_ANTENNA_REPAIR_DIODE_ONLY.",
+        default=False,
+    ),
+    Variable(
+        "GRT_ANTENNA_REPAIR_DIODE_ONLY",
+        bool,
+        "Only use antenna diodes to fix antenna violations. Cannot be used in conjunction with GRT_ANTENNA_REPAIR_JUMPER_ONLY.",
+        default=False,
+    ),
 ]
 
 rsz_variables = dpl_variables + [

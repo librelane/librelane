@@ -65,10 +65,18 @@ if { ![info exists ::env(DIODE_CELL)] } {
 } else {
     set diode_cell [lindex [split $::env(DIODE_CELL) "/"] 0]
 
+    set arg_list [list]
+    lappend arg_list $diode_cell
+    lappend arg_list -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
+    append_if_flag arg_list GRT_ALLOW_CONGESTION -allow_congestion
+    append_if_flag arg_list DRT_ANTENNA_REPAIR_JUMPER_ONLY -jumper_only
+    append_if_flag arg_list DRT_ANTENNA_REPAIR_DIODE_ONLY -diode_only
+
     while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
         puts "\[INFO\] Running antenna repair iteration $i…"
-        set diodes_inserted [log_cmd repair_antennas $diode_cell -ratio_margin $::env(DRT_ANTENNA_REPAIR_MARGIN)]
-        if {$diodes_inserted} {
+        set diodes_inserted [log_cmd repair_antennas {*}$arg_list]
+        
+        if {$diodes_inserted || $::env(DRT_ANTENNA_REPAIR_JUMPER_ONLY)} {
             drt_run $i {*}$drt_args
         } else {
             puts "\[INFO\] No diodes inserted. Ending antenna repair iterations."
