@@ -30,11 +30,6 @@ proc drt_run {i args} {
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
-# We need to call grt once, so that options like allow_congestion can be set for repair_antennas.
-# This needs to be done before drt. If grt is called after drt, repair_antennas only uses the
-# routing information from grt for fixing the antennas = useless.
-source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
-
 set_thread_count $::env(DRT_THREADS)
 
 set drc_report_iter_step_arg ""
