@@ -409,6 +409,6 @@ class SequentialFlow(Flow):
                 "One or more deferred errors were encountered:\n"
                 + "\n".join(deferred_errors)
             )
-        
+
         success("Flow complete.")
         return (current_state, step_list)
