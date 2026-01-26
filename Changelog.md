@@ -627,12 +627,39 @@ Style Notes
 ## Documentation
 
 * Variable types now link to dataclasses' API reference as appropriate.
+# 2.4.11
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Removed misleading nonfunctional clock delay propagation to ABC scripts
+    pending further investigations.
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed copyright information.
+
+# 2.4.10
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed `common/cli.py` and `pyproject.toml` so click versions 8.2 and higher
+  are supported.
+
+# 2.4.9
+
+## Steps
+
+* `KLayout.OpenGUI`
+
+  * Fixed the technology not being registered.
 
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
 
-* Change `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+* Changed `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
   tables and other elements.
 
 # 2.4.7

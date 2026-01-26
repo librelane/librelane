@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.0.0.dev48"
+version = "3.0.0.dev49"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "me@donn.website"}
