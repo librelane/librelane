@@ -1935,6 +1935,18 @@ class DetailedRouting(OpenROADStep):
                 deprecated_names=["DRT_ANTENNA_MARGIN"],
             ),
             Variable(
+                "DRT_ANTENNA_REPAIR_JUMPER_ONLY",
+                bool,
+                "Only use jumpers to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_DIODE_ONLY.",
+                default=False,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_DIODE_ONLY",
+                bool,
+                "Only use antenna diodes to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_JUMPER_ONLY.",
+                default=False,
+            ),
+            Variable(
                 "DRT_SAVE_DRC_REPORT_ITERS",
                 Optional[int],
                 "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
