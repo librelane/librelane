@@ -183,9 +183,9 @@ puts "\n========================================================================
 puts "Worst Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner $corner_name -max]
-write_metric_num "timing__setup__ws__corner:$corner_name" $ws
-puts "$corner_name: $ws"
+set w_s [worst_slack -corner [$corner name] -max]
+write_metric_num "timing__setup__ws__corner:[$corner name]" $w_s
+puts "[$corner name]: $ws"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT tns.min.rpt"
@@ -397,14 +397,15 @@ foreach clock [all_clocks] {
     puts "============================================================================"
     report_clock_min_period -clocks [get_property $clock name]
 
-    set include_port_paths [info exists flags(-include_port_paths)]
-    set min_period [sta::find_clk_min_period $clock $include_port_paths ]
+
+    set CLK_PERIOD [get_property $clock period]
+    set min_period [expr $CLK_PERIOD-$w_s]
     if { $min_period == 0.0 } {
       set min_period 0
       set fmax "INF"
     } else {
       # max frequency in MHz
-      set fmax [expr 1.0e-6 / $min_period]
+      set fmax [expr 1.0e3 / $min_period]
     }
     
     write_metric_num "fmax__clk__corner:[$corner name]" $fmax
