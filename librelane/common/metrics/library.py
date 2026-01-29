@@ -124,6 +124,12 @@ Metric(
 )
 
 Metric(
+    "fmax__clk",
+    aggregator=min_aggregator,
+    higher_is_better=True,
+)
+
+Metric(
     "timing__setup_r2r__ws",
     aggregator=min_aggregator,
     higher_is_better=True,
