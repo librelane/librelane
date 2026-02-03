@@ -643,4 +643,9 @@ class VHDLSynthesis(SynthesisCommon):
             List[Path],
             "The paths of the design's VHDL files.",
         ),
+        Variable(
+            "GHDL_ARGUMENTS",
+            Optional[List[str]],
+            "Pass arguments to the ghdl frontend.",
+        ),
     ]

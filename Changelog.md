@@ -14,6 +14,14 @@
 ## Documentation
 -->
 
+# 2.4.12
+
+## Steps
+
+* `Yosys.VHDLSynthesis`
+
+  * Added `GHDL_ARGUMENTS` to provide arguments to ghdl-yosys, such as `--std=08`.
+
 # 2.4.11
 
 ## Steps
