@@ -209,6 +209,8 @@ Style Notes
   * Removed `DRT_MIN_LAYER` and `DRT_MAX_LAYER` due to an update in OpenROAD.
     `RT_MIN_LAYER`/`RT_MAX_LAYER`/`RT_CLOCK_MIN_LAYER`/`RT_CLOCK_MAX_LAYER` is
     considered instead.
+  * Added `DRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+  * Added `DRT_ANTENNA_REPAIR_DIODE_ONLY`.
 
 * Created `OpenROAD.DumpRCValues`
 
@@ -281,6 +283,10 @@ Style Notes
   * Renamed `GRT_ANTENNA_ITERS` to `GRT_ANTENNA_REPAIR_ITERS`.
 
   * Renamed `GRT_ANTENNA_MARGIN` to `GRT_ANTENNA_REPAIR_MARGIN`.
+
+  * Added `GRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+
+  * Added `GRT_ANTENNA_REPAIR_DIODE_ONLY`.
 
 * `OpenROAD.RepairDesignPostGPL`
 
