@@ -304,7 +304,8 @@ def synthesize(
         )
     elif vhdl_files := config.get("VHDL_FILES"):
         d.run_pass("plugin", "-i", "ghdl")
-        d.run_pass("ghdl", *vhdl_files, "-e", config["DESIGN_NAME"])
+        ghdl_arguments = config["GHDL_ARGUMENTS"] or []
+        d.run_pass("ghdl", *ghdl_arguments, *vhdl_files, "-e", config["DESIGN_NAME"])
     else:
         ys.log_error(
             "Script called inappropriately: config must include either VERILOG_FILES or VHDL_FILES.",
