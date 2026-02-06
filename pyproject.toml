@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.0.0.dev47"
+version = "3.0.0.dev50"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "me@donn.website"}
@@ -73,6 +73,14 @@ librelane = "librelane.__main__:cli"
 # $ ruff check .
 target-version = "py310"
 lint.ignore = ["E", "F"] 
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "--strict-markers -m 'not step_impl_test'"
+markers = [
+    "all: all tests",
+    "step_impl_test: tests for specific step implementations (requires recursive git clone + more time)",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3"]

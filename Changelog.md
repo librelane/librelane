@@ -1,12 +1,5 @@
 <!--
 
-Formatting the Changelog
-------------------------
-
-* Using Donn's modified version of mdformat:
-
-  nix run .#mdformat -- --wrap 80 --end-of-line lf Changelog.md
-
 Section Order
 -------------
 
@@ -41,9 +34,39 @@ Style Notes
   * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
     raise an error for hold violations on *any* corners.
 
+* Created `Checker.KLayoutDensity`
+
+  * Uses `klayout__density_error__count`
+
+* Created `Checker.KLayoutAntenna`
+
+  * Uses `klayout__antenna_error__count`
+
 * `KLayout.DRC`
 
+  * Added generic implementation.
   * Added support for ihp-sg13g2.
+  * Added support for gf180mcu.
+  * Renamed `.xml` to `.lyrdb`.
+
+* Created `KLayout.SealRing`
+
+  * Added generic implementation.
+  * Added gf180mcu implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Filler`
+
+  * Add generic implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Density`
+
+  * Add generic implementation.
+
+* Created `KLayout.Antenna`
+
+  * Add generic implementation.
 
 * Created `KLayout.LVS`
 
@@ -57,6 +80,10 @@ Style Notes
   conflict resolution if a cell name conflict arises. (Default: "RenameCell")
 
   * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
+* `Magic.*`
+
+  * Updated scripts to annotated GDS with LEF.
 
 * `Magic.DRC`
 
@@ -179,6 +206,11 @@ Style Notes
     `GRT_ANTENNA_REPAIR_MARGIN` but for the aforementioned antenna repair
     iterations
   * DRC reports are now converted to `xml` and readable by KLayout
+  * Removed `DRT_MIN_LAYER` and `DRT_MAX_LAYER` due to an update in OpenROAD.
+    `RT_MIN_LAYER`/`RT_MAX_LAYER`/`RT_CLOCK_MIN_LAYER`/`RT_CLOCK_MAX_LAYER` is
+    considered instead.
+  * Added `DRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+  * Added `DRT_ANTENNA_REPAIR_DIODE_ONLY`.
 
 * Created `OpenROAD.DumpRCValues`
 
@@ -192,6 +224,8 @@ Style Notes
     side and double-height cells have power at the south side, causing a short.
     In that situation, flipping the sites for single-height cells resolves the
     issue.
+
+  * Make fake I/O sites if `PAD_FAKE_SITES` exists.
 
 * `OpenROAD.GeneratePDN`
 
@@ -230,6 +264,18 @@ Style Notes
   * Added validator to deprecate `random_equidistant` of
     `IO_PIN_PLACEMENT_MODE`.
 
+  * Added optional variable `IO_PIN_CORNER_AVOIDANCE`.
+
+  * Added optional variable `IO_PIN_MIN_DISTANCE_IN_TRACKS`.
+
+* Created `OpenROAD.PadRing`
+
+  * Added `PAD_*` PDK variables for the default pad config.
+
+  * Added `PAD_CFG` to override the default pad config (`pad_cfg.tcl`).
+
+  * Added `PAD_SOUTH`/`PAD_EAST`/`PAD_NORTH`/`PAD_WEST` to specify the placement of the pad cells.
+
 * `OpenROAD.RepairAntennas`
 
   * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
@@ -237,6 +283,10 @@ Style Notes
   * Renamed `GRT_ANTENNA_ITERS` to `GRT_ANTENNA_REPAIR_ITERS`.
 
   * Renamed `GRT_ANTENNA_MARGIN` to `GRT_ANTENNA_REPAIR_MARGIN`.
+
+  * Added `GRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+
+  * Added `GRT_ANTENNA_REPAIR_DIODE_ONLY`.
 
 * `OpenROAD.RepairDesignPostGPL`
 
@@ -339,6 +389,12 @@ Style Notes
 
   * Added `OpenROAD.DumpRCValues` immediately after floorplanning.
 
+* Created "Chip" flow
+
+  * Added `OpenROAD.PadRing` for pad ring generation.
+  * Added new KLayout steps (filler, density etc.).
+  * Removed `Magic.WriteLEF`, `Odb.CheckDesignAntennaProperties`.
+
 ## Tool Updates
 
 * Python requirement bumped up to ≥3.10
@@ -356,12 +412,19 @@ Style Notes
 
 ## Testing
 
-* Step unit tests now load the PDK configs first before overriding them. This
-  has a minor performance penalty compared to the previous "raw" load, but
-  allows unit tests to be updated less frequently (especially to work with new
-  PDK variables.)
+* Custom pytest `--step-rx` option replaced with a proper pytest marker,
+  `step_impl_tests`.
+  * Default option uses the marker `no step_impl_tests`, i.e., all other tests.
+  * To run all tests, pass `-m all`.
+
+* Step implementation tests now load the PDK configs first before overriding
+  them. This has a minor performance penalty compared to the previous "raw"
+  load, but allows unit tests to be updated less frequently (especially to work
+  with new PDK variables.)
 
 ## Misc. Enhancements/Bugfixes
+
+- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
 
@@ -395,6 +458,8 @@ Style Notes
   * `meta.substituting_steps` now only apply to the sequential flow declared in
     `meta.flow` and not all flows.
 
+  * `pdk_compat` set some compatibility values only if necessary.
+
 * `librelane.state`
 
   * `DesignFormat`
@@ -424,6 +489,8 @@ Style Notes
       `Checker.WireLength`
     * `GPIO_PAD_*` removed- no step currently uses them
     * `FP_TRACKS_INFO`, `FP_TAPCELL_DIST` moved to relevant steps
+    * `FP_IO_HLAYER` and `FP_IO_VLAYER` renamed to `IO_PIN_{H,V}_LAYER` and
+      moved to relevant steps
     * `FILL_CELL` and `DECAP_CELL` renamed to `FILL_CELLS` and `DECAP_CELLS` as
       they are both lists
     * `EXTRA_GDS_FILES` and `FALLBACK_SDC_FILE` renamed to `EXTRA_GDS` and
@@ -441,6 +508,10 @@ Style Notes
 
 * validators: A customizable validator that is run AFTER type checks and
   conversions.
+
+* global connections: due to an update in OpenROAD, global connections are not
+  overriden by default. To match the old behavior as much as possible we now
+  create the `PDN_MACRO_CONNECTIONS` before the SCL connections.
 
 ## API Breaks
 
@@ -469,6 +540,10 @@ Style Notes
     that have hold violations at non-typical corners to set its value explicitly
     to `["*tt*"]`.
 
+* `CVCRV.ERC`
+
+  * Removed non-functional step.
+
 * `KLayout.StreamOut` now behaves differently as the default for cell conflict
   resolution has been changed from "AddToCell" to "RenameCell", which is a
   safer.
@@ -490,6 +565,10 @@ Style Notes
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+
+* `OpenROAD.BasicMacroPlacement`
+
+  * Removed non-functional step.
 
 * `OpenROAD.GeneratePDN`
 
@@ -531,8 +610,12 @@ Style Notes
   * `meta.substituting_steps` now only apply to the sequential flow declared in
     `meta.flow` and not all flows.
 
-  * `WIRE_LENGTH_THRESHOLD`, `GPIO_PAD_*`, `FP_TRACKS_INFO`, `FP_TAPCELL_DIST`
-    are no longer global variables.
+  * PDK/SCL variables `WIRE_LENGTH_THRESHOLD`, `GPIO_PAD_*`, `FP_TRACKS_INFO`,
+    `FP_TAPCELL_DIST`, `FP_IO_HLAYER`, `FP_IO_VLAYER`, `SIGNAL_WIRE_RC_LAYERS`,
+    and `CLOCK_WIRE_RC_LAYERS` are no longer global variables and have been
+    moved to relevant steps.
+
+  * Global SCL variable `VDD_PIN_VOLTAGE` has been removed.
 
   * `FILL_CELL`, `DECAP_CELL`, `EXTRA_GDS_FILES`, `FALLBACK_SDC_FILE` were all
     renamed, see Misc. Enhancements/Bugfixes.
@@ -551,11 +634,47 @@ Style Notes
 
 * Variable types now link to dataclasses' API reference as appropriate.
 
+# 2.4.12
+
+## Steps
+
+* `Yosys.VHDLSynthesis`
+
+  * Added `GHDL_ARGUMENTS` to provide arguments to ghdl-yosys, such as `--std=08`.
+
+# 2.4.11
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Removed misleading nonfunctional clock delay propagation to ABC scripts
+    pending further investigations.
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed copyright information.
+
+# 2.4.10
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed `common/cli.py` and `pyproject.toml` so click versions 8.2 and higher
+  are supported.
+
+# 2.4.9
+
+## Steps
+
+* `KLayout.OpenGUI`
+
+  * Fixed the technology not being registered.
+
 # 2.4.8
 
 ## Misc. Enhancements/Bugfixes
 
-* Change `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+* Changed `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
   tables and other elements.
 
 # 2.4.7

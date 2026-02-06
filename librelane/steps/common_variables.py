@@ -22,6 +22,20 @@ from ..config import Variable
 
 io_layer_variables = [
     Variable(
+        "IO_PIN_H_LAYER",
+        str,
+        "The metal layer on which to place horizontally-aligned (long side parallel with the horizon) pins alongside the east and west edges of the die.",
+        pdk=True,
+        deprecated_names=["FP_IO_HLAYER"],
+    ),
+    Variable(
+        "IO_PIN_V_LAYER",
+        str,
+        "The metal layer on which to place vertically-aligned (long side perpendicular to the horizon) pins alongside the north and south edges of the die.",
+        pdk=True,
+        deprecated_names=["FP_IO_VLAYER"],
+    ),
+    Variable(
         "IO_PIN_V_EXTENSION",
         Decimal,
         "Extends the vertical io pins outside of the die by the specified units.",
@@ -408,6 +422,18 @@ grt_variables = routing_layer_variables + [
         default=10,
         units="%",
         deprecated_names=["GRT_ANT_MARGIN", "GRT_ANTENNA_MARGIN"],
+    ),
+    Variable(
+        "GRT_ANTENNA_REPAIR_JUMPER_ONLY",
+        bool,
+        "Only use jumpers to fix antenna violations. Cannot be used in conjunction with GRT_ANTENNA_REPAIR_DIODE_ONLY.",
+        default=False,
+    ),
+    Variable(
+        "GRT_ANTENNA_REPAIR_DIODE_ONLY",
+        bool,
+        "Only use antenna diodes to fix antenna violations. Cannot be used in conjunction with GRT_ANTENNA_REPAIR_JUMPER_ONLY.",
+        default=False,
     ),
 ]
 

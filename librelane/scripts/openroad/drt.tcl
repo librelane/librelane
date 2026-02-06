@@ -30,22 +30,8 @@ proc drt_run {i args} {
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
-# We need to call grt once, so that options like allow_congestion can be set for repair_antennas.
-# This needs to be done before drt. If grt is called after drt, repair_antennas only uses the
-# routing information from grt for fixing the antennas = useless.
-source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
-
 set_thread_count $::env(DRT_THREADS)
 
-set min_layer $::env(RT_MIN_LAYER)
-if { [info exists ::env(DRT_MIN_LAYER)] } {
-    set min_layer $::env(DRT_MIN_LAYER)
-}
-
-set max_layer $::env(RT_MAX_LAYER)
-if { [info exists ::env(DRT_MAX_LAYER)] } {
-    set max_layer $::env(DRT_MAX_LAYER)
-}
 set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1
@@ -59,8 +45,6 @@ if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
 set i 0
 
 set drt_args [list]
-lappend drt_args -bottom_routing_layer $min_layer
-lappend drt_args -top_routing_layer $max_layer
 lappend drt_args -droute_end_iter $::env(DRT_OPT_ITERS)
 lappend drt_args -or_seed 42
 lappend drt_args -verbose 1
@@ -76,10 +60,18 @@ if { ![info exists ::env(DIODE_CELL)] } {
 } else {
     set diode_cell [lindex [split $::env(DIODE_CELL) "/"] 0]
 
+    set arg_list [list]
+    lappend arg_list $diode_cell
+    lappend arg_list -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
+    append_if_flag arg_list GRT_ALLOW_CONGESTION -allow_congestion
+    append_if_flag arg_list DRT_ANTENNA_REPAIR_JUMPER_ONLY -jumper_only
+    append_if_flag arg_list DRT_ANTENNA_REPAIR_DIODE_ONLY -diode_only
+
     while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
         puts "\[INFO\] Running antenna repair iteration $i…"
-        set diodes_inserted [log_cmd repair_antennas $diode_cell -ratio_margin $::env(DRT_ANTENNA_REPAIR_MARGIN)]
-        if {$diodes_inserted} {
+        set diodes_inserted [log_cmd repair_antennas {*}$arg_list]
+        
+        if {$diodes_inserted || $::env(DRT_ANTENNA_REPAIR_JUMPER_ONLY)} {
             drt_run $i {*}$drt_args
         } else {
             puts "\[INFO\] No diodes inserted. Ending antenna repair iterations."

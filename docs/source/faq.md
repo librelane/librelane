@@ -14,9 +14,8 @@
 
 Originally started as version 2.0 of OpenLane, LibreLane is a piece of software
 for {term}`ASIC` implementation, initially developed by Efabless Corporation,
-but its currently maintained by the same developers at the
-[American University in Cairo Open Hardware Lab](https://github.com/aucohl)
-under the stewardship of the [FOSSi Foundation](https://fossi-foundation.org).
+but its currently maintained under the stewardship of the
+[FOSSi Foundation](https://fossi-foundation.org).
 
 Version 1.0 of OpenLane was a simple but stable and battle-tested flow, primarily
 intended for implementing  designs for Efabless's {term}`MPW` programs.
@@ -49,7 +48,8 @@ many other tools in order to achieve a full RTL-to-GDSII flow.
 OpenROAD is primarily developed by The OpenROAD Project, which involves many
 corporations and academic institutions (primarily the University of California,
 San Diego, Parallax Software, and Precision Innovations). LibreLane, on the
-other hand, was primarily developed at Efabless Corporation and is currently maintained by the American University in Cairo, Open Hardware Lab.
+other hand, was primarily developed at Efabless Corporation and is currently
+maintained by the community under the stewardship of the FOSSi Foundation.
 
 (faq-proprietary-pdks)=
 
@@ -78,7 +78,7 @@ shuttles since 3.5 and a number of internal tape-outs at Efabless Corporation.
 | Architecture | Monolithic | Plugin-based | Monolithic | Plugin-based |
 | Configuration | Tcl Files | Python Files | JSON/Tcl Files | JSON/Tcl/Python Files |
 | Programming Language | GNU Make | Python | Tcl | Type-checked Python |
-| Maintainer | The OpenROAD Project | ZeroASIC | Efabless | AUCOHL |
+| Maintainer | The OpenROAD Project | ZeroASIC | Efabless | FOSSi Foundation |
 | Dependencies | Separate (Build Scripts) | Separate (Build Scripts) | Bundled | Bundled  |
 | Cloud Service | No | Yes | No | No (Planned) |
 | Proprietary Tool Support | No | Yes | No | Yes (with Plugins) |

@@ -54,4 +54,4 @@ runs:
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
           .#devShells.${{ inputs.nix_system }}.dev --command\
-          pytest --step-rx '.' --pdk-root="${{ inputs.pdk_root }}" -n auto
+          pytest -m all --pdk-root="${{ inputs.pdk_root }}" -n auto

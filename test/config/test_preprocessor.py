@@ -18,6 +18,9 @@ import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 
+pytestmark = pytest.mark.all
+
+
 @pytest.fixture(autouse=True)
 def _mock_fs():
     with Patcher() as patcher:
@@ -154,6 +157,7 @@ def test_preprocess_dict():
         "PDK": "sky130A",
         "PDKPATH": "/cwd",
         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "PAD_CELL_LIBRARY": None,
         "DESIGN_DIR": "/cwd",
         "meta": {"version": 2},
         "DESIGN_NAME": "manual_macro_placement_test",

@@ -46,6 +46,11 @@
               openroad = callPackage ./nix/openroad.nix {
                 llvmPackages = pkgs'.llvmPackages_18;
               };
+              lemon-graph = pkgs.lemon-graph.overrideAttrs (finalAttrs: previousAttrs: {
+                patches = previousAttrs.patches ++ [
+                  ./nix/patches/lemon-graph/update_cxx20.patch
+                ];
+              });
             }
           )
           (nix-eda.composePythonOverlay (
@@ -66,21 +71,6 @@
                 '';
               };
 
-              # customize mdformat to match style guide
-              mdformat = pypkgs.mdformat.overridePythonAttrs {
-                version = "0.7.18";
-                src = pypkgs'.fetchPypi {
-                  pname = "mdformat";
-                  version = "0.7.18";
-                  hash = "sha256-QsuovFprsS1QvffB5HDB+Deoq4zoFXHU5TueYgUfbk8=";
-                };
-
-                patches = [
-                  ./nix/patches/mdformat/donns_tweaks.patch
-                ];
-
-                doCheck = false;
-              };
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
               yamlcore = callPythonPackage ./nix/yamlcore.nix { };

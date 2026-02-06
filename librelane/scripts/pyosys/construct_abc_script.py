@@ -18,6 +18,8 @@ import re
 class ABCScriptCreator:
     def __init__(self, config):
         self.config = config
+        D = config["CLOCK_PERIOD"] * 1000  # ns -> ps
+        self.D = D
 
         self.rs_K = "resub -K "
         self.rs = "resub"
@@ -55,8 +57,8 @@ class ABCScriptCreator:
 
         self.map_old_area = "map -p -a -B 0.2 -A 0.9 -M 0"
         self.map_old_dly = "map -p -B 0.2 -A 0.9 -M 0"
-        self.retime_area = "retime {D} -M 5"
-        self.retime_dly = "retime {D} -M 6"
+        self.retime_area = "retime -M 5"
+        self.retime_dly = "retime -M 6"
         self.map_new_area = "amap -m -Q 0.1 -F 20 -A 20 -C 5000"
 
         if config["SYNTH_ABC_AREA_USE_NF"]:
@@ -71,11 +73,9 @@ class ABCScriptCreator:
             max_tr_arg = ""
             if self.max_transition != 0:
                 max_tr_arg = f" -S {self.max_transition}"
-            self.fine_tune = (
-                f"buffer -N {self.max_fanout}{max_tr_arg};upsize {{D}};dnsize {{D}}"
-            )
+            self.fine_tune = f"buffer -N {self.max_fanout}{max_tr_arg};upsize;dnsize"
         elif config["SYNTH_SIZING"]:
-            self.fine_tune = "upsize {D};dnsize {D}"
+            self.fine_tune = "upsize;dnsize"
 
     def generate_abc_script(self, step_dir, strategy):
         strategy_clean = re.sub(r"\s+", "_", strategy)
@@ -160,7 +160,7 @@ class ABCScriptCreator:
             else:
                 print(self.delay_mfs3, file=f)
 
-            print("retime {D}", file=f)
+            print("retime", file=f)
 
             # & space
             print("&get -n", file=f)

@@ -164,6 +164,10 @@ class OdbpyStep(Step):
             for lef in extra_lefs:
                 lefs.append("--input-lef")
                 lefs.append(lef)
+        if pad_lefs := self.config["PAD_LEFS"]:
+            for lef in pad_lefs:
+                lefs.append("--input-lef")
+                lefs.append(lef)
         if (design_lef := self.state_in.result().get(DesignFormat.LEF)) and (
             DesignFormat.LEF in self.inputs
         ):
@@ -692,9 +696,9 @@ class CustomIOPlacement(OdbpyStep):
                 "--config",
                 self.config["IO_PIN_ORDER_CFG"],
                 "--hor-layer",
-                self.config["FP_IO_HLAYER"],
+                self.config["IO_PIN_H_LAYER"],
                 "--ver-layer",
-                self.config["FP_IO_VLAYER"],
+                self.config["IO_PIN_V_LAYER"],
                 "--hor-width-mult",
                 str(self.config["IO_PIN_V_THICKNESS_MULT"]),
                 "--ver-width-mult",

@@ -57,7 +57,7 @@ coverage-infrastructure:
 coverage-steps:
 	python3 -m pytest -n auto\
 		--cov=librelane.steps --cov-config=.coveragerc-steps --cov-report html:htmlcov_steps --cov-report term\
-		--step-rx "." -k test_all_steps
+		-k test_all_steps
 
 .PHONY: check-license
 check-license: venv/manifest.txt

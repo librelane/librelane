@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,12 +45,14 @@ if { $::env(MAGIC_DRC_USE_GDS) } {
     read_tech_lef
     read_pdk_lef
     read_macro_lef
+    read_extra_lef
+    read_pad_lef
     read_def
 }
 
 set report_dir $::env(STEP_DIR)/reports
 
-set drc_rpt_path $report_dir/drc_violations.magic.rpt
+set drc_rpt_path $report_dir/drc.magic.rpt
 set fout [open $drc_rpt_path w]
 set oscale [cif scale out]
 set cell_name $::env(DESIGN_NAME)

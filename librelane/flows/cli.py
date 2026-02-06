@@ -252,6 +252,7 @@ def cloup_flow_opts(
         * ``pdk_root`` ‡: ``Optional[str]``
         * ``pdk`` ‡: ``str``
         * ``scl`` ‡: ``Optional[str]``
+        * ``pad`` ‡: ``Optional[str]``
     * ``config_files``: ``Iterable[str]``: Paths to configuration files (if
       parameter  ``accept_config_files`` is ``True``)
 
@@ -459,6 +460,13 @@ def cloup_flow_opts(
                     # no default, default is obtained dynamically from PDK
                     help="The standard cell library to use. If None, the PDK's default standard cell library is used.",
                 ),
+                o(
+                    "--pad",
+                    type=str,
+                    envvar=["PAD_CELL_LIBRARY"],
+                    # no default, default is obtained dynamically from PDK
+                    help="The standard pad library to use. If None, the PDK's default standard cell library is used (if it exists).",
+                ),
             )(f)
         if jobs:
             f = o(
@@ -497,6 +505,7 @@ def cloup_flow_opts(
                 pdk_root: Optional[str],
                 pdk: str,
                 scl: Optional[str],
+                pad: Optional[str],
                 use_ciel: bool,
                 **kwargs,
             ) -> str:
@@ -514,6 +523,9 @@ def cloup_flow_opts(
                     include_libraries = ["default"]
                     if scl is not None:
                         include_libraries.append(scl)
+
+                    if pad is not None:
+                        include_libraries.append(pad)
 
                     pdk_family = None
                     if family := ciel.Family.by_name.get(pdk):
@@ -545,7 +557,7 @@ def cloup_flow_opts(
                         err(f"Failed to download PDK: {e}")
                         exit(1)
 
-                return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, **kwargs)
+                return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, pad=pad, **kwargs)
 
             return pdk_resolve_wrapper
         else:
