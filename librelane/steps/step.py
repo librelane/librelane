@@ -188,7 +188,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
             # and terminal emulators will slow the flow down.
             self.current_rpt.write(line)
         elif not self.silent:
-            logging.subprocess(line.strip())
+            logging.subprocess(line.rstrip())
         return True
 
     def result(self) -> Dict[str, Any]:
@@ -625,6 +625,7 @@ class Step(ABC):
         *,
         docstring_override: str = "",
         use_dropdown: bool = False,
+        myst_anchors: bool = False,
     ):  # pragma: no cover
         """
         Renders Markdown help for this step to a string.
@@ -682,25 +683,22 @@ class Step(ABC):
                 result += f"| {input_str} | {output_str} |\n"
 
         if len(Self.config_vars):
+            config_var_anchors = f"({Self.id.lower()}-configuration-variables)="
             result += textwrap.dedent(
                 f"""
-                ({Self.id.lower()}-configuration-variables)=
+                {config_var_anchors * myst_anchors}
                 #### Configuration Variables
-
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in Self.config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                result += f"| `{var.name}`{{#{var._get_docs_identifier(Self.id)}}}{pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
-            result += "\n"
+            result += Variable._render_table_md(
+                Self.config_vars, myst_anchor_owner_id=Self.id if myst_anchors else None
+            )
 
+        step_anchor = f"(step-{slugify(Self.id.lower())})="
         result = (
             textwrap.dedent(
                 f"""
-                (step-{slugify(Self.id.lower())})=
+                {step_anchor * myst_anchors}
                 ### {Self.__get_desc()}
                 """
             )
@@ -712,11 +710,22 @@ class Step(ABC):
     @classmethod
     def display_help(Self):  # pragma: no cover
         """
-        IPython-only. Displays Markdown help for a given step.
-        """
-        import IPython.display
+        Displays Markdown help for this Step.
 
-        IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        If in an IPython environment, it's rendered using ``IPython.display``.
+        Otherwise, it's rendered using ``rich.markdown``.
+        """
+        try:
+            get_ipython()  # type: ignore
+
+            import IPython.display
+
+            IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        except NameError:
+            from ..logging import console
+            from rich.markdown import Markdown
+
+            console.log(Markdown(Self.get_help_md()))
 
     def _repr_markdown_(self) -> str:  # pragma: no cover
         """
@@ -1425,7 +1434,8 @@ class Step(ABC):
         A factory singleton for Steps, allowing steps types to be registered and then
         retrieved by name.
 
-        See https://en.wikipedia.org/wiki/Factory_(object-oriented_programming) for
+        See
+        `Factory (object-oriented programming) on Wikipedia <https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)>`_
         a primer.
         """
 

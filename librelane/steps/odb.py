@@ -17,7 +17,6 @@ import json
 import shutil
 from math import inf
 from decimal import Decimal
-from functools import reduce
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional, Tuple
@@ -177,6 +176,10 @@ class OdbpyStep(Step):
 
 @Step.factory.register()
 class CheckMacroAntennaProperties(OdbpyStep):
+    """
+    Prints warnings if the LEF views of macros are missing antenna information.
+    """
+
     id = "Odb.CheckMacroAntennaProperties"
     name = "Check Antenna Properties of Macros Pins in Their LEF Views"
     inputs = OdbpyStep.inputs
@@ -214,6 +217,10 @@ class CheckMacroAntennaProperties(OdbpyStep):
 
 @Step.factory.register()
 class CheckDesignAntennaProperties(CheckMacroAntennaProperties):
+    """
+    Prints warnings if the LEF view of the design is missing antenna information.
+    """
+
     id = "Odb.CheckDesignAntennaProperties"
     name = "Check Antenna Properties of Pins in The Generated Design LEF view"
     inputs = CheckMacroAntennaProperties.inputs + [DesignFormat.LEF]
@@ -414,9 +421,7 @@ class ManualMacroPlacement(OdbpyStep):
             )
             shutil.copyfile(cfg_ref, cfg_file)
         elif macros := self.config.get("MACROS"):
-            instance_count = reduce(
-                lambda x, y: x + len(y.instances), macros.values(), 0
-            )
+            instance_count = sum(len(m.instances) for m in macros.values())
             if instance_count >= 1:
                 with open(cfg_file, "w") as f:
                     for module, macro in macros.items():
@@ -522,6 +527,11 @@ class ReportDisconnectedPins(OdbpyStep):
 
 @Step.factory.register()
 class AddRoutingObstructions(OdbpyStep):
+    """
+    Adds obstructions on metal layers which prevent shapes from being created in
+    the designated areas.
+    """
+
     id = "Odb.AddRoutingObstructions"
     name = "Add Obstructions"
     config_vars = [
@@ -564,6 +574,11 @@ class AddRoutingObstructions(OdbpyStep):
 
 @Step.factory.register()
 class RemoveRoutingObstructions(AddRoutingObstructions):
+    """
+    Removes any routing obstructions previously placed by
+    <#Odb.AddRoutingObstructions>`_.
+    """
+
     id = "Odb.RemoveRoutingObstructions"
     name = "Remove Obstructions"
 
@@ -573,6 +588,15 @@ class RemoveRoutingObstructions(AddRoutingObstructions):
 
 @Step.factory.register()
 class AddPDNObstructions(AddRoutingObstructions):
+    """
+    Adds obstructions on metal layers which prevent shapes from being created in
+    the designated areas.
+
+    A soft-duplicate of <#Odb.AddRoutingObstructions>`_ , though this one uses
+    a different variable name so the obstructions can be restricted for PDN
+    steps only.
+    """
+
     id = "Odb.AddPDNObstructions"
     name = "Add PDN obstructions"
 
@@ -590,6 +614,11 @@ class AddPDNObstructions(AddRoutingObstructions):
 
 @Step.factory.register()
 class RemovePDNObstructions(RemoveRoutingObstructions):
+    """
+    Removes any PDN obstructions previously placed by
+    <#Odb.RemovePDNObstructions>`_.
+    """
+
     id = "Odb.RemovePDNObstructions"
     name = "Remove PDN obstructions"
 

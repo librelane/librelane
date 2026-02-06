@@ -375,7 +375,7 @@ class Flow(ABC):
         self.progress_bar = FlowProgressBar(self.name)
 
     @classmethod
-    def get_help_md(Self) -> str:  # pragma: no cover
+    def get_help_md(Self, myst_anchors: bool = False) -> str:  # pragma: no cover
         """
         :returns: rendered Markdown help for this Flow
         """
@@ -383,10 +383,12 @@ class Flow(ABC):
         if Self.__doc__:
             doc_string = textwrap.dedent(Self.__doc__)
 
+        flow_anchor = f"(flow-{slugify(Self.__name__, lower=True)})="
+
         result = (
             textwrap.dedent(
                 f"""\
-                (flow-{slugify(Self.__name__, lower=True)})=
+                {flow_anchor * myst_anchors}
                 ### {Self.__name__}
 
                 ```{{eval-rst}}
@@ -413,34 +415,52 @@ class Flow(ABC):
         flow_config_vars = Self.config_vars
 
         if len(flow_config_vars):
+            config_var_anchors = f"({slugify(Self.__name__, lower=True)}-config-vars)="
             result += textwrap.dedent(
                 f"""
-                ({slugify(Self.__name__, lower=True)}-config-vars)=
-
+                {config_var_anchors * myst_anchors}
                 #### Flow-specific Configuration Variables
-
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in flow_config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                result += f"| `{var.name}`{{#{var._get_docs_identifier(Self.__name__)}}}{pdk_superscript} | {var.type_repr_md()} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
+            result += Variable._render_table_md(
+                flow_config_vars,
+                myst_anchor_owner_id=Self.__name__ if myst_anchors else None,
+            )
             result += "\n"
 
         if len(Self.Steps):
             result += "#### Included Steps\n"
             for step in Self.Steps:
-                if hasattr(step, "long_name"):
-                    name = step.long_name
-                elif hasattr(step, "name"):
-                    name = step.name
+                imp_id = step.get_implementation_id()
+                if myst_anchors:
+                    result += f"* [`{step.id}`](./step_config_vars.md#step-{slugify(imp_id, lower=True)})\n"
                 else:
-                    name = step.id
-                result += f"* [`{step.id}`](./step_config_vars.md#{slugify(name)})\n"
+                    variant_str = ""
+                    if imp_id != step.id:
+                        variant_str = f" (implementation: `{imp_id}`)"
+                    result += f"* `{step.id}`{variant_str}\n"
 
         return result
+
+    @classmethod
+    def display_help(Self):  # pragma: no cover
+        """
+        Displays Markdown help for a given flow.
+
+        If in an IPython environment, it's rendered using ``IPython.display``.
+        Otherwise, it's rendered using ``rich.markdown``.
+        """
+        try:
+            get_ipython()  # type: ignore
+
+            import IPython.display
+
+            IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
+        except NameError:
+            from ..logging import console
+            from rich.markdown import Markdown
+
+            console.log(Markdown(Self.get_help_md()))
 
     def get_all_config_variables(self) -> List[Variable]:
         """
@@ -510,8 +530,11 @@ class Flow(ABC):
 
         :param with_initial_state: An optional initial state object to use.
             If not provided:
+
             * If resuming a previous run, the latest ``state_out.json`` (by filesystem modification date)
+
             * If not, an empty state object is created.
+
         :param tag: A name for this invocation of the flow. If not provided,
             one based on a date string will be created.
 
@@ -796,7 +819,6 @@ class Flow(ABC):
             DesignFormat.POWERED_NETLIST: (os.path.join("verilog", "gl"), "v"),
             DesignFormat.DEF: ("def", "def"),
             DesignFormat.LEF: ("lef", "lef"),
-            DesignFormat.SDF: (os.path.join("sdf", "multicorner"), "sdf"),
             DesignFormat.SPEF: (os.path.join("spef", "multicorner"), "spef"),
             DesignFormat.LIB: (os.path.join("lib", "multicorner"), "lib"),
             DesignFormat.GDS: ("gds", "gds"),
@@ -855,38 +877,67 @@ class Flow(ABC):
                         file_path, os.path.join(to_dir, file), follow_symlinks=True
                     )
 
-        signoff_folder = os.path.join(
-            path, "signoff", self.config["DESIGN_NAME"], "librelane-signoff"
-        )
-        mkdirp(signoff_folder)
+        def find_one(pattern):
+            result = glob.glob(pattern)
+            if len(result) == 0:
+                return None
+            return result[0]
 
-        # resolved.json
+        signoff_dir = os.path.join(path, "signoff", self.config["DESIGN_NAME"])
+        openlane_signoff_dir = os.path.join(signoff_dir, "openlane-signoff")
+        mkdirp(openlane_signoff_dir)
+
+        ## resolved.json
         shutil.copyfile(
             self.config_resolved_path,
-            os.path.join(signoff_folder, "resolved.json"),
+            os.path.join(openlane_signoff_dir, "resolved.json"),
             follow_symlinks=True,
         )
 
-        # Logs
-        mkdirp(signoff_folder)
-        copy_dir_contents(self.run_dir, signoff_folder, "*.log")
+        ## metrics
+        with open(os.path.join(signoff_dir, "metrics.csv"), "w", encoding="utf8") as f:
+            last_state.metrics_to_csv(f)
 
-        # Step-specific
+        ## flow logs
+        mkdirp(openlane_signoff_dir)
+        copy_dir_contents(self.run_dir, openlane_signoff_dir, "*.log")
+
+        ### step-specific signoff logs and reports
         for step in self.step_objects:
             reports_dir = os.path.join(step.step_dir, "reports")
             step_imp_id = step.get_implementation_id()
+            if step_imp_id == "Magic.DRC":
+                if drc_rpt := find_one(os.path.join(reports_dir, "*.rpt")):
+                    shutil.copyfile(
+                        drc_rpt, os.path.join(openlane_signoff_dir, "drc.rpt")
+                    )
+                if drc_xml := find_one(os.path.join(reports_dir, "*.xml")):
+                    # Despite the name, this is the Magic DRC report simply
+                    # converted into a KLayout-compatible format. Confusing!
+                    drc_xml_out = os.path.join(openlane_signoff_dir, "drc.klayout.xml")
+                    with open(drc_xml, encoding="utf8") as i, open(
+                        drc_xml_out, "w", encoding="utf8"
+                    ) as o:
+                        o.write(
+                            "<!-- Despite the name, this is the Magic DRC report in KLayout format. -->\n"
+                        )
+                        shutil.copyfileobj(i, o)
+            if step_imp_id == "Netgen.LVS":
+                if lvs_rpt := find_one(os.path.join(reports_dir, "*.rpt")):
+                    shutil.copyfile(
+                        lvs_rpt, os.path.join(openlane_signoff_dir, "lvs.rpt")
+                    )
             if step_imp_id.endswith("DRC") or step_imp_id.endswith("LVS"):
-                if os.path.exists(reports_dir):
-                    copy_dir_contents(reports_dir, signoff_folder)
-            if step_imp_id.endswith("LVS"):
-                copy_dir_contents(step.step_dir, signoff_folder, "*.log")
+                copy_dir_contents(step.step_dir, openlane_signoff_dir, "*.log")
             if step_imp_id.endswith("CheckAntennas"):
                 if os.path.exists(reports_dir):
                     copy_dir_contents(
-                        reports_dir, signoff_folder, "antenna_summary.rpt"
+                        reports_dir, openlane_signoff_dir, "antenna_summary.rpt"
                     )
             if step_imp_id.endswith("STAPostPNR"):
-                timing_report_folder = os.path.join(signoff_folder, "timing-reports")
+                timing_report_folder = os.path.join(
+                    openlane_signoff_dir, "timing-reports"
+                )
                 mkdirp(timing_report_folder)
                 copy_dir_contents(step.step_dir, timing_report_folder, "*summary.rpt")
                 for dir in os.listdir(step.step_dir):
@@ -896,6 +947,18 @@ class Flow(ABC):
                     target = os.path.join(timing_report_folder, dir)
                     mkdirp(target)
                     copy_dir_contents(dir_path, target, "*.rpt")
+
+        # 3. SDF
+        #   (This one, as with many things in the Efabless format, is special)
+        if sdf := last_state[DesignFormat.SDF]:
+            assert isinstance(sdf, dict), "SDF is not a dictionary"
+            for corner, view in sdf.items():
+                assert isinstance(view, Path), "SDF state out returned multiple paths"
+                target_dir = os.path.join(signoff_dir, "sdf", corner)
+                mkdirp(target_dir)
+                shutil.copyfile(
+                    view, os.path.join(target_dir, f"{self.config['DESIGN_NAME']}.sdf")
+                )
 
     @deprecated(
         version="2.0.0a46",
@@ -938,8 +1001,9 @@ class Flow(ABC):
         A factory singleton for Flows, allowing Flow types to be registered and then
         retrieved by name.
 
-        See https://en.wikipedia.org/wiki/Factory_(object-oriented_programming) for
-        a primer.
+        See
+        `Factory (object-oriented programming) on Wikipedia <https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)>`_
+        for a primer.
         """
 
         __registry: ClassVar[Dict[str, Type[Flow]]] = {}

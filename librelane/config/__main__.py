@@ -14,7 +14,6 @@
 import os
 import sys
 import json
-import functools
 from decimal import Decimal
 
 import click
@@ -111,9 +110,7 @@ def create_config(
                 print("At least one source RTL file is required.", file=sys.stderr)
                 exit(1)
     source_rtl_key = "VERILOG_FILES"
-    if not functools.reduce(
-        lambda acc, x: acc and (x.endswith(".sv") or x.endswith(".v")), source_rtl, True
-    ):
+    if not all(file.endswith(".sv") or file.endswith(".v") for file in source_rtl):
         print(
             "Only Verilog/SystemVerilog files are supported by create-config.",
             file=sys.stderr,

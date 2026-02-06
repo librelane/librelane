@@ -43,5 +43,3 @@ if {  [info exist ::env(EXTRA_GDS_FILES)] } {
 		puts "\[INFO\] Saved mag view from $gds_file under $::env(STEP_DIR)"
 	}
 }
-
-exit 0

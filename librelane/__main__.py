@@ -1,4 +1,4 @@
-# Copyright 2025 The American University in Cairo
+# Copyright 2025 LibreLane Contributors
 #
 # Adapted from OpenLane
 #
@@ -22,7 +22,6 @@ import shutil
 import marshal
 import tempfile
 import traceback
-import subprocess
 from textwrap import dedent
 from functools import partial
 from typing import Any, Dict, Sequence, Tuple, Type, Optional, List
@@ -206,8 +205,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
         f"""
         LibreLane v{__version__}
 
-        Copyright ©2020-2025 Efabless Corporation, The American University in
-        Cairo, and other contributors.
+        Copyright ©2025-2026 LibreLane Contributors
+
+        Adapted from OpenLane 2.0
+        Copyright ©2020-2025 Efabless Corporation
 
         Available under the Apache License, version 2. Included with the source code,
         but you can also get a copy at https://www.apache.org/licenses/LICENSE-2.0
@@ -221,7 +222,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
     if len(discovered_plugins) > 0:
         print("Discovered plugins:")
         for name, module in discovered_plugins.items():
-            print(f"{name} -> {module.__version__}")
+            if hasattr(module, "__version__"):
+                print(f"{name} -> {module.__version__}")
+            else:
+                print(f"{name}")
 
     ctx.exit(0)
 
@@ -278,20 +282,12 @@ def run_included_example(
         if os.path.isdir(final_path):
             print(f"A directory named {value} already exists.", file=sys.stderr)
             ctx.exit(1)
+
         # 1. Copy the files
-        shutil.copytree(
-            example_path,
-            final_path,
-            symlinks=False,
-        )
-
-        # 2. Make files writable
-        if os.name == "posix":
-            subprocess.check_call(["chmod", "-R", "755", final_path])
-
+        common.recreate_tree(example_path, final_path)
         config_file = glob.glob(os.path.join(final_path, "config.*"))[0]
 
-        # 3. Run
+        # 2. Run
         run(
             ctx,
             config_files=[config_file],
@@ -321,28 +317,38 @@ def cli_in_container(
     if not value:
         return
 
-    docker_mounts = list(ctx.params.get("docker_mounts") or ())
-    docker_tty: bool = ctx.params.get("docker_tty", True)
+    mounts = list(ctx.params.get("docker_mounts") or ())
+    tty: bool = ctx.params.get("docker_tty", True)
     pdk_root = ctx.params.get("pdk_root")
-    argv = sys.argv[sys.argv.index("--dockerized") + 1 :]
+
+    try:
+        containerized_index = sys.argv.index("--dockerized")
+    except ValueError:
+        containerized_index = sys.argv.index("--containerized")
+
+    argv = sys.argv[containerized_index + 1 :]
 
     final_argv = ["zsh"]
     if len(argv) != 0:
-        final_argv = ["librelane"] + argv
+        final_argv = ["python3", "-m", "librelane"] + argv
 
-    docker_image = os.getenv(
+    container_image = os.getenv(
         "LIBRELANE_IMAGE_OVERRIDE", f"ghcr.io/librelane/librelane:{__version__}"
     )
 
     try:
         run_in_container(
-            docker_image,
+            container_image,
             final_argv,
             pdk_root=pdk_root,
-            other_mounts=docker_mounts,
-            tty=docker_tty,
+            other_mounts=mounts,
+            tty=tty,
         )
+    except ValueError as e:
+        err(e)
+        ctx.exit(1)
     except Exception as e:
+        traceback.print_exc(file=sys.stderr)
         err(e)
         ctx.exit(1)
 
@@ -377,25 +383,28 @@ o = partial(option, show_default=True)
     "Containerization options",
     o(
         "--docker-mount",
+        "--container-mount",
         "-m",
         "docker_mounts",
         multiple=True,
-        is_eager=True,  # docker options should be processed before anything else
+        is_eager=True,  # container options should be processed before anything else
         default=(),
-        help="Used to mount more directories in dockerized mode. If a valid directory is specified, it will be mounted in the same path in the container. Otherwise, the value of the option will be passed to the Docker-compatible container engine verbatim. Must be passed before --dockerized, has no effect if --dockerized is not set.",
+        help="Used to mount more directories in dockerized mode. If a valid directory is specified, it will be mounted in the same path in the container. Otherwise, the value of the option will be passed to the container engine verbatim. Must be passed before --containerized/--dockerized, has no effect if not set.",
     ),
     o(
         "--docker-tty/--docker-no-tty",
-        is_eager=True,  # docker options should be processed before anything else
+        "--container-tty/--container-no-tty",
+        is_eager=True,  # container options should be processed before anything else
         default=True,
-        help="Controls the allocation of a virtual terminal by passing -t to the Docker-compatible container engine invocation. Must be passed before --dockerized, has no effect if --dockerized is not set.",
+        help="Controls the allocation of a virtual terminal by passing -t to the Docker-compatible container engine invocation. Must be passed before --containerized/--dockerized, has no effect if not set.",
     ),
     o(
         "--dockerized",
+        "--containerized",
         default=False,
         is_flag=True,
         is_eager=True,  # docker options should be processed before anything else
-        help="Run the remaining flags using a Docker container. Some caveats apply. Must precede all options except --docker-mount, --docker-tty/--docker-no-tty.",
+        help="Run the remaining flags using a containerized version of LibreLane. Some caveats apply. Must precede all options except --{docker,container}-mount, --{docker,container}-[no-]tty.",
         callback=cli_in_container,
     ),
 )

@@ -77,5 +77,3 @@ if { $::env(MAGIC_GDS_POLYGON_SUBCELLS) } {
 
 gds write $::env(SAVE_MAG_GDS)
 puts "\[INFO\] GDS Write Complete"
-
-exit 0

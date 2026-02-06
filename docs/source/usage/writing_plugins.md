@@ -92,6 +92,3 @@ devShells = librelane.inputs.nix-eda.forAllSystems { withInputs = [librelane sel
   }) {};
 });
 ```
-
-For a full example of this, see
-[`librelane_plugin_example`](https://github.com/efabless/user_plugin_example).

@@ -14,6 +14,149 @@
 ## Documentation
 -->
 
+# 2.4.12
+
+## Steps
+
+* `Yosys.VHDLSynthesis`
+
+  * Added `GHDL_ARGUMENTS` to provide arguments to ghdl-yosys, such as `--std=08`.
+
+# 2.4.11
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Removed misleading nonfunctional clock delay propagation to ABC scripts
+    pending further investigations.
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed copyright information.
+
+# 2.4.10
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed `common/cli.py` and `pyproject.toml` so click versions 8.2 and higher
+  are supported.
+
+# 2.4.9
+
+## Steps
+
+* `KLayout.OpenGUI`
+
+  * Fixed the technology not being registered.
+
+# 2.4.8
+
+## Misc. Enhancements/Bugfixes
+
+* Changed `strip()` on subprocess logs to `rstrip()` to prevent misformatting of
+  tables and other elements.
+
+# 2.4.7
+
+## Documentation
+
+* Configuration variables now list deprecated names in a collapsible in the same
+  cell as the variable name.
+* Configuration variable tables now omit the units if all configuration
+  variables lack a unit, to save horizontal real estate.
+
+# 2.4.6
+
+## Misc. Enhancements/Bugfixes
+
+* Fixed an issue where the "-" operand in an `expr::` would perform addition
+  instead of subtraction.
+
+# 2.4.5
+
+## Testing
+
+* Added AppImage generation using `nix bundle`. Releases are now created for
+  every new tag with the AppImages included as release assets.
+
+## Documentation
+
+* Fixed typos in the ECO guide.
+
+# 2.4.4
+
+## Steps
+
+* `Checker.*`
+
+  * Dynamic docstring now actually assigned in `__init_subclass__` and is not
+    exclusive to `.get_help_md()`.
+
+* `OpenROAD.*`
+
+  * Fixed a number of double-represented variables.
+
+## Misc. Enhancements/Bugfixes
+
+* `tkinter` no longer required for any operations that do not require evaluating
+  Tcl. Useful for being able to run things like `librelane --version` without
+  the entire tool crashing.
+* Fixed missing docstrings for a number of steps used in the flow.
+* Fixed a crash when a plugin is missing `__version__` at the top level.
+
+## Documentation
+
+* Moved installation into its own separate section.
+* Codified API stability policy.
+* Updated Contributor's Guide with information about access control and code
+  ownership policy.
+* Updated `make docs` to only install dependencies if inside a venv.
+* Fixed all broken links.
+* Replaced nodemon with pymon.
+* Added a number of terms to the glossary.
+
+# 2.4.3
+
+## Steps
+
+* `Odb.ApplyDEFTemplate`
+
+  * Fixed a crash when `FP_TEMPLATE_COPY_POWER_PINS` is set to `True` and one or
+    more power pin block terminals already exist.
+
+## Misc. Enhancements/Bugfixes
+
+* Updated all flakes to drop usage of URL literals to fix support for Lix, the
+  community fork of Nix.
+* Fixed an inelegant stack dump when Ciel fails to fetch a PDK and added a small
+  warning for `ihp-sg13g2` users to encourage them to switch to the `dev`
+  branch.
+
+## Documentation
+
+* Added `--prefer-upstream-nix` to Nix installation steps for now: see
+  https://determinate.systems/blog/installer-dropping-upstream/
+* Synchronization for step indices in the newcomers' guide (Thanks
+  [@Essencia](https://github.com/essencia))
+
+# 2.4.2
+
+## Documentation
+
+* Added VHDL usage guide by [@mole99](https://github.com/mole99)
+* Fixed invalid path in PDK porting guide
+* Fixed documentation for `FP_IO_{V,H}_LAYER`
+* Various updates to the FAQ
+* Various docstring formatting fixes
+
+# 2.4.1
+
+## Misc. Enhancements/Bugfixes
+
+* Replaced libparse with a fork maintained by the LibreLane team to fix
+  LibreLane not being installable on Python 3.13.
+
 # 2.4.0: Hello, LibreLane
 
 2.4.0 is the first version of LibreLane, a fork of the OpenLane 2 by its
@@ -36,6 +179,16 @@ original authors after Efabless Corporation has ceased operations.
     after (and only after global routing,) with an option to run it after
     detailed routing so long as detailed routing is run again afterwards.
 
+* `Magic.*`
+
+  * Unified exits in wrapper.
+
+* `Magic.SpiceExtraction`
+
+  * Added new variable `MAGIC_FEEDBACK_CONVERSION_THRESHOLD`: the number of
+    overlap errors that can be in a single feedback file before the step no
+    longer attempts to compile it into a KLayout database.
+
 * `OpenROAD.*`
 
   * **API**: instance variable `.alerts` now holds emitted alerts until the next
@@ -48,7 +201,7 @@ original authors after Efabless Corporation has ceased operations.
 
 * `OpenROAD.OpenGUI`
 
-  * The LIBs are now loaded by default and the SPEFs if available.
+  * The LIBs are now loaded by default and the top-level SPEF if available.
 
 ## Documentation
 
@@ -64,19 +217,72 @@ original authors after Efabless Corporation has ceased operations.
 
 ## Misc. Enhancements/Bugfixes
 
-* `librelane.state.DesignFormat`
-  * Added new dynamic property `.value.optional` which cannot be defined for new
-    enum members and always returns `False`.
-  * Added new method `mkOptional` which creates an ephemeral copy of the
-    DesignFormat where `.value.optional` returns `True`.
+* `CLI`
+
+  * New command, `librelane.help` that can be supplied with the ID of either a
+    flow or step and it prints the full markdown help for the flow or step in
+    the terminal.
+
+  * Various fixes to `--ef-save-views-to` to better align with the Caravel User
+    Project format: SDFs now save in the right spot and reports are saved
+    correctly.
+
+* `librelane.config.Variable`
+
+  * Variables of type `List[Path]` now flatten lists of lists so multiple globs
+    may be used within the same configuration variable.
+
+* `librelane.state`
+
+  * `DesignFormat`
+
+    * Added new dynamic property `.value.optional` which cannot be defined for
+      new enum members and always returns `False`.
+    * Added new method `.mkOptional()` which creates an ephemeral copy of the
+      DesignFormat where `.value.optional` returns `True`.
+
+  * `State`
+
+    * Added new method `.metrics_to_csv()` which uses `csv.writer` to dump
+      metrics.
+    * `.save_snapshot()` now uses `.metrics_to_csv()` internally instead of
+      primitive for-loop.
+
+* `librelane.flows.Flow`
+
+  * Added `.display_help()` for consistency with steps.
+  * Fixed `.get_help_md()` including MyST anchors even for renderers that do not
+    support them, only doing so now if the keyword argument `myst_anchors` is
+    set to `True`.
+
 * `librelane.steps.Step`
+
   * DesignFormats where `.value.optional` is True (i.e. copied with mkOptional)
     no longer cause a `StepException` to be raised if missing from inputs.
+  * `display_help` now renders the markdown help with rich in a non-notebook
+    environment instead of raising an error.
+  * Fixed `.get_help_md()` including MyST anchors even for renderers that do not
+    support them, only doing so now if the keyword argument `myst_anchors` is
+    set to `True`.
   * Note: Currently, all outputs are technically optional anyway. This will
     change in 3.0.0.
+
+* `librelane.common.ScopedFile`
+
+  * Fixed crash associated with `__del__` when ScopedFile is declared at the
+    top-level.
+
+* Enhanced resilience against permission issues with containerized setups.
+
+  * Temporary directories are no longer mounted.
+
+  * Docker and Podman are both tested in CI.
+
 * Worked around an issue with Google Colaboratory where if `PATH` is set,
   Yosys's Python `sitepackages` are replaced with the global ones and everything
   breaks.
+
+* Replaced `functools.reduce` with the C-optimized built-ins wherever possible.
 
 # 2.3.10
 

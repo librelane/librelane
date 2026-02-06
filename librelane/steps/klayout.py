@@ -268,8 +268,9 @@ class XOR(KLayoutStep):
         Variable(
             "KLAYOUT_XOR_TILE_SIZE",
             Optional[int],
-            "A tile size for the XOR process in µm.",
+            "The tile size to parallelize the XOR process with.",
             pdk=True,
+            units="µm",
         ),
     ]
 
@@ -327,6 +328,15 @@ class XOR(KLayoutStep):
 
 @Step.factory.register()
 class DRC(KLayoutStep):
+    """
+    Runs DRC using KLayout.
+
+    Unlike most steps, the KLayout scripts vary quite wildly by PDK. If a PDK
+    is not supported by this step, it will simply be skipped.
+
+    Currently, only sky130A and sky130B are supported.
+    """
+
     id = "KLayout.DRC"
     name = "Design Rule Check (KLayout)"
 

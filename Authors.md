@@ -1,21 +1,29 @@
 # Authors
-All categories ordered by last name, alphabetically.
 
-## LibreLane Team
+All categories arranged alphabetically.
 
-LibreLane is curerntly maintained by the American University in Cairo
-Open Hardware Lab.
+> This list may be non-exhaustive and primarily reflects copyright holders for
+> significant portions of the code. See
+> https://github.com/librelane/librelane/graphs/contributors for a full list of
+> human authors.
 
+* Efabless Corporation \<https://efabless.com\> (until February 2023)
+* Leo Moser \<leo.moser@pm.me\>
 * Mohamed Gaber \<me@donn.website\>
 * Mohamed Shalan \<mshalan@aucegypt.edu\>
 
-## OpenLane 2.0 Core Developers
+## OpenLane
+
+LibreLane is the successor to OpenLane, developed, copyrighted and released as
+open-source by Efabless Corporation.
+
+### OpenLane 2.0 Core Developers
 
 * Kareem Farid \<kareem.farid@efabless.com\>
 * Mohamed Gaber \<donn@efabless.com\>
 * Mohamed Shalan \<mshalan@efabless.com\>
 
-## OpenLane 1.0 Core Developers
+### OpenLane 1.0 Core Developers
 
 * Manar Abdelatty \<manarabdelaty@efabless.com\>
 * Kareem Farid \<kareem.farid@efabless.com\>
@@ -34,7 +42,3 @@ Open Hardware Lab.
 * Harald Pretl \<harald.pretl@jku.at\>
 * Tom Spyrou \<aspyrou@eng.ucsd.edu\>
 * Andrew Wright \<andrew.wright@efabless.com\>
-
-## All Contributors
-
-https://github.com/librelane/librelane/graphs/contributors

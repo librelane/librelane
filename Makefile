@@ -7,12 +7,12 @@ dist: venv/manifest.txt
 mount:
 	@echo "make mount is not needed in LibreLane 2+. You may simply call 'librelane --dockerized'."
 
-.PHONY: pdk pull-librelane
-pdk pull-librelane:
-	@echo "LibreLane 2+ will automatically pull PDKs and/or Docker containers when it needs them."
+.PHONY: pdk pull-openlane pull-librelane
+pdk pull-openlane pull-librelane:
+	@echo "LibreLane will automatically pull PDKs and/or Docker containers when it needs them."
 
-.PHONY: librelane
-librelane:
+.PHONY: openlane librelane
+librelane openlane:
 	@echo "make librelane is deprecated. Please use make docker-image."
 	@echo "----"
 	@$(MAKE) docker-image
@@ -21,8 +21,10 @@ librelane:
 docker-image:
 	cat $(shell nix build --no-link --print-out-paths .#librelane-docker -L --verbose) | docker load
 
+# double-installing is still fast
 .PHONY: docs
 docs:
+	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= python3 -m pip install -r ./docs/requirements.txt; fi
 	$(MAKE) -C docs html
 
 .PHONY: host-docs
@@ -31,13 +33,13 @@ host-docs:
 	
 .PHONY: watch-docs
 watch-docs:
-	nodemon\
-		-w .\
-		-e md,py,css\
-		-i "docs/build/**/*"\
-		-i "docs/build/*"\
-		-i "docs/source/reference/*_vars.md"\
-		-i "docs/source/reference/flows.md"\
+	pymon\
+		-d\
+		-w '*.md'\
+		-w '*.css'\
+		-i "*docs/build/*"\
+		-i "*docs/source/reference/*_vars.md"\
+		-i "*docs/source/reference/flows.md"\
 		-x "$(MAKE) docs && python3 -m http.server --directory docs/build/html"
 
 .PHONY: lint

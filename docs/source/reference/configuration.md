@@ -62,7 +62,7 @@ according to the
 
 An minimal demonstrative configuration file would look as follows:
 
-```yml
+```yaml
 DESIGN_NAME: spm
 VERILOG_FILES: dir::src/*.v
 CLOCK_PORT: clk

@@ -7,8 +7,8 @@ root of the LibreLane repo.
 ## Setting up the LibreLane Nix Cache
 
 If you somehow haven't done so already, follow the instructions in
-[**Nix Installation**](../getting_started/common/nix_installation/installation_linux.md)
-to enable the LibreLane-specific binary cache.
+{doc}`/installation/nix_installation/index` to enable the LibreLane-specific binary
+cache.
 
 ## Finding the Current Version Info
 
@@ -105,9 +105,6 @@ If it errors out, this may be because of one of the following:
     to limit the stress on your hardware.
 
 ## Further Reading
-
-See [Nix](./code.md#nix) under **Contributing Code** for more information about
-our conventions for Nix derivations.
 
 To gain a deeper understanding of the Nix programming language, try
 [Nix Pills](https://nixos.org/guides/nix-pills/index.html).

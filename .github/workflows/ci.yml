@@ -7,6 +7,10 @@ env:
 on:
   # Runs on all pushes to branches
   push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
   # Runs on all PRs
   pull_request:
   # Runs every day at midnight UTC
@@ -14,6 +18,20 @@ on:
     - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
+
+concurrency:
+  # Behavior:
+  # - Group all pull requests: latest push cancels previous ones
+  # - Group all branches:
+  #   - If main/version- branches: run serially
+  #   - Else, latest push cancels previous ones
+  group: >
+    ${{
+      (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number)) ||
+      (github.event_name == 'push' && format('branch-{0}', github.ref_name)) ||
+      ''
+    }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || !(startsWith(github.ref_name, 'version-') || github.ref_name == 'main' || github.ref_name == 'dev') }}
 
 jobs:
   prepare-test-matrices:
@@ -89,7 +107,7 @@ jobs:
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
@@ -118,12 +136,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -151,12 +168,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -178,14 +194,14 @@ jobs:
         os:
           [
             {
-              name: "macOS 13",
+              name: "macOS 15 (Intel)",
               family: "darwin",
-              runner: "macos-13",
+              runner: "macos-15-intel",
               arch: "x86_64",
               nix: "x86_64-darwin",
             },
             {
-              name: "macOS 14",
+              name: "macOS 15",
               family: "darwin",
               runner: "macos-15",
               arch: "aarch64",
@@ -204,12 +220,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
         uses: actions/cache@v4
         with:
@@ -233,6 +248,67 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  build-appimages:
+    strategy:
+      matrix:
+        os:
+          [
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04",
+              arch: "x86_64",
+              nix: "x86_64-linux",
+            },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              arch: "aarch64",
+              nix: "aarch64-linux",
+            },
+          ]
+    runs-on: ${{ matrix.os.runner }}
+    needs: [build-linux-x86_64, build-linux-aarch64]
+    name: Build AppImage (${{ matrix.os.arch }})
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Install Lix
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            experimental-features = nix-command flakes
+          "
+          echo "extra-substituters = https://nix-cache.fossi-foundation.org" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=" | sudo tee -a /etc/nix/nix.conf
+      - name: Build with Nix
+        id: nix_build_action
+        uses: ./.github/actions/build_nix
+        with:
+          nix_system: ${{ matrix.os.nix }}
+      - name: Build AppImage
+        run: |
+          IMAGE_PATH="$PWD/librelane-devshell-${{ matrix.os.arch }}.AppImage"
+          nix bundle\
+            --out-link $IMAGE_PATH\
+            --bundler github:ralismark/nix-appimage\
+            .#devShells.${{ matrix.os.nix }}.default
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
+          $IMAGE_PATH librelane --smoke-test
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-${{ matrix.os.arch }}
+          path: ${{ env.IMAGE_PATH }}
   build-docker:
     strategy:
       matrix:
@@ -267,13 +343,14 @@ jobs:
           remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-        with:
-          determinate: true
-          extra-conf: |
+      - name: Install Lix # CppNix crashes on Docker build
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+            experimental-features = nix-command flakes
+          "
+          echo "extra-substituters = https://nix-cache.fossi-foundation.org" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=" | sudo tee -a /etc/nix/nix.conf
       - name: Build with Nix
         id: nix_build_action
         uses: ./.github/actions/build_nix
@@ -290,28 +367,71 @@ jobs:
             .#packages.${{ matrix.os.nix }}.librelane-docker)
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
-      - name: Set Up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-      # Do not cache the PDK. We want to test the typical Docker flow here.
-      - name: Smoke-Test Docker Image
-        if: ${{ matrix.os.arch != 'aarch64' }} # No KLayout wheels available for aarch64 yet
-        run: |
-          make venv
-          mkdir -p $HOME/.ciel
-          chmod -R 755 $HOME/.ciel
-          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-${{ matrix.os.arch }}-linux
-          ./venv/bin/python3 -m librelane\
-            --docker-no-tty\
-            --dockerized\
-            --pdk-root ./.ciel-sky130\
-            --smoke-test
       - name: Upload Docker Artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
+  test-containers:
+    strategy:
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+        engine: [podman, docker]
+      fail-fast: false
+    runs-on: ${{ matrix.runner }}
+    needs: [build-docker]
+    name: Test Containers (${{ matrix.runner }}/${{ matrix.engine }})
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+      - if: ${{ matrix.engine == 'docker' }}
+        name: Set up Docker (If applicable)
+        run: |
+          # Docker already installed
+          echo "LIBRELANE_CONTAINER_ENGINE=docker" >> $GITHUB_ENV
+          echo "lln_no_tty=--docker-no-tty" >> $GITHUB_ENV
+          echo "lln_containerized=--dockerized" >> $GITHUB_ENV
+      - if: ${{ matrix.engine == 'podman' }}
+        name: Set up Podman (If applicable)
+        run: |
+          sudo apt-get install -y podman
+          echo "LIBRELANE_CONTAINER_ENGINE=podman" >> $GITHUB_ENV
+          echo "lln_no_tty=--container-no-tty" >> $GITHUB_ENV
+          echo "lln_containerized=--containerized" >> $GITHUB_ENV
+      - name: Download Image (Docker/x86_64)
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-x86_64
+          path: /tmp/docker
+      - name: Load Images (Docker)
+        run: |
+          for file in /tmp/docker/*; do
+            cat $file | $LIBRELANE_CONTAINER_ENGINE load
+          done
+      # Do not cache the PDK. We would like to test the typical Docker flow here.
+      - name: Smoke-Test Container Image
+        run: |
+          make venv
+          mkdir -p $HOME/.ciel
+          chmod -R 755 $HOME/.ciel
+          export LIBRELANE_IMAGE_OVERRIDE=librelane:tmp-x86_64-linux
+          ./venv/bin/python3 -m librelane\
+            $lln_no_tty\
+            $lln_containerized\
+            --pdk-root ./.ciel-sky130\
+            --smoke-test
   test:
     runs-on: ubuntu-22.04
     needs: [build-linux-x86_64, prepare-test-matrices]
@@ -335,12 +455,11 @@ jobs:
         run: |
           git status || true
           tree .git || true
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -375,13 +494,15 @@ jobs:
           ipm install --ip-root $(realpath $IP_ROOT) --ipm-root ~/.ipm --version ${{ matrix.design.ipm_version }} ${{ matrix.design.name }}
 
       - name: Run Test
+        id: test_run
+        continue-on-error: true
         run: |
           if test ${{matrix.design.script}} = "None"
           then
             mkdir -p ${{ github.workspace }}/run
             sudo du -hs /nix/store/* | sort -h | tail -n 10
             sudo du -hs /nix/store/* | sort -h | tail -n 10 > before.txt
-            nix run --accept-flake-config .#librelane --\
+            nix run . --\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
@@ -389,7 +510,7 @@ jobs:
               --condensed\
               ${{ matrix.design.config }}
           else
-            nix develop --accept-flake-config --command\
+            nix develop --command\
               python3 ${{ matrix.design.script }}\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
@@ -397,32 +518,36 @@ jobs:
               --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
               --condensed
           fi
+
       - name: Upload Run Folder
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.test_name }}-${{ matrix.design.pdk }}-${{ matrix.design.scl }}
           path: ${{ matrix.design.run_dir }}
 
       - name: Fetch Metrics
-        if: ${{ always() }}
         run: |
-          nix develop --accept-flake-config --command librelane.state latest\
+          nix develop --command librelane.state latest\
               ${{ matrix.design.run_dir }}\
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
       - name: Upload Metrics
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
           path: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
+
+      - name: Propagate test failure after uploading metrics
+        if: steps.test_run.outcome == 'failure'
+        run: exit -1
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
     needs: test
-    if: ${{ always() }}
+    if: always()
     steps:
-      - name: Merge Artifacts
+      - id: metric_merge
+        name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
         with:
           name: metrics
@@ -431,7 +556,8 @@ jobs:
     name: Upload Metrics
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
-    if: ${{ always() }}
+    # if there isn't at least one metric this exercise is pointless
+    if: needs.merge_metrics.result == 'success'
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -449,8 +575,8 @@ jobs:
           path: current
       - name: "[PRs] Compare to target branch and comment result (if the workflow has secrets access)"
         uses: actions/github-script@v6
-        env: 
-            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        env:
+          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
         if: github.event_name == 'pull_request' && env.bot_github_token != ''
         with:
           github-token: ${{ env.bot_github_token }}
@@ -462,10 +588,11 @@ jobs:
               botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
               comparingDirectory: "current",
               againstBranch: "${{ github.base_ref }}",
+              metricsRepo: "${{ vars.METRICS_REPO }}",
             }).then(()=>{console.log("Done.");});
       - name: "[Push] Upload Metrics"
-        env: 
-            bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
+        env:
+          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
         if: github.event_name == 'push' && env.bot_github_token != ''
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
@@ -482,7 +609,11 @@ jobs:
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
-    needs: [build-linux-x86_64, build-docker, build-py]
+    needs: [test-containers, build-py, build-appimages]
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     name: Publish (If Applicable)
     steps:
       - name: Check out repo
@@ -498,20 +629,28 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.BOT_GITHUB_TOKEN }}
+      # Splitting load to help with disk space issue
       - name: Download Image (Docker/x86_64)
         uses: actions/download-artifact@v4
         with:
           name: docker-image-x86_64
           path: /tmp/docker
+      - name: Load Image (Docker/x86_64)
+        run: |
+          for file in /tmp/docker/*; do
+            cat $file | docker load
+            rm $file
+          done
       - name: Download Image (Docker/aarch64)
         uses: actions/download-artifact@v4
         with:
           name: docker-image-aarch64
           path: /tmp/docker
-      - name: Load Images (Docker)
+      - name: Load Image (Docker/aarch64)
         run: |
           for file in /tmp/docker/*; do
             cat $file | docker load
+            rm $file
           done
       - name: Push (Docker)
         if: ${{ env.PUBLISH == '1' }}
@@ -528,6 +667,18 @@ jobs:
             ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
 
           docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
+
+          yes | docker system prune -a --volumes
+      - name: Download Image (AppImage/x86_64)
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-x86_64
+          path: /tmp/appimage
+      - name: Download Image (AppImage/aarch64)
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-aarch64
+          path: /tmp/appimage
       - name: Set Up Python
         if: ${{ env.PUBLISH == '1' }}
         uses: actions/setup-python@v4
@@ -539,12 +690,31 @@ jobs:
           make dist
       - name: Publish
         if: ${{ env.PUBLISH == '1' }}
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
       - name: Tag Commit
         if: ${{ env.PUBLISH == '1' }}
         uses: tvdias/github-tagger@v0.0.1
         with:
           tag: "${{ env.NEW_TAG }}"
           repo-token: "${{ secrets.BOT_GITHUB_TOKEN }}"
+      - name: Upload Release Asset
+        if: ${{ env.PUBLISH == '1' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          token: "${{ secrets.BOT_GITHUB_TOKEN }}"
+          tag_name: ${{ env.NEW_TAG }}
+          prerelease: ${{ contains(env.NEW_TAG, 'dev') || contains(env.NEW_TAG, 'b') || contains(env.NEW_TAG, 'a') }}
+          generate_release_notes: true
+          body: |+
+            📖 Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html
+            🧾 Full changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md
+
+            AppImage releases are provided for testing and are not currently the
+            primary supported method for installation.
+
+            ---
+
+
+          files: |
+            /tmp/appimage/librelane-devshell-x86_64.AppImage
+            /tmp/appimage/librelane-devshell-aarch64.AppImage

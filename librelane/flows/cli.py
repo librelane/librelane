@@ -35,7 +35,7 @@ from cloup.typing import Decorator
 
 from .flow import Flow
 from ..common import set_tpe, cli, get_opdks_rev, _get_process_limit
-from ..logging import set_log_level, verbose, err, options, LogLevels
+from ..logging import set_log_level, verbose, info, err, options, LogLevels
 from ..state import State, InvalidState
 
 
@@ -146,27 +146,30 @@ def cloup_flow_opts(
     function decorated with @cloup.command (https://cloup.readthedocs.io/en/stable/autoapi/cloup/index.html#cloup.command).
 
     The following keyword arguments will be passed to the decorated function.
+
     * Those postfixed ‡ are compatible with the constructor for :class:`Flow`.
     * Those postfixed § are compatible with the :meth:`Flow.start`.
 
+    ---
+
     * Flow configuration options (if parameter ``config_options`` is ``True``):
         * ``flow_name``: ``Optional[str]``: A valid flow ID to be used with :meth:`Flow.factory.get`
-        * ``config_override_strings``‡: ``Optional[Iterable[str]]``
+        * ``config_override_strings`` ‡: ``Optional[Iterable[str]]``
     * Sequential flow controls (if parameter ``sequential_flow_controls`` is ``True``)
-        * ``frm``§: ``Optional[str]``: Start from a step with this ID. Supported by sequential flows.
-        * ``to``§: ``Optional[str]``: Stop at a step with this id. Supported by sequential flows.
-        * ``skip``§: ``Iterable[str]``: Skip these steps. Supported by sequential flows.
+        * ``frm`` §: ``Optional[str]``: Start from a step with this ID. Supported by sequential flows.
+        * ``to`` §: ``Optional[str]``: Stop at a step with this id. Supported by sequential flows.
+        * ``skip`` §: ``Iterable[str]``: Skip these steps. Supported by sequential flows.
     * Sequential flow reproducible (if parameter ``sequential_flow_reproducible`` is ``True``)
-        * ``reproducible``§: ``str``: Create a reproducible for a step with is ID, aborting the flow afterwards. Supported by sequential flows.
+        * ``reproducible`` §: ``str``: Create a reproducible for a step with is ID, aborting the flow afterwards. Supported by sequential flows.
     * Flow run options (if parameter ``run_options`` is ``True``):
-        * ``tag``§: ``Optional[str]``
-        * ``last_run``§: ``bool``: If ``True``, ``tag`` is guaranteed to be None.
-        * ``with_initial_state``§: ``Optional[State]``
+        * ``tag`` §: ``Optional[str]``
+        * ``last_run`` §: ``bool``: If ``True``, ``tag`` is guaranteed to be None.
+        * ``with_initial_state`` §: ``Optional[State]``
     * PDK options
-        * ``use_volare``: ``bool``
-        * ``pdk_root``‡: ``Optional[str]``
-        * ``pdk``‡: ``str``
-        * ``scl``‡: ``Optional[str]``
+        * ``use_volare`` : ``bool``
+        * ``pdk_root`` ‡: ``Optional[str]``
+        * ``pdk`` ‡: ``str``
+        * ``scl`` ‡: ``Optional[str]``
     * ``config_files``: ``Iterable[str]``: Paths to configuration files (if
       parameter  ``accept_config_files`` is ``True``)
 
@@ -443,16 +446,29 @@ def cloup_flow_opts(
                         err(f"Could not resolve the PDK '{pdk}'.")
                         exit(1)
 
-                    version = ciel.fetch(
-                        ciel_home,
-                        pdk_family,
-                        opdks_rev,
-                        data_source=StaticWebDataSource(
-                            "https://fossi-foundation.github.io/ciel-releases"
-                        ),
-                        include_libraries=include_libraries,
-                    )
-                    pdk_root = version.get_dir(ciel_home)
+                    if pdk_family == "ihp-sg13g2":
+                        err(
+                            "The IHP Open PDK is only supported in the development version of LibreLane, specifically 3.0.0.dev28 or higher."
+                        )
+                        info(
+                            "If you're using Nix, switch to the 'dev' branch. If you're using the Python package, run \"python3 -m pip install 'librelane>=3.0.0.dev28'\"."
+                        )
+                        exit(1)
+
+                    try:
+                        version = ciel.fetch(
+                            ciel_home,
+                            pdk_family,
+                            opdks_rev,
+                            data_source=StaticWebDataSource(
+                                "https://fossi-foundation.github.io/ciel-releases"
+                            ),
+                            include_libraries=include_libraries,
+                        )
+                        pdk_root = version.get_dir(ciel_home)
+                    except ValueError as e:
+                        err(f"Failed to download PDK: {e}")
+                        exit(1)
 
                 return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, **kwargs)
 

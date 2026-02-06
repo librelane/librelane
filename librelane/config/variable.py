@@ -24,9 +24,11 @@ from dataclasses import (
     fields,
     is_dataclass,
 )
+import textwrap
 from typing import (
     ClassVar,
     Dict,
+    Iterable,
     List,
     Literal,
     Optional,
@@ -392,6 +394,112 @@ class Variable:
         """
         return self.description.replace("\n", "<br />")
 
+    @staticmethod
+    def _render_table_md(
+        vars: Iterable["Variable"],
+        *,
+        myst_anchor_owner_id: Optional[str] = None,
+    ) -> str:  # pragma; no cover
+        """
+        Renders a markdown table for any iterable of configuration variables.
+
+        :param vars: Any iterable object returning configuration variables
+        :param myst_anchor_owner_id:
+            If set, the table is rendered for MyST using a mix of HTML and
+            Markdown, with anchors and a detail tag containing deprecated names.
+
+            For universal flow variables, set the anchor id to "".
+        :returns: A markdown string representing the table
+        """
+        include_units = any(c.units is not None for c in vars)
+        if myst_anchor_owner_id is None:
+            # Markdown mode
+            result = textwrap.dedent(
+                f"""
+                | Variable Name | Type | Description | Default | {'Units |' * include_units}
+                | - | - | - | - | {'- |' * include_units}
+                """
+            )
+            for var in vars:
+                units = var.units or ""
+                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
+                result += f"| `{var.name}` {pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` |"
+                if include_units:
+                    result += f" {units} |"
+                result += "\n"
+            result += "\n"
+        else:
+            if myst_anchor_owner_id == "":
+                # for _get_docs_identifier, where None is the behavior we want
+                # for a literal ""
+                myst_anchor_owner_id = None
+            result = textwrap.dedent(
+                f"""
+                <div class="table-wrapper colwidths-auto docutils container">
+                <table class="docutils align-default">
+                <thead><tr>
+                <th class="head">Variable Name</th>
+                <th class="head">Type</th>
+                <th class="head">Description</th>
+                <th class="head">Default</th>
+                {'<th class="head">Units</th>' * include_units}
+                </tr></thead>
+                <tbody>
+                """
+            )
+            for var in vars:
+                units = var.units or ""
+                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
+                var_anchor = f"{{#{var._get_docs_identifier(myst_anchor_owner_id)}}}"
+
+                result += textwrap.dedent(
+                    f"""
+                    <tr>
+                    <td>
+
+                    `{var.name}`{var_anchor} {pdk_superscript}
+                    """
+                )
+                if len(var.deprecated_names):
+                    result += "<details><summary>Deprecated names</summary>\n\n"
+                    for dn in var.deprecated_names:
+                        if isinstance(dn, tuple):
+                            dn = dn[0]
+                        result += f"* `{dn}`\n"
+                    result += "\n</details>\n"
+                result += textwrap.dedent(
+                    f"""
+                    </td>
+                    <td>
+
+                    {var.type_repr_md(for_document=True)}
+
+                    </td>
+                    <td>
+
+                    {var.desc_repr_md()}
+
+                    </td>
+                    <td>
+
+                    `{var.default}`
+
+                    </td>
+                    """
+                )
+                result += include_units * textwrap.dedent(
+                    f"""
+                    <td>
+
+                    {units}
+
+                    </td>
+                    """
+                )
+                result += "\n</tr>"
+            result += "</tbody></table></div>\n"
+        return result
+
     def __process(
         self,
         key_path: str,
@@ -440,6 +548,9 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
+                if validating_type == List[Path]:
+                    if any(isinstance(item, List) for item in raw):
+                        Variable.__flatten_list(value)
                 pass
             elif is_string(raw):
                 if not permissive_typing:
@@ -725,3 +836,16 @@ class Variable:
             and self.type == rhs.type
             and self.default == rhs.default
         )
+
+    # Flatten list. Note: Must modify value, not return a new list.
+    @staticmethod
+    def __flatten_list(value: list):
+        new_list = []
+        for item in value:
+            if isinstance(item, list):
+                for sub_item in item:
+                    new_list.append(sub_item)
+            else:
+                new_list.append(item)
+
+        value[:] = new_list

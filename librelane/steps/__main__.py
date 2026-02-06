@@ -15,7 +15,6 @@ import os
 import shlex
 import shutil
 import datetime
-import functools
 import subprocess
 from functools import partial
 from typing import IO, Any, Dict, Optional, Sequence, Union
@@ -48,8 +47,9 @@ def load_step_from_inputs(
         if Found := Step.factory.get(id):
             Target = Found
         else:
-            err(
-                f"No step registered with id '{id}'. Ensure all relevant plugins are installed."
+            err(f"No step registered with id '{id}'.")
+            info(
+                f"If the step '{id}' is part of a plugin, make sure the plugin's parent directory is in the PYTHONPATH environment variable."
             )
             ctx.exit(-1)
 
@@ -239,7 +239,7 @@ def eject(ctx, output, state_in, config, id):
             found_stdin_data = found_stdin.read()
         raise Stop()
 
-    step.run_subprocess = functools.partial(
+    step.run_subprocess = partial(
         step.run_subprocess,
         _popen_callable=popen_substitute,
     )

@@ -14,9 +14,8 @@
 
 Originally started as version 2.0 of OpenLane, LibreLane is a piece of software
 for {term}`ASIC` implementation, initially developed by Efabless Corporation,
-but its currently maintained by the same developers at the
-[American University in Cairo Open Hardware Lab](https://github.com/aucohl)
-under the stewardship of the [FOSSi Foundation](https://fossi-foundation.org).
+but its currently maintained under the stewardship of the
+[FOSSi Foundation](https://fossi-foundation.org).
 
 Version 1.0 of OpenLane was a simple but stable and battle-tested flow, primarily
 intended for implementing  designs for Efabless's {term}`MPW` programs.
@@ -35,21 +34,22 @@ LibreLane under the stewardship of the FOSSi Foundation.
 
 OpenLane 1.0 as hosted under
 [The OpenROAD Project](https://github.com/The-OpenROAD-Project/OpenLane) is
-a super-stable version that was used for countless tapeouts, but we no longer
-support it actively.
+a super-stable version that was used for countless tapeouts. It is in
+maintenance mode, but is not recommended at all for new designs and only exists
+to enable old designs to be re-taped out.
 
 (faq-librelane-vs-openroad)=
 
 ### How is LibreLane different from OpenROAD?
 
-OpenROAD is one of many utilities used by LibreLane, which integrates it and many
-other tools in order to achieve a full RTL-to-GDSII flow.
+OpenROAD is one of many utilities used by LibreLane, which integrates it and
+many other tools in order to achieve a full RTL-to-GDSII flow.
 
 OpenROAD is primarily developed by The OpenROAD Project, which involves many
 corporations and academic institutions (primarily the University of California,
-San Diego, Parallax Software, and Precision Innovations). LibreLane, on the other
-hand, was primarily developed by Efabless Corporation and is currently maintained
-by the American University in Cairo, Open Hardware Lab.
+San Diego, Parallax Software, and Precision Innovations). LibreLane, on the
+other hand, was primarily developed at Efabless Corporation and is currently
+maintained by the community under the stewardship of the FOSSi Foundation.
 
 (faq-proprietary-pdks)=
 
@@ -66,8 +66,8 @@ OpenLane 1.0 has been used for countless verified tapeouts, including more or
 less every open-source design on the Google MPW shuttles.
 
 LibreLane/OpenLane 2.0 has been silicon-proven in a relatively more limited
-capacity, having been used for all [Tiny Tapeout](https://tinytapeout.com) shuttles
-since 3.5 and a number of internal tape-outs at Efabless Corporation.
+capacity, having been used for all [Tiny Tapeout](https://tinytapeout.com)
+shuttles since 3.5 and a number of internal tape-outs at Efabless Corporation.
 
 (faq-comparison)=
 
@@ -78,13 +78,13 @@ since 3.5 and a number of internal tape-outs at Efabless Corporation.
 | Architecture | Monolithic | Plugin-based | Monolithic | Plugin-based |
 | Configuration | Tcl Files | Python Files | JSON/Tcl Files | JSON/Tcl/Python Files |
 | Programming Language | GNU Make | Python | Tcl | Type-checked Python |
-| Maintainer | The OpenROAD Project | ZeroASIC | Efabless | AUCOHL |
+| Maintainer | The OpenROAD Project | ZeroASIC | Efabless | FOSSi Foundation |
 | Dependencies | Separate (Build Scripts) | Separate (Build Scripts) | Bundled | Bundled  |
 | Cloud Service | No | Yes | No | No (Planned) |
 | Proprietary Tool Support | No | Yes | No | Yes (with Plugins) |
 | Pre-built Binaries | `.deb` (x86-64) | N/A | Docker (x86-64, ARM64) | * Natively through [Nix](https://nixos.org): Linux and macOS (x86-64, ARM64) <br /> * Docker (x86-64, ARM64)|
-| Open-Source PDK Support | `sky130`, `gf180mcu`, `nangate45`, `asap7`| `sky130`, `gf180mcu`, `asap7` | `sky130`, `gf180mcu` | `sky130`, `gf180mcu` |
-| Community Examples | Limited | Limited | [9+ public multi-project wafer shuttles](https://platform.efabless.com/projects/public) | Backwards Compatible with OL Examples |
+| Open-Source PDK Support | `sky130`, `gf180mcu`, `nangate45`, `asap7`, `ihp-sg13g2` | `sky130`, `gf180mcu`, `asap7` | `sky130`, `gf180mcu` | `sky130`, `gf180mcu`, `ihp-sg13g2` (beta) |
+| Community Examples | Limited | Limited | 9+ public multi-project wafer shuttles with Efabless | Backwards Compatible with OL Examples |
 
 ## Setup
 

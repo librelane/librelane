@@ -302,6 +302,12 @@ class VerilogStep(PyosysStep):
 
 @Step.factory.register()
 class JsonHeader(VerilogStep):
+    """
+    Extracts a high-level hierarchical view of the circuit in JSON format,
+    including power connections. The power connections are used in later steps
+    to ensure macros and cells are connected as desired.
+    """
+
     id = "Yosys.JsonHeader"
     name = "Generate JSON Header"
     long_name = "Generate JSON Header"
@@ -636,5 +642,10 @@ class VHDLSynthesis(SynthesisCommon):
             "VHDL_FILES",
             List[Path],
             "The paths of the design's VHDL files.",
+        ),
+        Variable(
+            "GHDL_ARGUMENTS",
+            Optional[List[str]],
+            "Pass arguments to the ghdl frontend.",
         ),
     ]

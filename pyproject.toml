@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "librelane"
-version = "2.4.0.dev7"
+version = "2.4.12"
 description = "An infrastructure for implementing chip design flows"
 # Technically, maintainer. We cannot use the maintainers field until
 # poetry-core>=2.0.0 which requires Python version 3.9+. This field does
@@ -14,14 +14,14 @@ documentation = "https://librelane.readthedocs.io"
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4"
-click = ">=8,<8.2"
+click = ">=8"
 cloup = ">=3.0.5,<4"
 pyyaml = ">=5,<7"
-rich = ">=12,<14"
-ciel = ">=0.16.0"
+rich = ">=12,<15"
+ciel = ">=2.0.3,<3"
 lxml = ">=4.9.0"
 deprecated = ">=1.2.10,<2"
-libparse = ">=0.3.1,<1"
+lln-libparse = "0.56.*"
 psutil = ">=5.9.0"
 httpx = ">=0.22.0,<0.29"
 klayout = ">=0.29.0,<0.31.0"
@@ -65,7 +65,14 @@ librelane = "librelane.__main__:cli"
 "librelane.steps" = "librelane.steps.__main__:cli"
 "librelane.config" = "librelane.config.__main__:cli"
 "librelane.state" = "librelane.state.__main__:cli"
+"librelane.help" = "librelane.help.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
+
+[tool.ruff]
+# syntax-only check, make sure files are parseable under py38
+# $ ruff check .
+target-version = "py38"
+lint.ignore = ["E", "F"] 
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

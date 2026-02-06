@@ -15,7 +15,7 @@ between contexts are either **immutable** on termination of construction or
 
 Immutable objects are just as described: they cannot be modified in-place.
 They may be updated only by creating a copy. This is to prevent surprises
-resulting from referential passing endemic to imperative and object-oriented
+resulting from passing-by-reference endemic to imperative and object-oriented
 programming.
 
 They may, however, offer any number of read-only functions for convenience.
@@ -45,48 +45,13 @@ respectively.
 
 ## Access Control
 
-Python has no access control, subscribing to the notion of "we're all adults,"
-presuming said adults cannot be trusted to indent their own code.
+Python has almost no access control, subscribing to the notion of
+"we're all adults," presuming said adults cannot be trusted to indent their own
+code.
 
-Unfortunately, it is difficult to write good object oriented code, or even have an
-API, with these strictures. We've thus decided to adopt the following convention:
-
-### Public
-
-All properties that do not fall into the aforementioned categories are public,
-i.e., they can be used in any context importing LibreLane.
-
-Public methods are part of the LibreLane API and they are guaranteed to be
-functional within the same major version.
-
-### Protected
-
-```{todo}
-Protected properties?
-```
-
-Protected methods are marked with the `@protected` decorator. They may be used
-inside the specific class they are declared in and any subclasses. The `protected`
-decorator will append the docstring to clarify that fact.
-
-```{note}
-Some Python conventions specify `_` (a single underscore) for protected methods
-and properties- however, this can be confusing, especially because
-some documentation tools such as Sphinx designate all properties and methods
-starting with `_` as private.
-```
-
-Protected methods are part of the LibreLane API and they are guaranteed to be
-functional within the same major version.
-
-### Internal
-
-Internal properties and methods are prefixed by `_` (one underscore.) They may
-only be used inside the LibreLane codebase proper and not plugins or the like,
-even those that inherit from the same classes.
-
-Internal properties and methods are **not** part of the LibreLane API and
-may break at any time without a major version increment.
+Unfortunately, it is difficult to write good object oriented code and have
+a stable API without access control strictures. So we have decided to adopt
+a convention:
 
 ### Private
 
@@ -94,8 +59,33 @@ Private properties and methods are prefixed by `__` (two underscores.) They may
 be only be used inside the specific class they are declared in, and not its
 super or subclasses.
 
-Private properties and methods are **not** part of the LibreLane API and
-may break at any time without a major version increment.
+### Internal
+
+Internal properties, and methods are intended for things that are too
+specific/hacky to be included as part of the API. They can be:
+
+* Prefixed by `_` (one underscore)
+* Not documented, i.e., a method or dynamic `@property` without a docstring
+  or a property not mentioned in the class's docstring.
+
+See {doc}`/reference/api_stability_policy` for more information.
+
+### Protected
+
+Protected methods are marked with the `@protected` decorator. They may be used
+inside the specific class they are declared in and any subclasses. The `protected`
+decorator will append the docstring to clarify that fact.
+
+```{note}
+Protected methods are part of the LibreLane API and they are guaranteed to
+remain functional even within external subclasses within the same major version.
+```
+
+### Public
+
+Any methods or properties that are documented and lack prefixing underscores
+are considered public, i.e., they may be used by any class or function inside
+or outside the LibreLane codebase proper.
 
 ## Hierarchy and "Virtual" Public Variables/Methods
 

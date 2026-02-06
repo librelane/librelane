@@ -24,4 +24,3 @@ cellname filepath $::env(DESIGN_NAME).lef $::env(signoff_results)
 save
 
 puts "\[INFO\] DONE GENERATING MAGLEF VIEW"
-exit 0

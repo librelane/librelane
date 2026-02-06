@@ -19,8 +19,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/2.1.3";
-    libparse.url = "github:efabless/libparse-python";
+    nix-eda.url = "github:fossi-foundation/nix-eda/2.1.5";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -28,12 +27,10 @@
 
   inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
-  inputs.libparse.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs = {
     self,
     nix-eda,
-    libparse,
     ciel,
     devshell,
     ...
@@ -45,7 +42,7 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [libparse ciel])
+        (nix-eda.flakesToOverlay [ciel])
         (pkgs': pkgs: {
           yosys-sby = (pkgs.yosys-sby.override { sha256 = "sha256-Il2pXw2doaoZrVme2p0dSUUa8dCQtJJrmYitn1MkTD4="; });
           klayout = (pkgs.klayout.overrideAttrs(old: {
@@ -69,8 +66,9 @@
         )
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
+            libparse = callPythonPackage ./nix/libparse.nix {};
             mdformat = pypkgs.mdformat.overridePythonAttrs (old: {
               patches = [
                 ./nix/patches/mdformat/donns_tweaks.patch
@@ -80,6 +78,7 @@
             sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix {};
             sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix {};
             yamlcore = callPythonPackage ./nix/yamlcore.nix {};
+            py-mon = callPythonPackage ./nix/py-mon.nix {};
 
             # ---
             librelane = callPythonPackage ./default.nix {
@@ -172,7 +171,6 @@
             jdupes
             alejandra
             imagemagick
-            nodejs.pkgs.nodemon
           ];
           extra-python-packages = with pkgs.python3.pkgs; [
             pyfakefs
@@ -193,6 +191,7 @@
             sphinxcontrib-bibtex
             sphinx-tippy
             sphinx-subfigure
+            py-mon
           ];
           include-librelane = false;
         }) {};

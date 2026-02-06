@@ -45,11 +45,11 @@ RTL
 
     Short for Register-Transfer Level.
 
-    An abstraction used in hardware description languages
-    (HDLs) like Verilog and VHDL to create high-level representations of a
-    circuit, from which lower-level representations and ultimately actual wiring
-    can be derived. Design at the RTL level is typical practice in modern digital
-    design.
+    An abstraction used in {term}`HDL`s like Verilog
+    and VHDL to create high-level representations of a circuit, from which
+    lower-level representations and ultimately actual wiring can be derived.
+
+    Design at the RTL level is typical practice in modern digital design.
 
 Netlist
 
@@ -66,12 +66,17 @@ GDSII
 
     A binary stream format which is the *de facto* industry standard for data
     exchange of integrated circuit or IC layout artwork. It was developed by
-    Calma Company in 1978. A GDSII file contains planar
-    geometric shapes, text labels, and other information about the layout in
-    hierarchical form. The data can be used to reconstruct all or part of the
-    artwork to be used in sharing layouts, transferring artwork between different
-    tools, or creating photomasks. It captures all the layout details needed by
-    the manufacturer.
+    Calma Company in 1978. A GDSII file contains planar geometric shapes, text
+    labels, and other information about the layout in hierarchical form. The
+    data can be used to reconstruct all or part of the artwork to be used in
+    sharing layouts, transferring artwork between different tools, or creating
+    photomasks. It captures all the layout details needed by the manufacturer.
+
+    GDSII was once the standard for {term}`tape-out`, but it has since been
+    replaced by OASIS, a more compact storage format. LibreLane uses GDSII as
+    it has better open-source tool supports, but shuttle providers would broadly
+    request the data to be converted to OASIS. {term}`KLayout` is an open-source
+    tool capable of performing the conversion.
 
 [KLayout](https://www.klayout.de/)
 
@@ -327,7 +332,7 @@ timing closure
     {term}`timing corners <timing corner>`.
 
     Designs that have not achieved timing closure are usually not suitable
-    for tape-out.
+    for {term}`tape-out`.
 
 IEEE
 
@@ -359,7 +364,7 @@ open-source
     
     The term is more accurately defined by the Open Source Initiative (OSI) at
     this link: https://opensource.org/osd
-    
+
 Caravel
 
     A test harness by Efabless Corporation for use with the {term}`OpenMPW`
@@ -374,9 +379,9 @@ OpenMPW
     A program by Google sponsoring a free Multi-Project Wafer for
     {term}`open-source` hardware projects. LibreLane's progenitor,
     {term}`OpenLane`, was initially developed for use with the OpenMPW project.
-    
+
     See https://developers.google.com/silicon for more info.
-    
+
 chipIgnite
 
     A program by Efabless Corporation for manufacturing chips based on the
@@ -393,7 +398,7 @@ MPW
     of a wafer to be spread across multiple projects.
     
     {term}`OpenMPW` and {term}`chipIgnite` are examples of MPW projects.
-    
+
 dotlib
 
     Also `.lib`.
@@ -402,7 +407,7 @@ dotlib
     abstract level the interface to and timing properties of a cell.
     
     Typically used for Synthesis and {term}`STA`.
-    
+
 Gzip
 
     A free and open-source compression format. A great many number of tools
@@ -412,4 +417,36 @@ Gzip
     
     Gzipping is popular for text-heavy formats such as {term}`dotlib` or
     {term}`SPEF` formats.
+
+HDL
+
+    Short for "Hardware Description Language."
+
+    A computer language used to, quite literally, describe the structure or
+    behavior of a hardware chip. The most famous of which is Verilog.
+
+    HDLs can model hardware at various levels of abstraction, from listing every
+    single gate used in the design (gate-level netlist) to more abstract
+    behavioral models ({term}`register transfer level <RTL>`). A synthesis tool
+    is used to transform the abstract behavioral models into concrete netlists.
+
+    The most famous hardware description languages are Verilog and VHDL.
+
+tape-out
+
+    The final stage of IC design, after all checks have concluded. The design
+    is sent to a fabrication facility where the masks are then made from the
+    {term}`GDSII` or compatible format.
+
+    The name tape-out is a historical artifact from when the GDSII streams were
+    quite literally submitted to the foundries on tape. Nowadays it's more like
+    an FTP server, but the term stuck.
+
+ECO
+
+    Short for Engineering Change Order.
+
+    Used as a catch-all term for manual modifications of netlists that have been
+    processed by tools. Can be used for last-minute physical or timing violation
+    fixes and/or logical fixes.
 ```

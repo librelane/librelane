@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import os
 import re
 import glob
 import gzip
+import shutil
 import typing
 import fnmatch
 import pathlib
 import unicodedata
 from math import inf
 from typing import (
+    IO,
     Any,
     Generator,
     Iterable,
@@ -109,6 +112,8 @@ def get_opdks_rev() -> str:
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 def slugify(value: str, lower: bool = False) -> str:
     """
+    Adapted from Django slugify. In practice it works more like a kebabify…
+
     :param value: Input string
     :returns: The input string converted to lower case, with all characters
         except alphanumerics, underscores and hyphens removed, and spaces and\
@@ -314,6 +319,37 @@ class Filter(object):
                 yield input
 
 
+def recreate_tree(
+    source: AnyPath,
+    target: AnyPath,
+):
+    """
+    This function attempts to recreate a file tree from a source path in another
+    target path.
+
+    Permissions are not copied over. Symlinks and hardlinks are followed.
+
+    Directories are not recreated unless they contain files as (grand)children.
+
+    If the source and target are the same, the function returns early and does
+    nothing.
+
+    :param source: The source file tree to replicate
+    :param target: The target path to recreate the file tree within
+    """
+    source = os.path.abspath(source)
+    target = os.path.abspath(target)
+    if os.path.exists(target) and os.path.samefile(source, target):
+        return
+    for dirname, _, files in os.walk(source):
+        for file in files:
+            resolved = os.path.join(dirname, file)
+            resolved_target = os.path.join(target, os.path.relpath(resolved, source))
+            os.makedirs(os.path.dirname(resolved_target), exist_ok=True)
+            with open(resolved, "rb") as fi, open(resolved_target, "wb") as fo:
+                shutil.copyfileobj(fi, fo)
+
+
 def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional[Path]:
     """
     :param in_path: A directory to search in
@@ -378,9 +414,9 @@ def _get_process_limit() -> int:
     return int(os.getenv("_OPENLANE_MAX_CORES", os.cpu_count() or 1))
 
 
-def gzopen(filename, mode="rt"):
+def gzopen(filename: AnyPath, mode="rt") -> IO[Any]:
     """
-    This method (tries to?) emulate the gzopen from the Linux Standard Base,
+    This function (tries to?) emulate the gzopen from the Linux Standard Base,
     specifically this part:
 
     If path refers to an uncompressed file, and mode refers to a read mode,
@@ -388,6 +424,11 @@ def gzopen(filename, mode="rt"):
     for reading directly from the file without any decompression.
 
     gzip.open does not have this behavior.
+
+    :param filename: The full path to the uncompressed or gzipped file.
+    :param mode: "r", "rb", "w", "wb", "x", "xb", "a" or "ab" for
+        binary mode, or "rt", "wt", "xt" or "at" for text mode.
+    :returns: An I/O wrapper that may very slightly based on the mode.
     """
     try:
         g = gzip.open(filename, mode=mode)
@@ -400,3 +441,18 @@ def gzopen(filename, mode="rt"):
     except gzip.BadGzipFile:
         g.close()
         return open(filename, mode=mode)
+
+
+def count_occurences(fp: io.TextIOWrapper, pattern: str = "") -> int:
+    """
+    Counts the occurences of a certain string in a stream, line-by-line, without
+    necessarily loading the entire file into memory.
+
+    Equivalent to: ``grep -c 'pattern' <file>`` (but without regex support).
+
+    :param fp: the text stream
+    :param pattern: the substring to search for. if set to "", it will simply
+        count the lines in the file.
+    :returns: the number of matching lines
+    """
+    return sum(pattern in line for line in fp)

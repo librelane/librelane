@@ -248,13 +248,19 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
             pin_name = bterm.getName()
             pin_net_name = bterm.getNet().getName()
             pin_net = output_block.findNet(pin_net_name)
+            new_net_created = False
             if pin_net is None:
                 pin_net = odb.dbNet.create(output_block, pin_net_name, True)
                 pin_net.setSpecial()
                 pin_net.setSigType(bterm.getSigType())
-            pin_bterm = odb.dbBTerm.create(pin_net, pin_name)
-            pin_bterm.setSigType(bterm.getSigType())
-            output_bterms.append(pin_bterm)
+                new_net_created = True
+            pin_bterm = output_block.findBTerm(pin_name)
+            if pin_bterm is None:
+                pin_bterm = odb.dbBTerm.create(pin_net, pin_name)
+                pin_bterm.setSigType(bterm.getSigType())
+                output_bterms.append(pin_bterm)
+            elif new_net_created:
+                pin_bterm.connect(pin_net)
 
     grid_errors = False
     for output_bterm in output_bterms:

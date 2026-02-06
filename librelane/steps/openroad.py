@@ -19,7 +19,6 @@ import io
 import os
 import re
 import json
-import functools
 import subprocess
 from enum import Enum
 from math import inf
@@ -1053,11 +1052,6 @@ class IOPlacement(OpenROADStep):
                 "Path to a custom pin configuration file.",
             ),
             Variable(
-                "FP_DEF_TEMPLATE",
-                Optional[Path],
-                "Points to the DEF file to be used as a template.",
-            ),
-            Variable(
                 "FP_IO_VLENGTH",
                 Optional[Decimal],
                 """
@@ -1147,9 +1141,7 @@ def get_psm_error_count(rpt: io.TextIOWrapper) -> int:
 
     sio.seek(0)
     violations = yaml.load(sio, Loader=yaml.SafeLoader) or []
-    return functools.reduce(
-        lambda acc, current: acc + len(current["srcs"]), violations, 0
-    )
+    return sum(len(violation["srcs"]) for violation in violations)
 
 
 @Step.factory.register()
@@ -1329,11 +1321,6 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
             "Decides the mode of the random IO placement option.",
             default="matching",
             deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode)],
-        ),
-        Variable(
-            "FP_DEF_TEMPLATE",
-            Optional[Path],
-            "Points to the DEF file to be used as a template.",
         ),
     ]
 
@@ -2140,7 +2127,7 @@ class RepairDesignPostGPL(ResizerStep):
         Variable(
             "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS",
             bool,
-            "Specifies whether or not to insert buffers on input ports when design repairs are run.",
+            "Specifies whether or not to insert buffers on output ports when design repairs are run.",
             default=True,
             deprecated_names=["PL_RESIZER_BUFFER_OUTPUT_PORTS"],
         ),
