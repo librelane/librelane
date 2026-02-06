@@ -22,7 +22,6 @@ import sys
 import json
 import fnmatch
 import shutil
-import subprocess
 from decimal import Decimal
 from abc import abstractmethod
 from typing import List, Literal, Optional, Set, Tuple
@@ -147,6 +146,18 @@ DesignFormat(
 ).register()
 
 
+def _validate_icg(
+    variable: Variable, input: Optional[str], warning_list_ref: List[str]
+):
+    if input is not None:
+        components = input.split("/")
+        if len(components) != 4:
+            raise ValueError(
+                f"{variable.name} must be in the form '<cell>/<ce>/<clk>/<gclk>'"
+            )
+    return input
+
+
 class PyosysStep(Step):
     config_vars = [
         Variable(
@@ -196,15 +207,24 @@ class PyosysStep(Step):
             pdk=True,
         ),
         Variable(
-            "USE_LIGHTER",
-            bool,
-            "Activates Lighter, an experimental plugin that attempts to optimize clock-gated flip-flops.",
-            default=False,
+            "SYNTH_CLOCKGATE_MIN_WIDTH",
+            Optional[int],
+            "If set to a value, a group of flip-flops with size >= SYNTH_CLOCKGATE_MIN_WIDTH and an enable signal are clock-gated instead.",
+            deprecated_names=[("USE_LIGHTER", lambda x: 1 if x else None)],
         ),
         Variable(
-            "LIGHTER_DFF_MAP",
-            Optional[Path],
-            "An override to the custom DFF map file provided for the given SCL by Lighter.",
+            "SYNTH_CLOCKGATE_POSEDGE_ICG",
+            Optional[str],
+            "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
+            pdk=True,
+            validator=_validate_icg,
+        ),
+        Variable(
+            "SYNTH_CLOCKGATE_NEGEDGE_ICG",
+            Optional[str],
+            "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
+            pdk=True,
+            validator=_validate_icg,
         ),
         Variable(
             "YOSYS_LOG_LEVEL",
@@ -561,25 +581,7 @@ class SynthesisCommon(VerilogStep):
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
         )
-        cmd = super().get_command(state_in)
-        if self.config["USE_LIGHTER"]:
-            lighter_dff_map = self.config["LIGHTER_DFF_MAP"]
-            if lighter_dff_map is None:
-                scl = self.config["STD_CELL_LIBRARY"]
-                try:
-                    raw = subprocess.check_output(
-                        ["lighter_files", scl], encoding="utf8"
-                    )
-                    files = raw.strip().splitlines()
-                    lighter_dff_map = Path(files[0])
-                except FileNotFoundError:
-                    self.warn(
-                        "Lighter not found or not set up with LibreLane: If you're using a manual Lighter install, try setting LIGHTER_DFF_MAP explicitly."
-                    )
-                except subprocess.CalledProcessError:
-                    self.warn(f"{scl} not supported by Lighter.")
-            cmd.extend(["--lighter-dff-map", lighter_dff_map])
-        return cmd + ["--output", out_file]
+        return super().get_command(state_in) + ["--output", out_file]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(

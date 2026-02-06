@@ -240,13 +240,11 @@ def librelane_synth(
 @click.option("--output", type=click.Path(exists=False, dir_okay=False), required=True)
 @click.option("--config-in", type=click.Path(exists=True), required=True)
 @click.option("--extra-in", type=click.Path(exists=True), required=True)
-@click.option("--lighter-dff-map", type=click.Path(exists=True), required=False)
 @click.argument("inputs", nargs=-1)
 def synthesize(
     output,
     config_in,
     extra_in,
-    lighter_dff_map,
     inputs,
 ):
     config = json.load(open(config_in))
@@ -369,11 +367,6 @@ def synthesize(
             ys.log(f"[INFO] Applying {adder_type} mapping from '{mapping}'…")
             d.run_pass("techmap", "-map", mapping)
 
-    if mapping := lighter_dff_map:
-        ys.log(f"[INFO] Using Lighter with mapping '{mapping}'…")
-        d.run_pass("plugin", "-i", "lighter")
-        d.run_pass("reg_clock_gating", "-map", mapping)
-
     librelane_synth(
         d,
         config["DESIGN_NAME"],
@@ -422,6 +415,28 @@ def synthesize(
     if extra_mapping := config["SYNTH_EXTRA_MAPPING_FILE"]:
         ys.log(f"[INFO] Applying extra mappings from '{extra_mapping}'…")
         d.run_pass("techmap", "-map", extra_mapping)
+
+    if config["SYNTH_CLOCKGATE_MIN_WIDTH"] is not None:  # 0 is a valid value and falsey
+        cg_min_width = config["SYNTH_CLOCKGATE_MIN_WIDTH"]
+        posedge = ()
+        negedge = ()
+        if posedge_raw := config["SYNTH_CLOCKGATE_POSEDGE_ICG"]:
+            cell, ce, clk, gclk = posedge_raw.rsplit("/", maxsplit=4)
+            posedge = ("-pos", cell, f"{ce}:{clk}:{gclk}")
+        if negedge_raw := config["SYNTH_CLOCKGATE_NEGEDGE_ICG"]:
+            cell, ce, clk, gclk = negedge_raw.rsplit("/", maxsplit=4)
+            negedge = ("-neg", cell, f"{ce}:{clk}:{gclk}")
+        if len(posedge) == 0 and len(negedge) == 0:
+            ys.log(
+                "[WARNING] A minimum width for clock gating is set; but no ICGs are configured."
+            )
+        d.run_pass(
+            "clockgate",
+            "-min_net_size",
+            str(cg_min_width),
+            *posedge,
+            *negedge,
+        )
 
     dfflibmap_args = []
     for lib in libs:

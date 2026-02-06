@@ -22,13 +22,11 @@
   yosys,
   yosys-sby,
   yosys-eqy,
-  yosys-lighter,
   yosys-slang,
   yosys-ghdl,
   yosys-plugin-set ? [
     yosys-sby
     yosys-eqy
-    yosys-lighter
     yosys-slang
   ]
   ++ lib.optionals (lib.lists.any (
