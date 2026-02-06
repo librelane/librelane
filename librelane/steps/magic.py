@@ -564,3 +564,35 @@ class OpenGUI(MagicStep):
             magic.send_signal(SIGKILL)
 
         return {}, {}
+
+@Step.factory.register()
+class FullRCX(MagicStep):
+    """
+    Performs a full parasitics extraction (RCX) using Magic. This step is suitable for performing analogue
+    simulation.
+    """
+
+    id = "Magic.FullRCX"
+    name = "RCX"
+    long_name = "Full Parasitics Extraction"
+
+    inputs = [DesignFormat.GDS, DesignFormat.DEF]
+    outputs = [DesignFormat.SPICE]
+
+    # default conf vars only
+    config_vars = MagicStep.config_vars
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "magic", "spice_rcx.tcl")
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        # always 'mag', since we'll never define the abstract setting like the original SpiceExtraction step
+        # did
+        env["MAGTYPE"] = "mag"
+
+        super().run(state_in, env=env, **kwargs)
+
+        # we have no updates, so just return nothing
+        return {}, {}

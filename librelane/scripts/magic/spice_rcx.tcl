@@ -1,0 +1,46 @@
+# Copyright 2026 M. L. Young (Macquarie University; Silicon Platforms Lab)
+#
+# Based in part on extract_spice.tcl
+#
+# Copyright 2020-2022 Efabless Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# we do always want to read the GDS for this
+gds read $::env(CURRENT_GDS)
+
+load $::env(DESIGN_NAME) -dereference
+
+set backup $::env(PWD)
+set extdir $::env(STEP_DIR)/extraction_full
+set spicedoc $::env(STEP_DIR)/$::env(DESIGN_NAME)_full_rcx.spice
+
+file mkdir $extdir
+cd $extdir
+
+extract do local
+extract do capacitance
+extract do coupling
+extract do resistance
+extract do adjust
+extract unique
+extract warn all
+
+# perform the SPICE extraction itself
+extract
+
+# merge the extracted data into a single SPICE document
+ext2spice -o $spicedoc $::env(DESIGN_NAME).ext
+
+cd $backup
+feedback save $::env(STEP_DIR)/feedback.txt
