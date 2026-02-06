@@ -575,6 +575,7 @@ class OpenGUI(MagicStep):
 
         return {}, {}
 
+
 @Step.factory.register()
 class FullRCX(MagicStep):
     """
