@@ -513,6 +513,10 @@ Style Notes
   overriden by default. To match the old behavior as much as possible we now
   create the `PDN_MACRO_CONNECTIONS` before the SCL connections.
 
+* `from_magic_feedback`
+
+  * Added "-" to wordchars so that a string like "box 369787 -1 369789 1" would be correctly split.
+
 ## API Breaks
 
 * `CLI`
