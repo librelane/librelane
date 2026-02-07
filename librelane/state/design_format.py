@@ -139,6 +139,11 @@ class DesignFormat(Enum):
         "spice",
         "Simulation Program with Integrated Circuit Emphasis",
     )
+    SPICE_RCX: DesignFormatObject = DesignFormatObject(
+        "spice_rcx",
+        "rcx.spice",
+        "Simulation Program with Integrated Circuit Emphasis (with Resistance, Capacitance and Impedance Extraction)",
+    )
 
     MAG: DesignFormatObject = DesignFormatObject(
         "mag",

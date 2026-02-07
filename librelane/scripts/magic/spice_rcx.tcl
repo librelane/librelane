@@ -1,8 +1,8 @@
-# Copyright 2026 M. L. Young (Macquarie University; Silicon Platforms Lab)
+# Copyright 2025 LibreLane Contributors
 #
-# Based in part on extract_spice.tcl
+# Adapted from OpenLane
 #
-# Copyright 2020-2022 Efabless Corporation
+# Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
