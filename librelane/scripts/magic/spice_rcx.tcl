@@ -23,7 +23,7 @@ load $::env(DESIGN_NAME) -dereference
 
 set backup $::env(PWD)
 set extdir $::env(STEP_DIR)/extraction_full
-set spicedoc $::env(STEP_DIR)/$::env(DESIGN_NAME)_full_rcx.spice
+set spicedoc $::env(STEP_DIR)/$::env(DESIGN_NAME)_full.rcx.spice
 
 file mkdir $extdir
 cd $extdir
