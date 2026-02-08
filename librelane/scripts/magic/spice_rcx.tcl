@@ -42,7 +42,7 @@ extract all
 # merge the extracted data into a single SPICE document
 ext2spice cthresh 0
 ext2spice extresist on
-ext2spice -o $spicedoc $::env(DESIGN_NAME).ext
+ext2spice -f ngspice -o $spicedoc $::env(DESIGN_NAME).ext
 
 cd $backup
 feedback save $::env(STEP_DIR)/feedback.txt
