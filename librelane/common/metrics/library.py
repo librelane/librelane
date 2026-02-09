@@ -124,7 +124,7 @@ Metric(
 )
 
 Metric(
-    "fmax__clk",
+    "timing__clock__fmax",
     aggregator=min_aggregator,
     higher_is_better=True,
 )
