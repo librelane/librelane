@@ -179,7 +179,7 @@ Style Notes
   * Better error reporting for unexpected openroad failures.
 
 * `OpenROAD.STA*`
-  * Add Max Frequency metric for each corner to summart.rpt
+  * Add Max Frequency metric for each corner to summary.rpt
   
 * `OpenROAD.CTS`
 
