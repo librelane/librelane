@@ -33,13 +33,13 @@ extract do capacitance
 extract do coupling
 extract do resistance
 extract do adjust
-extract unique
+extract do unique
 extract warn all
 
 # perform the SPICE extraction itself
 extract all
 
-# merge the extracted data into a single SPICE document
+# merge the extracted data into a single SPICE netlist
 ext2spice cthresh 0
 ext2spice extresist on
 ext2spice -f ngspice -o $spicedoc $::env(DESIGN_NAME).ext

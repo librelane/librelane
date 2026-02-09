@@ -420,7 +420,7 @@ class SpiceExtraction(MagicStep):
     Extracts a SPICE netlist from the GDSII stream. Used in Layout vs. Schematic
     checks.
 
-    Note that the resultant SPICE document is blackboxed, and *only* suitable for LVS.
+    Note that the resultant SPICE netlist is blackboxed, and *only* suitable for abstract LVS.
     If you want to perform a full parasitics extraction (RCX), you should use the Magic.RCX step.
 
     Also, the metrics will be updated with ``magic__illegal_overlap__count``. You can use
@@ -582,9 +582,12 @@ class OpenGUI(MagicStep):
 @Step.factory.register()
 class RCX(MagicStep):
     """
-    Performs a full parasitics extraction (RCX) using Magic. This step is suitable for performing analogue
-    simulation and/or full post-layout simulation of your design. The SPICE document will be flattened, and
-    refer to the raw n-type/p-type transistor models for your PDK.
+    Performs a full parasitics extraction (RCX) using Magic. This step is suitable for performing full
+    analogue post-layout simulation of your design. The SPICE netlist will be flattened, and refer to the raw
+    n-type/p-type transistor models for your PDK.
+
+    If you want to do device level simulation *without* parasitics, this can be done in the
+    Magic.SpiceExtraction step by setting `MAGIC_EXT_USE_GDS` to True and `MAGIC_EXT_ABSTRACT` to False.
     """
 
     id = "Magic.RCX"
