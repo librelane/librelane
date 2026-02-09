@@ -864,7 +864,7 @@ class MultiCornerSTA(OpenSTAStep):
                 "timing__setup_r2r_vio__count",
                 "design__max_cap_violation__count",
                 "design__max_slew_violation__count",
-                "fmax__clk",
+                "timing__clock__fmax",
             ]:
                 formatter = format_count if metric.endswith("count") else format_slack
                 row.append(
