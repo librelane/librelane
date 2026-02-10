@@ -19,7 +19,7 @@
 # we do always want to read the GDS for this
 gds read $::env(CURRENT_GDS)
 
-load $::env(DESIGN_NAME) -dereference
+load $::env(DESIGN_NAME)
 
 set backup $::env(PWD)
 set extdir $::env(STEP_DIR)/extraction_full
@@ -38,9 +38,15 @@ select top cell
 
 # configure parasitics extraction
 extract do local
-extract do capacitance
+if { $::env(MAGIC_RCX_DO_CAPACITANCE) } {
+    puts "enabling capacitance"
+    extract do capacitance
+}
+if { $::env(MAGIC_RCX_DO_RESISTANCE) } {
+    puts "enabling resistance"
+    extract do resistance
+}
 extract do coupling
-extract do resistance
 extract do adjust
 extract do unique
 extract warn all
@@ -49,7 +55,8 @@ extract warn all
 extract all
 
 # merge the extracted data into a single SPICE netlist
-ext2spice cthresh 0
+puts "capacitance threshold: $::env(MAGIC_RCX_CTHRESH)"
+ext2spice cthresh $::env(MAGIC_RCX_CTHRESH)
 ext2spice extresist on
 ext2spice -f ngspice -o $netlist $::env(DESIGN_NAME).ext
 

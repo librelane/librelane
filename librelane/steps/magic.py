@@ -597,8 +597,32 @@ class RCX(MagicStep):
     inputs = [DesignFormat.GDS]
     outputs = [DesignFormat.SPICE_RCX]
 
-    # default conf vars only
-    config_vars = MagicStep.config_vars
+    config_vars = MagicStep.config_vars + [
+        Variable(
+            "MAGIC_RCX_CTHRESH",
+            float,
+            "Capacitance threshold value in femtofarads.",
+            default=0.1,
+        ),
+        Variable(
+            "MAGIC_RCX_DO_CAPACITANCE",
+            bool,
+            "Whether to extract local capacitance values.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_DO_RESISTANCE",
+            bool,
+            "Whether to perform detailed (i.e. non-lumped) resistance extraction.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_CORNER",
+            bool,
+            "Whether to perform detailed (i.e. non-lumped) resistance extraction.",
+            default=True,
+        ),
+    ]
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "spice_rcx.tcl")
