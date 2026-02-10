@@ -23,11 +23,20 @@ load $::env(DESIGN_NAME) -dereference
 
 set backup $::env(PWD)
 set extdir $::env(STEP_DIR)/extraction_full
-set spicedoc $::env(STEP_DIR)/$::env(DESIGN_NAME)_full.rcx.spice
+set netlist $::env(STEP_DIR)/$::env(DESIGN_NAME)_full.rcx.spice
 
 file mkdir $extdir
 cd $extdir
 
+# flatten
+select top cell
+flatten flat
+load flat
+cellname delete $::env(DESIGN_NAME)
+cellname rename flat $::env(DESIGN_NAME)
+select top cell
+
+# configure parasitics extraction
 extract do local
 extract do capacitance
 extract do coupling
@@ -42,7 +51,7 @@ extract all
 # merge the extracted data into a single SPICE netlist
 ext2spice cthresh 0
 ext2spice extresist on
-ext2spice -f ngspice -o $spicedoc $::env(DESIGN_NAME).ext
+ext2spice -f ngspice -o $netlist $::env(DESIGN_NAME).ext
 
 cd $backup
 feedback save $::env(STEP_DIR)/feedback.txt
