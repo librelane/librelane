@@ -59,6 +59,11 @@ extract all
 
 # merge the extracted data into a single SPICE netlist
 puts "capacitance threshold: $::env(MAGIC_RCX_CTHRESH)"
+# "ext2spice lvs here" is used to configure default parameters, via Tim Edwards on fossi-chat.org matrix in
+# #ngspice:
+# > "I use ext2spice lvs as a shorthand for "set ext2spice parameters to something sane", after which I
+# > re-establish the options that I want."
+ext2spice lvs
 ext2spice cthresh $::env(MAGIC_RCX_CTHRESH)
 ext2spice extresist on
 ext2spice -f ngspice -o $netlist $::env(DESIGN_NAME).ext
