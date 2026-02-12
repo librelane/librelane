@@ -23,7 +23,7 @@ load $::env(DESIGN_NAME)
 
 set backup $::env(PWD)
 set extdir $::env(STEP_DIR)/extraction_full
-set netlist $::env(STEP_DIR)/$::env(DESIGN_NAME)_full.rcx.spice
+set netlist $::env(STEP_DIR)/$::env(DESIGN_NAME).rcx.spice
 
 file mkdir $extdir
 cd $extdir
