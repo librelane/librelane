@@ -20,6 +20,8 @@ from decimal import Decimal
 from abc import abstractmethod
 from typing import Any, Literal, List, Optional, Tuple
 
+from librelane.common import metrics
+
 from .step import (
     DefaultOutputProcessor,
     OutputProcessor,
@@ -638,7 +640,6 @@ class RCX(MagicStep):
         # did
         env["MAGTYPE"] = "mag"
 
-        super().run(state_in, env=env, **kwargs)
+        views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
-        # we have no updates, so just return nothing
-        return {}, {}
+        return views_updates, metrics_updates
