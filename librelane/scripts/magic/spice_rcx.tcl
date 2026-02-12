@@ -37,8 +37,12 @@ cellname rename flat $::env(DESIGN_NAME)
 select top cell
 
 # configure parasitics extraction
-puts "capacitance extraction corner: $::env(MAGIC_RCX_EXTRACT_STYLE)"
-extract style ngspice($::env(MAGIC_RCX_EXTRACT_STYLE))
+if { [info exists ::env(MAGIC_RCX_EXTRACT_STYLE)] }  {
+    puts "capacitance extraction corner: $::env(MAGIC_RCX_EXTRACT_STYLE)"
+    extract style ngspice($::env(MAGIC_RCX_EXTRACT_STYLE))
+} else {
+    puts "\[WARNING\] No MAGIC_RCX_EXTRACT_STYLE specified, this may default to the incorrect parasitics extraction corner."
+}
 
 extract do local
 if { $::env(MAGIC_RCX_DO_CAPACITANCE) } {
