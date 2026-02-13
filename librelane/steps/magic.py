@@ -107,6 +107,12 @@ class MagicStep(TclStep):
             default=False,
         ),
         Variable(
+            "MAGIC_GDS_MERGE",
+            bool,
+            'A flag to enable merging of connected tiles into polygons during gds write. From magic docs: "Depending on the tile geometry, this may make the output file up to four times smaller, at the cost of speed in generating the output file."',
+            default=True,
+        ),
+        Variable(
             "MAGIC_DEF_NO_BLOCKAGES",
             bool,
             "If set to true, blockages in DEF files are ignored. Otherwise, they are read as sheets of metal by Magic.",

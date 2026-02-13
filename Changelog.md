@@ -72,14 +72,18 @@ Style Notes
 
   * Currently only supports ihp-sg13g2.
 
-* `Netgen.LVS`:
+* `Netgen.LVS`
 
   * Display the top-level Verilog file name.
 
-* `KLayout.StreamOut`: Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the
-  conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+* `KLayout.StreamOut`
 
-  * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+  * Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the
+    conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+
+    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
+  * Disabled GDS user property production for nets and instances.
 
 * `Magic.*`
 
@@ -96,6 +100,10 @@ Style Notes
   * Added `MAGIC_DRC_MAGLEFS`
 
     * Used to blackbox cells during DRC
+
+* `Magic.StreamOut`
+
+  * Added `MAGIC_GDS_MERGE` to merge tiles into polygons during gds write (Default: True).
 
 * `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
   `MAGIC_NO_EXT_UNIQUE`

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright (c) 2021-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -116,6 +120,10 @@ def stream_out(
         layout_options.lefdef_config.read_lef_with_def = False
         layout_options.lefdef_config.lef_files = list(input_lefs)
         layout_options.lefdef_config.map_file = lym
+        # Don't produce user properties
+        layout_options.lefdef_config.net_property_name = None
+        layout_options.lefdef_config.instance_property_name = None
+        layout_options.lefdef_config.pin_property_name = None
 
         cell_conflict_resolution = {
             "AddToCell": pya.LoadLayoutOptions.CellConflictResolution.AddToCell,
