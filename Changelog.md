@@ -105,6 +105,8 @@ Style Notes
 
   * Added `MAGIC_GDS_MERGE` to merge tiles into polygons during gds write (Default: True).
 
+  * Set `MAGIC_DEF_LABELS` to False by default.
+
 * `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
   `MAGIC_NO_EXT_UNIQUE`
 
