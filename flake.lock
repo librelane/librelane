@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1764011051,
-        "narHash": "sha256-M7SZyPZiqZUR/EiiBJnmyUbOi5oE/03tCeFrTiUZchI=",
+        "lastModified": 1768818222,
+        "narHash": "sha256-460jc0+CZfyaO8+w8JNtlClB2n4ui1RbHfPTLkpwhU8=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "17ed8d9744ebe70424659b0ef74ad6d41fc87071",
+        "rev": "255a2b1725a20d060f566e4755dbf571bbbb5f76",
         "type": "github"
       },
       "original": {
@@ -48,7 +48,7 @@
         "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
         "revCount": 69,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz?rev=ff81ac966bb2cae68946d5ed5fc4994f96d0ffec&revCount=69"
+        "url": "https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -60,16 +60,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1768614091,
-        "narHash": "sha256-UElQINIEz44UlEXP9eIJmjMuCIkP9fS8+WitJwyTYzw=",
+        "lastModified": 1772293091,
+        "narHash": "sha256-x2TIO+FHH11UEY4n6751CCALpC7jFLP5PYZojjsVYtw=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "8d6f4ea82716b59bc6eff6b070304e1b916b2c75",
+        "rev": "56e8e416eba07198d83f1f8dc819f9f1b99caf6d",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "6.0.2",
+        "ref": "6.4.0",
         "repo": "nix-eda",
         "type": "github"
       }
