@@ -42,9 +42,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "dfc4f595dfb2e1c346492ff1f0274abb28725acf",
-  rev-date ? "2026-01-06",
-  sha256 ? "sha256-CVsWiOIYJSei2ur7KPlFu5CfLv3CBhvVSnzoAcKJNhs=",
+  rev ? "a87f768cfc3ab085d5a170225fa61ed01a4c97e2",
+  rev-date ? "2026-02-17",
+  sha256 ? "sha256-NpGAMIICNwCtlbQP/Gu7UYyLOw5UpsCudCUEyp92fhI=",
   # tests tend to time out and fail, esp on Darwin. imperatively it's easy to
   # re-run them but in Nix it starts the long compile all over again.
   enableTesting ? false,
