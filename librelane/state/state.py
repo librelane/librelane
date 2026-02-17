@@ -273,6 +273,14 @@ class State(GenericImmutableDict[str, StateElement]):
                     validate_path,
                     key_path=current_key_path,
                 )
+            elif isinstance(value, list):
+                target[key] = []
+                for entry in value:
+                    if validate_path and not os.path.exists(entry):
+                        raise ValueError(
+                            f"Provided path '{entry}' to design format '{current_key_path}' does not exist."
+                        )
+                    target[key].append(Path(entry))
             else:
                 if validate_path and not os.path.exists(value):
                     raise ValueError(
