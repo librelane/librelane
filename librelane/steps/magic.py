@@ -603,8 +603,9 @@ class RCX(MagicStep):
         Variable(
             "MAGIC_RCX_CTHRESH",
             float,
-            "Capacitance threshold value in femtofarads.",
+            "Capacitance threshold value.",
             default=0.1,
+            units="femtofarads",
         ),
         Variable(
             "MAGIC_RCX_DO_CAPACITANCE",
