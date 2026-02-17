@@ -98,13 +98,19 @@ class MagicStep(TclStep):
             "MAGIC_DEF_LABELS",
             bool,
             "A flag to choose whether labels are read with DEF files or not. From magic docs: \"The '-labels' option to the 'def read' command causes each net in the NETS and SPECIALNETS sections of the DEF file to be annotated with a label having the net name as the label text.\" If LVS fails, try disabling this option.",
-            default=True,
+            default=False,
         ),
         Variable(
             "MAGIC_GDS_POLYGON_SUBCELLS",
             bool,
             'A flag to enable polygon subcells in magic for gds read potentially speeding up magic. From magic docs: "Put non-Manhattan polygons. This prevents interations with other polygons on the same plane and so reduces tile splitting."',
             default=False,
+        ),
+        Variable(
+            "MAGIC_GDS_MERGE",
+            bool,
+            'A flag to enable merging of connected tiles into polygons during gds write. From magic docs: "Depending on the tile geometry, this may make the output file up to four times smaller, at the cost of speed in generating the output file."',
+            default=True,
         ),
         Variable(
             "MAGIC_DEF_NO_BLOCKAGES",
