@@ -567,6 +567,10 @@ Style Notes
   * It may be necessary to set `KLAYOUT_CONFLICT_RESOLUTION` to "SkipNewCell" to
     match the old macro integration behavior of magic.
 
+* `Magic.StreamOut`
+
+  * `MAGIC_DEF_LABELS` now defaulting to False.
+
 * `Odb.AddRoutingObstructions`, `Odb.AddPDNObstructions`
 
   * Typing for representation of obstructions has been changed. Designs with a
