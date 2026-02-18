@@ -621,13 +621,15 @@ class RCX(MagicStep):
         ),
         Variable(
             "MAGIC_RCX_EXTRACT_STYLE",
-            Optional[str],
+            str,
             (
                 "Capacitance extraction corner. For open PDKs, the options are generally: 'lrlc', "
                 "low resistance, low capacitance; 'hrlc', high resistance, low capacitance; 'lrhc', low "
                 "resistance, high capacitance; 'hrhc', high resistance, low capacitance. hrhc is typically "
-                "the slowest corner, and lrlc is typically the fastest corner."
+                "the slowest corner, and lrlc is typically the fastest corner. Defaults to 'ngspice()', "
+                "which is the default typical extraction corner."
             ),
+            default="",
         ),
     ]
 
