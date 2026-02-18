@@ -14,6 +14,12 @@
 ## Documentation
 -->
 
+# 2.4.13
+
+## Misc. Enhancements/Bugfixes
+
+* Fix loading states if a DesignFormat is a list.
+
 # 2.4.12
 
 ## Steps
