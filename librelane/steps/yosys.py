@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,13 @@ from typing import List, Literal, Optional, Set, Tuple
 
 from .tclstep import TclStep
 from .step import ViewsUpdate, MetricsUpdate, Step
-from .pyosys import JsonHeader, verilog_rtl_cfg_vars, Synthesis, VHDLSynthesis
+from .pyosys import (
+    PyosysStep,
+    JsonHeader,
+    verilog_rtl_cfg_vars,
+    Synthesis,
+    VHDLSynthesis,
+)
 
 from ..config import Variable, Config
 from ..state import State, DesignFormat
@@ -42,7 +52,7 @@ def _generate_read_deps(
     commands = ""
 
     synth_defines = [
-        f"PDK_{config['PDK']}",
+        f"PDK_{config['PDK'].replace('-','_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
@@ -70,12 +80,19 @@ def _generate_read_deps(
                 commands += f"lappend ::_synlig_defines {TclUtils.escape(f'+define+{power_define}')}\n"
 
     # Try your best to use powered blackbox models if power_defines is true
-    if power_defines and config["CELL_VERILOG_MODELS"] is not None:
-        scl_blackbox_models = toolbox.create_blackbox_model(
-            frozenset(config["CELL_VERILOG_MODELS"]),
-            frozenset(["USE_POWER_PINS"]),
-        )
-        commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+    if power_defines:
+        if config["CELL_VERILOG_MODELS"] is not None:
+            scl_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["CELL_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+        if config["PAD_VERILOG_MODELS"] is not None:
+            pad_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["PAD_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {pad_blackbox_models}\n"
     else:
         # Fall back to scl_lib_list if you cant
         for lib in scl_lib_list:
@@ -210,9 +227,17 @@ class YosysStep(TclStep):
         ),
     ]
 
+    @classmethod
+    def get_yosys_path(Self) -> str:
+        return PyosysStep.get_yosys_path()
+
+    @abstractmethod
+    def get_script_path(self) -> str:
+        pass
+
     def get_command(self) -> List[str]:
         script_path = self.get_script_path()
-        cmd = ["yosys", "-c", script_path]
+        cmd = [self.get_yosys_path(), "-c", script_path]
         if self.config["YOSYS_LOG_LEVEL"] != "ALL":
             cmd += ["-Q"]
         if self.config["YOSYS_LOG_LEVEL"] == "WARNING":
@@ -220,10 +245,6 @@ class YosysStep(TclStep):
         elif self.config["YOSYS_LOG_LEVEL"] == "ERROR":
             cmd += ["-qq"]
         return cmd
-
-    @abstractmethod
-    def get_script_path(self) -> str:
-        pass
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         power_defines = False
@@ -305,7 +326,7 @@ class EQY(Step):
             )
         else:
             info(
-                f"PDK {self.config['PDK']} is not supported by the EQY step. Skipping…"
+                f"PDK {self.config['PDK']} is not supported by the EQY step. Skipping '{self.id}'…"
             )
             return {}, {}
 

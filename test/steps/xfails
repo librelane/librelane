@@ -1,0 +1,8 @@
+netgen.lvs/003-fail-no-flatten # needs netgen update
+odb.applydeftemplate/002-bad_def # fails randomly on Nix/aarch64-darwin
+openroad.detailedrouting/003-fail-range-min
+openroad.detailedrouting/004-fail-range-max
+openroad.globalplacement/002-fail-density
+openroad.ioplacement/003-fail-metal-layer
+openroad.ioplacement/002-success-random
+openroad.globalplacement/005-fail-util

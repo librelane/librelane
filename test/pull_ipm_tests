@@ -1,0 +1,3 @@
+#!/bin/bash
+root=$(python3 -c "from pathlib import Path; print(Path('$0').absolute().parent / 'designs' / '.ip-root')")
+pipx run ipmgr -- install-dep --ip-root $root 

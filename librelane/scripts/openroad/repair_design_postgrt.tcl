@@ -14,7 +14,6 @@
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 source $::env(SCRIPTS_DIR)/openroad/common/resizer.tcl
 
-load_rsz_corners
 read_current_odb
 
 set_propagated_clock [all_clocks]
@@ -31,11 +30,19 @@ source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
 #}
 estimate_parasitics -global_routing
 
-# Repair design
-repair_design -verbose \
-    -max_wire_length $::env(GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH) \
-    -slew_margin $::env(GRT_DESIGN_REPAIR_MAX_SLEW_PCT) \
-    -cap_margin $::env(GRT_DESIGN_REPAIR_MAX_CAP_PCT)
+# Repair Design
+set arg_list [list]
+lappend arg_list -verbose
+lappend arg_list -max_wire_length $::env(GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH)
+lappend arg_list -slew_margin $::env(GRT_DESIGN_REPAIR_MAX_SLEW_PCT)
+lappend arg_list -cap_margin $::env(GRT_DESIGN_REPAIR_MAX_CAP_PCT)
+if { [info exists ::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)] } {
+    lappend arg_list -max_utilization $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)
+}
+if { [info exists ::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)] } {
+    lappend arg_list -buffer_gain $::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)
+}
+log_cmd repair_design {*}$arg_list
 
 # Re-DPL and GRT
 source $::env(SCRIPTS_DIR)/openroad/common/dpl.tcl

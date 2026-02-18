@@ -1,70 +1,71 @@
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2023-2024 UmbraLogic Technologies LLC
 {
   lib,
   abc-verifier,
   fetchFromGitHub,
   zlib,
   abc-namespace-name ? "abc",
-  rev ? "ef5389d31526003c2ebd7e6d6d6fe3848a20f0a2",
-  sha256 ? "sha256-7W66b1Toa9uEAKoijPujqQXVjxf1Ku4w2eP2Vk0ri8c=",
+  rev ? "4c756ffb8dff7c583e80c7970d117abd3dfddb5c",
+  rev-date ? "2026-01-04",
+  sha256 ? "sha256-oJ1ZyWdZefWqitXVtFwYRChsJkwGtUEc7h8RlEeBOzQ=",
 }:
-abc-verifier.overrideAttrs (finalAttrs: previousAttrs: {
-  name = "openroad-abc";
+abc-verifier.overrideAttrs (
+  finalAttrs: previousAttrs: {
+    name = "openroad-abc";
+    version = rev-date;
 
-  src = fetchFromGitHub {
-    owner = "The-OpenROAD-Project";
-    repo = "abc";
-    inherit rev;
-    inherit sha256;
-  };
+    src = fetchFromGitHub {
+      owner = "The-OpenROAD-Project";
+      repo = "abc";
+      inherit rev;
+      inherit sha256;
+    };
 
-  patches = [
-    ./patches/openroad-abc/zlib.patch
-  ];
+    patches = [
+      ./patches/openroad-abc/zlib.patch
+    ];
 
-  cmakeFlags = [
-    "-DREADLINE_FOUND=FALSE"
-    "-DUSE_SYSTEM_ZLIB:BOOL=ON"
-    "-DABC_USE_NAMESPACE=${abc-namespace-name}"
-  ];
+    postPatch = ''
+      # utter bazel nonsense
+      rm -f BUILD
+    '';
 
-  buildInputs = [zlib];
+    cmakeFlags = [
+      "-DREADLINE_FOUND=FALSE"
+      "-DUSE_SYSTEM_ZLIB:BOOL=ON"
+      "-DABC_USE_NAMESPACE=${abc-namespace-name}"
+      "-DABC_SKIP_TESTS:BOOL=ON"
+      "-DABC_USE_STDINT_H:BOOL=ON"
+    ];
 
-  installPhase = ''
-    mkdir -p $out/bin
-    mv abc $out/bin
+    buildInputs = [ zlib ];
 
-    mkdir -p $out/lib
-    mv libabc.a $out/lib
+    installPhase = ''
+      mkdir -p $out/bin
+      mv abc $out/bin
 
-    mkdir -p $out/include
-    for header in $(find  ../src | grep "\\.h$" | sed "s@../src/@@"); do
-    header_tgt=$out/include/$header
-    header_dir=$(dirname $header_tgt)
-    mkdir -p $header_dir
-    cp ../src/$header $header_tgt
-    done
+      mkdir -p $out/lib
+      mv libabc.a $out/lib
 
-    sed -Ei "/#\s*ifdef ABC_NAMESPACE/i#define ABC_NAMESPACE abc\n" $out/include/misc/util/abc_namespaces.h
-  '';
+      mkdir -p $out/include
+      for header in $(find  ../src | grep "\\.h$" | sed "s@../src/@@"); do
+      header_tgt=$out/include/$header
+      header_dir=$(dirname $header_tgt)
+      mkdir -p $header_dir
+      cp ../src/$header $header_tgt
+      done
 
-  meta = with lib; {
-    description = "A tool for squential logic synthesis and formal verification (OpenROAD's Fork)";
-    homepage = "https://people.eecs.berkeley.edu/~alanmi/abc";
-    license = licenses.mit;
-    mainProgram = "abc";
-    platforms = platforms.unix;
-  };
-})
+      sed -Ei "/#\s*ifdef ABC_NAMESPACE/i#define ABC_NAMESPACE abc\n" $out/include/misc/util/abc_namespaces.h
+    '';
+
+    meta = with lib; {
+      description = "A tool for squential logic synthesis and formal verification (OpenROAD's Fork)";
+      homepage = "https://people.eecs.berkeley.edu/~alanmi/abc";
+      license = licenses.mit;
+      mainProgram = "abc";
+      platforms = platforms.unix;
+    };
+  }
+)

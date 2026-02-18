@@ -127,7 +127,7 @@ its topmost layer, otherwise the macro would not be connected to power.
 Additionally, particularly in option 1, there are metal "stubs" generated as
 part of the power distribution network, which aren't connected to any macros.
 These are generally harmless but do cause higher routing congestion at the top
-level. If the configuration variable `FP_PDN_SKIPTRIM` is set to `false`, the
+level. If the configuration variable `PDN_SKIPTRIM` is set to `false`, the
 PDN will attempt to remove those stubs.
 
 The hierarchical mode is the default used by LibreLane and no configuration other
@@ -155,23 +155,23 @@ The core ring method does not actually require any special configuration for the
 top-level integration, but all macros need to be hardened with the following
 options:
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING` Must be set to true
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING` Must be set to true
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_HORIZONTAL_LAYER` While the vertical layer may remain unchanged, the
+* {var}`OpenROAD.GeneratePDN::PDN_HORIZONTAL_LAYER` While the vertical layer may remain unchanged, the
   horizontal layer should be different from the integrator (i.e.) met5.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_HWIDTH` The width of the horizontal straps forming the core ring.
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_HWIDTH` The width of the horizontal straps forming the core ring.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_VWIDTH` The width of the vertical straps forming the core ring.
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_VWIDTH` The width of the vertical straps forming the core ring.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_HOFFSET` The distance between the horizontal boundaries of the die
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_HOFFSET` The distance between the horizontal boundaries of the die
   area and the beginning of the horizontal core ring straps.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_VWIDTH` The distance between the vertical boundaries of the die
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_VWIDTH` The distance between the vertical boundaries of the die
   area and the beginning of the vertical core ring straps.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_HSPACING` The intra-strap distance within the two sets of
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_HSPACING` The intra-strap distance within the two sets of
   horizontal straps forming the core ring.
 
-* {var}`OpenROAD.GeneratePDN::FP_PDN_CORE_RING_VSPACING` The intra-strap distance within the two sets of vertical
+* {var}`OpenROAD.GeneratePDN::PDN_CORE_RING_VSPACING` The intra-strap distance within the two sets of vertical
   straps forming the core ring.

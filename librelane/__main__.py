@@ -59,6 +59,7 @@ def run(
     pdk_root: Optional[str],
     pdk: str,
     scl: Optional[str],
+    pad: Optional[str],
     config_files: Sequence[str],
     tag: Optional[str],
     last_run: bool,
@@ -84,28 +85,25 @@ def run(
 
         for config_file in config_files:
             if meta := Config.get_meta(config_file):
-                # to maintain backwards compat, in 3 you will need to explicitly
-                # set the flow you're substituting
-                target_flow_desc = meta.flow or "Classic"
-
-                if isinstance(target_flow_desc, str):
-                    if found := Flow.factory.get(target_flow_desc):
+                if isinstance(meta.flow, str):
+                    if found := Flow.factory.get(meta.flow):
                         TargetFlow = found
                     else:
                         err(
                             f"Unknown flow '{meta.flow}' specified in configuration file's 'meta' object."
                         )
                         ctx.exit(1)
-                elif isinstance(target_flow_desc, list):
-                    TargetFlow = SequentialFlow.make(target_flow_desc)
-                if meta.substituting_steps is not None and issubclass(
-                    TargetFlow, SequentialFlow
-                ):
+                elif isinstance(meta.flow, list):
+                    TargetFlow = SequentialFlow.make(meta.flow)
+                if meta.substituting_steps is not None:
                     if meta.flow is None:
-                        warn(
-                            'config_file currently has substituting_steps set with no flow, where it will fall back to Classic. Starting LibreLane 3.0.0, this will be an error. Please update your configuration to explicitly set "flow" to "Classic".'
-                        )
-                    TargetFlow = TargetFlow.Substitute(meta.substituting_steps)  # type: ignore  # Type checker is being rowdy with this one
+                        err("config_file has substituting_steps set with no flow.")
+                        ctx.exit(1)
+                    assert (
+                        TargetFlow is not None
+                    ), "run() failed to properly deduce TargetFlow -- please file an issue"
+                    if issubclass(TargetFlow, SequentialFlow):
+                        TargetFlow = TargetFlow.Substitute(meta.substituting_steps)  # type: ignore  # Type checker is being rowdy with this one
 
         if flow_name is not None:
             if found := Flow.factory.get(flow_name):
@@ -143,6 +141,7 @@ def run(
             "pdk_root": pdk_root,
             "pdk": pdk,
             "scl": scl,
+            "pad": pad,
             "config_override_strings": config_override_strings,
             "design_dir": design_dir,
         }
@@ -267,6 +266,7 @@ def run_included_example(
         kwargs.update(
             flow_name=None,
             scl=None,
+            pad=None,
             tag=None,
             last_run=False,
             frm=None,
@@ -456,7 +456,7 @@ def cli(ctx, /, **kwargs):
 
     if len(args) == 1 and args[0].endswith(".marshalled"):
         run_kwargs = marshal.load(open(args[0], "rb"))
-        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl"]})
+        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl", "pad"]})
 
     smoke_test = kwargs.pop("smoke_test", False)
     example = kwargs.pop("run_example", None)

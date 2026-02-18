@@ -21,32 +21,31 @@ source $::env(SCRIPTS_DIR)/openroad/common/set_power_nets.tcl
 read_pdn_cfg
 
 set arg_list [list]
-if { $::env(FP_PDN_SKIPTRIM) } {
+if { $::env(PDN_SKIPTRIM) } {
     lappend arg_list -skip_trim
-    puts "adding -skip_trim to pdngen"
 }
 # run PDNGEN
-if {[catch {pdngen {*}$arg_list} errmsg]} {
+if {[catch {log_cmd pdngen {*}$arg_list} errmsg]} {
     puts stderr $errmsg
-    exit 1
-}
+    exit_unless_gui 1
+} else {
+    write_views
+    report_design_area_metrics
 
-write_views
-report_design_area_metrics
+    foreach {net} "$::env(VDD_NETS) $::env(GND_NETS)" {
+        set report_file $::env(STEP_DIR)/$net-grid-errors.rpt
 
-foreach {net} "$::env(VDD_NETS) $::env(GND_NETS)" {
-    set report_file $::env(STEP_DIR)/$net-grid-errors.rpt
+        # For some reason, check_power_grid is… totally okay if no nodes are found
+        # at all. i.e. PDN generation has completely failed.
+        # This is a fallback file.
+        set f [open $report_file "w"]
+        puts $f ""
+        close $f
 
-    # For some reason, check_power_grid is… totally okay if no nodes are found
-    # at all. i.e. PDN generation has completely failed.
-    # This is a fallback file.
-    set f [open $report_file "w"]
-    puts $f "violation type: no nodes"
-    puts $f "  srcs: "
-    puts $f "  - N/A"
-    close $f
+        if { [catch {check_power_grid -net $net -error_file $report_file} err] } {
+            puts stderr "\[WARNING\] Grid check for $net failed: $err"
+        }
 
-    if { [catch {check_power_grid -net $net -error_file $report_file} err] } {
-        puts stderr "\[WARNING\] Grid check for $net failed: $err"
     }
+
 }

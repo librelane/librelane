@@ -14,12 +14,19 @@
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
-tapcell\
-    -distance $::env(FP_TAPCELL_DIST)\
-    -tapcell_master "$::env(WELLTAP_CELL)"\
-    -endcap_master "$::env(ENDCAP_CELL)"\
-    -halo_width_x $::env(FP_MACRO_HORIZONTAL_HALO)\
-    -halo_width_y $::env(FP_MACRO_VERTICAL_HALO)
+set tapcell_args [list]
+append_if_exists_argument tapcell_args FP_TAPCELL_DIST -distance
+append_if_exists_argument tapcell_args WELLTAP_CELL -tapcell_master
+append_if_exists_argument tapcell_args ENDCAP_CELL -endcap_master
 
+if { [llength tapcell_args] } {
+    log_cmd tapcell\
+        -halo_width_x $::env(FP_MACRO_HORIZONTAL_HALO)\
+        -halo_width_y $::env(FP_MACRO_VERTICAL_HALO)\
+        {*}$tapcell_args
+
+} else {
+    puts "\[INFO\] WELLTAP_CELL and ENDCAP_CELL both unspecified. Doing nothing."
+}
 
 write_views

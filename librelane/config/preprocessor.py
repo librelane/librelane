@@ -27,12 +27,14 @@ Keys = SimpleNamespace(
     pdk="PDK",
     pdkpath="PDKPATH",
     scl="STD_CELL_LIBRARY",
+    pad="PAD_CELL_LIBRARY",
     design_dir="DESIGN_DIR",
 )
 
 PROCESS_INFO_ALLOWLIST = [
     Keys.pdk,
     Keys.scl,
+    Keys.pad,
     f"{Keys.scl}_OPT",
 ]
 
@@ -180,7 +182,7 @@ class Expr(object):
                     eval_stack.pop()
                     eval_stack.pop()
 
-                    result = Decimal(0.0)
+                    result = Decimal("0")
                     if token.value == "**":
                         result = number1**number2
                     elif token.value == "*":
@@ -431,6 +433,7 @@ def preprocess_dict(
     pdk: Optional[str] = None,
     pdkpath: Optional[str] = None,
     scl: Optional[str] = None,
+    pad: Optional[str] = None,
     readable_paths: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
@@ -450,6 +453,7 @@ def preprocess_dict(
         Keys.pdk: pdk,
         Keys.pdkpath: pdkpath,
         Keys.scl: scl,
+        Keys.pad: pad,
         Keys.design_dir: design_dir,
     }
 

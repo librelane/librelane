@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,8 @@ import shutil
 import subprocess
 from os.path import abspath
 from base64 import b64encode
-from typing import Any, Dict, Optional, List, Sequence, Tuple, Union
+from tempfile import NamedTemporaryFile
+from typing import Any, Dict, Optional, List, Literal, Sequence, Tuple, Union
 
 from .step import ViewsUpdate, MetricsUpdate, Step, StepError, StepException
 
@@ -27,6 +32,14 @@ from ..config import Variable
 from ..logging import info
 from ..state import DesignFormat, State
 from ..common import Path, get_script_dir, mkdirp, _get_process_limit
+
+
+DesignFormat(
+    "klayout_gds",
+    "klayout.gds",
+    "GDSII Stream (KLayout)",
+    alts=["KLAYOUT_GDS"],
+).register()
 
 
 class KLayoutStep(Step):
@@ -113,20 +126,34 @@ class KLayoutStep(Step):
                     lef_args.append("--input-lef")
                     lef_args.append(abspath(lef))
 
+            if io_pad_lefs := self.config["PAD_LEFS"]:
+                for lef in io_pad_lefs:
+                    lef_args.append("--input-lef")
+                    lef_args.append(abspath(lef))
+
             result += lef_args
 
         if include_gds:
-            gds_args = []
+            gds_args: List[str] = []
+
             for gds in self.config["CELL_GDS"]:
                 gds_args.append("--with-gds-file")
                 gds_args.append(gds)
+
             for gds in self.toolbox.get_macro_views(self.config, DesignFormat.GDS):
                 gds_args.append("--with-gds-file")
-                gds_args.append(gds)
-            if extra_gds := self.config["EXTRA_GDS_FILES"]:
+                gds_args.append(str(gds))
+
+            if extra_gds := self.config["EXTRA_GDS"]:
                 for gds in extra_gds:
                     gds_args.append("--with-gds-file")
                     gds_args.append(gds)
+
+            if io_pads_gds := self.config["PAD_GDS"]:
+                for gds in io_pads_gds:
+                    gds_args.append("--with-gds-file")
+                    gds_args.append(gds)
+
             result += gds_args
 
         return result
@@ -149,7 +176,7 @@ class Render(KLayoutStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         input_view = state_in[DesignFormat.DEF]
-        if gds := state_in[DesignFormat.GDS]:
+        if gds := state_in.get(DesignFormat.GDS):
             input_view = gds
 
         assert isinstance(input_view, Path)
@@ -188,12 +215,23 @@ class StreamOut(KLayoutStep):
     inputs = [DesignFormat.DEF]
     outputs = [DesignFormat.GDS, DesignFormat.KLAYOUT_GDS]
 
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_CONFLICT_RESOLUTION",
+            Optional[
+                Literal["AddToCell", "OverwriteCell", "RenameCell", "SkipNewCell"]
+            ],
+            "Specifies the conflict resolution if a cell name conflict arises.",
+            default="RenameCell",
+        ),
+    ]
+
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         views_updates: ViewsUpdate = {}
 
         klayout_gds_out = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.KLAYOUT_GDS.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.KLAYOUT_GDS.extension}",
         )
         kwargs, env = self.extract_env(kwargs)
 
@@ -205,11 +243,13 @@ class StreamOut(KLayoutStep):
                     "klayout",
                     "stream_out.py",
                 ),
-                state_in[DesignFormat.DEF.value.id],
+                state_in[DesignFormat.DEF.id],
                 "--output",
                 abspath(klayout_gds_out),
                 "--top",
                 self.config["DESIGN_NAME"],
+                "--conflict-resolution",
+                self.config["KLAYOUT_CONFLICT_RESOLUTION"],
             ]
             + self.get_cli_args(include_lefs=True, include_gds=True),
             env=env,
@@ -355,25 +395,115 @@ class DRC(KLayoutStep):
         ),
         Variable(
             "KLAYOUT_DRC_OPTIONS",
-            Optional[Dict[str, Union[bool, int]]],
+            Optional[Dict[str, Union[bool, int, str]]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
         ),
         Variable(
             "KLAYOUT_DRC_THREADS",
             Optional[int],
-            "Specifies the number of threads to be used in KLayout DRC"
+            "Specifies the number of threads to be used in KLayout DRC."
             + "If unset, this will be equal to your machine's thread count.",
         ),
     ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        if self.config["PDK"] in ["sky130A", "sky130B"]:
+            metrics_updates = self.run_sky130(state_in, **kwargs)
+        elif self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
+            metrics_updates = self.run_gf180mcu(state_in, **kwargs)
+        elif self.config["PDK"] in ["ihp-sg13g2"]:
+            metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return {}, metrics_updates
+
+    def run_generic(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_DRC_RUNSET"]:
+            self.warn(
+                f"KLAYOUT_DRC_RUNSET is unset. KLayout.DRC may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return {}
+
+        drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lyrdb_report = os.path.join(reports_dir, "drc.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "drc.klayout.json")
+
+        input_view = state_in[DesignFormat.GDS]
+        assert isinstance(input_view, Path)
+
+        opts = []
+        if self.config["KLAYOUT_DRC_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        threads = self.config["KLAYOUT_DRC_THREADS"] or str(_get_process_limit())
+        if threads != "1":
+            opts.extend(
+                [
+                    "-rd",
+                    f"thr={threads}",
+                    # Use "threads" if possible
+                    "-rd",
+                    f"threads={threads}",
+                ]
+            )
+
+        info(f"Running KLayout DRC with {threads} threads…")
+
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                drc_script_path,
+                "-rd",
+                f"input={abspath(input_view)}",
+                "-rd",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(lyrdb_report)}",
+                *opts,
+            ]
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(lyrdb_report)}",
+                f"--json-file={abspath(json_report)}",
+                "--metric=klayout__drc_error__count",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
 
     def run_sky130(self, state_in: State, **kwargs) -> MetricsUpdate:
         kwargs, env = self.extract_env(kwargs)
         reports_dir = os.path.join(self.step_dir, "reports")
         mkdirp(reports_dir)
         drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
-        xml_report = os.path.join(reports_dir, "drc_violations.klayout.xml")
-        json_report = os.path.join(reports_dir, "drc_violations.klayout.json")
+        lyrdb_report = os.path.join(reports_dir, "drc.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "drc.klayout.json")
         feol = str(self.config["KLAYOUT_DRC_OPTIONS"]["feol"]).lower()
         beol = str(self.config["KLAYOUT_DRC_OPTIONS"]["beol"]).lower()
         floating_metal = str(
@@ -400,7 +530,7 @@ class DRC(KLayoutStep):
                 "-rd",
                 f"topcell={self.config['DESIGN_NAME']}",
                 "-rd",
-                f"report={abspath(xml_report)}",
+                f"report={abspath(lyrdb_report)}",
                 "-rd",
                 f"feol={feol}",
                 "-rd",
@@ -425,24 +555,746 @@ class DRC(KLayoutStep):
                     "klayout",
                     "xml_drc_report_to_json.py",
                 ),
-                f"--xml-file={abspath(xml_report)}",
+                f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
+                "--metric=klayout__drc_error__count",
             ],
             env=env,
             log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
         )
         return subprocess_result["generated_metrics"]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        metrics_updates: MetricsUpdate = {}
-        if self.config["PDK"] in ["sky130A", "sky130B"]:
-            metrics_updates = self.run_sky130(state_in, **kwargs)
-        else:
+    def run_gf180mcu(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_DRC_RUNSET"]:
             self.warn(
-                f"KLayout DRC is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+                f"KLAYOUT_DRC_RUNSET is unset. KLayout.DRC may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return {}
+
+        drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lyrdb_report = os.path.join(reports_dir, "drc.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "drc.klayout.json")
+
+        input_view = state_in[DesignFormat.GDS]
+        assert isinstance(input_view, Path)
+
+        opts = []
+        if self.config["KLAYOUT_DRC_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        threads = self.config["KLAYOUT_DRC_THREADS"] or str(_get_process_limit())
+        if threads != "1":
+            opts.extend(
+                [
+                    "-rd",
+                    f"thr={threads}",
+                ]
             )
 
-        return {}, metrics_updates
+        info(f"Running KLayout DRC with {threads} threads…")
+
+        # Not pya script - DRC script is not part of OpenLane
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                drc_script_path,
+                "-rd",
+                f"input={abspath(input_view)}",
+                "-rd",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(lyrdb_report)}",
+                *opts,
+            ]
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(lyrdb_report)}",
+                f"--json-file={abspath(json_report)}",
+                "--metric=klayout__drc_error__count",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
+
+    def run_ihp_sg13g2(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lyrdb_report = os.path.join(reports_dir, "drc.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "drc.klayout.json")
+
+        input_view = state_in[DesignFormat.GDS]
+        assert isinstance(input_view, Path)
+
+        opts = []
+        if self.config["KLAYOUT_DRC_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        threads = self.config["KLAYOUT_DRC_THREADS"] or str(_get_process_limit())
+        if threads != "1":
+            opts.extend(
+                [
+                    "-rd",
+                    f"thr={threads}",
+                ]
+            )
+
+        info(f"Running KLayout DRC with {threads} threads…")
+
+        # Not pya script - DRC script is not part of OpenLane
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                drc_script_path,
+                "-rd",
+                f"input={abspath(input_view)}",
+                "-rd",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(lyrdb_report)}",
+                *opts,
+            ]
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(lyrdb_report)}",
+                f"--json-file={abspath(json_report)}",
+                "--metric=klayout__drc_error__count",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
+
+
+@Step.factory.register()
+class LVS(KLayoutStep):
+    id = "KLayout.LVS"
+    name = "Layout Versus Schematic (KLayout)"
+
+    inputs = [
+        DesignFormat.CDL,
+        DesignFormat.GDS,
+    ]
+    outputs = [DesignFormat.SPICE]
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_LVS_SCRIPT",
+            Optional[Path],
+            "A path to KLayout LVS script.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_LVS_OPTIONS",
+            Optional[Dict[str, Union[bool, int, str]]],
+            "Options passed directly to the KLayout LVS script. They vary from one PDK to another.",
+            pdk=True,
+        ),
+    ]
+
+    def run_ihp_sg13g2(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        lvs_script_path = self.config["KLAYOUT_LVS_SCRIPT"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lvsdb_report = os.path.join(reports_dir, "lvs.klayout.lvsdb")
+
+        input_view_gds = state_in[DesignFormat.GDS]
+        input_view_cdl = state_in[DesignFormat.CDL]
+        assert isinstance(input_view_gds, Path)
+        assert isinstance(input_view_cdl, Path)
+
+        output_spice = os.path.join(
+            self.step_dir,
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.SPICE.value.extension}",
+        )
+
+        with NamedTemporaryFile("w") as f:
+            # Merge all CDL inputs
+            cdl_lst = [input_view_cdl]
+            cdl_lst.extend(self.config["CELL_CDLS"] or [])
+            cdl_lst.extend(self.config["EXTRA_CDLS"] or [])
+            cdl_lst.extend(self.config["PAD_CDLS"] or [])
+
+            for fn in cdl_lst:
+                with open(fn, "r") as cdl_fh:
+                    f.write(cdl_fh.read())
+
+            opts = []
+            if self.config["KLAYOUT_LVS_OPTIONS"]:
+                for k, v in self.config["KLAYOUT_LVS_OPTIONS"].items():
+                    opts.extend(
+                        [
+                            "-rd",
+                            f"{k}={v}",
+                        ]
+                    )
+
+            # Not pya script - LVS script is not part of LibreLane
+            subprocess_result = self.run_subprocess(
+                [
+                    "klayout",
+                    "-b",
+                    "-zz",
+                    "-r",
+                    lvs_script_path,
+                    "-rd",
+                    f"input={abspath(input_view_gds)}",
+                    "-rd",
+                    f"schematic={abspath(f.name)}",
+                    "-rd",
+                    f"report={abspath(lvsdb_report)}",
+                    "-rd",
+                    f"target_netlist={abspath(output_spice)}",
+                ]
+                + opts,
+                env=env,
+            )
+
+            with open(subprocess_result["log_path"]) as fh:
+                for line in fh:
+                    if "INFO : Congratulations! Netlists match" in line:
+                        ok = True
+                        break
+                    elif "ERROR : Netlists don't match" in line:
+                        ok = False
+                        break
+                else:
+                    ok = False
+
+        views_updates: ViewsUpdate = {
+            DesignFormat.SPICE: Path(output_spice),
+        }
+        metrics_updates: MetricsUpdate = {
+            "design__lvs_error__count": 0 if ok else 1,
+        }
+
+        return views_updates, metrics_updates
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            self.warn(
+                f"KLayout LVS is not supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+
+        return views_updates, metrics_updates
+
+
+@Step.factory.register()
+class SealRing(KLayoutStep):
+    """
+    Adds a seal ring in the correct size to the GDS.
+    """
+
+    id = "KLayout.SealRing"
+    name = "Seal Ring Generation"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.GDS]
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_SEALRING_SCRIPT",
+            Optional[Path],
+            "A path to KLayout seal ring script.",
+            pdk=True,
+        ),
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            views_updates, metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return views_updates, metrics_updates
+
+    def run_generic(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_SEALRING_SCRIPT"]:
+            self.warn(
+                f"KLAYOUT_SEALRING_SCRIPT is unset. KLayout.SealRing may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return views_updates, {}
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = self.config["KLAYOUT_SEALRING_SCRIPT"]
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        self.run_pya_script(
+            [
+                "python3",
+                script,
+                "--input",
+                abspath(input_gds),
+                "--output",
+                abspath(output_gds),
+                "--die-width",
+                f"{self.config['DIE_AREA'][2]:f}",
+                "--die-height",
+                f"{self.config['DIE_AREA'][3]:f}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+    def run_ihp_sg13g2(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = self.config["KLAYOUT_SEALRING_SCRIPT"]
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        # Set KLAYOUT_PATH so that KLayout can load the technology definition
+        env["KLAYOUT_PATH"] = os.path.join(
+            self.config["PDK_ROOT"], self.config["PDK"], "libs.tech", "klayout"
+        )
+
+        self.run_subprocess(
+            [
+                "klayout",
+                "-zz",
+                "-nc",
+                "-n",
+                "sg13g2",
+                "-r",
+                script,
+                "-rd",
+                f"width={self.config['DIE_AREA'][3]:f}",
+                "-rd",
+                f"height={self.config['DIE_AREA'][2]:f}",
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"output={abspath(output_gds)}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+
+@Step.factory.register()
+class Filler(KLayoutStep):
+    """
+    Generates the filler cells according to the design rules and adds them to the GDS.
+    """
+
+    id = "KLayout.Filler"
+    name = "Filler Generation"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.GDS]
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_FILLER_SCRIPT",
+            Optional[Path],
+            "A path to KLayout filler script.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_FILLER_OPTIONS",
+            Optional[Dict[str, Union[bool, int, str]]],
+            "Options passed directly to the KLayout filler script. They vary from one PDK to another.",
+            pdk=True,
+        ),
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+        if self.config["PDK"] in ["ihp-sg13g2"]:
+            views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
+        else:
+            views_updates, metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return views_updates, metrics_updates
+
+    def run_generic(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_FILLER_SCRIPT"]:
+            self.warn(
+                f"KLAYOUT_FILLER_SCRIPT is unset. KLayout.Filler may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return views_updates, {}
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = self.config["KLAYOUT_FILLER_SCRIPT"]
+
+        opts = []
+        if self.config["KLAYOUT_FILLER_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_FILLER_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"output={abspath(output_gds)}",
+                *opts,
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+    def run_ihp_sg13g2(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = self.config["KLAYOUT_FILLER_SCRIPT"]
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"output_file={abspath(output_gds)}",
+                abspath(input_gds),
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
+
+
+@Step.factory.register()
+class Density(KLayoutStep):
+    """
+    Runs the density check on the GDS.
+    """
+
+    id = "KLayout.Density"
+    name = "Density Check"
+
+    inputs = [DesignFormat.GDS]
+    outputs = []
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_DENSITY_RUNSET",
+            Optional[Path],
+            "A path to KLayout density runset.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_DENSITY_OPTIONS",
+            Optional[Dict[str, Union[bool, int, str]]],
+            "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_DENSITY_THREADS",
+            Optional[int],
+            "Specifies the number of threads to be used in KLayout density check."
+            + "If unset, this will be equal to your machine's thread count.",
+        ),
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+
+        metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return views_updates, metrics_updates
+
+    def run_generic(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_DENSITY_RUNSET"]:
+            self.warn(
+                f"KLAYOUT_DENSITY_RUNSET is unset. KLayout.Density may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return {}
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+
+        script = self.config["KLAYOUT_DENSITY_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lyrdb_report = os.path.join(reports_dir, "density.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "density.klayout.json")
+
+        opts = []
+        if self.config["KLAYOUT_DENSITY_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_DENSITY_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        threads = self.config["KLAYOUT_DENSITY_THREADS"] or str(_get_process_limit())
+        if threads != "1":
+            opts.extend(
+                [
+                    "-rd",
+                    f"thr={threads}",
+                ]
+            )
+
+        info(f"Running KLayout density check with {threads} threads…")
+
+        # Not a pya script
+        subprocess_result = self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(lyrdb_report)}",
+            ]
+            + opts,
+            env=env,
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(lyrdb_report)}",
+                f"--json-file={abspath(json_report)}",
+                "--metric=klayout__density_error__count",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
+
+
+@Step.factory.register()
+class Antenna(KLayoutStep):
+    """
+    Runs the antenna check on the GDS.
+    """
+
+    id = "KLayout.Antenna"
+    name = "Antenna Check"
+
+    inputs = [DesignFormat.GDS]
+    outputs = []
+
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_ANTENNA_RUNSET",
+            Optional[Path],
+            "A path to KLayout antenna runset.",
+            pdk=True,
+        ),
+        Variable(
+            "KLAYOUT_ANTENNA_OPTIONS",
+            Optional[Dict[str, Union[bool, int, str]]],
+            "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
+            pdk=True,
+        ),
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+
+        metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return views_updates, metrics_updates
+
+    def run_generic(self, state_in: State, **kwargs) -> MetricsUpdate:
+        kwargs, env = self.extract_env(kwargs)
+
+        if not self.config["KLAYOUT_ANTENNA_RUNSET"]:
+            self.warn(
+                f"KLAYOUT_ANTENNA_RUNSET is unset. KLayout.Antenna may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return {}
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+
+        script = self.config["KLAYOUT_ANTENNA_RUNSET"]
+
+        reports_dir = os.path.join(self.step_dir, "reports")
+        mkdirp(reports_dir)
+        lyrdb_report = os.path.join(reports_dir, "antenna.klayout.lyrdb")
+        json_report = os.path.join(reports_dir, "antenna.klayout.json")
+
+        opts = []
+        if self.config["KLAYOUT_ANTENNA_OPTIONS"]:
+            for k, v in self.config["KLAYOUT_ANTENNA_OPTIONS"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
+        info("Running KLayout antenna check…")
+
+        # Not a pya script
+        subprocess_result = self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                script,
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"topcell={self.config['DESIGN_NAME']}",
+                "-rd",
+                f"report={abspath(lyrdb_report)}",
+            ]
+            + opts,
+            env=env,
+        )
+
+        subprocess_result = self.run_pya_script(
+            [
+                "python3",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "xml_drc_report_to_json.py",
+                ),
+                f"--xml-file={abspath(lyrdb_report)}",
+                f"--json-file={abspath(json_report)}",
+                "--metric=klayout__antenna_error__count",
+            ],
+            env=env,
+            log_to=os.path.join(self.step_dir, "xml_drc_report_to_json.log"),
+        )
+        return subprocess_result["generated_metrics"]
 
 
 @Step.factory.register()
@@ -482,7 +1334,7 @@ class OpenGUI(KLayoutStep):
 
         layout = state_in[DesignFormat.DEF]
         if self.config["KLAYOUT_GUI_USE_GDS"]:
-            if gds := state_in[DesignFormat.GDS]:
+            if gds := state_in.get(DesignFormat.GDS):
                 layout = gds
         assert isinstance(layout, Path)
 

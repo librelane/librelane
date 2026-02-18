@@ -1,9 +1,8 @@
 <!--
-  * Using my modified version of mdformat:
-  nix run .#mdformat -- --wrap 80 --end-of-line lf Changelog.md
--->
 
-<!--
+Section Order
+-------------
+
 ## CLI
 ## Steps
 ## Flows
@@ -12,7 +11,646 @@
 ## Misc. Enhancements/Bugfixes
 ## API Breaks
 ## Documentation
+
+Style Notes
+------------
+
+* Always list steps alphabetically.
+
+* Always use the past tense for actions (created, added…)
+
+* New steps are always "Created", new variables are always "Added".
+  * Variables are "removed" or "deprecated." Always explain why, and for
+    deprecated variables, mention the replacement.
+
 -->
+
+# 3.0.0
+
+## Steps
+
+* `Checker.HoldViolations`
+
+  * Changed default value of `HOLD_VIOLATION_CORNERS` to `['*']`, which will
+    raise an error for hold violations on *any* corners.
+
+* Created `Checker.KLayoutDensity`
+
+  * Uses `klayout__density_error__count`
+
+* Created `Checker.KLayoutAntenna`
+
+  * Uses `klayout__antenna_error__count`
+
+* `KLayout.DRC`
+
+  * Added generic implementation.
+  * Added support for ihp-sg13g2.
+  * Added support for gf180mcu.
+  * Renamed `.xml` to `.lyrdb`.
+
+* Created `KLayout.SealRing`
+
+  * Added generic implementation.
+  * Added gf180mcu implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Filler`
+
+  * Add generic implementation.
+  * Added ihp-sg13g2 implementation.
+
+* Created `KLayout.Density`
+
+  * Add generic implementation.
+
+* Created `KLayout.Antenna`
+
+  * Add generic implementation.
+
+* Created `KLayout.LVS`
+
+  * Currently only supports ihp-sg13g2.
+
+* `Netgen.LVS`
+
+  * Display the top-level Verilog file name.
+
+* `KLayout.StreamOut`
+
+  * Added `KLAYOUT_CONFLICT_RESOLUTION` which specifies the
+    conflict resolution if a cell name conflict arises. (Default: "RenameCell")
+
+    * Allowed values: "AddToCell", "OverwriteCell", "RenameCell" and "SkipNewCell"
+
+  * Disabled GDS user property production for nets and instances.
+
+* `Magic.*`
+
+  * Updated scripts to annotated GDS with LEF.
+
+* `Magic.DRC`
+
+  * Added `MAGIC_GDS_FLATGLOB`
+
+    * Used to flatten cells in order to prevent false positive DRC errors.
+
+  * Made `DesignFormat.DEF` optional
+
+  * Added `MAGIC_DRC_MAGLEFS`
+
+    * Used to blackbox cells during DRC
+
+* `Magic.StreamOut`
+
+  * Added `MAGIC_GDS_MERGE` to merge tiles into polygons during gds write (Default: True).
+
+  * Set `MAGIC_DEF_LABELS` to False by default.
+
+* `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
+  `MAGIC_NO_EXT_UNIQUE`
+
+  * Allowed values are: "all", "notopports", "noports", "none"
+
+* `Odb.*`
+
+  * Unified error handling with that of OpenROAD steps, i.e., dependent on the
+    `[ERROR (code)]` alerts.
+  * Metrics emitted from Odb steps are now also aggregated.
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+* `Odb.AddPDNObstructions`, `Odb.AddRoutingObstructions`
+
+  * `PDN_OBSTRUCTIONS` and `ROUTING_OBSTRUCTIONS` are now lists of tuples
+    instead of variable-length Tcl-style lists (AKA: strings).
+  * **Internal**: Unified exit codes.
+
+* `Odb.CustomIOPlacement`
+
+  * All variables prefixed `FP_IO_` have been renamed, now prefixed `IO_PIN_`.
+
+* `Odb.DiodesOnPorts`, `Odb.PortDiodePlacement`
+
+  * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+
+* `Odb.FuzzyDiodePlacement`, `Odb.HeuristicDiodeInsertion`
+
+  * Steps no longer assume `DIODE_CELL` exists and fall back to doing nothing.
+
+  * `HEURISTIC_ANTENNA_THRESHOLD` has been made optional, steps do nothing if it
+    is unset.
+
+* `Odb.InsertECOBuffer`, `Odb.InsertECODiode`
+
+  * Steps now work with hierarchical netlists.
+
+  * Steps are skipped if `INSERT_ECO_BUFFERS` or `INSERT_ECO_DIODES` is
+    undefined.
+
+* `OpenROAD.*`
+
+  * Added `PNR_CORNERS` which defaults to `STA_CORNERS`. An override for
+    `DEFAULT_CORNER` for PnR steps except those with more specific overrides
+    e.g. `RSZ_CORNERS`, `CTS_CORNERS`.
+
+  * Added `LAYERS_RC`, `VIAS_R`: Unlike OpenLane 1.0.0 variables with similar
+    names, these are mappings from corners to layer/via RC values.
+
+  * Previously, for resizer steps, corners that end up with the same set of lib
+    files and RC values would be culled to reduce runtime. Now, for all steps,
+    this behavior is gated by `DEDUPLICATE_CORNERS`, which is `False` by
+    default. **This may increase flow runtimes**. In general, it is safe to turn
+    this on, however it may be surprising behavior.
+
+    * Just like previously, however, STA steps are unaffected and will always
+      run across all corners.
+
+  * Added `SET_RC_VERBOSE`, which (very noisily) logs set-RC-related commands to
+    logs.
+
+  * Added `log_cmd` from OpenROAD-flow-scripts -- neat idea for consistency
+
+  * Lib files are now *always* read BEFORE reading database files.
+
+  * **API**: instance variable `.alerts` now holds emitted alerts until the next
+    `start()`, similar to `.state_out`.
+
+  * **Internal**: Steps now sensitive to `_OPENROAD_GUI` environment variable --
+    coupled with `--only`, it runs a step in OpenROAD then doesn't quit so you
+    may inspect the result.
+
+    * This is not part of the OpenLane stable API and may be broken at any
+      moment.
+
+  * **Internal**: New convenience methods to append flags to calls based on
+    environment variables
+
+  * Better error reporting for unexpected openroad failures.
+
+* `OpenROAD.CTS`
+
+  * Added flags `CTS_OBSTRUCTION_AWARE` and `CTS_BALANCE_LEVELS`
+  * Added `CTS_SINK_BUFFER_MAX_CAP_DERATE_PCT`
+  * Added `CTS_DELAY_BUFFER_DERATE_PCT`
+  * `CTS_CLK_BUFFERS` can now take wildcards.
+  * Added `CTS_SINK_CLUSTERING_ENABLE` to control sink clustering (default is
+    enabled).
+  * Made `CTS_SINK_CLUSTERING_SIZE` and `CTS_SINK_CLUSTERING_MAX_DIAMETER`
+    optional. OpenROAD determines the best values.
+  * Added `CTS_MACRO_CLUSTERING_SIZE` and `CTS_MACRO_CLUSTERING_MAX_DIAMETER`.
+
+* `OpenROAD.CutRows`
+
+  * Added `FP_PRUNE_THRESHOLD` to prune rows not meeting the threshold after
+    cutting.
+
+* `OpenROAD.DetailedRouting`
+
+  * Added `DRT_SAVE_SNAPSHOTS` which enables saving snapshots of the layout each
+    detalied routing iteration.
+  * Added `DRT_SAVE_DRC_REPORT_ITERS`
+  * Added `DRT_ANTENNA_REPAIR_ITERS`, which, if greater than zero and
+    `DIODE_CELL` is set, enables antenna fixing after detailed routing
+  * Added `DRT_ANTENNA_REPAIR_MARGIN` which is similar to
+    `GRT_ANTENNA_REPAIR_MARGIN` but for the aforementioned antenna repair
+    iterations
+  * DRC reports are now converted to `xml` and readable by KLayout
+  * Removed `DRT_MIN_LAYER` and `DRT_MAX_LAYER` due to an update in OpenROAD.
+    `RT_MIN_LAYER`/`RT_MAX_LAYER`/`RT_CLOCK_MIN_LAYER`/`RT_CLOCK_MAX_LAYER` is
+    considered instead.
+  * Added `DRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+  * Added `DRT_ANTENNA_REPAIR_DIODE_ONLY`.
+
+* Created `OpenROAD.DumpRCValues`
+
+  * Creates three reports to help verify that the RC values used for estimation
+    are set correctly.
+
+* `OpenROAD.Floorplan`
+
+  * Added `FP_FLIP_SITES`: allows sites in floorplans to be flipped. Useful in
+    niche alignment scenarios where single-height cells have ground at the south
+    side and double-height cells have power at the south side, causing a short.
+    In that situation, flipping the sites for single-height cells resolves the
+    issue.
+
+  * Make fake I/O sites if `PAD_FAKE_SITES` exists.
+
+* `OpenROAD.GeneratePDN`
+
+  * All variables prefixed `FP_PDN_` have been renamed to be prefixed simply
+    `PDN`. Backwards compatibility wrapper code has been added for `PDN_CFG`
+    files.
+
+  * Added `PDN_EXTEND_TO` with values "core_ring" and "boundary" (default:
+    "core_ring").
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PADS` to connect the core ring to the pads.
+
+  * Added `PDN_CORE_RING_ALLOW_OUT_OF_DIE` (default: True).
+
+  * Added `PDN_CORE_HORIZONTAL_LAYER` and `PDN_CORE_VERTICAL_LAYER`.
+
+  * Added `PDN_ENABLE_PINS` (default: True) since padrings have pins on their
+    bondpads.
+
+* `OpenROAD.GlobalPlacement`
+
+  * Added optional variable `PL_ROUTABILITY_MAX_DENSITY_PCT`
+
+  * Added optional variable `PL_KEEP_RESIZE_BELOW_OVERFLOW`
+
+  * Corrected `GPL_CELL_PADDING` to be an integer.
+
+  * Enabled `dont_touch` around GPL as it does not prevent cell placement.
+
+  * Renamed `PL_TIME_DRIVEN` to `PL_TIMING_DRIVEN`.
+
+* `OpenROAD.IOPlacement`
+
+  * Added optional variable `IO_EXCLUDE_PIN_REGION`.
+
+  * Added validator to deprecate `random_equidistant` of
+    `IO_PIN_PLACEMENT_MODE`.
+
+  * Added optional variable `IO_PIN_CORNER_AVOIDANCE`.
+
+  * Added optional variable `IO_PIN_MIN_DISTANCE_IN_TRACKS`.
+
+* Created `OpenROAD.PadRing`
+
+  * Added `PAD_*` PDK variables for the default pad config.
+
+  * Added `PAD_CFG` to override the default pad config (`pad_cfg.tcl`).
+
+  * Added `PAD_SOUTH`/`PAD_EAST`/`PAD_NORTH`/`PAD_WEST` to specify the placement of the pad cells.
+
+* `OpenROAD.RepairAntennas`
+
+  * Step no longer assumes `DIODE_CELL` exists and falls back to doing nothing.
+
+  * Renamed `GRT_ANTENNA_ITERS` to `GRT_ANTENNA_REPAIR_ITERS`.
+
+  * Renamed `GRT_ANTENNA_MARGIN` to `GRT_ANTENNA_REPAIR_MARGIN`.
+
+  * Added `GRT_ANTENNA_REPAIR_JUMPER_ONLY`.
+
+  * Added `GRT_ANTENNA_REPAIR_DIODE_ONLY`.
+
+* `OpenROAD.RepairDesignPostGPL`
+
+  * Added optional variable `DESIGN_REPAIR_MAX_UTIL_PCT`
+
+* `OpenROAD.ResizerTimingPostCTS`
+
+  * Renamed `PL_RESIZER_GATE_CLONING` to `PL_RESIZER_SETUP_GATE_CLONING`
+
+  * Fixed `PL_RESIZER_SETUP_GATE_CLONING` incorrectly applied to hold fixing
+
+  * Added the following optional variables
+
+    * `PL_RESIZER_SETUP_BUFFERING`
+    * `PL_RESIZER_SETUP_BUFFER_REMOVAL`
+    * `PL_RESIZER_SETUP_REPAIR_TNS_PCT`
+    * `PL_RESIZER_SETUP_MAX_UTIL_PCT`
+    * `PL_RESIZER_HOLD_REPAIR_TNS_PCT`
+    * `PL_RESIZER_HOLD_MAX_UTIL_PCT`
+
+* `OpenROAD.RepairDesignPostGRT`
+
+  * Renamed `GRT_RESIZER_GATE_CLONING` to `GRT_RESIZER_SETUP_GATE_CLONING`
+
+  * Fixed `GRT_RESIZER_SETUP_GATE_CLONING` incorrectly applied to hold fixing
+
+  * Added the following optional variables
+
+    * `GRT_RESIZER_SETUP_BUFFERING`
+    * `GRT_RESIZER_SETUP_BUFFER_REMOVAL`
+    * `GRT_RESIZER_SETUP_REPAIR_TNS_PCT`
+    * `GRT_RESIZER_SETUP_MAX_UTIL_PCT`
+    * `GRT_RESIZER_HOLD_REPAIR_TNS_PCT`
+    * `GRT_RESIZER_HOLD_MAX_UTIL_PCT`
+
+* `OpenROAD.TapDecapInsertion`
+
+  * No longer assumes `WELLTAP_CELL` has a value and skips tap insertion if not.
+  * No longer assumes `DECAP_CELL` has a value and skips decap insertion if not.
+
+* Created `OpenROAD.UnplaceAll`
+
+  * Removes the placement status of all instances.
+
+* Created `OpenROAD.WriteCDL`
+
+  * Writes the CDL netlists for a database.
+
+* `Verilator.Lint`
+
+  * Added `LINTER_DISABLE_WARNINGS` to disable linter warnings.
+
+  * Added `LINTER_DISABLE_WARNINGS_BLACKBOX` to disable linter warnings for
+    blackbox modules.
+
+  * Added `LINTER_VLT` as a user defined Verilator Configuration format file
+    (`.vlt`).
+
+  * Verilator now creates a `_waivers_output.vlt` file based on the encountered
+    linter warnings.
+
+* `Yosys.*Synthesis`
+
+  * Added `SYNTH_CORNER`: a step-specific override for `DEFAULT_CORNER`.
+
+  * Added `SYNTH_NORMALIZE_SINGLE_BIT_VECTORS`: `true` by default, it converts
+    vectors with the shape `[0:0]` to normal wires for backwards compatibility
+    with older designs. See https://github.com/YosysHQ/yosys/pull/5095 for more
+    info.
+
+* `Yosys.Synthesis`
+
+  * Graphviz DOT file generation, which frequently fails and brings down the
+    entire process, is now dependent on the variable `SYNTH_SHOW` and is
+    disabled by default
+
+  * `synlig` has been replaced by `yosys-slang` as the alternative frontend for
+    superior SystemVerilog support.
+
+    * Added `SLANG_ARGUMENTS`, which is used to pass arguments to the Slang
+      frontend at the user's own risk.
+
+    * `USE_SYNLIG` deprecated and replaced with `USE_SLANG`.
+
+  * Added variables to keep the hierarchy during flattening.
+
+    * `SYNTH_KEEP_HIERARCHY_MIN_COST`: Sets the `keep_hierarchy` attribute on
+      modules where the gate count is estimated to exceed the specified
+      threshold. This prevents larger modules from being flattened.
+
+    * `SYNTH_KEEP_HIERARCHY_INSTANCES`: A list of instances for which to set the
+      `keep_hierarchy` attribute.
+
+    * `SYNTH_KEEP_HIERARCHY_MODULES`: A list of modules for which to set the
+      `keep_hierarchy` attribute.
+
+## Flows
+
+* Classic
+
+  * Added `OpenROAD.DumpRCValues` immediately after floorplanning.
+
+* Created "Chip" flow
+
+  * Added `OpenROAD.PadRing` for pad ring generation.
+  * Added new KLayout steps (filler, density etc.).
+  * Removed `Magic.WriteLEF`, `Odb.CheckDesignAntennaProperties`.
+
+## Tool Updates
+
+* Python requirement bumped up to ≥3.10
+  * Does not affect Nix users where Python 3.12 is used anyway.
+* Updated nix-eda to 6.0.1
+  * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
+  * Updated KLayout to `0.30.4`
+  * Updated Magic to `8.3.581`
+  * Updated Netgen to `1.5.308`
+  * Updated Yosys to `0.60`
+    * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
+  * Updated Verilator to `5.042`
+* Updated OpenROAD to `341650e`
+* Updated OpenSTA to `ffabd65`
+
+## Testing
+
+* Custom pytest `--step-rx` option replaced with a proper pytest marker,
+  `step_impl_tests`.
+  * Default option uses the marker `no step_impl_tests`, i.e., all other tests.
+  * To run all tests, pass `-m all`.
+
+* Step implementation tests now load the PDK configs first before overriding
+  them. This has a minor performance penalty compared to the previous "raw"
+  load, but allows unit tests to be updated less frequently (especially to work
+  with new PDK variables.)
+
+## Misc. Enhancements/Bugfixes
+
+- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
+
+* `CLI`
+
+  * Paths provided over the terminal that start with a tilde are now rejected
+    and result in an error, as they typically mean POSIX shell tilde expansion
+    has failed. This is a compromise solution as tilde expansion within
+    LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
+    tildes and then are surprised when it doesn't work.
+    * Relative paths that start with a genuine tilde must be provided as
+      absolute paths.
+
+* `librelane.common`
+
+  * `_eval_env`: Add support for nested dicts in tcl
+
+* `librelane.flows`
+
+  * `SequentialFlow`
+    * Substitutions are now to be strictly consumed by the subclass initializer,
+      i.e., it can no longer be done on the object-level and only on the class
+      level. Additionally, it can provided as a list of tuples instead of a
+      dictionary so the same key may be reused multiple times.
+    * Step IDs are re-normalized after every substitution, so a substitution for
+      `OpenROAD.DetailedPlacement-1` for example would always refer to the
+      second `OpenROAD.DetailedPlacement` AFTER applying all previous
+      substitutions, instead of the second "original"
+      `OpenROAD.DetailedPlacement` in the flow.
+
+* `librelane.config`
+
+  * `meta.substituting_steps` now only apply to the sequential flow declared in
+    `meta.flow` and not all flows.
+
+  * `pdk_compat` set some compatibility values only if necessary.
+
+* `librelane.state`
+
+  * `DesignFormat`
+    * Now a dataclass encapsulating the information about the DesignFormat
+      directly.
+    * `.factory` is a factory for retrieval of DesignFormats by ID
+      * `DesignFormats` may be registered to the factory using `.register()`
+      * Registrations for previously included `DesignFormat`s now moved to
+        appropriate files.
+        * Renamed `POWERED_NETLIST_NO_PHYSICAL_CELLS` to
+          `LOGICAL_POWERED_NETLIST`
+        * Renamed `POWERED_NETLIST_SDF_FRIENDLY` to
+          `SDF_FRIENDLY_POWERED_NETLIST`
+  * `State`
+    * States initialized with keys that have values that are `None` now remove
+      said keys.
+
+* `librelane.steps`
+
+  * TclStep
+    * All `Decimal` values are now passed to Tcl in exponent notation.
+
+* `librelane.config`
+
+  * Moved a number of global variables:
+    * `WIRE_LENGTH_THRESHOLD` moved from global variables to
+      `Checker.WireLength`
+    * `GPIO_PAD_*` removed- no step currently uses them
+    * `FP_TRACKS_INFO`, `FP_TAPCELL_DIST` moved to relevant steps
+    * `FP_IO_HLAYER` and `FP_IO_VLAYER` renamed to `IO_PIN_{H,V}_LAYER` and
+      moved to relevant steps
+    * `FILL_CELL` and `DECAP_CELL` renamed to `FILL_CELLS` and `DECAP_CELLS` as
+      they are both lists
+    * `EXTRA_GDS_FILES` and `FALLBACK_SDC_FILE` renamed to `EXTRA_GDS` and
+      `FALLBACK_SDC`: information can be obtained from their typing
+  * Changed some `decimal.Decimal` initializations to use integers or strings
+    instead of floats.
+
+* Store hashes for each PDK family separately
+
+  * Renamed `open_pdks_rev` to `pdk_hashes.yaml`
+  * Add hash for ihp-sg13g2
+  * Rename `PDK_ihp-sg13g2` define to `PDK_ihp_sg13g2`
+  * Metrics: split `pdk-scl-design_name` triple from the right, since ihp-sg13g2
+    contains a `-`
+
+* validators: A customizable validator that is run AFTER type checks and
+  conversions.
+
+* global connections: due to an update in OpenROAD, global connections are not
+  overriden by default. To match the old behavior as much as possible we now
+  create the `PDN_MACRO_CONNECTIONS` before the SCL connections.
+
+* `from_magic_feedback`
+
+  * Added "-" to wordchars so that a string like "box 369787 -1 369789 1" would be correctly split.
+
+## API Breaks
+
+* `CLI`
+
+  * `openlane` alias for entry point no longer exists, please use `librelane`.
+
+  * Paths provided over the terminal that start with a tilde are now rejected
+    and result in an error, as they typically mean POSIX shell tilde expansion
+    has failed. This is a compromise solution as tilde expansion within
+    LibreLane itself would be POSIX-ly incorrect, yet, many users pass quoted
+    tildes and then are surprised when it doesn't work.
+
+    * Relative paths that start with a genuine tilde must be provided as
+      absolute paths.
+
+* All Steps
+
+  * `{GPL,DPL}_CELL_PADDING`, `PL_MAX_DISPLACEMENT_{X,Y}` now all integers to
+    match OpenROAD.
+  * `WELLTAP_CELL`, `DECAP_CELL` now optional.
+
+* `Checker.HoldViolations`
+
+  * `HOLD_VIOLATION_CORNERS` now defaulting to all corners will require designs
+    that have hold violations at non-typical corners to set its value explicitly
+    to `["*tt*"]`.
+
+* `CVCRV.ERC`
+
+  * Removed non-functional step.
+
+* `KLayout.StreamOut` now behaves differently as the default for cell conflict
+  resolution has been changed from "AddToCell" to "RenameCell", which is a
+  safer.
+
+  * To retain the old behavior, set `KLAYOUT_CONFLICT_RESOLUTION` to
+    "AddToCell".
+  * It may be necessary to set `KLAYOUT_CONFLICT_RESOLUTION` to "SkipNewCell" to
+    match the old macro integration behavior of magic.
+
+* `Magic.StreamOut`
+
+  * `MAGIC_DEF_LABELS` now defaulting to False.
+
+* `Odb.AddRoutingObstructions`, `Odb.AddPDNObstructions`
+
+  * Typing for representation of obstructions has been changed. Designs with a
+    meta version of 2 or higher must update their variables from strings to
+    tuples.
+
+* `OpenROAD.*`
+
+  * `LAYERS_RC` now uses a new format. Refer to the documentation for a
+    description of the new format.
+  * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
+    `LAYERS_RC`.
+
+* `OpenROAD.BasicMacroPlacement`
+
+  * Removed non-functional step.
+
+* `OpenROAD.GeneratePDN`
+
+  * `FP_PDN_CFG`: `add_pdn_ring` calls may require `-allow_out_of_die` as an
+    escape hatch for rings that are created outside the die area: See
+    https://github.com/The-OpenROAD-Project/OpenROAD/issues/6445
+
+* `Yosys.Synthesis*`
+
+  * `.dot` views of the design are no longer generated by default. You will need
+    to set `SYNTH_SHOW` to `true` to recover the previous behavior.
+
+* `openlane.flows`
+
+  * Step IDs are re-normalized after every substitution, so a substitution for
+    `OpenROAD.DetailedPlacement-1` for example would always refer to the second
+    `OpenROAD.DetailedPlacement` AFTER applying all previous substitutions,
+    instead of the second "original" `OpenROAD.DetailedPlacement` in the flow.
+
+* `openlane.steps`
+
+  * `TclStep` now uses the IDs uppercased for `CURRENT_` and `SAVE_`.
+
+* `openlane.state`
+
+  * `State` no longer includes all `DesignFormat`s as guaranteed keys and `.get`
+    must be used to avoide `KeyErrors`
+  * `DesignFormat` is no longer an enumeration and is not iterable. However, to
+    avoid massive codebase changes, you can still access `DesignFormat`s
+    registered to the factory using the dot notation (e.g.
+    `DesignFormat.NETLIST`), using either their `id` or any of their `alts`.
+  * Removed `DesignFormatObject`: the DesignFormat class itself is now a
+    dataclass incorporating these fields, except `name`, which has been renamed
+    to `full_name`. The enumeration's name has been added to `alts`, while
+    `.name` is now an alias for `.id`.
+
+* `openlane.config`
+
+  * `meta.substituting_steps` now only apply to the sequential flow declared in
+    `meta.flow` and not all flows.
+
+  * PDK/SCL variables `WIRE_LENGTH_THRESHOLD`, `GPIO_PAD_*`, `FP_TRACKS_INFO`,
+    `FP_TAPCELL_DIST`, `FP_IO_HLAYER`, `FP_IO_VLAYER`, `SIGNAL_WIRE_RC_LAYERS`,
+    and `CLOCK_WIRE_RC_LAYERS` are no longer global variables and have been
+    moved to relevant steps.
+
+  * Global SCL variable `VDD_PIN_VOLTAGE` has been removed.
+
+  * `FILL_CELL`, `DECAP_CELL`, `EXTRA_GDS_FILES`, `FALLBACK_SDC_FILE` were all
+    renamed, see Misc. Enhancements/Bugfixes.
+
+* `openlane.common.drc`
+
+  * `BoundingBox` changed from `Tuple` to `dataclass` with additional optional
+    `info` property.
+
+* Nix
+
+  * `createOpenLaneShell` has been renamed `createLibreLaneShell` and is now in
+    pkgs rather than the flake top-level (which is quite unorthodox.)
+
+## Documentation
+
+* Variable types now link to dataclasses' API reference as appropriate.
 
 # 2.4.12
 

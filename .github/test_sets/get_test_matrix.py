@@ -56,12 +56,10 @@ def main(scls, use_json, test_sets):
             test_name = design_name
             script = empty_runner_script
             config_filename = "config.json"
-            ipm_version = "None"
             if not isinstance(design, str):
                 design_name = design["name"]
                 test_name = design.get("test_name", design_name)
                 config_filename = design.get("config_file", config_filename)
-                ipm_version = design.get("ipm", "None")
                 script_filename = design.get("script")
                 if script_filename:
                     script = os.path.join(
@@ -93,7 +91,6 @@ def main(scls, use_json, test_sets):
                     "pdk": pdk,
                     "scl": scl,
                     "script": script,
-                    "ipm_version": ipm_version,
                     "pdk_family": pdk_family,
                     "test_name": test_name,
                 }

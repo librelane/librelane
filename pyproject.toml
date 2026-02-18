@@ -1,66 +1,66 @@
-[tool.poetry]
+[project]
 name = "librelane"
-version = "2.4.12"
+version = "3.0.0.dev50"
 description = "An infrastructure for implementing chip design flows"
-# Technically, maintainer. We cannot use the maintainers field until
-# poetry-core>=2.0.0 which requires Python version 3.9+. This field does
-# not imply primary authorship for the purposes of copyright.
-authors = ["Mohamed Gaber <me@donn.website>"]
+maintainers = [
+    {name = "Mohamed Gaber", email = "me@donn.website"}
+]
 readme = "Readme.md"
 license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+  "click>=8,<8.3",
+  "cloup>=3.0.5,<4",
+  "pyyaml>=5,<7",
+  "rich>=12,<15",
+  "ciel>=2.3.1,<3",
+  "lxml>=4.9.0",
+  "deprecated>=1.2.10,<2",
+  "lln-libparse==0.56.*",
+  "psutil>=5.9.0",
+  "httpx>=0.22.0,<0.29",
+  "klayout>=0.29.0,<0.32.0",
+  "rapidfuzz>=3.9.0,<4",
+  "yamlcore>=0.0.2,<0.1.0",
+  "semver>=3.0.2,<4"
+]
+
+[project.urls]
+homepage = "https://librelane.org/"
 repository = "https://github.com/librelane/librelane"
 documentation = "https://librelane.readthedocs.io"
+"Bug Tracker" = "https://github.com/librelane/librelane/issues"
 
+[dependency-groups]
 
-[tool.poetry.dependencies]
-python = ">=3.8.1,<4"
-click = ">=8"
-cloup = ">=3.0.5,<4"
-pyyaml = ">=5,<7"
-rich = ">=12,<15"
-ciel = ">=2.0.3,<3"
-lxml = ">=4.9.0"
-deprecated = ">=1.2.10,<2"
-lln-libparse = "0.56.*"
-psutil = ">=5.9.0"
-httpx = ">=0.22.0,<0.29"
-klayout = ">=0.29.0,<0.31.0"
-rapidfuzz = ">=3.9.0,<4"
-yamlcore = "^0.0.2"
-semver = "^3.0.2"
+lint = [
+    "black",
+    "flake8",
+    "flake8-pytest-style; python_version < '4'",
+    "mypy>=1.18.2",
+    "lxml-stubs",
+    "types-urllib3",
+    "types-typed-ast",
+    "types-six",
+    "types-setuptools",
+    "types-PyYAML",
+    "types-docutils",
+    "types-decorator",
+    "types-commonmark",
+    "types-colorama",
+    "types-Pygments",
+    "types-Deprecated",
+    "types-psutil",
+]
+test = [
+    "pytest",
+    "pytest-xdist",
+    "pytest-cov",
+    "pyfakefs",
+    "pillow"
+]
 
-
-[tool.poetry.group.dev.dependencies]
-wheel = "*"
-black = ">=24.4.0,<25"
-
-flake8 = ">=7"
-flake8-pytest-style = "*"
-
-mypy = ">=1.9.0,<1.10.0"
-lxml-stubs = "*"
-types-urllib3 = "*"
-types-typed-ast = "*"
-types-six = "*"
-types-setuptools = "*"
-types-PyYAML = "*"
-types-docutils = "*"
-types-decorator = "*"
-types-commonmark = "*"
-types-colorama = "*"
-types-Pygments = "*"
-types-Deprecated = "*"
-types-psutil = "*"
-
-pytest = "*"
-pytest-xdist = "*"
-pytest-cov = "*"
-pyfakefs = ">=5.2.3,<6"
-pillow = ">=10.0.1,<11"
-
-
-[tool.poetry.scripts]
-openlane = "librelane.__main__:cli"
+[project.scripts]
 librelane = "librelane.__main__:cli"
 "librelane.steps" = "librelane.steps.__main__:cli"
 "librelane.config" = "librelane.config.__main__:cli"
@@ -69,11 +69,19 @@ librelane = "librelane.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
 
 [tool.ruff]
-# syntax-only check, make sure files are parseable under py38
+# syntax-only check, make sure files are parseable under py310
 # $ ruff check .
-target-version = "py38"
+target-version = "py310"
 lint.ignore = ["E", "F"] 
 
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "--strict-markers -m 'not step_impl_test'"
+markers = [
+    "all: all tests",
+    "step_impl_test: tests for specific step implementations (requires recursive git clone + more time)",
+]
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0,<3"]
 build-backend = "poetry.core.masonry.api"

@@ -1,7 +1,7 @@
 # Pin Placer Configuration Files
 
 If you're using the step {step}`Odb.CustomIOPlacement`
-the variable `FP_PIN_ORDER_CFG` asks you to create a `.cfg` file that can be used
+the variable `IO_PIN_ORDER_CFG` asks you to create a `.cfg` file that can be used
 to configure this placement step.
 
 ## Parsing and Grammar

@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +41,22 @@ from ..state import DesignFormat, State
 from ..config import Variable
 from ..common import get_script_dir, DRC as DRCObject, Path, mkdirp, count_occurences
 from ..logging import warn
+
+
+DesignFormat(
+    "mag",
+    "mag",
+    "Magic VLSI View",
+    alts=["MAG"],
+).register()
+
+
+DesignFormat(
+    "mag_gds",
+    "magic.gds",
+    "GDSII Stream (Magic)",
+    alts=["MAG_GDS"],
+).register()
 
 
 class MagicOutputProcessor(OutputProcessor):
@@ -80,13 +100,19 @@ class MagicStep(TclStep):
             "MAGIC_DEF_LABELS",
             bool,
             "A flag to choose whether labels are read with DEF files or not. From magic docs: \"The '-labels' option to the 'def read' command causes each net in the NETS and SPECIALNETS sections of the DEF file to be annotated with a label having the net name as the label text.\" If LVS fails, try disabling this option.",
-            default=True,
+            default=False,
         ),
         Variable(
             "MAGIC_GDS_POLYGON_SUBCELLS",
             bool,
             'A flag to enable polygon subcells in magic for gds read potentially speeding up magic. From magic docs: "Put non-Manhattan polygons. This prevents interations with other polygons on the same plane and so reduces tile splitting."',
             default=False,
+        ),
+        Variable(
+            "MAGIC_GDS_MERGE",
+            bool,
+            'A flag to enable merging of connected tiles into polygons during gds write. From magic docs: "Depending on the tile geometry, this may make the output file up to four times smaller, at the cost of speed in generating the output file."',
+            default=True,
         ),
         Variable(
             "MAGIC_DEF_NO_BLOCKAGES",
@@ -194,10 +220,10 @@ class MagicStep(TclStep):
 
         views_updates: ViewsUpdate = {}
         for output in self.outputs:
-            if output.value.multiple:
+            if output.multiple:
                 # Too step-specific.
                 continue
-            path = Path(env[f"SAVE_{output.name}"])
+            path = Path(env[f"SAVE_{output.id.upper()}"])
             if not path.exists():
                 continue
             views_updates[output] = path
@@ -375,7 +401,7 @@ class DRC(MagicStep):
     name = "DRC"
     long_name = "Design Rule Checks"
 
-    inputs = [DesignFormat.DEF, DesignFormat.GDS]
+    inputs = [DesignFormat.DEF.mkOptional(), DesignFormat.GDS]
     outputs = []
 
     config_vars = MagicStep.config_vars + [
@@ -384,6 +410,16 @@ class DRC(MagicStep):
             bool,
             "A flag to choose whether to run the Magic DRC checks on GDS or not. If not, then the checks will be done on the DEF view of the design, which is a bit faster, but may be less accurate as some DEF/LEF elements are abstract.",
             default=True,
+        ),
+        Variable(
+            "MAGIC_GDS_FLATGLOB",
+            Optional[List[str]],
+            "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
+        ),
+        Variable(
+            "MAGIC_DRC_MAGLEFS",
+            Optional[List[Path]],
+            "A list of pre-processed abstract LEF views for cells. They are read in before the design and act as blackboxes during DRC.",
         ),
     ]
 
@@ -394,10 +430,14 @@ class DRC(MagicStep):
         reports_dir = os.path.join(self.step_dir, "reports")
         mkdirp(reports_dir)
 
+        # Check that the DEF exists if needed
+        if not self.config["MAGIC_DRC_USE_GDS"]:
+            assert state_in.get(DesignFormat.DEF)
+
         views_updates, metrics_updates = super().run(state_in, **kwargs)
 
-        report_path = os.path.join(reports_dir, "drc_violations.magic.rpt")
-        klayout_db_path = os.path.join(reports_dir, "drc_violations.magic.xml")
+        report_path = os.path.join(reports_dir, "drc.magic.rpt")
+        klayout_db_path = os.path.join(reports_dir, "drc.magic.lyrdb")
 
         # report_stats = os.stat(report_path)
         # drc_db_file = None
@@ -447,15 +487,18 @@ class SpiceExtraction(MagicStep):
         Variable(
             "MAGIC_EXT_ABSTRACT_CELLS",
             Optional[List[str]],
-            "A list of regular experssions which are matched against the cells of a "
+            "A list of regular expressions which are matched against the cells of a "
             + "the design. Matches are abstracted (black-boxed) during SPICE extraction.",
         ),
         Variable(
-            "MAGIC_NO_EXT_UNIQUE",
-            bool,
-            "Enables connections by label in LVS by skipping `extract unique` in Magic extractions.",
-            default=False,
-            deprecated_names=["LVS_CONNECT_BY_LABEL"],
+            "MAGIC_EXT_UNIQUE",
+            Literal["all", "notopports", "noports", "none"],
+            'Runs `extract unique` with the specified option. The default is "all", and "none" disables `extract unique`, allowing connections between separate nets by label in LVS.',
+            default="all",
+            deprecated_names=[
+                ("MAGIC_NO_EXT_UNIQUE", lambda o: "none" if o else "all"),
+                ("LVS_CONNECT_BY_LABEL", lambda o: "none" if o else "all"),
+            ],
         ),
         Variable(
             "MAGIC_EXT_SHORT_RESISTOR",

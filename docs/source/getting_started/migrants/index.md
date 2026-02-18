@@ -181,8 +181,7 @@ configuration file automatically.
 
 ## Outputs
 
-Examining outputs for LibreLane.0+ is very different compared to previous
-versions.
+Examining outputs for LibreLane is very different compared to OpenLane.
 
 ### Run Folders
 

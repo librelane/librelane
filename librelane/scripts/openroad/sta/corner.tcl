@@ -36,7 +36,7 @@ if { [namespace exists ::ord] } {
     # Internal API- brittle
     if { [grt::have_routes] } {
         estimate_parasitics -global_routing
-    } elseif { [rsz::check_corner_wire_cap] } {
+    } elseif { [est::check_corner_wire_cap] } {
         estimate_parasitics -placement
     }
 } else {
@@ -54,7 +54,7 @@ puts "\n========================================================================
 puts "report_checks -path_delay min (Hold)"
 puts "============================================================================"
 puts "======================= [$corner name] Corner ===================================\n"
-report_checks -sort_by_slack -path_delay min -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 1000 -corner [$corner name]
+report_checks -sort_by_slack -path_delay min -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner [$corner name]
 puts ""
 puts "%OL_END_REPORT"
 
@@ -64,7 +64,7 @@ puts "\n========================================================================
 puts "report_checks -path_delay max (Setup)"
 puts "============================================================================"
 puts "======================= [$corner name] Corner ===================================\n"
-report_checks -sort_by_slack -path_delay max -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 1000 -corner [$corner name]
+report_checks -sort_by_slack -path_delay max -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner [$corner name]
 puts ""
 puts "%OL_END_REPORT"
 
@@ -74,7 +74,7 @@ puts "\n========================================================================
 puts "report_checks -unconstrained"
 puts "==========================================================================="
 puts "======================= [$corner name] Corner ===================================\n"
-report_checks -unconstrained -fields {slew cap input nets fanout} -format full_clock_expanded -corner [$corner name]
+report_checks -unconstrained -fields {slew cap input net fanout} -format full_clock_expanded -corner [$corner name]
 puts ""
 
 
@@ -82,7 +82,7 @@ puts "\n========================================================================
 puts "report_checks --slack_max -0.01"
 puts "============================================================================"
 puts "======================= [$corner name] Corner ===================================\n"
-report_checks -slack_max -0.01 -fields {slew cap input nets fanout} -format full_clock_expanded -corner [$corner name]
+report_checks -slack_max -0.01 -fields {slew cap input net fanout} -format full_clock_expanded -corner [$corner name]
 puts ""
 
 puts "\n==========================================================================="
@@ -260,7 +260,7 @@ if { [info exists ::env(STA_MAX_VIOLATOR_COUNT)] } {
     set max_violator_count $::env(STA_MAX_VIOLATOR_COUNT)
 }
 
-set hold_violating_paths [find_timing_paths -unique_paths_to_endpoint -path_delay min -sort_by_slack -group_count $max_violator_count -slack_max 0]
+set hold_violating_paths [find_timing_paths -unique_paths_to_endpoint -path_delay min -sort_by_slack -group_path_count $max_violator_count -slack_max 0]
 foreach path $hold_violating_paths {
     set start_pin [get_property $path startpoint]
     set end_pin [get_property $path endpoint]
@@ -279,7 +279,7 @@ foreach path $hold_violating_paths {
 }
 
 set worst_r2r_hold_slack 1e30
-set hold_paths [find_timing_paths -unique_paths_to_endpoint -path_delay min -sort_by_slack -group_count $max_violator_count -slack_max $worst_r2r_hold_slack]
+set hold_paths [find_timing_paths -unique_paths_to_endpoint -path_delay min -sort_by_slack -group_path_count $max_violator_count -slack_max $worst_r2r_hold_slack]
 foreach path $hold_paths {
     set start_pin [get_property $path startpoint]
     set end_pin [get_property $path endpoint]
@@ -295,7 +295,7 @@ foreach path $hold_paths {
     }
 }
 
-set setup_violating_paths [find_timing_paths -unique_paths_to_endpoint -path_delay max -sort_by_slack -group_count $max_violator_count -slack_max 0]
+set setup_violating_paths [find_timing_paths -unique_paths_to_endpoint -path_delay max -sort_by_slack -group_path_count $max_violator_count -slack_max 0]
 foreach path $setup_violating_paths {
     set start_pin [get_property $path startpoint]
     set end_pin [get_property $path endpoint]
@@ -314,7 +314,7 @@ foreach path $setup_violating_paths {
 }
 
 set worst_r2r_setup_slack 1e30
-set setup_paths [find_timing_paths -unique_paths_to_endpoint -path_delay max -sort_by_slack -group_count $max_violator_count -slack_max $worst_r2r_setup_slack]
+set setup_paths [find_timing_paths -unique_paths_to_endpoint -path_delay max -sort_by_slack -group_path_count $max_violator_count -slack_max $worst_r2r_setup_slack]
 foreach path $setup_paths {
     set start_pin [get_property $path startpoint]
     set end_pin [get_property $path endpoint]

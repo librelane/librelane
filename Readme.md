@@ -1,7 +1,7 @@
 <h1 align="center">LibreLane</h1>
 <p align="center">
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
-    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.8-3776AB.svg?style=flat&logo=python&logoColor=white" alt="Python 3.8.1 or higher" /></a>
+    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.10-3776AB.svg?style=flat&logo=python&logoColor=white" alt="Python ≥3.10" /></a>
     <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style: black"/></a>
     <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"/></a>
     <a href="https://nixos.org/"><img src="https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a" alt="Built with Nix"/></a>
@@ -36,7 +36,7 @@ Colaboratory by following
 
 You'll need the following:
 
-* Python **3.8.1** or higher with PIP, Venv and Tkinter
+* Python **3.10** or higher with PIP, Venv and Tkinter
 
 ### Nix (Recommended)
 
@@ -110,13 +110,16 @@ If you use LibreLane in your research, please cite the following paper.
 LibreLane is a trademark of the [FOSSi Foundation](https://fossi-foundation.org).
 
 LibreLane code and binaries are available under
-[The Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).
+[The Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt),
+except Nix-language files ending with `.nix`, which are available under the
+[MIT License](https://opensource.org/license/mit) as published by the
+Open Source Initiative.
 
 LibreLane is based on [OpenLane 2](https://github.com/efabless/openlane2)
-by Efabless Corporation:
+by Efabless Corporation (assets owned by UmbraLogic Technologies LLC):
 
 ```
-Copyright 2022-2025 Efabless Corporation
+Copyright 2022-2025 UmbraLogic Technologies LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -130,3 +133,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ``` 
+
+UmbraLogic Technologies LLC has agreed to relicense all OpenLane 2 Nix code as
+MIT, for which we are grateful.

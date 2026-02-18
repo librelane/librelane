@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,18 +126,25 @@ verilog_rtl_cfg_vars = [
         "Key-value pairs to be `chparam`ed in Yosys, in the format `key1=value1`.",
     ),
     Variable(
-        "USE_SYNLIG",
+        "USE_SLANG",
         bool,
-        "Use the Synlig plugin to process files, which has better SystemVerilog parsing capabilities but may not be compatible with all Yosys commands and attributes.",
+        "Use the Slang frontend to process files, which has better SystemVerilog parsing capabilities but is not as battle-tested as the default Yosys friend.",
         default=False,
+        deprecated_names=["USE_SYNLIG"],
     ),
     Variable(
-        "SYNLIG_DEFER",
-        bool,
-        "Uses -defer flag when reading files the Synlig plugin, which may improve performance by reading each file separately, but is experimental.",
-        default=False,
+        "SLANG_ARGUMENTS",
+        Optional[List[str]],
+        "Pass arguments to the Slang frontend.",
     ),
 ]
+
+DesignFormat(
+    "json_h",
+    "h.json",
+    "Design JSON Header File",
+    alts=["JSON_HEADER"],
+).register()
 
 
 class PyosysStep(Step):
@@ -201,7 +212,23 @@ class PyosysStep(Step):
             "Which log level for Yosys. At WARNING or higher, the initialization splash is also disabled.",
             default="ALL",
         ),
+        Variable(
+            "SYNTH_CORNER",
+            Optional[str],
+            "A fully qualified IPVT corner to use during synthesis. If unspecified, the value for `DEFAULT_CORNER` from the PDK will be used.",
+            pdk=True,
+        ),
+        Variable(
+            "SYNTH_SHOW",
+            bool,
+            "Generate a graphviz DOT file for the design. This will fail on a completely empty design.",
+            default=False,
+        ),
     ]
+
+    @classmethod
+    def get_yosys_path(Self) -> str:
+        return os.getenv("_LLN_OVERRIDE_YOSYS", "yosys")
 
     @abstractmethod
     def get_script_path(self) -> str:
@@ -210,7 +237,7 @@ class PyosysStep(Step):
     def get_command(self, state_in: State) -> List[str]:
         script_path = self.get_script_path()
         # HACK: Get Colab working
-        yosys_bin = "yosys"
+        yosys_bin = self.get_yosys_path()
         if "google.colab" in sys.modules:
             yosys_bin = shutil.which("yosys") or "yosys"
         cmd = [yosys_bin, "-y", script_path]
@@ -244,16 +271,29 @@ class VerilogStep(PyosysStep):
         cmd = super().get_command(state_in)
 
         blackbox_models = []
-        scl_lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
-        if self.power_defines and self.config["CELL_VERILOG_MODELS"] is not None:
-            blackbox_models.extend(
-                [
-                    self.toolbox.create_blackbox_model(
-                        frozenset(self.config["CELL_VERILOG_MODELS"]),
-                        frozenset(["USE_POWER_PINS"]),
-                    )
-                ]
-            )
+        scl_lib_list = self.toolbox.filter_views(
+            self.config, self.config["LIB"], self.config.get("SYNTH_CORNER")
+        )
+
+        if self.power_defines:
+            if self.config["CELL_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["CELL_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
+            if self.config["PAD_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["PAD_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
         else:
             blackbox_models.extend(str(f) for f in scl_lib_list)
 
@@ -325,14 +365,14 @@ class JsonHeader(VerilogStep):
     def get_command(self, state_in: State) -> List[str]:
         out_file = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.extension}",
         )
         return super().get_command(state_in) + ["--output", out_file]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.extension}",
         )
         views_updates, metrics_updates = super().run(state_in, **kwargs)
         views_updates[DesignFormat.JSON_HEADER] = Path(out_file)
@@ -431,7 +471,7 @@ class SynthesisCommon(VerilogStep):
         Variable(
             "SYNTH_HIERARCHY_MODE",
             Literal["flatten", "deferred_flatten", "keep"],
-            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it.",
+            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it. Please note that when using the Slang plugin, you need to pass '--keep-hierarchy' to `SLANG_ARGUMENTS` separately. To keep the hierarchy partially, use one of the flattening options and set the 'keep_hierarchy' attribute on instances or modules via: `SYNTH_KEEP_HIERARCHY_INSTANCES`, `SYNTH_KEEP_HIERARCHY_MODULES` or `SYNTH_KEEP_HIERARCHY_MIN_COST`.",
             default="flatten",
             deprecated_names=[
                 (
@@ -439,6 +479,21 @@ class SynthesisCommon(VerilogStep):
                     lambda x: "deferred_flatten" if x else "flatten",
                 )
             ],
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_MIN_COST",
+            Optional[int],
+            "Sets the 'keep_hierarchy' attribute on modules where the gate count is estimated to exceed the specified threshold. This prevents larger modules from being flattened. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_INSTANCES",
+            Optional[List[str]],
+            "A list of instances for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_MODULES",
+            Optional[List[str]],
+            "A list of modules for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
         ),
         Variable(
             "SYNTH_SHARE_RESOURCES",
@@ -488,6 +543,12 @@ class SynthesisCommon(VerilogStep):
             "If true, Verilog-2001 attributes are omitted from output netlists. Some utilities do not support attributes.",
             default=True,
         ),
+        Variable(
+            "SYNTH_NORMALIZE_SINGLE_BIT_VECTORS",
+            bool,
+            "If true, vectors with the shape [0:0] are converted to normal wires in the netlist. If disabled, even one-width pins will be suffixed [0] in the layout when imported by most PnR tools.",
+            default=True,
+        ),
         # Variable(
         #     "SYNTH_SDC_FILE",
         #     Optional[Path],
@@ -501,7 +562,7 @@ class SynthesisCommon(VerilogStep):
     def get_command(self, state_in: State) -> List[str]:
         out_file = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
         )
         cmd = super().get_command(state_in)
         if self.config["USE_LIGHTER"]:
@@ -526,7 +587,7 @@ class SynthesisCommon(VerilogStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(
             self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.value.extension}",
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
         )
 
         view_updates, metric_updates = super().run(state_in, **kwargs)

@@ -121,7 +121,7 @@ if { [info exists ::env(INSERT_BUFFER_COMMAND) ]} {
     read_current_odb
 
     set arg_list [split $::env(INSERT_BUFFER_COMMAND) " "]
-    insert_buffer {*}$arg_list
+    log_cmd insert_buffer {*}$arg_list
 
     write_views
 }

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import os
 import tempfile
 from shutil import rmtree
@@ -43,7 +44,6 @@ def pytest_assertrepr_compare(op, left, right):
 @pytest.fixture
 def _mock_conf_fs():
     with Patcher() as patcher:
-        rmtree("/run", ignore_errors=True)
         patcher.fs.create_dir("/cwd/src")
         patcher.fs.create_file("/cwd/src/a.v")
         patcher.fs.create_file("/cwd/src/b.v")
@@ -105,17 +105,15 @@ class chdir(object):
 
 @pytest.fixture
 def _chdir_tmp(request: SubRequest):
-    keep_tmp = request.config.getoption("--keep-tmp")
-
-    if not keep_tmp:
+    if not request.config.option.keep_tmp:
         with tempfile.TemporaryDirectory(prefix="librelane_test_") as dir, chdir(dir):
             yield
     else:
         dir = tempfile.mkdtemp(prefix="librelane_test_")
         with chdir(dir):
-            print(f"\nTMP: {dir}")
+            logging.info(f"\nTMP: {dir}")
             yield
-            print(f"\nTMP: {dir}")
+            logging.info(f"\nTMP: {dir}")
 
 
 MOCK_PDK_VARS = [
@@ -315,6 +313,10 @@ def pytest_configure():
 
 
 def pytest_addoption(parser):
-    parser.addoption("--step-rx", action="store", default="^$")
     parser.addoption("--pdk-root", action="store", default=None)
-    parser.addoption("--keep-tmp", action="store_true", default=False)
+    parser.addoption(
+        "--keep-tmp", action="store_true", default=False
+    )  # add --log-cli-level=INFO so that the tmp being kept is printed
+    parser.addoption(
+        "--create-reproducible-on-fail", action="store_true", default=False
+    )

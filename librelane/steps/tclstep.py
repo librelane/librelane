@@ -88,7 +88,9 @@ class TclStep(Step):
             return value.name
         elif isinstance(value, bool):
             return "1" if value else "0"
-        elif isinstance(value, Decimal) or isinstance(value, int):
+        elif isinstance(value, Decimal):
+            return str(value)  # f"{value:e}"
+        elif isinstance(value, int):
             return str(value)
         else:
             return str(value)
@@ -158,15 +160,16 @@ class TclStep(Step):
             env[element] = TclStep.value_to_tcl(value)
 
         for input in self.inputs:
-            key = f"CURRENT_{input.name}"
-            env[key] = TclStep.value_to_tcl(state[input])
+            key = f"CURRENT_{input.id.upper()}"
+            if input_path := state.get_by_df(input):
+                env[key] = TclStep.value_to_tcl(input_path)
 
         for output in self.outputs:
-            if output.value.multiple:
+            if output.multiple:
                 # Too step-specific.
                 continue
-            filename = f"{self.config['DESIGN_NAME']}.{output.value.extension}"
-            env[f"SAVE_{output.name}"] = os.path.join(self.step_dir, filename)
+            filename = f"{self.config['DESIGN_NAME']}.{output.extension}"
+            env[f"SAVE_{output.id.upper()}"] = os.path.join(self.step_dir, filename)
 
         return env
 
@@ -210,10 +213,10 @@ class TclStep(Step):
 
         overrides: ViewsUpdate = {}
         for output in self.outputs:
-            if output.value.multiple:
+            if output.multiple:
                 # Too step-specific.
                 continue
-            path = Path(env[f"SAVE_{output.name}"])
+            path = Path(env[f"SAVE_{output.id.upper()}"])
             if not path.exists():
                 continue
             overrides[output] = path
@@ -253,7 +256,7 @@ class TclStep(Step):
         #
         # Emplace file to be sourced in dict with key ``_TCL_ENV_IN``
         env = os.environ.copy()
-        with open(env_in_file, "a+") as f:
+        with open(env_in_file, "w") as f:
             for key, value in env_in:
                 if key in env and env[key] == value:
                     continue

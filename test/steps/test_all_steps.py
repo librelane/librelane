@@ -12,29 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 import sys
 import shutil
 import inspect
 import importlib
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
 
+pytestmark = pytest.mark.all
+
 
 @pytest.fixture
-def _step_enabled(request: SubRequest, test: str):
-    step_rx = request.config.option.step_rx
-    if re.search(step_rx, test) is None:
-        pytest.skip()
+def create_reproducible_on_fail(request: SubRequest):
+    return request.config.option.create_reproducible_on_fail
 
 
 @pytest.fixture
 def pdk_root(request):
     import ciel
     from ciel.source import StaticWebDataSource
-    from librelane.common import get_opdks_rev
+    from librelane.common import get_pdk_hash
 
     ciel_home = ciel.get_ciel_home(request.config.option.pdk_root)
 
@@ -45,7 +44,7 @@ def pdk_root(request):
     version = ciel.fetch(
         ciel_home,
         "sky130",
-        get_opdks_rev(),
+        get_pdk_hash("sky130A"),
         data_source=data_source,
     )
 
@@ -80,13 +79,22 @@ def attribute_from_file(file: str, attribute: str):
         pass
 
 
+@pytest.mark.step_impl_test
 @pytest.mark.parametrize("test", pytest.tests)
-@pytest.mark.usefixtures("_chdir_tmp", "_step_enabled")
-def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture):
+@pytest.mark.usefixtures("_chdir_tmp", "create_reproducible_on_fail")
+def test_step_folder(
+    test: Tuple[str, bool],
+    pdk_root: str,
+    caplog: pytest.LogCaptureFixture,
+):
+
     from librelane.steps import Step
     from librelane.state import State
+    from librelane.config import Config
     from librelane.common import Toolbox, get_script_dir
     from librelane.steps.openroad_alerts import SupportsOpenROADAlerts
+    from decimal import Decimal
+    import json
 
     sys.path.insert(0, os.getcwd())
 
@@ -99,7 +107,7 @@ def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture)
 
     for file in os.listdir("."):
         if file.endswith(".ref"):
-            referenced_file_path = open(file, encoding="utf8").read()
+            referenced_file_path = open(file, encoding="utf8").read().strip()
             final_path = os.path.join(".", file[:-4])
             referenced_file = os.path.join(pytest.step_common_dir, referenced_file_path)
             shutil.copy(referenced_file, final_path)
@@ -144,7 +152,19 @@ def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture)
         state_in = State()
 
     # 2. Load and Launch Step
-    target = Target.load(config, state_in, pdk_root)
+
+    if not isinstance(config, Config):
+        config_object, _ = Config.load(
+            config_in=json.loads(open(config).read(), parse_float=Decimal),
+            flow_config_vars=Target.get_all_config_variables(),
+            design_dir=".",
+            pdk_root=pdk_root,
+            _load_pdk_configs=True,
+        )
+    else:
+        config_object = config
+
+    target = Target.load(config_object, state_in, pdk_root)
 
     exception: Optional[Exception] = None
     try:
@@ -156,11 +176,16 @@ def test_step_folder(test: str, pdk_root: str, caplog: pytest.LogCaptureFixture)
         exception = e
 
     # 3. Call handler
-    try_call(
-        handler,
-        exception=exception,
-        step=target,
-        test=test,
-        caplog=caplog,
-        openroad_alerts=openroad_alerts,
-    )
+    try:
+        try_call(
+            handler,
+            exception=exception,
+            step=target,
+            test=test,
+            caplog=caplog,
+            openroad_alerts=openroad_alerts,
+        )
+    except Exception as e:
+        if create_reproducible_on_fail:
+            target.create_reproducible("./repro", flatten=True)
+        raise e from None

@@ -147,7 +147,7 @@ ______________________________________________________________________
 ```json
 {
     "DESIGN_NAME": "aes_wb_wrapper",
-    "FP_PDN_MULTILAYER": false,
+    "PDN_MULTILAYER": false,
     "CLOCK_PORT": "wb_clk_i",
     "CLOCK_PERIOD": 25,
     "VERILOG_FILES": [
@@ -177,7 +177,7 @@ This is a basic configuration file which has only these variables:
 * {var}`OpenROAD.Floorplan::FP_CORE_UTIL`: The core utilization. Typical values
   for the core utilization range from 25% to 60%. 40% is a good starting value -
   we can adjust it later if we need to (i.e. one of the tools complains.)
-* {var}`OpenROAD.GeneratePDN::FP_PDN_MULTILAYER`: We set this to `false` as we
+* {var}`OpenROAD.GeneratePDN::PDN_MULTILAYER`: We set this to `false` as we
   are hardening a chip for integration into Caravel. You may review
   {doc}`/usage/pdn` for more information on this.
 
@@ -707,7 +707,7 @@ So, the final `config.json` is as follows:
 ```json
 {
     "DESIGN_NAME": "aes_wb_wrapper",
-    "FP_PDN_MULTILAYER": false,
+    "PDN_MULTILAYER": false,
     "CLOCK_PORT": "wb_clk_i",
     "CLOCK_PERIOD": 25,
     "VERILOG_FILES": [
@@ -836,13 +836,13 @@ section can be found at the end of the configurations file
         "vssa1",
         "vssa2"
     ],
-    "FP_PDN_CORE_RING": 1,
-    "FP_PDN_CORE_RING_VWIDTH": 3.1,
-    "FP_PDN_CORE_RING_HWIDTH": 3.1,
-    "FP_PDN_CORE_RING_VOFFSET": 12.45,
-    "FP_PDN_CORE_RING_HOFFSET": 12.45,
-    "FP_PDN_CORE_RING_VSPACING": 1.7,
-    "FP_PDN_CORE_RING_HSPACING": 1.7,
+    "PDN_CORE_RING": 1,
+    "PDN_CORE_RING_VWIDTH": 3.1,
+    "PDN_CORE_RING_HWIDTH": 3.1,
+    "PDN_CORE_RING_VOFFSET": 12.45,
+    "PDN_CORE_RING_HOFFSET": 12.45,
+    "PDN_CORE_RING_VSPACING": 1.7,
+    "PDN_CORE_RING_HSPACING": 1.7,
     "CLOCK_PORT": "wb_clk_i",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
     "MAGIC_DEF_LABELS": 0,
@@ -1102,14 +1102,14 @@ wbs_.*
 ```
 ````
 
-2. Add the `Odb.CustomIOPlacement::FP_PIN_ORDER_CFG` variable to
+2. Add the `Odb.CustomIOPlacement::IO_PIN_ORDER_CFG` variable to
    `librelane/aes_wb_wrapper/config.json`
 
 ````{dropdown} config.json
 ```json
 {
     "DESIGN_NAME": "aes_wb_wrapper",
-    "FP_PDN_MULTILAYER": false,
+    "PDN_MULTILAYER": false,
     "CLOCK_PORT": "wb_clk_i",
     "CLOCK_PERIOD": 25,
     "VERILOG_FILES": [
@@ -1131,7 +1131,7 @@ wbs_.*
     "RUN_POST_GRT_DESIGN_REPAIR": true,
     "PNR_SDC_FILE": "dir::pnr.sdc",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
-    "FP_PIN_ORDER_CFG": "dir::pin_order.cfg"
+    "IO_PIN_ORDER_CFG": "dir::pin_order.cfg"
 }
 ```
 ````
@@ -1154,7 +1154,7 @@ wbs_.*
     "RUN_POST_GPL_DESIGN_REPAIR": false,
     "RUN_POST_CTS_RESIZER_TIMING": false,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": false,
-    "FP_PDN_ENABLE_RAILS": false,
+    "PDN_ENABLE_RAILS": false,
     "RUN_ANTENNA_REPAIR": false,
     "RUN_FILL_INSERTION": false,
     "RUN_TAP_ENDCAP_INSERTION": false,
@@ -1198,14 +1198,14 @@ wbs_.*
     "PDN_MACRO_CONNECTIONS": ["mprj vccd2 vssd2 VPWR VGND"],
 
     "//": "PDN configurations",
-    "FP_PDN_VOFFSET": 5,
-    "FP_PDN_HOFFSET": 5,
-    "FP_PDN_VWIDTH": 3.1,
-    "FP_PDN_HWIDTH": 3.1,
-    "FP_PDN_VSPACING": 15.5,
-    "FP_PDN_HSPACING": 15.5,
-    "FP_PDN_VPITCH": 180,
-    "FP_PDN_HPITCH": 180,
+    "PDN_VOFFSET": 5,
+    "PDN_HOFFSET": 5,
+    "PDN_VWIDTH": 3.1,
+    "PDN_HWIDTH": 3.1,
+    "PDN_VSPACING": 15.5,
+    "PDN_HSPACING": 15.5,
+    "PDN_VPITCH": 180,
+    "PDN_HPITCH": 180,
     "QUIT_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
@@ -1230,13 +1230,13 @@ wbs_.*
         "vssa1",
         "vssa2"
     ],
-    "FP_PDN_CORE_RING": 1,
-    "FP_PDN_CORE_RING_VWIDTH": 3.1,
-    "FP_PDN_CORE_RING_HWIDTH": 3.1,
-    "FP_PDN_CORE_RING_VOFFSET": 12.45,
-    "FP_PDN_CORE_RING_HOFFSET": 12.45,
-    "FP_PDN_CORE_RING_VSPACING": 1.7,
-    "FP_PDN_CORE_RING_HSPACING": 1.7,
+    "PDN_CORE_RING": 1,
+    "PDN_CORE_RING_VWIDTH": 3.1,
+    "PDN_CORE_RING_HWIDTH": 3.1,
+    "PDN_CORE_RING_VOFFSET": 12.45,
+    "PDN_CORE_RING_HOFFSET": 12.45,
+    "PDN_CORE_RING_VSPACING": 1.7,
+    "PDN_CORE_RING_HSPACING": 1.7,
     "CLOCK_PORT": "wb_clk_i",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
     "MAGIC_DEF_LABELS": 0,
@@ -1375,7 +1375,7 @@ are needed for the `user_project_wrapper`
     "RUN_POST_GPL_DESIGN_REPAIR": true,
     "RUN_POST_CTS_RESIZER_TIMING": true,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": true,
-    "FP_PDN_ENABLE_RAILS": true,
+    "PDN_ENABLE_RAILS": true,
     "RUN_ANTENNA_REPAIR": true,
     "RUN_FILL_INSERTION": true,
     "RUN_TAP_ENDCAP_INSERTION": true,
@@ -1412,7 +1412,7 @@ Now the full configuration file will be:
     "RUN_POST_GPL_DESIGN_REPAIR": true,
     "RUN_POST_CTS_RESIZER_TIMING": true,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": true,
-    "FP_PDN_ENABLE_RAILS": true,
+    "PDN_ENABLE_RAILS": true,
     "RUN_ANTENNA_REPAIR": true,
     "RUN_FILL_INSERTION": true,
     "RUN_TAP_ENDCAP_INSERTION": true,
@@ -1420,14 +1420,14 @@ Now the full configuration file will be:
     "RUN_IRDROP_REPORT": true,
 
     "//": "PDN configurations",
-    "FP_PDN_VOFFSET": 5,
-    "FP_PDN_HOFFSET": 5,
-    "FP_PDN_VWIDTH": 3.1,
-    "FP_PDN_HWIDTH": 3.1,
-    "FP_PDN_VSPACING": 15.5,
-    "FP_PDN_HSPACING": 15.5,
-    "FP_PDN_VPITCH": 180,
-    "FP_PDN_HPITCH": 180,
+    "PDN_VOFFSET": 5,
+    "PDN_HOFFSET": 5,
+    "PDN_VWIDTH": 3.1,
+    "PDN_HWIDTH": 3.1,
+    "PDN_VSPACING": 15.5,
+    "PDN_HSPACING": 15.5,
+    "PDN_VPITCH": 180,
+    "PDN_HPITCH": 180,
     "QUIT_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
@@ -1451,13 +1451,13 @@ Now the full configuration file will be:
         "vssa1",
         "vssa2"
     ],
-    "FP_PDN_CORE_RING": 1,
-    "FP_PDN_CORE_RING_VWIDTH": 3.1,
-    "FP_PDN_CORE_RING_HWIDTH": 3.1,
-    "FP_PDN_CORE_RING_VOFFSET": 12.45,
-    "FP_PDN_CORE_RING_HOFFSET": 12.45,
-    "FP_PDN_CORE_RING_VSPACING": 1.7,
-    "FP_PDN_CORE_RING_HSPACING": 1.7,
+    "PDN_CORE_RING": 1,
+    "PDN_CORE_RING_VWIDTH": 3.1,
+    "PDN_CORE_RING_HWIDTH": 3.1,
+    "PDN_CORE_RING_VOFFSET": 12.45,
+    "PDN_CORE_RING_HOFFSET": 12.45,
+    "PDN_CORE_RING_VSPACING": 1.7,
+    "PDN_CORE_RING_HSPACING": 1.7,
     "CLOCK_PORT": "wb_clk_i",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
     "MAGIC_DEF_LABELS": 0,
@@ -1855,7 +1855,7 @@ be:
     "RUN_POST_GPL_DESIGN_REPAIR": true,
     "RUN_POST_CTS_RESIZER_TIMING": true,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": true,
-    "FP_PDN_ENABLE_RAILS": true,
+    "PDN_ENABLE_RAILS": true,
     "RUN_ANTENNA_REPAIR": true,
     "RUN_FILL_INSERTION": true,
     "RUN_TAP_ENDCAP_INSERTION": true,
@@ -1867,14 +1867,14 @@ be:
     },
 
     "//": "PDN configurations",
-    "FP_PDN_VOFFSET": 5,
-    "FP_PDN_HOFFSET": 5,
-    "FP_PDN_VWIDTH": 3.1,
-    "FP_PDN_HWIDTH": 3.1,
-    "FP_PDN_VSPACING": 15.5,
-    "FP_PDN_HSPACING": 15.5,
-    "FP_PDN_VPITCH": 180,
-    "FP_PDN_HPITCH": 180,
+    "PDN_VOFFSET": 5,
+    "PDN_HOFFSET": 5,
+    "PDN_VWIDTH": 3.1,
+    "PDN_HWIDTH": 3.1,
+    "PDN_VSPACING": 15.5,
+    "PDN_HSPACING": 15.5,
+    "PDN_VPITCH": 180,
+    "PDN_HPITCH": 180,
     "QUIT_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
@@ -1908,13 +1908,13 @@ be:
         "vssa1",
         "vssa2"
     ],
-    "FP_PDN_CORE_RING": 1,
-    "FP_PDN_CORE_RING_VWIDTH": 3.1,
-    "FP_PDN_CORE_RING_HWIDTH": 3.1,
-    "FP_PDN_CORE_RING_VOFFSET": 12.45,
-    "FP_PDN_CORE_RING_HOFFSET": 12.45,
-    "FP_PDN_CORE_RING_VSPACING": 1.7,
-    "FP_PDN_CORE_RING_HSPACING": 1.7,
+    "PDN_CORE_RING": 1,
+    "PDN_CORE_RING_VWIDTH": 3.1,
+    "PDN_CORE_RING_HWIDTH": 3.1,
+    "PDN_CORE_RING_VOFFSET": 12.45,
+    "PDN_CORE_RING_HOFFSET": 12.45,
+    "PDN_CORE_RING_VSPACING": 1.7,
+    "PDN_CORE_RING_HSPACING": 1.7,
     "CLOCK_PORT": "wb_clk_i",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
     "MAGIC_DEF_LABELS": 0,
@@ -2030,7 +2030,7 @@ The following edits are needed for this strategy:
     "RUN_POST_GPL_DESIGN_REPAIR": true,
     "RUN_POST_CTS_RESIZER_TIMING": true,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": true,
-    "FP_PDN_ENABLE_RAILS": true,
+    "PDN_ENABLE_RAILS": true,
     "RUN_ANTENNA_REPAIR": true,
     "RUN_FILL_INSERTION": true,
     "RUN_TAP_ENDCAP_INSERTION": true,
@@ -2110,7 +2110,7 @@ So, the final config.json for the User Project's Wrapper will be:
     "RUN_POST_GPL_DESIGN_REPAIR": true,
     "RUN_POST_CTS_RESIZER_TIMING": true,
     "DESIGN_REPAIR_BUFFER_INPUT_PORTS": true,
-    "FP_PDN_ENABLE_RAILS": true,
+    "PDN_ENABLE_RAILS": true,
     "RUN_ANTENNA_REPAIR": true,
     "RUN_FILL_INSERTION": true,
     "RUN_TAP_ENDCAP_INSERTION": true,
@@ -2154,14 +2154,14 @@ So, the final config.json for the User Project's Wrapper will be:
     "PDN_MACRO_CONNECTIONS": ["mprj vccd2 vssd2 VPWR VGND"],
 
     "//": "PDN configurations",
-    "FP_PDN_VOFFSET": 5,
-    "FP_PDN_HOFFSET": 5,
-    "FP_PDN_VWIDTH": 3.1,
-    "FP_PDN_HWIDTH": 3.1,
-    "FP_PDN_VSPACING": 15.5,
-    "FP_PDN_HSPACING": 15.5,
-    "FP_PDN_VPITCH": 180,
-    "FP_PDN_HPITCH": 180,
+    "PDN_VOFFSET": 5,
+    "PDN_HOFFSET": 5,
+    "PDN_VWIDTH": 3.1,
+    "PDN_HWIDTH": 3.1,
+    "PDN_VSPACING": 15.5,
+    "PDN_HSPACING": 15.5,
+    "PDN_VPITCH": 180,
+    "PDN_HPITCH": 180,
     "QUIT_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
@@ -2193,13 +2193,13 @@ So, the final config.json for the User Project's Wrapper will be:
         "vssa1",
         "vssa2"
     ],
-    "FP_PDN_CORE_RING": 1,
-    "FP_PDN_CORE_RING_VWIDTH": 3.1,
-    "FP_PDN_CORE_RING_HWIDTH": 3.1,
-    "FP_PDN_CORE_RING_VOFFSET": 12.45,
-    "FP_PDN_CORE_RING_HOFFSET": 12.45,
-    "FP_PDN_CORE_RING_VSPACING": 1.7,
-    "FP_PDN_CORE_RING_HSPACING": 1.7,
+    "PDN_CORE_RING": 1,
+    "PDN_CORE_RING_VWIDTH": 3.1,
+    "PDN_CORE_RING_HWIDTH": 3.1,
+    "PDN_CORE_RING_VOFFSET": 12.45,
+    "PDN_CORE_RING_HOFFSET": 12.45,
+    "PDN_CORE_RING_VSPACING": 1.7,
+    "PDN_CORE_RING_HSPACING": 1.7,
     "CLOCK_PORT": "wb_clk_i",
     "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
     "MAGIC_DEF_LABELS": 0,
