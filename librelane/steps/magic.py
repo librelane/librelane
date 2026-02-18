@@ -24,8 +24,6 @@ from decimal import Decimal
 from abc import abstractmethod
 from typing import Any, Literal, List, Optional, Tuple
 
-from librelane.common import metrics
-
 from .step import (
     DefaultOutputProcessor,
     OutputProcessor,
