@@ -38,7 +38,7 @@ select top cell
 
 # configure parasitics extraction
 puts "capacitance extraction corner: $::env(MAGIC_RCX_EXTRACT_STYLE)"
-extract style ngspice($::env(MAGIC_RCX_EXTRACT_STYLE))
+extract style $::env(MAGIC_RCX_EXTRACT_STYLE)
 
 extract do local
 if { $::env(MAGIC_RCX_DO_CAPACITANCE) } {
