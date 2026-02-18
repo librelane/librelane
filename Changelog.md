@@ -45,7 +45,7 @@ Style Notes
 * `KLayout.DRC`
 
   * Added generic implementation.
-  * Added support for ihp-sg13g2.
+  * Added support for ihp-sg13g2 and ihp-sg13cmos5l.
   * Added support for gf180mcu.
   * Renamed `.xml` to `.lyrdb`.
 
@@ -53,12 +53,12 @@ Style Notes
 
   * Added generic implementation.
   * Added gf180mcu implementation.
-  * Added ihp-sg13g2 implementation.
+  * Added ihp-sg13g2/ihp-sg13cmos5l implementation.
 
 * Created `KLayout.Filler`
 
   * Add generic implementation.
-  * Added ihp-sg13g2 implementation.
+  * Added ihp-sg13g2/ihp-sg13cmos5l implementation.
 
 * Created `KLayout.Density`
 
@@ -70,7 +70,7 @@ Style Notes
 
 * Created `KLayout.LVS`
 
-  * Currently only supports ihp-sg13g2.
+  * Currently only supports ihp-sg13g2/ihp-sg13cmos5l.
 
 * `Netgen.LVS`
 

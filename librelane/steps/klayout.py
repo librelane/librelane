@@ -413,7 +413,7 @@ class DRC(KLayoutStep):
             metrics_updates = self.run_sky130(state_in, **kwargs)
         elif self.config["PDK"] in ["gf180mcuA", "gf180mcuB", "gf180mcuC", "gf180mcuD"]:
             metrics_updates = self.run_gf180mcu(state_in, **kwargs)
-        elif self.config["PDK"] in ["ihp-sg13g2"]:
+        elif self.config["PDK"] in ["ihp-sg13g2", "ihp-sg13cmos5l"]:
             metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:
             metrics_updates = self.run_generic(state_in, **kwargs)
@@ -821,7 +821,7 @@ class LVS(KLayoutStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
         views_updates: ViewsUpdate = {}
-        if self.config["PDK"] in ["ihp-sg13g2"]:
+        if self.config["PDK"] in ["ihp-sg13g2", "ihp-sg13cmos5l"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:
             self.warn(
@@ -855,7 +855,7 @@ class SealRing(KLayoutStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
         views_updates: ViewsUpdate = {}
-        if self.config["PDK"] in ["ihp-sg13g2"]:
+        if self.config["PDK"] in ["ihp-sg13g2", "ihp-sg13cmos5l"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:
             views_updates, metrics_updates = self.run_generic(state_in, **kwargs)
@@ -983,7 +983,14 @@ class Filler(KLayoutStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
         views_updates: ViewsUpdate = {}
-        if self.config["PDK"] in ["ihp-sg13g2"]:
+
+        if not self.config["KLAYOUT_FILLER_SCRIPT"]:
+            self.warn(
+                f"KLAYOUT_FILLER_SCRIPT is unset. KLayout.Filler may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return views_updates, metrics_updates
+
+        if self.config["PDK"] in ["ihp-sg13g2", "ihp-sg13cmos5l"]:
             views_updates, metrics_updates = self.run_ihp_sg13g2(state_in, **kwargs)
         else:
             views_updates, metrics_updates = self.run_generic(state_in, **kwargs)
@@ -995,12 +1002,6 @@ class Filler(KLayoutStep):
     ) -> Tuple[ViewsUpdate, MetricsUpdate]:
         views_updates: ViewsUpdate = {}
         kwargs, env = self.extract_env(kwargs)
-
-        if not self.config["KLAYOUT_FILLER_SCRIPT"]:
-            self.warn(
-                f"KLAYOUT_FILLER_SCRIPT is unset. KLayout.Filler may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
-            )
-            return views_updates, {}
 
         input_gds = state_in[DesignFormat.GDS]
         assert isinstance(input_gds, Path)
