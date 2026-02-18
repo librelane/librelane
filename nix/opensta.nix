@@ -16,6 +16,7 @@
   cudd,
   zlib,
   eigen,
+  ninja,
   rev ? "857316ff001b2a8dbbdc5996944d08a6d38c87ab",
   rev-date ? "2026-02-14",
   sha256 ? "sha256-4lxyNQeBTx+bIEM4RVZzG4UU/ilv9sjFFUcB5S4Evgw=",
@@ -85,6 +86,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     gnumake
     flex
     bison
+    ninja
   ];
 
   meta = {
