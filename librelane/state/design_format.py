@@ -264,4 +264,5 @@ DesignFormat(
     "spice_rcx",
     "rcx.spice",
     "Simulation Program with Integrated Circuit Emphasis (with Resistance and Capacitance eXtraction)",
+    alts=["SPICE_RCX"],
 ).register()

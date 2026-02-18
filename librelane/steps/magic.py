@@ -668,9 +668,9 @@ class RCX(MagicStep):
             (
                 "Capacitance extraction corner. For open PDKs, the options are generally: 'ngspice(lrlc)', "
                 "low resistance, low capacitance; 'ngspice(hrlc)', high resistance, low capacitance; "
-                "'ngspice(lrhc)', low " "resistance, high capacitance; 'ngspice(hrhc)', high resistance, low "
-                "capacitance." "'ngspice(hrhc)' is typically " "the slowest corner, and 'ngspice(lrlc) is "
-                "typically the fastest corner. Defaults to 'ngspice()', " "which is the default typical "
+                "'ngspice(lrhc)', low resistance, high capacitance; 'ngspice(hrhc)', high resistance, low "
+                "capacitance. 'ngspice(hrhc)' is typically the slowest corner, and 'ngspice(lrlc) is "
+                "typically the fastest corner. Defaults to 'ngspice()', which is the default typical "
                 "extraction corner."
             ),
             default="ngspice()",
