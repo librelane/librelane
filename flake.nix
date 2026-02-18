@@ -46,11 +46,13 @@
               openroad = callPackage ./nix/openroad.nix {
                 llvmPackages = pkgs'.llvmPackages_18;
               };
-              lemon-graph = pkgs.lemon-graph.overrideAttrs (finalAttrs: previousAttrs: {
-                patches = previousAttrs.patches ++ [
-                  ./nix/patches/lemon-graph/update_cxx20.patch
-                ];
-              });
+              lemon-graph = pkgs.lemon-graph.overrideAttrs (
+                finalAttrs: previousAttrs: {
+                  patches = previousAttrs.patches ++ [
+                    ./nix/patches/lemon-graph/update_cxx20.patch
+                  ];
+                }
+              );
             }
           )
           (nix-eda.composePythonOverlay (
@@ -88,7 +90,7 @@
               callPackage = lib.callPackageWith pkgs';
             in
             {
-              createLibreLaneShell = import ./nix/create-shell.nix;
+              librelane-shell = callPackage ./nix/create-shell.nix { };
             }
             // lib.optionalAttrs pkgs.stdenv.isLinux {
               librelane-docker = callPackage ./nix/docker.nix {
@@ -101,6 +103,8 @@
       };
 
       # Helper functions
+      createOpenLaneShell = self.createOpenLaneShell;
+      createLibreLaneShell = throw "createOpenLaneShell/createLibreLaneShell has been replaced with pkgs.librelane-shell as of LibreLane 3.0. See the Changelog for instructions on migrating.";
 
       # Formatters
       formatter = nix-eda.formatter;
@@ -148,15 +152,13 @@
         {
           # These devShells are rather unorthodox for Nix devShells in that they
           # include the package itself. For a proper devShell, try .#dev.
-          default = callPackage (pkgs.createLibreLaneShell {
-          }) { };
-          notebook = callPackage (pkgs.createLibreLaneShell {
+          default = pkgs.librelane-shell;
+          notebook = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               jupyter
             ];
-          }) { };
-          # Normal devShells
-          dev = callPackage (pkgs.createLibreLaneShell {
+          });
+          dev = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               alejandra
             ];
@@ -180,8 +182,8 @@
                 pipx
               ];
             include-librelane = false;
-          }) { };
-          docs = callPackage (pkgs.createLibreLaneShell {
+          });
+          docs = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               alejandra
               imagemagick
@@ -209,7 +211,7 @@
                 py-mon
               ];
             include-librelane = false;
-          }) { };
+          });
         }
       );
     };

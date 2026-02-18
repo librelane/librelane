@@ -301,7 +301,7 @@ def cloup_flow_opts(
                 ),
                 multiple=True,
                 callback=initial_state_cb,
-                help="Use these JSON files as an initial state (later ones take precedence). If none are specified, the latest `state_out.json` of the run directory will be used. If none exist, an empty initial state is created.",
+                help="Use these JSON files as an initial state. If multiple are provided, they are merged with keys in later files overriding keys in prior files. If none are specified, the latest `state_out.json` of the run directory will be used. If none exist, an empty initial state is created.",
             )(f)
             f = o(
                 "--design-dir",

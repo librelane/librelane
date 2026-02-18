@@ -428,10 +428,35 @@ Style Notes
   * Updated Verilator to `5.042`
 * Updated OpenROAD to `341650e`
 * Updated OpenSTA to `ffabd65`
-* `librelane` nix derivation updates:
-  * Added new arguments `yosys-plugin-set` and `extra-yosys-plugins`
-  * Added new argument `extra-python-interpreter-packages` for Python
-    interpreters built into tools e.g. yosys, openroad, takes a lambda
+* Nix
+  * `librelane` derivation:
+    * Added new arguments `yosys-plugin-set` and `extra-yosys-plugins`
+    * Added new argument `extra-python-interpreter-packages` for Python
+      interpreters built into tools e.g. yosys, openroad, takes a lambda similar
+      to `python.withPackages` (click and pyyaml will always be included)
+  * `createOpenLaneShell` has been reworked into `pkgs.librelane-shell`,
+    which is a derivation supporting `.override` in comparison to
+    `createOpenLaneShell` which is a function returning a function that creates
+    a derivation:
+    ```nix
+    # before (librelane 2.4)
+    devShells.x86_64-linux.default = pkgs.callPackage (librelane.createOpenLaneShell {
+      extra-packages = with pkgs; [quaigh python3.pkgs.nl2bench];
+      extra-python-packages = with pkgs.python3.pkgs; [bitarray marshmallow-dataclass];
+      librelane-plugins = with pkgs.python3.pkgs; [librelane-plugin-difetto];
+    }) {};
+    # now
+    devShells.x86_64-linux.default = pkgs.librelane-shell.override {
+      extra-packages = with pkgs; [quaigh python3.pkgs.nl2bench];
+      librelane-extra-python-interpreter-packages = ps: with ps; [bitarray marshmallow-dataclass];
+      librelane-plugins = ps: with ps; [librelane-plugin-difetto];
+    };
+    ```
+      * `extra-python-packages` and `librelane-plugins` now take a lambda like
+        `python.withPackages`
+      * Added new arguments `librelane-extra-python-interpreter-packages` and
+        `librelane-extra-yosys-plugins`, which overrides the two relevant
+        arguments in the `librelane` derivation used by this shell.
 
 ## Testing
 
@@ -660,10 +685,11 @@ Style Notes
 
 * Nix
 
-  * `createOpenLaneShell` has been renamed `createLibreLaneShell` and is now in
-    pkgs rather than the flake top-level (which is quite unorthodox.)
-      * `extra-python-packages` and `librelane-plugins` now take a lambda like
-        `python.withPackages`
+  * `createOpenLaneShell` has been reworked into `pkgs.librelane-shell`,
+    which is a derivation supporting `.override` in comparison to
+    `createOpenLaneShell` which is a function returning a function that creates
+    a derivation. See Tool Updates for more information on usage.
+
 
 ## Documentation
 
