@@ -1549,7 +1549,8 @@ class GlobalRouting(OpenROADStep):
 
 
 class _DiodeInsertion(GlobalRouting):
-    id = "DiodeInsertion"
+    id = "OpenROAD.DiodeInsertion"
+    name = "Diode Insertion"
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "antenna_repair.tcl")
