@@ -1,5 +1,25 @@
 # Using VHDL
 
+LibreLane supports VHDL by using the GHDL plugin for Yosys.
+
+Instead of Librelane's “Classic” flow with Verilog support, we need to activate the “VHDLClassic” flow with VHDL support. This can be done by passing `--flow VHDLClassic` in the CLI, or it can permanently set in the configuration file.
+
+As an example, take this `config.yaml` file:
+
+```yaml
+meta:
+  flow: VHDLClassic
+
+DESIGN_NAME: counter
+VHDL_FILES: dir::counter.vhd
+CLOCK_PORT: clk_i
+CLOCK_PERIOD: 20 # 20ns = 50MHz
+```
+
+The only difference between the variables of the “Classic” flow  is that we use `VHDL_FILES` instead of `VERILOG_FILES`.
+
+The `counter.vhd` in the same directory may look like this:
+=======
 LibreLane supports VHDL **only on x86-64 platforms** by using the GHDL plugin
 for Yosys.
 
@@ -73,6 +93,13 @@ begin
 end architecture;
 ```
 
+
+Now the flow can be run as usual:
+
+```
+librelane config.yaml
+```
+=======
 To configure this design for LibreLane, you create a YAML file as follows:
 
 ```yaml
