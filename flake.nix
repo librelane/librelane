@@ -5,7 +5,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.1";
+    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.2";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -46,11 +46,13 @@
               openroad = callPackage ./nix/openroad.nix {
                 llvmPackages = pkgs'.llvmPackages_18;
               };
-              lemon-graph = pkgs.lemon-graph.overrideAttrs (finalAttrs: previousAttrs: {
-                patches = previousAttrs.patches ++ [
-                  ./nix/patches/lemon-graph/update_cxx20.patch
-                ];
-              });
+              lemon-graph = pkgs.lemon-graph.overrideAttrs (
+                finalAttrs: previousAttrs: {
+                  patches = previousAttrs.patches ++ [
+                    ./nix/patches/lemon-graph/update_cxx20.patch
+                  ];
+                }
+              );
             }
           )
           (nix-eda.composePythonOverlay (
@@ -88,7 +90,7 @@
               callPackage = lib.callPackageWith pkgs';
             in
             {
-              createLibreLaneShell = import ./nix/create-shell.nix;
+              librelane-shell = callPackage ./nix/create-shell.nix { };
             }
             // lib.optionalAttrs pkgs.stdenv.isLinux {
               librelane-docker = callPackage ./nix/docker.nix {
@@ -101,6 +103,8 @@
       };
 
       # Helper functions
+      createOpenLaneShell = self.createOpenLaneShell;
+      createLibreLaneShell = throw "createOpenLaneShell/createLibreLaneShell has been replaced with pkgs.librelane-shell as of LibreLane 3.0. See the Changelog for instructions on migrating.";
 
       # Formatters
       formatter = nix-eda.formatter;
@@ -148,66 +152,66 @@
         {
           # These devShells are rather unorthodox for Nix devShells in that they
           # include the package itself. For a proper devShell, try .#dev.
-          default = callPackage (pkgs.createLibreLaneShell {
-          }) { };
-          notebook = callPackage (pkgs.createLibreLaneShell {
+          default = pkgs.librelane-shell;
+          notebook = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               jupyter
             ];
-          }) { };
-          # Normal devShells
-          dev = callPackage (pkgs.createLibreLaneShell {
+          });
+          dev = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               alejandra
             ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              pyfakefs
-              pytest
-              pytest-xdist
-              pytest-cov
-              pillow
-              mdformat
-              black
-              ipython
-              tokenize-rt
-              flake8
-              mypy
-              types-deprecated
-              types-pyyaml
-              types-psutil
-              types-lxml
-              pipx
-            ];
+            extra-python-packages =
+              ps: with ps; [
+                pyfakefs
+                pytest
+                pytest-xdist
+                pytest-cov
+                pillow
+                mdformat
+                black
+                ipython
+                tokenize-rt
+                flake8
+                mypy
+                types-deprecated
+                types-pyyaml
+                types-psutil
+                types-lxml
+                pipx
+              ];
             include-librelane = false;
-          }) { };
-          docs = callPackage (pkgs.createLibreLaneShell {
+          });
+          docs = pkgs.librelane-shell.override ({
             extra-packages = with pkgs; [
               alejandra
               imagemagick
             ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              pyfakefs
-              pytest
-              pytest-xdist
-              pillow
-              mdformat
-              furo
-              docutils
-              sphinx
-              sphinx-autobuild
-              sphinx-autodoc-typehints
-              sphinx-design
-              myst-parser
-              docstring-parser
-              sphinx-copybutton
-              sphinxcontrib-spelling
-              sphinxcontrib-bibtex
-              sphinx-tippy
-              sphinx-subfigure
-              py-mon
-            ];
+            extra-python-packages =
+              ps: with ps; [
+                pyfakefs
+                pytest
+                pytest-xdist
+                pillow
+                mdformat
+                furo
+                docutils
+                sphinx
+                sphinx-autobuild
+                sphinx-autodoc-typehints
+                sphinx-design
+                myst-parser
+                docstring-parser
+                sphinx-copybutton
+                sphinxcontrib-spelling
+                sphinxcontrib-bibtex
+                sphinx-tippy
+                sphinx-subfigure
+                py-mon
+              ];
             include-librelane = false;
-          }) { };
+          });
         }
       );
     };

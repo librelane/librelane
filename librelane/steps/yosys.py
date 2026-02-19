@@ -209,17 +209,6 @@ class YosysStep(TclStep):
             pdk=True,
         ),
         Variable(
-            "USE_LIGHTER",
-            bool,
-            "Activates Lighter, an experimental plugin that attempts to optimize clock-gated flip-flops.",
-            default=False,
-        ),
-        Variable(
-            "LIGHTER_DFF_MAP",
-            Optional[Path],
-            "An override to the custom DFF map file provided for the given SCL by Lighter.",
-        ),
-        Variable(
             "YOSYS_LOG_LEVEL",
             Literal["ALL", "WARNING", "ERROR"],
             "Which log level for Yosys. At WARNING or higher, the initialization splash is also disabled.",

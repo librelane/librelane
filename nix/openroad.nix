@@ -85,7 +85,7 @@ stdenv.mkDerivation (finalAttrs: {
     substituteInPlace ./cmake/GetGitRevisionDescription.cmake\
       --replace-fail "GITDIR-NOTFOUND" "${rev}"
     patchShebangs ./etc
-    
+
     sed -i 's@cmake -B@cmake ${join_flags finalAttrs.cmakeFlags} -B@' ./etc/Env.sh
     echo "#!/bin/bash" > ./openroad.build_env_info
     echo "cat << EOF" >> ./openroad.build_env_info
@@ -134,7 +134,8 @@ stdenv.mkDerivation (finalAttrs: {
     llvmPackages.clang-tools
     python3.pkgs.tclint
     ctestCheckHook
-  ] ++ lib.optionals stdenv.isDarwin [
+  ]
+  ++ lib.optionals stdenv.isDarwin [
     darwin.DarwinTools # sw_vers
   ];
 

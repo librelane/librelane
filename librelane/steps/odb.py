@@ -93,8 +93,8 @@ class OdbpyStep(Step):
             str(state_in[DesignFormat.ODB]),
         ]
 
-        env["PYTHONPATH"] = (
-            f'{os.path.join(get_script_dir(), "odbpy")}:{env.get("PYTHONPATH")}'
+        env["PYTHONPATH"] = ":".join(
+            (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "odbpy"))
         )
         check = False
         if "check" in kwargs:

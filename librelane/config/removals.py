@@ -44,4 +44,5 @@ removed_variables: Dict[str, str] = {
     "FP_CONTEXT_LEF": "To be implemented.",
     "SYNLIG_DEFER": "Synlig replaced with Slang.",
     "VDD_PIN_VOLTAGE": "Information should be obtained from dotlib files.",
+    "LIGHTER_DFF_MAP": "Lighter has been replaced with Yosys' built-in clock gate functionality.",
 }

@@ -35,7 +35,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     inherit rev;
     inherit sha256;
   };
-  
+
   postPatch = ''
     # utter bazel nonsense
     rm -f BUILD

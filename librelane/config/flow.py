@@ -297,7 +297,7 @@ scl_variables = [
     Variable(
         "DIODE_CELL",
         Optional[str],
-        "Defines a diode cell used to fix antenna violations, in the format {name}/{port}. If not defined, steps should not attempt to repair the antenna effect by inserting diode cells.",
+        "Defines a diode cell used to fix antenna violations, in the format `{cell}/{port}`. If not defined, steps should not attempt to repair the antenna effect by inserting diode cells.",
         pdk=True,
     ),
     Variable(

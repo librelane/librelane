@@ -367,6 +367,25 @@ Style Notes
     with older designs. See https://github.com/YosysHQ/yosys/pull/5095 for more
     info.
 
+  * Folded `SYNTH_ELABORATE_FLATTEN` into `SYNTH_HIERARCHY_MODE` with new
+    translation behavior, i.e.
+
+    * `SYNTH_ELABORATE_FLATTEN` is true: set to `flatten`
+
+    * `SYNTH_ELABORATE_FLATTEN` is false: set to `keep`
+
+  * Integrated new `clockgate` command
+
+    * Replaces Lighter: `USE_LIGHTER` now translates to the new variable
+      `SYNTH_CLOCKGATE_MIN_WIDTH` which can be an integer value for a certain
+      width of flip-flops to convert to clockgates or `None` to disable
+      clock-gating entirely.
+
+  * Added two new PDK variables: `SYNTH_CLOCKGATE_{POS,NEG}EDGE_ICG`: used to
+    identify appropriate ICG
+
+    * Removed `LIGHTER_DFF_MAP`: tangentially related to above
+
 * `Yosys.Synthesis`
 
   * Graphviz DOT file generation, which frequently fails and brings down the
@@ -419,6 +438,35 @@ Style Notes
   * Updated Verilator to `5.042`
 * Updated OpenROAD to `341650e`
 * Updated OpenSTA to `ffabd65`
+* Nix
+  * `librelane` derivation:
+    * Added new arguments `yosys-plugin-set` and `extra-yosys-plugins`
+    * Added new argument `extra-python-interpreter-packages` for Python
+      interpreters built into tools e.g. yosys, openroad, takes a lambda similar
+      to `python.withPackages` (click and pyyaml will always be included)
+  * `createOpenLaneShell` has been reworked into `pkgs.librelane-shell`,
+    which is a derivation supporting `.override` in comparison to
+    `createOpenLaneShell` which is a function returning a function that creates
+    a derivation:
+    ```nix
+    # before (librelane 2.4)
+    devShells.x86_64-linux.default = pkgs.callPackage (librelane.createOpenLaneShell {
+      extra-packages = with pkgs; [quaigh python3.pkgs.nl2bench];
+      extra-python-packages = with pkgs.python3.pkgs; [bitarray marshmallow-dataclass];
+      librelane-plugins = with pkgs.python3.pkgs; [librelane-plugin-difetto];
+    }) {};
+    # now
+    devShells.x86_64-linux.default = pkgs.librelane-shell.override {
+      extra-packages = with pkgs; [quaigh python3.pkgs.nl2bench];
+      librelane-extra-python-interpreter-packages = ps: with ps; [bitarray marshmallow-dataclass];
+      librelane-plugins = ps: with ps; [librelane-plugin-difetto];
+    };
+    ```
+      * `extra-python-packages` and `librelane-plugins` now take a lambda like
+        `python.withPackages`
+      * Added new arguments `librelane-extra-python-interpreter-packages` and
+        `librelane-extra-yosys-plugins`, which overrides the two relevant
+        arguments in the `librelane` derivation used by this shell.
 
 ## Testing
 
@@ -437,6 +485,9 @@ Style Notes
 - Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
+
+  * Multiple initial state JSON files can now be provided which are combined to
+    form the initial state for the flow.
 
   * Paths provided over the terminal that start with a tilde are now rejected
     and result in an error, as they typically mean POSIX shell tilde expansion
@@ -489,8 +540,13 @@ Style Notes
 
 * `librelane.steps`
 
-  * TclStep
+  * `TclStep`
     * All `Decimal` values are now passed to Tcl in exponent notation.
+
+  * `PyosysStep`, `OdbpyStep`
+    * LibreLane's `scripts/{pyosys,odbpy}` directory is now always suffixed to
+      `PYTHONPATH` so external steps can import `ys_common` or `reader`
+      respectively.
 
 * `librelane.config`
 
@@ -610,6 +666,8 @@ Style Notes
 
   * `TclStep` now uses the IDs uppercased for `CURRENT_` and `SAVE_`.
 
+  * `OdbpyStep`: `scripts/odbpy` is now suffixed instead of prefixed.
+
 * `openlane.state`
 
   * `State` no longer includes all `DesignFormat`s as guaranteed keys and `.get`
@@ -645,8 +703,11 @@ Style Notes
 
 * Nix
 
-  * `createOpenLaneShell` has been renamed `createLibreLaneShell` and is now in
-    pkgs rather than the flake top-level (which is quite unorthodox.)
+  * `createOpenLaneShell` has been reworked into `pkgs.librelane-shell`,
+    which is a derivation supporting `.override` in comparison to
+    `createOpenLaneShell` which is a function returning a function that creates
+    a derivation. See Tool Updates for more information on usage.
+
 
 ## Documentation
 
