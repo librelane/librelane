@@ -933,7 +933,7 @@ class SealRing(KLayoutStep):
                 "-zz",
                 "-nc",
                 "-n",
-                "sg13g2",
+                self.config["PDK"].replace("ihp-", ""),
                 "-r",
                 script,
                 "-rd",
