@@ -102,10 +102,6 @@
         ];
       };
 
-      # Helper functions
-      createOpenLaneShell = self.createOpenLaneShell;
-      createLibreLaneShell = throw "createOpenLaneShell/createLibreLaneShell has been replaced with pkgs.librelane-shell as of LibreLane 3.0. See the Changelog for instructions on migrating.";
-
       # Formatters
       formatter = nix-eda.formatter;
 
