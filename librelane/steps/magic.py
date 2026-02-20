@@ -460,6 +460,9 @@ class SpiceExtraction(MagicStep):
     Extracts a SPICE netlist from the GDSII stream. Used in Layout vs. Schematic
     checks.
 
+    Note that the resultant SPICE netlist is blackboxed, and *only* suitable for abstract LVS.
+    If you want to perform a full parasitics extraction (RCX), you should use the Magic.RCX step.
+
     Also, the metrics will be updated with ``magic__illegal_overlap__count``. You can use
     `the relevant checker <#Checker.IllegalOverlap>`_ to quit if that number is
     nonzero.
@@ -617,3 +620,71 @@ class OpenGUI(MagicStep):
             magic.send_signal(SIGKILL)
 
         return {}, {}
+
+
+@Step.factory.register()
+class RCX(MagicStep):
+    """
+    Performs a full parasitics extraction (RCX) using Magic. This step is suitable for performing full
+    analogue post-layout simulation of your design. The SPICE netlist will be flattened, and refer to the raw
+    n-type/p-type transistor models for your PDK.
+
+    If you want to do device level simulation *without* parasitics, this can be done in the
+    Magic.SpiceExtraction step by setting `MAGIC_EXT_USE_GDS` to True and `MAGIC_EXT_ABSTRACT` to False.
+    """
+
+    id = "Magic.RCX"
+    name = "RCX"
+    long_name = "Full Parasitics Extraction"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.SPICE_RCX]
+
+    config_vars = MagicStep.config_vars + [
+        Variable(
+            "MAGIC_RCX_CTHRESH",
+            float,
+            "Capacitance threshold value.",
+            default=0.1,
+            units="femtofarads",
+        ),
+        Variable(
+            "MAGIC_RCX_DO_CAPACITANCE",
+            bool,
+            "Whether to extract local capacitance values.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_DO_RESISTANCE",
+            bool,
+            "Whether to perform detailed (i.e. non-lumped) resistance extraction.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_EXTRACT_STYLE",
+            str,
+            (
+                "Capacitance extraction corner. For open PDKs, the options are generally: 'ngspice(lrlc)', "
+                "low resistance, low capacitance; 'ngspice(hrlc)', high resistance, low capacitance; "
+                "'ngspice(lrhc)', low resistance, high capacitance; 'ngspice(hrhc)', high resistance, low "
+                "capacitance. 'ngspice(hrhc)' is typically the slowest corner, and 'ngspice(lrlc) is "
+                "typically the fastest corner. Defaults to 'ngspice()', which is the default typical "
+                "extraction corner."
+            ),
+            default="ngspice()",
+        ),
+    ]
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "magic", "spice_rcx.tcl")
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        # always 'mag', since we'll never define the abstract setting like the original SpiceExtraction step
+        # did
+        env["MAGTYPE"] = "mag"
+
+        views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
+
+        return views_updates, metrics_updates
