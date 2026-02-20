@@ -47,23 +47,54 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Match Verilog cell instantiations: <cell_type> <instance_name> (
+# Verilog keywords to skip when parsing instantiations
+VERILOG_KEYWORDS = frozenset({
+    'module', 'input', 'output', 'wire', 'reg', 'assign', 'endmodule',
+    'inout', 'parameter', 'localparam', 'always', 'initial', 'function',
+    'task', 'generate', 'genvar', 'supply0', 'supply1', 'if', 'else',
+    'begin', 'end', 'case', 'casex', 'casez', 'default', 'endcase',
+    'for', 'while', 'defparam', 'specify', 'endspecify', 'or', 'and',
+    'not', 'buf', 'pullup', 'pulldown',
+})
+
+# Match Verilog cell instantiations after #(...) removal:
+#   <cell_type> <instance_name> (
+# Handles escaped names like \$abc$123 and simple names like _123_
 VERILOG_CELL_RE = re.compile(
     r'^\s*(\S+)\s+'           # cell type
     r'(\\[^\s]+|\w+)\s*\(',   # instance name (escaped or simple)
     re.MULTILINE
 )
 
-# Verilog keywords to skip when parsing instantiations
-VERILOG_KEYWORDS = frozenset({
-    'module', 'input', 'output', 'wire', 'reg', 'assign', 'endmodule',
-    'inout', 'parameter', 'localparam', 'always', 'initial', 'function',
-    'task', 'generate', 'genvar', 'supply0', 'supply1',
-})
+
+def _strip_param_blocks(content):
+    """Remove Verilog #(...) parameter blocks, handling nested parentheses."""
+    result = []
+    i = 0
+    while i < len(content):
+        if content[i] == '#' and i + 1 < len(content) and content[i + 1] == '(':
+            # Skip #(...) including nested parens
+            depth = 0
+            i += 1  # skip '#'
+            while i < len(content):
+                if content[i] == '(':
+                    depth += 1
+                elif content[i] == ')':
+                    depth -= 1
+                    if depth == 0:
+                        i += 1
+                        break
+                i += 1
+        else:
+            result.append(content[i])
+            i += 1
+    return ''.join(result)
 
 
 def parse_post_pnr_verilog(verilog_path):
     """Extract cell instance names and types from post-PnR Verilog.
+
+    Handles escaped identifiers (\\name) and #(...) parameter blocks.
 
     Returns:
         dict mapping instance_name -> cell_type
@@ -75,12 +106,18 @@ def parse_post_pnr_verilog(verilog_path):
     content = re.sub(r'//.*$', '', content, flags=re.MULTILINE)
     content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
 
+    # Remove #(...) parameter blocks so regex sees: cell_type instance_name (
+    content = _strip_param_blocks(content)
+
     cells = {}
     for match in VERILOG_CELL_RE.finditer(content):
         cell_type = match.group(1)
         instance_name = match.group(2)
 
-        if cell_type in VERILOG_KEYWORDS:
+        # Strip leading backslash from escaped identifiers for comparison
+        clean_type = cell_type.lstrip('\\')
+
+        if clean_type in VERILOG_KEYWORDS:
             continue
 
         # Strip leading backslash from escaped identifiers
