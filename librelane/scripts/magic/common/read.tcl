@@ -144,6 +144,15 @@ proc read_def {} {
     if { $::env(MAGIC_DEF_LABELS) } {
         lappend def_read_args -labels
     }
+    load \(UNNAMED\)
     puts "> def read $def_read_args"
     def read {*}$def_read_args
+}
+
+proc read_pdk_spice {} {
+    set spice_files_in $::env(CELL_SPICE_MODELS)
+    foreach spice_file $spice_files_in {
+        puts "> spice read $spice_file"
+        readspice $spice_file
+    }
 }
