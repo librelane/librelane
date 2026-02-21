@@ -544,6 +544,28 @@ jobs:
       - name: Propagate test failure after uploading metrics
         if: steps.test_run.outcome == 'failure'
         run: exit -1
+  test-src-annotation:
+    name: Validate src annotation through PnR
+    runs-on: ubuntu-22.04
+    needs: test
+    if: ${{ !cancelled() }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download spm test run artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-sky130A-sky130_fd_sc_hd
+          path: ./test-run
+      - name: List run directory structure
+        run: |
+          echo "=== Run directory contents ==="
+          find ./test-run -name "*.nl.v*" -o -name "*.h.json" | head -20
+      - name: Validate src annotation end-to-end
+        run: |
+          python3 librelane/scripts/validate_src_annotation_e2e.py \
+            ./test-run \
+            --min-coverage 50 \
+            --min-cell-match 50
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
