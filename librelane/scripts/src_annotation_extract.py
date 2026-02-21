@@ -60,16 +60,16 @@ def extract_sideband(yosys_json_path):
     total_cells = 0
     annotated_cells = 0
 
-    for mod_name, mod in data.get('modules', {}).items():
-        for cell_name, cell in mod.get('cells', {}).items():
+    for mod_name, mod in data.get("modules", {}).items():
+        for cell_name, cell in mod.get("cells", {}).items():
             total_cells += 1
-            cell_type = cell.get('type', '')
-            attrs = cell.get('attributes', {})
-            src = attrs.get('src')
+            cell_type = cell.get("type", "")
+            attrs = cell.get("attributes", {})
+            src = attrs.get("src")
 
-            entry = {'type': cell_type}
+            entry = {"type": cell_type}
             if src:
-                entry['src'] = src
+                entry["src"] = src
                 annotated_cells += 1
 
             cells[cell_name] = entry
@@ -77,21 +77,20 @@ def extract_sideband(yosys_json_path):
     coverage_pct = (100.0 * annotated_cells / total_cells) if total_cells > 0 else 0.0
 
     return {
-        'cells': cells,
-        'metadata': {
-            'total_cells': total_cells,
-            'annotated_cells': annotated_cells,
-            'coverage_pct': round(coverage_pct, 1),
-        }
+        "cells": cells,
+        "metadata": {
+            "total_cells": total_cells,
+            "annotated_cells": annotated_cells,
+            "coverage_pct": round(coverage_pct, 1),
+        },
     }
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} <yosys_json> <sideband_output>",
-              file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <yosys_json> <sideband_output>", file=sys.stderr)
         sys.exit(1)
 
     yosys_json_path = sys.argv[1]
@@ -100,18 +99,20 @@ def main():
     logger.info("Reading Yosys JSON from %s", yosys_json_path)
     sideband = extract_sideband(yosys_json_path)
 
-    meta = sideband['metadata']
+    meta = sideband["metadata"]
     logger.info(
         "Extracted %d/%d cells with \\src (%.1f%% coverage)",
-        meta['annotated_cells'], meta['total_cells'], meta['coverage_pct']
+        meta["annotated_cells"],
+        meta["total_cells"],
+        meta["coverage_pct"],
     )
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(sideband, f, indent=2)
-        f.write('\n')
+        f.write("\n")
 
     logger.info("Wrote sideband to %s", output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -52,23 +52,18 @@ def find_synthesis_json(run_dir):
     then finds the .nl.v.json file within.
     """
     # Pattern 1: Look for *.nl.v.json in step directories
-    candidates = glob.glob(
-        os.path.join(run_dir, "**", "*.nl.v.json"), recursive=True
-    )
+    candidates = glob.glob(os.path.join(run_dir, "**", "*.nl.v.json"), recursive=True)
 
     if not candidates:
         # Pattern 2: Try .json files that look like synthesis output
-        candidates = glob.glob(
-            os.path.join(run_dir, "**", "*.h.json"), recursive=True
-        )
+        candidates = glob.glob(os.path.join(run_dir, "**", "*.h.json"), recursive=True)
 
     if not candidates:
         return None
 
     # Prefer files in directories with "synthesis" in the name
     synth_candidates = [
-        c for c in candidates
-        if "ynthesis" in os.path.dirname(c).lower()
+        c for c in candidates if "ynthesis" in os.path.dirname(c).lower()
     ]
     if synth_candidates:
         return synth_candidates[0]
@@ -83,9 +78,7 @@ def find_post_pnr_netlist(run_dir):
     etc.) by finding all .nl.v files and picking the one from the highest-
     numbered step directory.
     """
-    candidates = glob.glob(
-        os.path.join(run_dir, "**", "*.nl.v"), recursive=True
-    )
+    candidates = glob.glob(os.path.join(run_dir, "**", "*.nl.v"), recursive=True)
 
     if not candidates:
         return None
@@ -93,9 +86,7 @@ def find_post_pnr_netlist(run_dir):
     # Filter out synthesis netlists (we want post-PnR)
     # Also filter out .nl.v.json files
     nl_files = [
-        c for c in candidates
-        if not c.endswith(".json")
-        and not c.endswith(".pnl.v")
+        c for c in candidates if not c.endswith(".json") and not c.endswith(".pnl.v")
     ]
 
     if not nl_files:
@@ -106,9 +97,9 @@ def find_post_pnr_netlist(run_dir):
         """Extract step number from path like .../42-OpenROAD.DetailedRouting/..."""
         parts = path.split(os.sep)
         for part in parts:
-            if '-' in part:
+            if "-" in part:
                 try:
-                    return int(part.split('-')[0])
+                    return int(part.split("-")[0])
                 except ValueError:
                     continue
         return 0
@@ -145,20 +136,20 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
     # Step 1: Extract sideband from synthesis JSON
     logger.info("Extracting sideband from synthesis JSON...")
     sideband = extract_sideband(synth_json)
-    meta = sideband['metadata']
+    meta = sideband["metadata"]
     logger.info(
         "Synthesis: %d cells total, %d with \\src (%.1f%%)",
-        meta['total_cells'], meta['annotated_cells'], meta['coverage_pct']
+        meta["total_cells"],
+        meta["annotated_cells"],
+        meta["coverage_pct"],
     )
 
-    if meta['total_cells'] == 0:
+    if meta["total_cells"] == 0:
         logger.error("No cells found in synthesis JSON")
         return False
 
     # Step 2: Write sideband to temp file for join
-    with tempfile.NamedTemporaryFile(
-        mode='w', suffix='.json', delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(sideband, f, indent=2)
         sideband_path = f.name
 
@@ -169,7 +160,7 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
     finally:
         os.unlink(sideband_path)
 
-    stats = result['stats']
+    stats = result["stats"]
 
     # Report results
     print()
@@ -190,13 +181,15 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
     print()
 
     # Calculate cell name match rate (synthesis cells found in PnR)
-    synth_total = meta['total_cells']
-    missing = stats['synthesis_cells_missing_from_pnr']
+    synth_total = meta["total_cells"]
+    missing = stats["synthesis_cells_missing_from_pnr"]
     matched = synth_total - missing
     cell_match_pct = (100.0 * matched / synth_total) if synth_total > 0 else 0.0
 
     print(f"Cell name match:       {matched}/{synth_total} ({cell_match_pct:.1f}%)")
-    print(f"\\src coverage:         {stats['annotated']}/{stats['logic_cells']} ({stats['coverage_pct']}%)")
+    print(
+        f"\\src coverage:         {stats['annotated']}/{stats['logic_cells']} ({stats['coverage_pct']}%)"
+    )
     print()
 
     # Validate thresholds
@@ -212,7 +205,7 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
             f"PASS: Cell name match {cell_match_pct:.1f}% >= {min_cell_match}% threshold"
         )
 
-    if stats['coverage_pct'] < min_coverage:
+    if stats["coverage_pct"] < min_coverage:
         print(
             f"FAIL: \\src coverage {stats['coverage_pct']}% < {min_coverage}% threshold"
         )
@@ -224,9 +217,9 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
 
     print()
 
-    if result['missing_from_pnr']:
+    if result["missing_from_pnr"]:
         print(f"Sample cells missing from PnR (first 10):")
-        for name in result['missing_from_pnr'][:10]:
+        for name in result["missing_from_pnr"][:10]:
             print(f"  - {name}")
         print()
 
@@ -234,9 +227,7 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
 
 
 def main():
-    logging.basicConfig(
-        level=logging.INFO, format='%(levelname)s: %(message)s'
-    )
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     parser = argparse.ArgumentParser(
         description="End-to-end validation of \\src annotation through PnR"
@@ -279,5 +270,5 @@ def main():
     print("All checks passed.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

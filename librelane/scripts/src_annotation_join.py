@@ -48,22 +48,56 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 # Verilog keywords to skip when parsing instantiations
-VERILOG_KEYWORDS = frozenset({
-    'module', 'input', 'output', 'wire', 'reg', 'assign', 'endmodule',
-    'inout', 'parameter', 'localparam', 'always', 'initial', 'function',
-    'task', 'generate', 'genvar', 'supply0', 'supply1', 'if', 'else',
-    'begin', 'end', 'case', 'casex', 'casez', 'default', 'endcase',
-    'for', 'while', 'defparam', 'specify', 'endspecify', 'or', 'and',
-    'not', 'buf', 'pullup', 'pulldown',
-})
+VERILOG_KEYWORDS = frozenset(
+    {
+        "module",
+        "input",
+        "output",
+        "wire",
+        "reg",
+        "assign",
+        "endmodule",
+        "inout",
+        "parameter",
+        "localparam",
+        "always",
+        "initial",
+        "function",
+        "task",
+        "generate",
+        "genvar",
+        "supply0",
+        "supply1",
+        "if",
+        "else",
+        "begin",
+        "end",
+        "case",
+        "casex",
+        "casez",
+        "default",
+        "endcase",
+        "for",
+        "while",
+        "defparam",
+        "specify",
+        "endspecify",
+        "or",
+        "and",
+        "not",
+        "buf",
+        "pullup",
+        "pulldown",
+    }
+)
 
 # Match Verilog cell instantiations after #(...) removal:
 #   <cell_type> <instance_name> (
 # Handles escaped names like \$abc$123 and simple names like _123_
 VERILOG_CELL_RE = re.compile(
-    r'^\s*(\S+)\s+'           # cell type
-    r'(\\[^\s]+|\w+)\s*\(',   # instance name (escaped or simple)
-    re.MULTILINE
+    r"^\s*(\S+)\s+"  # cell type
+    r"(\\[^\s]+|\w+)\s*\(",  # instance name (escaped or simple)
+    re.MULTILINE,
 )
 
 
@@ -72,14 +106,14 @@ def _strip_param_blocks(content):
     result = []
     i = 0
     while i < len(content):
-        if content[i] == '#' and i + 1 < len(content) and content[i + 1] == '(':
+        if content[i] == "#" and i + 1 < len(content) and content[i + 1] == "(":
             # Skip #(...) including nested parens
             depth = 0
             i += 1  # skip '#'
             while i < len(content):
-                if content[i] == '(':
+                if content[i] == "(":
                     depth += 1
-                elif content[i] == ')':
+                elif content[i] == ")":
                     depth -= 1
                     if depth == 0:
                         i += 1
@@ -88,7 +122,7 @@ def _strip_param_blocks(content):
         else:
             result.append(content[i])
             i += 1
-    return ''.join(result)
+    return "".join(result)
 
 
 def parse_post_pnr_verilog(verilog_path):
@@ -103,8 +137,8 @@ def parse_post_pnr_verilog(verilog_path):
         content = f.read()
 
     # Remove comments
-    content = re.sub(r'//.*$', '', content, flags=re.MULTILINE)
-    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    content = re.sub(r"//.*$", "", content, flags=re.MULTILINE)
+    content = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
 
     # Remove #(...) parameter blocks so regex sees: cell_type instance_name (
     content = _strip_param_blocks(content)
@@ -115,13 +149,13 @@ def parse_post_pnr_verilog(verilog_path):
         instance_name = match.group(2)
 
         # Strip leading backslash from escaped identifiers for comparison
-        clean_type = cell_type.lstrip('\\')
+        clean_type = cell_type.lstrip("\\")
 
         if clean_type in VERILOG_KEYWORDS:
             continue
 
         # Strip leading backslash from escaped identifiers
-        if instance_name.startswith('\\'):
+        if instance_name.startswith("\\"):
             instance_name = instance_name[1:]
 
         cells[instance_name] = cell_type
@@ -138,7 +172,7 @@ def join_annotations(sideband_path, verilog_path):
     with open(sideband_path) as f:
         sideband = json.load(f)
 
-    sideband_cells = sideband.get('cells', {})
+    sideband_cells = sideband.get("cells", {})
     pnr_cells = parse_post_pnr_verilog(verilog_path)
 
     annotated = []
@@ -148,28 +182,34 @@ def join_annotations(sideband_path, verilog_path):
     for inst_name, pnr_type in sorted(pnr_cells.items()):
         if inst_name in sideband_cells:
             sb = sideband_cells[inst_name]
-            src = sb.get('src')
-            synth_type = sb.get('type', '')
+            src = sb.get("src")
+            synth_type = sb.get("type", "")
             if src:
-                annotated.append({
-                    'cell_name': inst_name,
-                    'pnr_type': pnr_type,
-                    'synth_type': synth_type,
-                    'src': src,
-                })
+                annotated.append(
+                    {
+                        "cell_name": inst_name,
+                        "pnr_type": pnr_type,
+                        "synth_type": synth_type,
+                        "src": src,
+                    }
+                )
             else:
-                unannotated.append({
-                    'cell_name': inst_name,
-                    'pnr_type': pnr_type,
-                    'synth_type': synth_type,
-                    'reason': 'no_src_in_sideband',
-                })
+                unannotated.append(
+                    {
+                        "cell_name": inst_name,
+                        "pnr_type": pnr_type,
+                        "synth_type": synth_type,
+                        "reason": "no_src_in_sideband",
+                    }
+                )
         else:
             # Cell not in sideband - likely added by PnR (filler, buffer, etc.)
-            physical_cells.append({
-                'cell_name': inst_name,
-                'pnr_type': pnr_type,
-            })
+            physical_cells.append(
+                {
+                    "cell_name": inst_name,
+                    "pnr_type": pnr_type,
+                }
+            )
 
     # Cells that were in synthesis but not in PnR (should be rare/zero)
     pnr_names = set(pnr_cells.keys())
@@ -183,50 +223,50 @@ def join_annotations(sideband_path, verilog_path):
     logic_cells = max(logic_cells, 1)  # avoid division by zero
 
     stats = {
-        'total_pnr_cells': total_pnr,
-        'physical_cells_added': len(physical_cells),
-        'logic_cells': total_pnr - len(physical_cells),
-        'annotated': len(annotated),
-        'unannotated': len(unannotated),
-        'coverage_pct': round(
-            100.0 * len(annotated) / logic_cells, 1
-        ),
-        'synthesis_cells_missing_from_pnr': len(missing_from_pnr),
+        "total_pnr_cells": total_pnr,
+        "physical_cells_added": len(physical_cells),
+        "logic_cells": total_pnr - len(physical_cells),
+        "annotated": len(annotated),
+        "unannotated": len(unannotated),
+        "coverage_pct": round(100.0 * len(annotated) / logic_cells, 1),
+        "synthesis_cells_missing_from_pnr": len(missing_from_pnr),
     }
 
     return {
-        'annotated_cells': annotated,
-        'unannotated_cells': unannotated,
-        'physical_cells': physical_cells,
-        'missing_from_pnr': missing_from_pnr[:20],
-        'stats': stats,
+        "annotated_cells": annotated,
+        "unannotated_cells": unannotated,
+        "physical_cells": physical_cells,
+        "missing_from_pnr": missing_from_pnr[:20],
+        "stats": stats,
     }
 
 
 def write_json_report(result, output_path):
     """Write result as JSON."""
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(result, f, indent=2)
-        f.write('\n')
+        f.write("\n")
 
 
-def write_csv_report(result, output_path, delimiter='\t'):
+def write_csv_report(result, output_path, delimiter="\t"):
     """Write annotated cells as CSV/TSV."""
-    with open(output_path, 'w', newline='') as f:
+    with open(output_path, "w", newline="") as f:
         writer = csv.writer(f, delimiter=delimiter)
-        writer.writerow(['cell_name', 'pnr_type', 'synth_type', 'src'])
-        for cell in result['annotated_cells']:
-            writer.writerow([
-                cell['cell_name'],
-                cell['pnr_type'],
-                cell['synth_type'],
-                cell['src'],
-            ])
+        writer.writerow(["cell_name", "pnr_type", "synth_type", "src"])
+        for cell in result["annotated_cells"]:
+            writer.writerow(
+                [
+                    cell["cell_name"],
+                    cell["pnr_type"],
+                    cell["synth_type"],
+                    cell["src"],
+                ]
+            )
 
 
 def write_text_report(result, output_path):
     """Write human-readable text report."""
-    stats = result['stats']
+    stats = result["stats"]
     lines = [
         "Source Annotation Report",
         "=" * 60,
@@ -240,42 +280,44 @@ def write_text_report(result, output_path):
         "",
     ]
 
-    if stats['synthesis_cells_missing_from_pnr'] > 0:
+    if stats["synthesis_cells_missing_from_pnr"] > 0:
         lines.append(
             f"WARNING: {stats['synthesis_cells_missing_from_pnr']} synthesis "
             f"cells not found in PnR netlist"
         )
-        for name in result['missing_from_pnr'][:10]:
+        for name in result["missing_from_pnr"][:10]:
             lines.append(f"  - {name}")
         lines.append("")
 
-    lines.extend([
-        "Annotated Cells",
-        "-" * 60,
-        f"{'cell_name':<20} {'pnr_type':<30} {'src'}",
-        "-" * 60,
-    ])
+    lines.extend(
+        [
+            "Annotated Cells",
+            "-" * 60,
+            f"{'cell_name':<20} {'pnr_type':<30} {'src'}",
+            "-" * 60,
+        ]
+    )
 
-    for cell in result['annotated_cells']:
-        lines.append(
-            f"{cell['cell_name']:<20} {cell['pnr_type']:<30} {cell['src']}"
-        )
+    for cell in result["annotated_cells"]:
+        lines.append(f"{cell['cell_name']:<20} {cell['pnr_type']:<30} {cell['src']}")
 
-    with open(output_path, 'w') as f:
-        f.write('\n'.join(lines))
-        f.write('\n')
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
+        f.write("\n")
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if len(sys.argv) != 4:
         print(
             f"Usage: {sys.argv[0]} <sideband_json> <post_pnr_verilog> <output>",
             file=sys.stderr,
         )
-        print("  Output format determined by extension: .json, .tsv, .csv, or text",
-              file=sys.stderr)
+        print(
+            "  Output format determined by extension: .json, .tsv, .csv, or text",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     sideband_path = sys.argv[1]
@@ -287,26 +329,28 @@ def main():
 
     result = join_annotations(sideband_path, verilog_path)
 
-    stats = result['stats']
+    stats = result["stats"]
     logger.info(
         "Annotated %d/%d logic cells (%.1f%% coverage), "
         "%d physical cells added by PnR",
-        stats['annotated'], stats['logic_cells'],
-        stats['coverage_pct'], stats['physical_cells_added']
+        stats["annotated"],
+        stats["logic_cells"],
+        stats["coverage_pct"],
+        stats["physical_cells_added"],
     )
 
     ext = Path(output_path).suffix.lower()
-    if ext == '.json':
+    if ext == ".json":
         write_json_report(result, output_path)
-    elif ext == '.tsv':
-        write_csv_report(result, output_path, delimiter='\t')
-    elif ext == '.csv':
-        write_csv_report(result, output_path, delimiter=',')
+    elif ext == ".tsv":
+        write_csv_report(result, output_path, delimiter="\t")
+    elif ext == ".csv":
+        write_csv_report(result, output_path, delimiter=",")
     else:
         write_text_report(result, output_path)
 
     logger.info("Wrote report to %s", output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
