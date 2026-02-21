@@ -30,6 +30,46 @@ proc drt_run {i args} {
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
+# Create NDRs
+if { [info exists ::env(NON_DEFAULT_RULES)] } {
+    dict for {ndr_name values} $::env(NON_DEFAULT_RULES) {
+        puts "Creating NDR for $ndr_name:"
+        dict with values {
+            puts "  width: $width"
+            puts "  spacing: $spacing"
+            puts "  via: $via"
+
+            if {$via eq "None"} {
+                create_ndr -name $ndr_name \
+                    -width $width \
+                    -spacing $spacing
+            } else {
+                create_ndr -name $ndr_name \
+                    -width $width \
+                    -spacing $spacing \
+                    -via $via
+            }
+        }
+    }
+}
+
+# Assign NDRs to nets
+if { [info exists ::env(DRT_ASSIGN_NDR)] } {
+    dict for {net_regex ndr_name} $::env(DRT_ASSIGN_NDR) {
+        puts "\[INFO\] Assigning NDR '$ndr_name' to nets matching '$net_regex'"
+        if { $net_regex != {^$} } {
+            set odb_nets [$::block getNets]
+            foreach net $odb_nets {
+                set net_name [odb::dbNet_getName $net]
+                if { [regexp "$net_regex" $net_name full] } {
+                    puts "\[INFO\] Net '$net_name' matched '$net_regex', assigning NDR '$ndr_name'…"
+                    assign_ndr -ndr $ndr_name -net $net_name
+                }
+            }
+        }
+    }
+}
+
 set_thread_count $::env(DRT_THREADS)
 
 set drc_report_iter_step_arg ""

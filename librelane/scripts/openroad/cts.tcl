@@ -72,6 +72,7 @@ append_if_exists_argument arg_list CTS_MACRO_CLUSTERING_MAX_DIAMETER -macro_clus
 append_if_flag arg_list CTS_DISABLE_POST_PROCESSING -post_cts_disable
 append_if_flag arg_list CTS_OBSTRUCTION_AWARE -obstruction_aware
 append_if_flag arg_list CTS_BALANCE_LEVELS -balance_levels
+append_if_exists_argument arg_list CTS_APPLY_NDR -apply_ndr
 
 if { $::env(CTS_DISTANCE_BETWEEN_BUFFERS) != 0 } {
     lappend arg_list -distance_between_buffers $::env(CTS_DISTANCE_BETWEEN_BUFFERS)
