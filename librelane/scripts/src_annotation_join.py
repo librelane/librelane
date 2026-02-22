@@ -95,8 +95,8 @@ VERILOG_KEYWORDS = frozenset(
 #   <cell_type> <instance_name> (
 # Handles escaped names like \$abc$123 and simple names like _123_
 VERILOG_CELL_RE = re.compile(
-    r"^\s*(\S+)\s+"  # cell type
-    r"(\\[^\s]+|\w+)\s*\(",  # instance name (escaped or simple)
+    r"^\s*(\S+)\s+"  # cell type  # noqa: NIC002
+    r"(\\[^\s]+|\w+)\s*\(",  # instance name (escaped or simple)  # noqa: NIC002
     re.MULTILINE,
 )
 
@@ -282,8 +282,8 @@ def write_text_report(result, output_path):
 
     if stats["synthesis_cells_missing_from_pnr"] > 0:
         lines.append(
-            f"WARNING: {stats['synthesis_cells_missing_from_pnr']} synthesis "
-            f"cells not found in PnR netlist"
+            f"WARNING: {stats['synthesis_cells_missing_from_pnr']} synthesis"
+            + " cells not found in PnR netlist"
         )
         for name in result["missing_from_pnr"][:10]:
             lines.append(f"  - {name}")
@@ -331,7 +331,7 @@ def main():
 
     stats = result["stats"]
     logger.info(
-        "Annotated %d/%d logic cells (%.1f%% coverage), "
+        "Annotated %d/%d logic cells (%.1f%% coverage), "  # noqa: NIC002
         "%d physical cells added by PnR",
         stats["annotated"],
         stats["logic_cells"],

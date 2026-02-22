@@ -37,10 +37,10 @@ import os
 import sys
 import tempfile
 
-# Import sibling scripts
+# Import sibling scripts - path manipulation needed for standalone execution
 sys.path.insert(0, os.path.dirname(__file__))
-from src_annotation_extract import extract_sideband
-from src_annotation_join import join_annotations, write_json_report
+from src_annotation_extract import extract_sideband  # noqa: E402
+from src_annotation_join import join_annotations  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +218,7 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
     print()
 
     if result["missing_from_pnr"]:
-        print(f"Sample cells missing from PnR (first 10):")
+        print("Sample cells missing from PnR (first 10):")
         for name in result["missing_from_pnr"][:10]:
             print(f"  - {name}")
         print()
