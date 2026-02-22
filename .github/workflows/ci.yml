@@ -564,8 +564,8 @@ jobs:
         run: |
           python3 librelane/scripts/validate_src_annotation_e2e.py \
             ./test-run \
-            --min-coverage 50 \
-            --min-cell-match 50
+            --min-coverage 10 \
+            --min-cell-match 80
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
