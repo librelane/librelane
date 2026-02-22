@@ -218,9 +218,23 @@ def validate(run_dir, min_coverage=50.0, min_cell_match=50.0):
     print()
 
     if result["missing_from_pnr"]:
-        print("Sample cells missing from PnR (first 10):")
+        print("Sample synthesis cells missing from PnR (first 10):")
         for name in result["missing_from_pnr"][:10]:
             print(f"  - {name}")
+        print()
+
+    if stats["physical_cells_added"] > 0:
+        print("Sample post-PnR cells classified as physical (first 10):")
+        for cell in result["physical_cells"][:10]:
+            print(f"  - {cell['cell_name']} ({cell['pnr_type']})")
+        print()
+
+    # Debug: show sideband cell names for comparison
+    if cell_match_pct == 0 and meta["total_cells"] > 0:
+        print("DEBUG: Sample sideband cell names (first 5):")
+        sideband_names = list(sideband["cells"].keys())[:5]
+        for name in sideband_names:
+            print(f"  - '{name}'")
         print()
 
     return passed
