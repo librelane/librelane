@@ -39,8 +39,8 @@ import tempfile
 
 # Import sibling scripts - path manipulation needed for standalone execution
 sys.path.insert(0, os.path.dirname(__file__))
-from src_annotation_extract import extract_sideband  # noqa: E402
-from src_annotation_join import join_annotations  # noqa: E402
+from src_annotation_extract import extract_sideband  # type: ignore[import-not-found]  # noqa: E402
+from src_annotation_join import join_annotations  # type: ignore[import-not-found]  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
