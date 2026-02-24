@@ -12,6 +12,9 @@
     <a href="https://fossi-chat.org"><img src="https://img.shields.io/badge/Community-FOSSi%20Chat-1bb378?logo=element" alt="Invite to FOSSi Chat"/></a>
 </p>
 
+> [!NOTE]
+> **This is the stable branch, for v2.x. Active work for v3.x is done on the `dev` branch.**
+
 LibreLane is an ASIC infrastructure library based on several components including
 OpenROAD, Yosys, Magic, Netgen, CVC, KLayout and a number of custom scripts for
 design exploration and optimization, currently developed and maintained under
