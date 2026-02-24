@@ -42,7 +42,17 @@
                   hash = "sha256-cNqvU6ct35e0EU0nRQPqYN2cqWZVui/szzF5TsDb7rk=";
                   fetchSubmodules = true;
                 };
+                # fetchFromGitHub strips .git metadata; create .gitcommit files so
+                # the Makefile treats this as a tarball build (check-git-abc, version)
+                postPatch = (old.postPatch or "") + ''
+                  echo "420eefd00" > .gitcommit
+                  echo "tarball" > abc/.gitcommit
+                '';
               });
+              # Fix stale hash for yosys-eqy in nix-eda 6.0.2 (tag v0.60 was re-tagged upstream)
+              yosys-eqy = pkgs.yosys-eqy.override {
+                sha256 = "sha256-7OwtyV3+9vZhTD0Ur8Dhd39xNtqNs2M5XETBN1F6Xb0=";
+              };
             }
           )
           (
