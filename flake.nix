@@ -31,6 +31,20 @@
       overlays = {
         default = lib.composeManyExtensions [
           (ciel.overlays.default)
+          # Override yosys to use the src_retention_abc9 fork for \src annotation support
+          (
+            pkgs': pkgs: {
+              yosys = pkgs.yosys.overrideAttrs (old: {
+                src = pkgs.fetchFromGitHub {
+                  owner = "robtaylor";
+                  repo = "yosys";
+                  rev = "420eefd0043b51267bc7ed6d133b110c1d0c64bc"; # src_retention_abc9
+                  hash = "sha256-cNqvU6ct35e0EU0nRQPqYN2cqWZVui/szzF5TsDb7rk=";
+                  fetchSubmodules = true;
+                };
+              });
+            }
+          )
           (
             pkgs': pkgs:
             let
