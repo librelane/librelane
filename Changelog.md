@@ -49,6 +49,15 @@ Style Notes
   * Added support for gf180mcu.
   * Renamed `.xml` to `.lyrdb`.
 
+* `KLayout.Render`
+
+  * Added `KLAYOUT_RENDER_GRID_VISBLE`
+  * Added `KLAYOUT_RENDER_SHOW_RULER`
+  * Added `KLAYOUT_RENDER_BACKGROUND_COLOR`
+  * Added `KLAYOUT_RENDER_TEXT_VISIBLE`
+  * Added `KLAYOUT_RENDER_RESOLUTION`
+  * Added `KLAYOUT_RENDER_OVERSAMPLING`
+
 * Created `KLayout.SealRing`
 
   * Added generic implementation.

@@ -174,12 +174,58 @@ class Render(KLayoutStep):
     inputs = [DesignFormat.DEF]
     outputs = []
 
+    config_vars = KLayoutStep.config_vars + [
+        Variable(
+            "KLAYOUT_RENDER_GRID_VISBLE",
+            bool,
+            "Render the grid in the image.",
+            default=False,
+        ),
+        Variable(
+            "KLAYOUT_RENDER_SHOW_RULER",
+            bool,
+            "Enable the ruler in the image.",
+            default=False,
+        ),
+        Variable(
+            "KLAYOUT_RENDER_BACKGROUND_COLOR",
+            Literal["white", "black"],
+            "The background color of the image.",
+            default="white",
+        ),
+        Variable(
+            "KLAYOUT_RENDER_TEXT_VISIBLE",
+            bool,
+            "Enable text in the image.",
+            default=False,
+        ),
+        Variable(
+            "KLAYOUT_RENDER_RESOLUTION",
+            int,
+            "The horizontal resolution of the image in pixel.",
+            default=1000,
+        ),
+        Variable(
+            "KLAYOUT_RENDER_OVERSAMPLING",
+            int,
+            "The oversampling factor (1..3), or 0 for disabling oversampling.",
+            default=0,
+        ),
+    ]
+
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+
         input_view = state_in[DesignFormat.DEF]
         if gds := state_in.get(DesignFormat.GDS):
             input_view = gds
 
         assert isinstance(input_view, Path)
+
+        klayout_render = os.path.join(
+            self.step_dir,
+            f"{self.config['DESIGN_NAME']}.{DesignFormat.KLAYOUT_RENDER.extension}",
+        )
 
         self.run_pya_script(
             [
@@ -187,13 +233,27 @@ class Render(KLayoutStep):
                 os.path.join(get_script_dir(), "klayout", "render.py"),
                 abspath(input_view),
                 "--output",
-                abspath(os.path.join(self.step_dir, "out.png")),
+                abspath(klayout_render),
+                "--grid-visible",
+                self.config["KLAYOUT_RENDER_GRID_VISBLE"],
+                "--grid-show-ruler",
+                self.config["KLAYOUT_RENDER_SHOW_RULER"],
+                "--text-visible",
+                self.config["KLAYOUT_RENDER_TEXT_VISIBLE"],
+                "--background-color",
+                self.config["KLAYOUT_RENDER_BACKGROUND_COLOR"],
+                "--resolution",
+                self.config["KLAYOUT_RENDER_RESOLUTION"],
+                "--oversampling",
+                self.config["KLAYOUT_RENDER_OVERSAMPLING"],
             ]
             + self.get_cli_args(include_lefs=True),
             silent=True,
         )
 
-        return {}, {}
+        views_updates[DesignFormat.KLAYOUT_RENDER] = Path(klayout_render)
+
+        return views_updates, {}
 
 
 @Step.factory.register()
