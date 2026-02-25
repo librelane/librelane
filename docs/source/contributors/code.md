@@ -13,8 +13,7 @@ do have some special behavior associated with them.
 
 > **NOTE**
 >
-> The `main` branch in the LibreLane repo is for v2.x, the stable version.
-> **You are generally recommended to target the `dev`** branch, for v3.x, instead.
+> **You are generally recommended to target the `dev` branch** for your PRs.
 
 ## Testing
 
