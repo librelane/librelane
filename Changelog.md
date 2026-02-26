@@ -415,6 +415,10 @@ Style Notes
     * `SYNTH_KEEP_HIERARCHY_MODULES`: A list of modules for which to set the
       `keep_hierarchy` attribute.
 
+* Created `Magic.RCX`
+
+  * Performs full post-layout parasitics extraction using Magic
+
 ## Flows
 
 * Classic
