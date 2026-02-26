@@ -11,9 +11,11 @@ For various reasons, it's recommended to call working branches, even in your
 forks, something else other than `master`, `main`, or `dev` as these branch
 names do have some special behavior associated with them.
 
-> **NOTE**
->
-> **You are generally recommended to target the `dev` branch** for your PRs.
+```{note}
+The `main` branch is the stable branch for LibreLane, i.e., this branch is
+updated less frequently and only accepts bugfixes.
+
+Feature contributions should be directed towards the `dev` branch.
 
 ## Testing
 
