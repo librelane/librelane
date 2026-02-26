@@ -111,8 +111,11 @@ Thank you in advance for considering a contribution to LibreLane!
 Please be sure to read our [contributor's guide](https://librelane.readthedocs.io/en/stable/contributors/index.html).
 
 > [!TIP]
-> The branch you are currently viewing, `main`, is the stable branch. All new contributions should be targeted
-> towards the `dev` branch.
+>
+> The `main` branch is the stable branch for LibreLane, i.e., this branch is
+> updated less frequently and only accepts bugfixes.
+>
+> Feature contributions should be directed towards the `dev` branch.
 
 ## License and Legal Info
 
