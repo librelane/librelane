@@ -199,6 +199,7 @@ Style Notes
   * Made `CTS_SINK_CLUSTERING_SIZE` and `CTS_SINK_CLUSTERING_MAX_DIAMETER`
     optional. OpenROAD determines the best values.
   * Added `CTS_MACRO_CLUSTERING_SIZE` and `CTS_MACRO_CLUSTERING_MAX_DIAMETER`.
+  * Added `CTS_APPLY_NDR` to set the non-default rule strategy.
 
 * `OpenROAD.CutRows`
 
@@ -221,6 +222,8 @@ Style Notes
     considered instead.
   * Added `DRT_ANTENNA_REPAIR_JUMPER_ONLY`.
   * Added `DRT_ANTENNA_REPAIR_DIODE_ONLY`.
+  * Added `NON_DEFAULT_RULES` to specify non-default rules.
+  * Added `DRT_ASSIGN_NDR` to assign nets to non-default rules.
 
 * Created `OpenROAD.DumpRCValues`
 

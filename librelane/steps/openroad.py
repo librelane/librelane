@@ -1881,6 +1881,26 @@ class RepairAntennas(CompositeStep):
         return super().run(state_in, **kwargs)
 
 
+@dataclass
+class NDR:
+    """
+    :param spacing: The spacing of the non-default rule.
+        This can be a single value that applies to all layers, or 'layer' 'spacing' pairs.
+        The single value can be given in µm or a as multiplier, such as `*3`, to multiply the default spacing by 3.
+        Alternatively, pairs can be given as `spacing: [li1, 0.51, met1, 0.42, met2, 0.42, met3, 0.9, met4, 0.9, met5, 4.8]`.
+    :param width: The width of the non-default rule.
+        This can be a single value that applies to all layers, or 'layer' 'width' pairs.
+        The single value can be given in µm or a as multiplier, such as `*3`, to multiply the default width by 3.
+        Alternatively, pairs can be given as `width: [li1, 0.51, met1, 0.42, met2, 0.42, met3, 0.9, met4, 0.9, met5, 4.8]`.
+    :param via: The allowed vias for the non-default rule. If not specified, the default vias will be used.
+        For example: `via: [L1M1_PR_R, M1M2_PR_R, M2M3_PR_R, M3M4_PR_R, M4M5_PR_R]`
+    """
+
+    spacing: List[str]
+    width: List[str]
+    via: Optional[List[str]]
+
+
 @Step.factory.register()
 class DetailedRouting(OpenROADStep):
     """
@@ -1951,6 +1971,16 @@ class DetailedRouting(OpenROADStep):
                 "DRT_SAVE_DRC_REPORT_ITERS",
                 Optional[int],
                 "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
+            ),
+            Variable(
+                "NON_DEFAULT_RULES",
+                Optional[dict[str, NDR]],
+                "Specify non-default rules. Can be used to change the width, spacing and vias of a net.",
+            ),
+            Variable(
+                "DRT_ASSIGN_NDR",
+                Optional[dict[str, str]],
+                "Specify which nets should be assigned to which non-default rule. The net name is a regular expression. Use '^name$' to match an exact name.",
             ),
         ]
     )
@@ -2478,6 +2508,12 @@ class CTS(OpenROADStep):
                 Optional[Decimal],
                 "Overrides the maximum transition time CTS characterization will test. If omitted, the slew is extracted from the lib information of the buffers in CTS_CLK_BUFFERS.",
                 units="ns",
+            ),
+            Variable(
+                "CTS_APPLY_NDR",
+                Literal["none", "root_only", "half", "full"],
+                "Applies 2X spacing non-default rule to clock nets except leaf-level nets following some strategy. There are four strategy options: 'none', 'root_only', 'half', 'full'.",
+                default="half",
             ),
         ]
     )
