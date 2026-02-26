@@ -8,8 +8,8 @@ just a few small guidelines you need to follow.
 ## Branching
 
 For various reasons, it's recommended to call working branches, even in your
-forks, something else other than `master` or `main`, as those two branch names
-do have some special behavior associated with them.
+forks, something else other than `master`, `main`, or `dev` as these branch
+names do have some special behavior associated with them.
 
 > **NOTE**
 >
