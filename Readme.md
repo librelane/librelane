@@ -105,6 +105,18 @@ If you use LibreLane in your research, please cite the following paper.
   doi={}}
 ```
 
+## Contributing
+Thank you in advance for considering a contribution to LibreLane!
+
+Please be sure to read our [contributor's guide](https://librelane.readthedocs.io/en/stable/contributors/index.html).
+
+> [!TIP]
+>
+> The `main` branch is the stable branch for LibreLane, i.e., this branch is
+> updated less frequently and only accepts bugfixes.
+>
+> Feature contributions should be directed towards the `dev` branch.
+
 ## License and Legal Info
 
 LibreLane is a trademark of the [FOSSi Foundation](https://fossi-foundation.org).
