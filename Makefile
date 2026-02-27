@@ -5,7 +5,7 @@ dist: venv/manifest.txt
 
 .PHONY: mount
 mount:
-	@echo "make mount is not needed in LibreLane 2+. You may simply call 'librelane --dockerized'."
+	@echo "make mount is not needed in LibreLane. You may simply call 'librelane --dockerized'."
 
 .PHONY: pdk pull-openlane pull-librelane
 pdk pull-openlane pull-librelane:

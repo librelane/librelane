@@ -74,7 +74,7 @@ GDSII
 
     GDSII was once the standard for {term}`tape-out`, but it has since been
     replaced by OASIS, a more compact storage format. LibreLane uses GDSII as
-    it has better open-source tool supports, but shuttle providers would broadly
+    it has better open-source tool support, but shuttle providers would broadly
     request the data to be converted to OASIS. {term}`KLayout` is an open-source
     tool capable of performing the conversion.
 
@@ -104,6 +104,10 @@ PnR
 
     The progenitor of LibreLane, OpenLane is an ASIC flow developed by Efabless
     Corporation in 2020 for use with the Google {term}`OpenMPW` project.
+
+    OpenLane focused on ease of installation and ease of use by including all
+    tools and allowing the users to configure the entire ASIC flow using one
+    Tcl or JSON file.
 
 [Magic](http://opencircuitdesign.com/netgen)
 
@@ -367,37 +371,33 @@ open-source
 
 Caravel
 
-    A test harness by Efabless Corporation for use with the {term}`OpenMPW`
-    and {term}`chipIgnite` programs, that enforces a common pinout for all
-    user projects as well as providing a number of base functions, including
-    a management SoC, I/O configuration, power, clocking, and more.
-    
+    A test harness initially released by Efabless Corporation for use with
+    the {term}`OpenMPW` and [chipIgnite](https://chipfoundry.io/chipignite)
+    programs, that enforces a common pinout for all user projects as well as
+    providing a number of base functions, including a management SoC, I/O
+    configuration, power, clocking, and more.
+
     See https://caravel-harness.readthedocs.io/en/latest/ for more info.
 
 OpenMPW
 
-    A program by Google sponsoring a free Multi-Project Wafer for
-    {term}`open-source` hardware projects. LibreLane's progenitor,
-    {term}`OpenLane`, was initially developed for use with the OpenMPW project.
+    A lapsed program by Google sponsoring a free Multi-Project Wafer for
+    {term}`open-source` hardware projects.
+
+    LibreLane's progenitor, {term}`OpenLane`, was initially developed for use
+    with the OpenMPW project.
 
     See https://developers.google.com/silicon for more info.
 
-chipIgnite
-
-    A program by Efabless Corporation for manufacturing chips based on the
-    {term}`sky130` PDK; using the same harness and tools as the {term}`OpenMPW`
-    program but allowing for (optional) proprietary designs.
-    
-    See https://efabless.com/chipignite for more info.
 
 MPW
     
     Short for Multi-Project Wafer.
-    
+
     A wafer produced aggregating a number of different chips, allowing the cost
     of a wafer to be spread across multiple projects.
-    
-    {term}`OpenMPW` and {term}`chipIgnite` are examples of MPW projects.
+
+    {term}`OpenMPW` is an example of a Multi-Project Wafer shuttle.
 
 dotlib
 
@@ -439,8 +439,8 @@ tape-out
     {term}`GDSII` or compatible format.
 
     The name tape-out is a historical artifact from when the GDSII streams were
-    quite literally submitted to the foundries on tape. Nowadays it's more like
-    an FTP server, but the term stuck.
+    quite literally submitted to the foundries on tape. Nowadays files are
+    typically uploaded using something like an FTP server, but the term stuck.
 
 ECO
 

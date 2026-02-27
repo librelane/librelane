@@ -60,16 +60,17 @@ and allowing the user to configure them using a single file (See Figure 1).
 LibreLane also supports extending or modifying flows using Python scripts and
 utilities. Here are some of the key benefits of using LibreLane:
 
-* Flexibility and extensibility: LibreLane is designed to be flexible and
-  extensible, allowing designers to customize the flow to meet their specific
-  needs by developing Python scripts (plugins) and utilities or by modifying the
-  existing configuration file.
-* Open source: LibreLane is an open-source project that is freely available to
-  use and modify, which makes it a good choice for designers looking for a
-  transparent, cost-effective solution.
-* Community support: LibreLane capitalizes on LibreLane's existing community of
-  users and contributors, which means that a wealth of resources is available to
-  help designers get started and troubleshoot any problems they encounter.
+* **Flexibility and extensibility**: LibreLane is designed to be flexible and
+  extensible, allowing designers to customize flows to meet their specific
+  needs. This can be done by writing Python scripts and utilities,
+  or by modifying the existing configuration file.
+* **Open source**: LibreLane is an open-source project, which means that it is
+  freely available to use and modify. This makes it a good choice for designers
+  who are looking for a cost-effective and transparent solution.
+* **Community support**: LibreLane capitalizes on both it and its predecessor's
+  (OpenLane's) existing community of users and contributors. This means that
+  there is a wealth of resources available to help designers get started and
+  troubleshoot any problems they encounter.
 
 ______________________________________________________________________
 
