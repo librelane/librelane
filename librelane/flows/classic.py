@@ -99,6 +99,7 @@ class Classic(SequentialFlow):
         OpenROAD.IRDropReport,
         Magic.StreamOut,
         KLayout.StreamOut,
+        KLayout.Render,
         Magic.WriteLEF,
         Odb.CheckDesignAntennaProperties,
         KLayout.XOR,
