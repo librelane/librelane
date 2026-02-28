@@ -107,10 +107,13 @@ Style Notes
 
   * Set `MAGIC_DEF_LABELS` to False by default.
 
-* `Magic.SpiceExtraction`: Added `MAGIC_EXT_UNIQUE` to replace
-  `MAGIC_NO_EXT_UNIQUE`
+* `Magic.SpiceExtraction`:
 
-  * Allowed values are: "all", "notopports", "noports", "none"
+  * Added `MAGIC_EXT_UNIQUE` to replace `MAGIC_NO_EXT_UNIQUE`
+  
+    * Allowed values are: "all", "notopports", "noports", "none"
+  
+  * Load `CELL_SPICE_MODELS` to annotate stdcell port order
 
 * `Odb.*`
 
