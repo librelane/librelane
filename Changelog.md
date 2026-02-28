@@ -448,16 +448,16 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 6.0.1
+* Updated nix-eda to 6.4.0
   * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
-  * Updated KLayout to `0.30.4`
-  * Updated Magic to `8.3.581`
-  * Updated Netgen to `1.5.308`
-  * Updated Yosys to `0.60`
+  * Updated KLayout to `0.30.6`
+  * Updated Magic to `8.3.610`
+  * Updated Netgen to `1.5.316`
+  * Updated Yosys to `0.62`
     * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
-  * Updated Verilator to `5.042`
-* Updated OpenROAD to `341650e`
-* Updated OpenSTA to `ffabd65`
+  * Updated Verilator to `5.044`
+* Updated OpenROAD to `dcf36133`
+* Updated OpenSTA to `857316ff`
 * Nix
   * `librelane` derivation:
     * Added new arguments `yosys-plugin-set` and `extra-yosys-plugins`
