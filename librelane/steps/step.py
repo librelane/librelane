@@ -670,10 +670,8 @@ class Step(ABC):
             for input, output in zip_longest(Self.inputs, Self.outputs):
                 input_str = ""
                 if input is not None:
-                    optional = "?" if input.value.optional else ""
-                    input_str = (
-                        f"{input.value.name}{optional} (.{input.value.extension})"
-                    )
+                    optional = "?" if input.optional else ""
+                    input_str = f"{input.id}{optional} (.{input.extension})"
 
                 output_str = ""
                 if output is not None:

@@ -1,43 +1,52 @@
 # Installation
 
-LibreLane offers two primary methods of installation: using **Nix** and using
-**Docker**.
+There are a number of ways to install LibreLane on your Windows, Mac, or Linux
+computer.
 
-## Nix (Recommended)
+## Nix (Best)
 
 Nix is a build system for Linux and macOS allowing for _cachable_ and
 _reproducible_ builds, and is the primary build system for LibreLane.
 
-Compared to the Docker method, Nix offers:
+Compared to the other methods, Nix offers:
 
-* **Native Execution on macOS:** LibreLane is built natively for both Intel and
-  Apple Silicon-based Macs, unlike Docker which uses a Virtual Machine, and
-  thus requires more resources.
-* **Filesystem integration:** No need to worry about which folders are being
-  mounted like in the Docker containers- Nix apps run natively in your userspace.
 * **Smaller deltas:** if one tool is updated, you do not need to re-download
-  everything, which is not the case with Docker.
+  everything, which is not the case with the AppImage and Docker.
 * **Dead-simple customization:** You can modify any tool versions and/or any
   LibreLane code and all you need to do is re-invoke `nix-shell`. Nix's smart
   cache-substitution feature will automatically figure out whether your build is
   cached or not, and if not, will automatically attempt to build any tools that
   have been changed.
-
+* **Native Execution on macOS:** LibreLane is built natively for both Intel and
+  Apple Silicon-based Macs, unlike the AppImage or Docker which would use a
+  Virtual Machine, and thus requires more resources.
+  
 Because of the advantages afforded by Nix, we recommend trying to install using
-Nix first. Follow the installation guide here:
-{ref}`nix-based-installation`
+Nix. Follow the installation guide here: {ref}`nix-based-installation`.
 
-## Docker (Alternative)
+## AppImage (Easiest)
+
+If you're on Linux or are willing to use the Windows Subsystem for Linux (WSL),
+the easiest way to get up and running with LibreLane is by downloading an
+[AppImage](https://appimage.org) of LibreLane, which is a single-file download
+that requires no further installation, but does not work in certain environments
+such as inside Docker containers.
+
+Follow the installation guide here: `doc`{/installation/appimage_installation/index}.
+
+## Docker
 
 Docker containers offer:
 
-* Support for Windows, Mac and Linux on both `x86-64` and `aarch64`
-* **Sandboxing:** A completely different environment for using LibreLane
-* **Familiarity:** Users of previous versions of LibreLane will already have
-  Docker installed
+* Support for Windows, Mac and Linux on both `x86-64` and `aarch64`.
+* **Sandboxing:** A completely different environment for using LibreLane, where
+  you can choose which directories to expose to LibreLane.
+* **Familiarity:** Users of OpenLane will already have Docker installed.
 
-If Nix doesn't work for you for whatever reason, you may want to try Docker.
-Follow the installation guide here: {doc}`/installation/docker_installation/index`.
+If both the AppImage and Nix don't work for you for whatever reason, you may
+want to try Docker. Follow the installation guide here:
+{doc}`/installation/docker_installation/index`.
+
 ## Other Options
 
 You may elect to somehow provide the tools yourself. Here is a non-exhaustive
@@ -59,5 +68,6 @@ some incompatibilities may arise, and we will not be able to support them.
 :maxdepth: 2
 
 nix_installation/index
+appimage_installation/index
 docker_installation/index
 ```
