@@ -332,6 +332,8 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
     needs: [build-linux-x86_64, build-linux-aarch64]
     name: Build Docker Image (${{ matrix.os.arch }})
+    permissions:
+      packages: write
     steps:
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -372,6 +374,12 @@ jobs:
         with:
           name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
+      - name: Push to GHCR (fork builds)
+        if: vars.FORK_DOCKER_PUSH == 'true'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag librelane:tmp-${{ matrix.os.nix }} ghcr.io/${{ github.repository }}:dev-${{ matrix.os.arch }}
+          docker push ghcr.io/${{ github.repository }}:dev-${{ matrix.os.arch }}
   test-containers:
     strategy:
       matrix:
