@@ -433,6 +433,7 @@ Style Notes
 * Classic
 
   * Added `OpenROAD.DumpRCValues` immediately after floorplanning.
+  * Added `KLayout.Render` after both stream-out steps.
 
 * Created "Chip" flow
 
