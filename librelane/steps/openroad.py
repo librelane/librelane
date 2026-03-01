@@ -288,7 +288,7 @@ class OpenROADStep(TclStep):
         Variable(
             "STA_EXTRA_CORNER_TCL_FILE",
             Optional[Path],
-            "Specifies a additional configuration .tcl file to be called during (PnR) steps.",
+            "Experimental: specifies a additional configuration .tcl file to be called during (PnR) steps.",
         ),
         Variable(
             "DEDUPLICATE_CORNERS",
