@@ -118,6 +118,10 @@ You may then run the flow as usual:
 $ librelane config.yaml
 ```
 
+:::{tip}
+To provide options such as `--std=08` to ghdl, set the {var}`Yosys.VHDLSynthesis::GHDL_ARGUMENTS` variable in your configuration file.
+:::
+
 ## Limitations
 
 Unlike with Verilog, the LibreLane flow does not support:

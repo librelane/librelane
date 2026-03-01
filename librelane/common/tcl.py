@@ -16,7 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-import tkinter
 from typing import Dict, Mapping, Any, Iterable
 
 _env_rx = re.compile(r"(?:\:\:)?env\((\w+)\)")
@@ -59,6 +58,8 @@ class TclUtils(object):
 
     @staticmethod
     def _eval_env(env_in: Mapping[str, Any], tcl_in: str) -> Dict[str, Any]:
+        import tkinter
+
         interpreter = tkinter.Tcl()
 
         interpreter.eval("array unset ::env")

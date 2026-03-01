@@ -17,9 +17,10 @@
 # limitations under the License.
 import os
 import sys
+import json
 from functools import partial, wraps
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 from click import (
     Context,
@@ -146,18 +147,27 @@ def set_worker_count_cb(
 def initial_state_cb(
     ctx: Context,
     param: Parameter,
-    value: Optional[str],
+    value: Tuple[str],
 ):
-    if value is None:
+    if len(value) == 0:
         return None
 
+    raw = {}
+    for state_json in value:
+        try:
+            with open(state_json, encoding="utf8") as f:
+                state_dict = json.load(f)
+                if not isinstance(state_dict, dict):
+                    raise ValueError(f"JSON data {value} is not a dictionary")
+                raw.update(state_dict)
+        except json.JSONDecodeError as e:
+            err(f"Invalid JSON file: {e}")
+            ctx.exit(-1)
+        except Exception as e:
+            err(f"Failed to read initial state: {e}")
+            ctx.exit(-1)
     try:
-        initial_state_str = open(value, encoding="utf8").read()
-    except Exception as e:
-        err(f"Failed to read initial state: {e}")
-        ctx.exit(-1)
-    try:
-        initial_state = State.loads(initial_state_str, validate_path=True)
+        initial_state = State.load(raw, validate_path=True)
     except InvalidState as e:
         err(e)
         ctx.exit(-1)
@@ -242,6 +252,7 @@ def cloup_flow_opts(
         * ``pdk_root`` ‡: ``Optional[str]``
         * ``pdk`` ‡: ``str``
         * ``scl`` ‡: ``Optional[str]``
+        * ``pad`` ‡: ``Optional[str]``
     * ``config_files``: ``Iterable[str]``: Paths to configuration files (if
       parameter  ``accept_config_files`` is ``True``)
 
@@ -288,9 +299,9 @@ def cloup_flow_opts(
                     file_okay=True,
                     dir_okay=False,
                 ),
-                default=None,
+                multiple=True,
                 callback=initial_state_cb,
-                help="Use this JSON file as an initial state. If this is not specified, the latest `state_out.json` of the run directory will be used. If none exist, an empty initial state is created.",
+                help="Use these JSON files as an initial state. If multiple are provided, they are merged with keys in later files overriding keys in prior files. If none are specified, the latest `state_out.json` of the run directory will be used. If none exist, an empty initial state is created.",
             )(f)
             f = o(
                 "--design-dir",
@@ -449,6 +460,13 @@ def cloup_flow_opts(
                     # no default, default is obtained dynamically from PDK
                     help="The standard cell library to use. If None, the PDK's default standard cell library is used.",
                 ),
+                o(
+                    "--pad",
+                    type=str,
+                    envvar=["PAD_CELL_LIBRARY"],
+                    # no default, default is obtained dynamically from PDK
+                    help="The standard pad library to use. If None, the PDK's default standard cell library is used (if it exists).",
+                ),
             )(f)
         if jobs:
             f = o(
@@ -487,6 +505,7 @@ def cloup_flow_opts(
                 pdk_root: Optional[str],
                 pdk: str,
                 scl: Optional[str],
+                pad: Optional[str],
                 use_ciel: bool,
                 **kwargs,
             ) -> str:
@@ -505,6 +524,9 @@ def cloup_flow_opts(
                     if scl is not None:
                         include_libraries.append(scl)
 
+                    if pad is not None:
+                        include_libraries.append(pad)
+
                     pdk_family = None
                     if family := ciel.Family.by_name.get(pdk):
                         pdk = family.default_variant
@@ -520,18 +542,22 @@ def cloup_flow_opts(
                         err(f"Could not resolve the PDK '{pdk}'.")
                         exit(1)
 
-                    version = ciel.fetch(
-                        ciel_home,
-                        pdk_family,
-                        opdks_rev,
-                        data_source=StaticWebDataSource(
-                            "https://fossi-foundation.github.io/ciel-releases"
-                        ),
-                        include_libraries=include_libraries,
-                    )
-                    pdk_root = version.get_dir(ciel_home)
+                    try:
+                        version = ciel.fetch(
+                            ciel_home,
+                            pdk_family,
+                            opdks_rev,
+                            data_source=StaticWebDataSource(
+                                "https://fossi-foundation.github.io/ciel-releases"
+                            ),
+                            include_libraries=include_libraries,
+                        )
+                        pdk_root = version.get_dir(ciel_home)
+                    except ValueError as e:
+                        err(f"Failed to download PDK: {e}")
+                        exit(1)
 
-                return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, **kwargs)
+                return f(*args, pdk_root=pdk_root, pdk=pdk, scl=scl, pad=pad, **kwargs)
 
             return pdk_resolve_wrapper
         else:

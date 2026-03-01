@@ -225,6 +225,7 @@ class DRC:
         violations: Dict[str, Violation] = {}
         last_bounding_box: Optional[BoundingBox] = None
         lex = shlex.shlex(feedback.read(), posix=True)
+        lex.wordchars = lex.wordchars + "-"
         components = list(lex)
         while len(components):
             instruction = components.pop(0)

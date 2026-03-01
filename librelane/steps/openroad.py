@@ -30,7 +30,17 @@ from decimal import Decimal
 from enum import Enum
 from glob import glob
 from math import inf
-from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    TypeAlias,
+    Union,
+)
 
 import rich
 import rich.table
@@ -227,6 +237,23 @@ class OpenROADStep(TclStep):
             + " Usage of wildcards for specifying IPVT corners is allowed."
             + " Via resistance is per cut/via with units asdefined in the first lib file.",
             pdk=True,
+        ),
+        Variable(
+            "SIGNAL_WIRE_RC_LAYERS",
+            Optional[List[str]],
+            "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction.",
+            pdk=True,
+            deprecated_names=[
+                ("WIRE_RC_LAYER", lambda x: [x]),
+                ("DATA_WIRE_RC_LAYER", lambda x: [x]),
+            ],
+        ),
+        Variable(
+            "CLOCK_WIRE_RC_LAYERS",
+            Optional[List[str]],
+            "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction.",
+            pdk=True,
+            deprecated_names=[("CLOCK_WIRE_RC_LAYER", lambda x: [x])],
         ),
         Variable(
             "PDN_CONNECT_MACROS_TO_GRID",
@@ -458,9 +485,18 @@ class OpenROADStep(TclStep):
                     f"{self.id} failed with the following errors:\n{error_string}"
                 )
             else:
-                raise StepException(
-                    f"{self.id} failed unexpectedly. Please check the logs and file an issue."
-                )
+                step_exception_message = f"{self.id} failed with an unexpected error."
+                log_path = self.get_log_path()
+                if os.path.isfile(log_path):
+                    step_exception_message += f" Please check {repr(os.path.relpath(log_path))} and unless you wrote the step yourself, file an issue.\n"
+                    with open(log_path, "r", encoding="utf8") as f:
+                        last_n_lines = f.readlines()[-10:]
+                        step_exception_message += f"Last {len(last_n_lines)} lines:\n"
+                        for line in last_n_lines:
+                            step_exception_message += "\t" + line
+                else:
+                    step_exception_message += f" Please check the logs in {repr(self.step_dir)} and unless you wrote the step yourself, file an issue."
+                raise StepException(step_exception_message)
         # 2. Metrics
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         if os.path.exists(metrics_path):
@@ -964,6 +1000,10 @@ class STAPostPNR(STAPrePNR):
             for lef in extra_lefs:
                 lefs.append("--input-lef")
                 lefs.append(lef)
+        if pad_lefs := self.config["PAD_LEFS"]:
+            for lef in pad_lefs:
+                lefs.append("--input-lef")
+                lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
             self.get_openroad_path(),
@@ -1163,19 +1203,89 @@ class Floorplan(OpenROADStep):
         return super().run(state_in, env=env, **kwargs)
 
 
-def _migrate_ppl_mode(migrated):
-    as_int = None
-    try:
-        as_int = int(migrated)
-    except ValueError:
-        pass
-    if as_int is not None:
-        if as_int < 0 or as_int > 2:
-            raise ValueError(
-                f"Legacy variable FP_IO_MODE can only either be 0 for matching or 1 for random_equidistant-- '{as_int}' is invalid.\nPlease see the documentation for the usage of the replacement variable, 'FP_PIN_MODE'."
+PPLMode: TypeAlias = Literal["matching", "annealing", "random_equidistant"]
+
+
+def _validate_io_ppl_mode(
+    variable: Variable, input: PPLMode, warning_list_ref: List[str]
+):
+    if input == "random_equidistant":
+        warning_list_ref.append(
+            f"The mode '{input}' for {variable.name} has been removed. Please update your configuration to use 'matching' instead."
+        )
+        return "matching"
+    return input
+
+
+@Step.factory.register()
+class PadRing(OpenROADStep):
+    """
+    Assembles a pad ring on a floor-planned ODB file using OpenROAD's built-in pad placer.
+    """
+
+    id = "OpenROAD.PadRing"
+    name = "Pad Ring Generation"
+
+    config_vars = OpenROADStep.config_vars + [
+        Variable(
+            "PDN_CONNECT_MACROS_TO_GRID",
+            bool,
+            "Enables the connection of macros to the top level power grid.",
+            default=True,
+            deprecated_names=["FP_PDN_ENABLE_MACROS_GRID"],
+        ),
+        Variable(
+            "PDN_MACRO_CONNECTIONS",
+            Optional[List[str]],
+            "Specifies explicit power connections of internal macros to the top level power grid, in the format: regex matching macro instance names, power domain vdd and ground net names, and macro vdd and ground pin names `<instance_name_rx> <vdd_net> <gnd_net> <vdd_pin> <gnd_pin>`.",
+            deprecated_names=[("FP_PDN_MACRO_HOOKS", pdn_macro_migrator)],
+        ),
+        Variable(
+            "PDN_ENABLE_GLOBAL_CONNECTIONS",
+            bool,
+            "Enables the creation of global connections in PDN generation.",
+            default=True,
+            deprecated_names=["FP_PDN_ENABLE_GLOBAL_CONNECTIONS"],
+        ),
+        Variable(
+            "PAD_CFG",
+            Optional[Path],
+            "A custom pad configuration file. If not provided, the default pad config will be used.",
+        ),
+        Variable(
+            "PAD_SOUTH",
+            Optional[List[str]],
+            "The pad instance names for the south pad row.",
+        ),
+        Variable(
+            "PAD_EAST",
+            Optional[List[str]],
+            "The pad instance names for the east pad row.",
+        ),
+        Variable(
+            "PAD_NORTH",
+            Optional[List[str]],
+            "The pad instance names for the north pad row.",
+        ),
+        Variable(
+            "PAD_WEST",
+            Optional[List[str]],
+            "The pad instance names for the west pad row.",
+        ),
+    ]
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "openroad", "pad.tcl")
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+        if self.config["PAD_CFG"] is None:
+            env["PAD_CFG"] = os.path.join(
+                get_script_dir(), "openroad", "common", "pad_cfg.tcl"
             )
-        return ["matching", "random_equidistant"][as_int]
-    return migrated
+            info(f"'PAD_CFG' not explicitly set, setting it to {env['PAD_CFG']}…")
+
+        return super().run(state_in, env=env, **kwargs)
 
 
 @Step.factory.register()
@@ -1195,19 +1305,32 @@ class IOPlacement(OpenROADStep):
         + io_layer_variables
         + [
             Variable(
+                "IO_PIN_CORNER_AVOIDANCE",
+                Optional[Decimal],
+                "The distance from each corner within which pin placement should be avoided.",
+                units="µm",
+            ),
+            Variable(
                 "IO_PIN_PLACEMENT_MODE",
-                Literal["matching", "random_equidistant", "annealing"],
+                PPLMode,
                 "Decides the mode of the random IO placement option.",
                 default="matching",
-                deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
+                deprecated_names=["FP_PPL_MODE"],
+                validator=_validate_io_ppl_mode,
             ),
             Variable(
                 "IO_PIN_MIN_DISTANCE",
                 Optional[Decimal],
-                "The minimum distance between two pins. If unspecified by a PDK, OpenROAD will use the length of two routing tracks.",
-                units="µm",
+                "The minimum distance between two pins. The unit is microns or routing tracks, depending on whether IO_PIN_MIN_DISTANCE_IN_TRACKS is set. If unspecified by a PDK, OpenROAD will use the length of two routing tracks.",
+                units="µm or routing tracks",
                 pdk=True,
                 deprecated_names=["FP_IO_MIN_DISTANCE"],
+            ),
+            Variable(
+                "IO_PIN_MIN_DISTANCE_IN_TRACKS",
+                Optional[bool],
+                "Setting this variable to true allows IO_PIN_MIN_DISTANCE to be set in number of tracks instead of microns.",
+                pdk=True,
             ),
             Variable(
                 "IO_PIN_ORDER_CFG",
@@ -1219,6 +1342,12 @@ class IOPlacement(OpenROADStep):
                 "FP_DEF_TEMPLATE",
                 Optional[Path],
                 "Points to the DEF file to be used as a template.",
+            ),
+            Variable(
+                "IO_EXCLUDE_PIN_REGION",
+                Optional[List[str]],
+                "List of regions where pins cannot be placed. The regions are strings in the format `{edge}:{interval}` where edge is `top|bottom|left|right` and the interval is either `*` to exclude the entire edge or `{begin}-{end}` to exclude a part of the edge, where `begin` and `end` are either absolute distance values or themselves `*` to denote the very start or end of an edge.",
+                units="µm",
             ),
         ]
     )
@@ -1383,6 +1512,7 @@ class _GlobalPlacement(OpenROADStep):
     config_vars = (
         OpenROADStep.config_vars
         + routing_layer_variables
+        + rsz_variables
         + [
             Variable(
                 "PL_TARGET_DENSITY_PCT",
@@ -1434,7 +1564,7 @@ class _GlobalPlacement(OpenROADStep):
             Variable(
                 "PL_KEEP_RESIZE_BELOW_OVERFLOW",
                 Optional[Decimal],
-                "Only applicable when PL_TIME_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
+                "Only applicable when PL_TIMING_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
             ),
         ]
     )
@@ -1472,10 +1602,11 @@ class GlobalPlacement(_GlobalPlacement):
 
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
-            "PL_TIME_DRIVEN",
+            "PL_TIMING_DRIVEN",
             bool,
-            "Specifies whether the placer should use time driven placement.",
-            default=True,
+            "Specifies whether the placer should use timing-driven placement.",
+            default=False,
+            deprecated_names=["PL_TIME_DRIVEN"],
         ),
         Variable(
             "PL_ROUTABILITY_DRIVEN",
@@ -1508,21 +1639,17 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
     config_vars = _GlobalPlacement.config_vars + [
         Variable(
             "IO_PIN_PLACEMENT_MODE",
-            Literal["matching", "random_equidistant", "annealing"],
+            PPLMode,
             "Decides the mode of the random IO placement option.",
             default="matching",
-            deprecated_names=[("FP_IO_MODE", _migrate_ppl_mode), "FP_PPL_MODE"],
+            deprecated_names=["FP_PPL_MODE"],
+            validator=_validate_io_ppl_mode,
         ),
         Variable(
             "IO_PIN_ORDER_CFG",
             Optional[Path],
             "Path to a custom pin configuration file.",
             deprecated_names=["FP_PIN_ORDER_CFG"],
-        ),
-        Variable(
-            "FP_DEF_TEMPLATE",
-            Optional[Path],
-            "Points to the DEF file to be used as a template.",
         ),
     ]
 
@@ -1730,7 +1857,8 @@ class GlobalRouting(OpenROADStep):
 
 
 class _DiodeInsertion(GlobalRouting):
-    id = "DiodeInsertion"
+    id = "OpenROAD.DiodeInsertion"
+    name = "Diode Insertion"
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "antenna_repair.tcl")
@@ -1760,6 +1888,26 @@ class RepairAntennas(CompositeStep):
         return super().run(state_in, **kwargs)
 
 
+@dataclass
+class NDR:
+    """
+    :param spacing: The spacing of the non-default rule.
+        This can be a single value that applies to all layers, or 'layer' 'spacing' pairs.
+        The single value can be given in µm or a as multiplier, such as `*3`, to multiply the default spacing by 3.
+        Alternatively, pairs can be given as `spacing: [li1, 0.51, met1, 0.42, met2, 0.42, met3, 0.9, met4, 0.9, met5, 4.8]`.
+    :param width: The width of the non-default rule.
+        This can be a single value that applies to all layers, or 'layer' 'width' pairs.
+        The single value can be given in µm or a as multiplier, such as `*3`, to multiply the default width by 3.
+        Alternatively, pairs can be given as `width: [li1, 0.51, met1, 0.42, met2, 0.42, met3, 0.9, met4, 0.9, met5, 4.8]`.
+    :param via: The allowed vias for the non-default rule. If not specified, the default vias will be used.
+        For example: `via: [L1M1_PR_R, M1M2_PR_R, M2M3_PR_R, M3M4_PR_R, M4M5_PR_R]`
+    """
+
+    spacing: List[str]
+    width: List[str]
+    via: Optional[List[str]]
+
+
 @Step.factory.register()
 class DetailedRouting(OpenROADStep):
     """
@@ -1778,54 +1926,71 @@ class DetailedRouting(OpenROADStep):
     id = "OpenROAD.DetailedRouting"
     name = "Detailed Routing"
 
-    config_vars = OpenROADStep.config_vars + [
-        Variable(
-            "DRT_THREADS",
-            Optional[int],
-            "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
-            deprecated_names=["ROUTING_CORES"],
-        ),
-        Variable(
-            "DRT_MIN_LAYER",
-            Optional[str],
-            "An optional override to the lowest layer used in detailed routing. For example, in sky130, you may want global routing to avoid li1, but let detailed routing use li1 if it has to.",
-        ),
-        Variable(
-            "DRT_MAX_LAYER",
-            Optional[str],
-            "An optional override to the highest layer used in detailed routing.",
-        ),
-        Variable(
-            "DRT_OPT_ITERS",
-            int,
-            "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
-            default=64,
-        ),
-        Variable(
-            "DRT_SAVE_SNAPSHOTS",
-            bool,
-            "This is an experimental variable. Saves an odb snapshot of the layout each routing iteration. This generates multiple odb files increasing disk usage.",
-            default=False,
-        ),
-        Variable(
-            "DRT_ANTENNA_REPAIR_ITERS",
-            int,
-            "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
-            default=0,
-        ),
-        Variable(
-            "DRT_ANTENNA_MARGIN",
-            int,
-            "The margin to over fix antenna violations.",
-            default=10,
-            units="%",
-        ),
-        Variable(
-            "DRT_SAVE_DRC_REPORT_ITERS",
-            Optional[int],
-            "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
-        ),
-    ]
+    config_vars = (
+        OpenROADStep.config_vars
+        + grt_variables
+        + [
+            Variable(
+                "DRT_THREADS",
+                Optional[int],
+                "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
+                deprecated_names=["ROUTING_CORES"],
+            ),
+            Variable(
+                "DRT_OPT_ITERS",
+                int,
+                "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
+                default=64,
+            ),
+            Variable(
+                "DRT_SAVE_SNAPSHOTS",
+                bool,
+                "This is an experimental variable. Saves an odb snapshot of the layout each routing iteration. This generates multiple odb files increasing disk usage.",
+                default=False,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_ITERS",
+                int,
+                "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
+                default=3,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_MARGIN",
+                int,
+                "The margin to over fix antenna violations.",
+                default=10,
+                units="%",
+                deprecated_names=["DRT_ANTENNA_MARGIN"],
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_JUMPER_ONLY",
+                bool,
+                "Only use jumpers to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_DIODE_ONLY.",
+                default=False,
+            ),
+            Variable(
+                "DRT_ANTENNA_REPAIR_DIODE_ONLY",
+                bool,
+                "Only use antenna diodes to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_JUMPER_ONLY.",
+                default=False,
+            ),
+            Variable(
+                "DRT_SAVE_DRC_REPORT_ITERS",
+                Optional[int],
+                "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
+            ),
+            Variable(
+                "NON_DEFAULT_RULES",
+                Optional[dict[str, NDR]],
+                "Specify non-default rules. Can be used to change the width, spacing and vias of a net.",
+            ),
+            Variable(
+                "DRT_ASSIGN_NDR",
+                Optional[dict[str, str]],
+                "Specify which nets should be assigned to which non-default rule. The net name is a regular expression. Use '^name$' to match an exact name.",
+            ),
+        ]
+    )
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "drt.tcl")
@@ -2350,6 +2515,12 @@ class CTS(OpenROADStep):
                 Optional[Decimal],
                 "Overrides the maximum transition time CTS characterization will test. If omitted, the slew is extracted from the lib information of the buffers in CTS_CLK_BUFFERS.",
                 units="ns",
+            ),
+            Variable(
+                "CTS_APPLY_NDR",
+                Literal["none", "root_only", "half", "full"],
+                "Applies 2X spacing non-default rule to clock nets except leaf-level nets following some strategy. There are four strategy options: 'none', 'root_only', 'half', 'full'.",
+                default="half",
             ),
         ]
     )

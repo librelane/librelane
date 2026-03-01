@@ -59,6 +59,7 @@ def run(
     pdk_root: Optional[str],
     pdk: str,
     scl: Optional[str],
+    pad: Optional[str],
     config_files: Sequence[str],
     tag: Optional[str],
     last_run: bool,
@@ -121,13 +122,13 @@ def run(
                     err(f"Invalid initial state element override: '{element}'.")
                     ctx.exit(1)
                 df_id, path = element_split
-                design_format = DesignFormat.by_id(df_id)
+                design_format = DesignFormat.factory.get(df_id)
                 if design_format is None:
                     err(f"Invalid design format ID: '{df_id}'.")
                     ctx.exit(1)
                 overrides[design_format] = common.Path(path)
 
-            with_initial_state = with_initial_state.__class__(
+            with_initial_state = type(with_initial_state)(
                 with_initial_state,
                 overrides=overrides,
             )
@@ -140,6 +141,7 @@ def run(
             "pdk_root": pdk_root,
             "pdk": pdk,
             "scl": scl,
+            "pad": pad,
             "config_override_strings": config_override_strings,
             "design_dir": design_dir,
         }
@@ -202,8 +204,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
         f"""
         LibreLane v{__version__}
 
-        Copyright ©2020-2025 Efabless Corporation, The American University in
-        Cairo, and other contributors.
+        Copyright ©2025-2026 LibreLane Contributors
+
+        Adapted from OpenLane 2.0
+        Copyright ©2020-2025 Efabless Corporation
 
         Available under the Apache License, version 2. Included with the source code,
         but you can also get a copy at https://www.apache.org/licenses/LICENSE-2.0
@@ -217,7 +221,10 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool):
     if len(discovered_plugins) > 0:
         print("Discovered plugins:")
         for name, module in discovered_plugins.items():
-            print(f"{name} -> {module.__version__}")
+            if hasattr(module, "__version__"):
+                print(f"{name} -> {module.__version__}")
+            else:
+                print(f"{name}")
 
     ctx.exit(0)
 
@@ -259,6 +266,7 @@ def run_included_example(
         kwargs.update(
             flow_name=None,
             scl=None,
+            pad=None,
             tag=None,
             last_run=False,
             frm=None,
@@ -448,7 +456,7 @@ def cli(ctx, /, **kwargs):
 
     if len(args) == 1 and args[0].endswith(".marshalled"):
         run_kwargs = marshal.load(open(args[0], "rb"))
-        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl"]})
+        run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl", "pad"]})
 
     smoke_test = kwargs.pop("smoke_test", False)
     example = kwargs.pop("run_example", None)

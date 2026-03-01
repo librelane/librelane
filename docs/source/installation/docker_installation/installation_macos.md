@@ -1,12 +1,16 @@
-# macOS 11+
+# macOS 14+
+
+```{note}
+macOS 12 and 13 may work, but they are not officially supported.
+```
 
 * **Minimum Requirements**
-    * macOS 11 (Big Sur)
+    * macOS 14 (Sonoma)
     * 6th Gen Intel® Core CPU or later
     * 16 GiB of RAM
     
 * **Recommended**
-    * macOS 11 (Big Sur)
+    * macOS 14 (Sonoma)
     * Apple Silicon CPU
     * 32 GiB of RAM
 
@@ -23,12 +27,12 @@ brew install --cask docker
 
 Under **Preferences** > **Resources** > **File Sharing**, make sure `/Users` is mounted as follows, as using LibreLane with Docker requires access to your home folder.
 
-:::{figure} ../../../../\_static/installation/mac_docker_settings.webp
+:::{figure} ./mac_docker_settings.webp
 :::
 
 It may also be prudent to enable Full Disk Access permissions for Docker: Under **System Settings** > **Privacy** > **Full Disk Access**, tick Docker as shown:
 
-:::{figure} ../../../../\_static/installation/mac_docker_privacy.webp
+:::{figure} ./mac_docker_privacy.webp
 :::
 
 ```{include} _common.md

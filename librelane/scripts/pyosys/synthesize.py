@@ -34,6 +34,7 @@
 import os
 import json
 import shutil
+from typing import List, Optional
 
 import click
 
@@ -142,10 +143,36 @@ def librelane_opt(
 
 
 def librelane_synth(
-    d, top, flatten, report_dir, *, booth=False, abc_dff=False, undriven=True
+    d,
+    top,
+    flatten,
+    report_dir,
+    *,
+    booth=False,
+    abc_dff=False,
+    undriven=True,
+    keep_hierarchy_min_cost: Optional[int],
+    keep_hierarchy_instances: List[str],
+    keep_hierarchy_modules: List[str],
 ):
+
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
     librelane_proc(d, report_dir)
+
+    if keep_hierarchy_min_cost:
+        d.run_pass("keep_hierarchy", "-min_cost", str(keep_hierarchy_min_cost))
+
+    if keep_hierarchy_instances:
+        for keep_hierarchy_instance in keep_hierarchy_instances:
+            d.run_pass(
+                "setattr", "-set", "keep_hierarchy", "1", keep_hierarchy_instance
+            )
+
+    if keep_hierarchy_modules:
+        for keep_hierarchy_module in keep_hierarchy_modules:
+            d.run_pass(
+                "setattr", "-mod", "-set", "keep_hierarchy", "1", keep_hierarchy_module
+            )
 
     if flatten:
         d.run_pass("flatten")  # Flatten the design hierarchy
@@ -213,13 +240,11 @@ def librelane_synth(
 @click.option("--output", type=click.Path(exists=False, dir_okay=False), required=True)
 @click.option("--config-in", type=click.Path(exists=True), required=True)
 @click.option("--extra-in", type=click.Path(exists=True), required=True)
-@click.option("--lighter-dff-map", type=click.Path(exists=True), required=False)
 @click.argument("inputs", nargs=-1)
 def synthesize(
     output,
     config_in,
     extra_in,
-    lighter_dff_map,
     inputs,
 ):
     config = json.load(open(config_in))
@@ -277,7 +302,8 @@ def synthesize(
         )
     elif vhdl_files := config.get("VHDL_FILES"):
         d.run_pass("plugin", "-i", "ghdl")
-        d.run_pass("ghdl", *vhdl_files, "-e", config["DESIGN_NAME"])
+        ghdl_arguments = config["GHDL_ARGUMENTS"] or []
+        d.run_pass("ghdl", *ghdl_arguments, *vhdl_files, "-e", config["DESIGN_NAME"])
     else:
         ys.log_error(
             "Script called inappropriately: config must include either VERILOG_FILES or VHDL_FILES.",
@@ -294,12 +320,10 @@ def synthesize(
     )
     d.run_pass("rename", "-top", config["DESIGN_NAME"])
     d.run_pass("select", "-module", config["DESIGN_NAME"])
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show", "-format", "dot", "-prefix", os.path.join(step_dir, "hierarchy")
         )
-    except Exception:
-        pass
     if config["SYNTH_NORMALIZE_SINGLE_BIT_VECTORS"]:
         d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
@@ -310,7 +334,7 @@ def synthesize(
 
     if config["SYNTH_ELABORATE_ONLY"]:
         librelane_proc(d, report_dir)
-        if config["SYNTH_ELABORATE_FLATTEN"]:
+        if config["SYNTH_HIERARCHY_MODE"] in ["deferred_flatten", "flatten"]:
             d.run_pass("flatten", "-noscopeinfo")
         d.run_pass("setattr", "-set", "keep", "1")
         d.run_pass("splitnets")
@@ -343,11 +367,6 @@ def synthesize(
             ys.log(f"[INFO] Applying {adder_type} mapping from '{mapping}'…")
             d.run_pass("techmap", "-map", mapping)
 
-    if mapping := lighter_dff_map:
-        ys.log(f"[INFO] Using Lighter with mapping '{mapping}'…")
-        d.run_pass("plugin", "-i", "lighter")
-        d.run_pass("reg_clock_gating", "-map", mapping)
-
     librelane_synth(
         d,
         config["DESIGN_NAME"],
@@ -356,12 +375,15 @@ def synthesize(
         booth=config["SYNTH_MUL_BOOTH"],
         abc_dff=config["SYNTH_ABC_DFF"],
         undriven=config.get("SYNTH_TIE_UNDEFINED") is not None,
+        keep_hierarchy_min_cost=config["SYNTH_KEEP_HIERARCHY_MIN_COST"],
+        keep_hierarchy_instances=config["SYNTH_KEEP_HIERARCHY_INSTANCES"],
+        keep_hierarchy_modules=config["SYNTH_KEEP_HIERARCHY_MODULES"],
     )
 
     d.run_pass("delete", "t:$print")
     d.run_pass("delete", "t:$assert")
 
-    try:
+    if config["SYNTH_SHOW"]:
         d.run_pass(
             "show",
             "-format",
@@ -369,8 +391,6 @@ def synthesize(
             "-prefix",
             os.path.join(step_dir, "primitive_techmap"),
         )
-    except Exception:
-        pass
 
     d.run_pass("opt")
     d.run_pass("opt_clean", "-purge")
@@ -395,6 +415,28 @@ def synthesize(
     if extra_mapping := config["SYNTH_EXTRA_MAPPING_FILE"]:
         ys.log(f"[INFO] Applying extra mappings from '{extra_mapping}'…")
         d.run_pass("techmap", "-map", extra_mapping)
+
+    if config["SYNTH_CLOCKGATE_MIN_WIDTH"] is not None:  # 0 is a valid value and falsey
+        cg_min_width = config["SYNTH_CLOCKGATE_MIN_WIDTH"]
+        posedge = ()
+        negedge = ()
+        if posedge_raw := config["SYNTH_CLOCKGATE_POSEDGE_ICG"]:
+            cell, ce, clk, gclk = posedge_raw.rsplit("/", maxsplit=4)
+            posedge = ("-pos", cell, f"{ce}:{clk}:{gclk}")
+        if negedge_raw := config["SYNTH_CLOCKGATE_NEGEDGE_ICG"]:
+            cell, ce, clk, gclk = negedge_raw.rsplit("/", maxsplit=4)
+            negedge = ("-neg", cell, f"{ce}:{clk}:{gclk}")
+        if len(posedge) == 0 and len(negedge) == 0:
+            ys.log(
+                "[WARNING] A minimum width for clock gating is set; but no ICGs are configured."
+            )
+        d.run_pass(
+            "clockgate",
+            "-min_net_size",
+            str(cg_min_width),
+            *posedge,
+            *negedge,
+        )
 
     dfflibmap_args = []
     for lib in libs:

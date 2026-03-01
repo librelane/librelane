@@ -247,6 +247,7 @@ class Flow(ABC):
     :param pdk: See :meth:`librelane.config.Config.load`
     :param pdk_root: See :meth:`librelane.config.Config.load`
     :param scl: See :meth:`librelane.config.Config.load`
+    :param pad: See :meth:`librelane.config.Config.load`
     :param design_dir: See :meth:`librelane.config.Config.load`
 
     :cvar Steps:
@@ -341,6 +342,7 @@ class Flow(ABC):
         pdk: Optional[str] = None,
         pdk_root: Optional[str] = None,
         scl: Optional[str] = None,
+        pad: Optional[str] = None,
         design_dir: Optional[str] = None,
         config_override_strings: Optional[Sequence[str]] = None,
     ):
@@ -367,6 +369,7 @@ class Flow(ABC):
                 pdk=pdk,
                 pdk_root=pdk_root,
                 scl=scl,
+                pad=pad,
                 design_dir=design_dir,
             )
 
@@ -420,16 +423,12 @@ class Flow(ABC):
                 f"""
                 {config_var_anchors * myst_anchors}
                 #### Flow-specific Configuration Variables
-
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in flow_config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                var_anchor = f"{{#{var._get_docs_identifier(Self.__name__)}}}"
-                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md()} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
+            result += Variable._render_table_md(
+                flow_config_vars,
+                myst_anchor_owner_id=Self.__name__ if myst_anchors else None,
+            )
             result += "\n"
 
         if len(Self.Steps):
@@ -916,9 +915,10 @@ class Flow(ABC):
                     # Despite the name, this is the Magic DRC report simply
                     # converted into a KLayout-compatible format. Confusing!
                     drc_xml_out = os.path.join(openlane_signoff_dir, "drc.klayout.xml")
-                    with open(drc_xml, encoding="utf8") as i, open(
-                        drc_xml_out, "w", encoding="utf8"
-                    ) as o:
+                    with (
+                        open(drc_xml, encoding="utf8") as i,
+                        open(drc_xml_out, "w", encoding="utf8") as o,
+                    ):
                         o.write(
                             "<!-- Despite the name, this is the Magic DRC report in KLayout format. -->\n"
                         )

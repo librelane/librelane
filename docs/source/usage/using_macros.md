@@ -376,3 +376,18 @@ This will preserve the original RTL for simulation, but when Synthesizing/
 Linting using LibreLane, `__pnr__` will be defined, thereby using the header for
 the hardened version of the Macro. Additionally, as the power pins have no relevance
 for the RTL, they can simply be left out when PnR is not defined.
+
+## Misc. Useful Variables
+
+There are some variables used in the Classic that you may want to configure when
+using macros:
+
+* {var}`OpenROAD.GeneratePDN::PDN_MACRO_CONNECTIONS`: If you don't want to use
+  `USE_POWER_PINS`, you can use this variable to manually hook up instance
+  connections.
+* {var}`OpenROAD.CutRows::FP_MACRO_HORIZONTAL_HALO`,
+  {var}`OpenROAD.CutRows::FP_MACRO_VERTICAL_HALO`: Designates "halos" around the
+  macro where floorplan rows will be "cut" and will lack sites. If
+  {step}`OpenROAD.CutRows` is skipped for some reason (which you really should
+  not), the variables also prevent tap and endcap cells from being inserted.
+

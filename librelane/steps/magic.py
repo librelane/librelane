@@ -98,13 +98,19 @@ class MagicStep(TclStep):
             "MAGIC_DEF_LABELS",
             bool,
             "A flag to choose whether labels are read with DEF files or not. From magic docs: \"The '-labels' option to the 'def read' command causes each net in the NETS and SPECIALNETS sections of the DEF file to be annotated with a label having the net name as the label text.\" If LVS fails, try disabling this option.",
-            default=True,
+            default=False,
         ),
         Variable(
             "MAGIC_GDS_POLYGON_SUBCELLS",
             bool,
             'A flag to enable polygon subcells in magic for gds read potentially speeding up magic. From magic docs: "Put non-Manhattan polygons. This prevents interations with other polygons on the same plane and so reduces tile splitting."',
             default=False,
+        ),
+        Variable(
+            "MAGIC_GDS_MERGE",
+            bool,
+            'A flag to enable merging of connected tiles into polygons during gds write. From magic docs: "Depending on the tile geometry, this may make the output file up to four times smaller, at the cost of speed in generating the output file."',
+            default=True,
         ),
         Variable(
             "MAGIC_DEF_NO_BLOCKAGES",
@@ -393,7 +399,7 @@ class DRC(MagicStep):
     name = "DRC"
     long_name = "Design Rule Checks"
 
-    inputs = [DesignFormat.DEF, DesignFormat.GDS]
+    inputs = [DesignFormat.DEF.mkOptional(), DesignFormat.GDS]
     outputs = []
 
     config_vars = MagicStep.config_vars + [
@@ -408,6 +414,11 @@ class DRC(MagicStep):
             Optional[List[str]],
             "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
         ),
+        Variable(
+            "MAGIC_DRC_MAGLEFS",
+            Optional[List[Path]],
+            "A list of pre-processed abstract LEF views for cells. They are read in before the design and act as blackboxes during DRC.",
+        ),
     ]
 
     def get_script_path(self):
@@ -417,10 +428,14 @@ class DRC(MagicStep):
         reports_dir = os.path.join(self.step_dir, "reports")
         mkdirp(reports_dir)
 
+        # Check that the DEF exists if needed
+        if not self.config["MAGIC_DRC_USE_GDS"]:
+            assert state_in.get(DesignFormat.DEF)
+
         views_updates, metrics_updates = super().run(state_in, **kwargs)
 
-        report_path = os.path.join(reports_dir, "drc_violations.magic.rpt")
-        klayout_db_path = os.path.join(reports_dir, "drc_violations.magic.xml")
+        report_path = os.path.join(reports_dir, "drc.magic.rpt")
+        klayout_db_path = os.path.join(reports_dir, "drc.magic.lyrdb")
 
         # report_stats = os.stat(report_path)
         # drc_db_file = None
@@ -444,6 +459,9 @@ class SpiceExtraction(MagicStep):
     """
     Extracts a SPICE netlist from the GDSII stream. Used in Layout vs. Schematic
     checks.
+
+    Note that the resultant SPICE netlist is blackboxed, and *only* suitable for abstract LVS.
+    If you want to perform a full parasitics extraction (RCX), you should use the Magic.RCX step.
 
     Also, the metrics will be updated with ``magic__illegal_overlap__count``. You can use
     `the relevant checker <#Checker.IllegalOverlap>`_ to quit if that number is
@@ -602,3 +620,71 @@ class OpenGUI(MagicStep):
             magic.send_signal(SIGKILL)
 
         return {}, {}
+
+
+@Step.factory.register()
+class RCX(MagicStep):
+    """
+    Performs a full parasitics extraction (RCX) using Magic. This step is suitable for performing full
+    analogue post-layout simulation of your design. The SPICE netlist will be flattened, and refer to the raw
+    n-type/p-type transistor models for your PDK.
+
+    If you want to do device level simulation *without* parasitics, this can be done in the
+    Magic.SpiceExtraction step by setting `MAGIC_EXT_USE_GDS` to True and `MAGIC_EXT_ABSTRACT` to False.
+    """
+
+    id = "Magic.RCX"
+    name = "RCX"
+    long_name = "Full Parasitics Extraction"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.SPICE_RCX]
+
+    config_vars = MagicStep.config_vars + [
+        Variable(
+            "MAGIC_RCX_CTHRESH",
+            float,
+            "Capacitance threshold value.",
+            default=0.1,
+            units="femtofarads",
+        ),
+        Variable(
+            "MAGIC_RCX_DO_CAPACITANCE",
+            bool,
+            "Whether to extract local capacitance values.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_DO_RESISTANCE",
+            bool,
+            "Whether to perform detailed (i.e. non-lumped) resistance extraction.",
+            default=True,
+        ),
+        Variable(
+            "MAGIC_RCX_EXTRACT_STYLE",
+            str,
+            (
+                "Capacitance extraction corner. For open PDKs, the options are generally: 'ngspice(lrlc)', "
+                "low resistance, low capacitance; 'ngspice(hrlc)', high resistance, low capacitance; "
+                "'ngspice(lrhc)', low resistance, high capacitance; 'ngspice(hrhc)', high resistance, low "
+                "capacitance. 'ngspice(hrhc)' is typically the slowest corner, and 'ngspice(lrlc) is "
+                "typically the fastest corner. Defaults to 'ngspice()', which is the default typical "
+                "extraction corner."
+            ),
+            default="ngspice()",
+        ),
+    ]
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "magic", "spice_rcx.tcl")
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        kwargs, env = self.extract_env(kwargs)
+
+        # always 'mag', since we'll never define the abstract setting like the original SpiceExtraction step
+        # did
+        env["MAGTYPE"] = "mag"
+
+        views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
+
+        return views_updates, metrics_updates

@@ -93,9 +93,9 @@ Flow. Power pin names may vary.
   to check hierarchical designs correctly.
 
   ```json
-  "PDN_MACRO_HOOKS": "mprj vccd1 vssd1 vccd1 vssd1",
-  "SYNTH_POWER_DEFINE": "USE_POWER_PINS",
-  "PDN_CHECK_NODES": false
+  "PDN_MACRO_CONNECTIONS": "mprj vccd1 vssd1 vccd1 vssd1",
+  "VERILOG_POWER_DEFINE": "USE_POWER_PINS",
+  "ERROR_ON_PDN_VIOLATIONS": false
   ```
 
 The hierarchical method works as follows: the top level integration has access

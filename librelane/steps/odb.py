@@ -93,8 +93,8 @@ class OdbpyStep(Step):
             str(state_in[DesignFormat.ODB]),
         ]
 
-        env["PYTHONPATH"] = (
-            f'{os.path.join(get_script_dir(), "odbpy")}:{env.get("PYTHONPATH")}'
+        env["PYTHONPATH"] = ":".join(
+            (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "odbpy"))
         )
         check = False
         if "check" in kwargs:
@@ -120,9 +120,18 @@ class OdbpyStep(Step):
                     f"{self.id} failed with the following errors:\n{error_string}"
                 )
             else:
-                raise StepException(
-                    f"{self.id} failed unexpectedly. Please check the logs and file an issue."
-                )
+                step_exception_message = f"{self.id} failed with an unexpected error."
+                log_path = self.get_log_path()
+                if os.path.isfile(log_path):
+                    step_exception_message += f" Please check {repr(os.path.relpath(log_path))} and unless you wrote the step yourself, file an issue.\n"
+                    with open(log_path, "r", encoding="utf8") as f:
+                        last_n_lines = f.readlines()[-10:]
+                        step_exception_message += f"Last {len(last_n_lines)} lines:\n"
+                        for line in last_n_lines:
+                            step_exception_message += "\t" + line
+                else:
+                    step_exception_message += f" Please check the logs in {repr(self.step_dir)} and unless you wrote the step yourself, file an issue."
+                raise StepException(step_exception_message)
         # 2. Metrics
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         if os.path.exists(metrics_path):
@@ -155,6 +164,10 @@ class OdbpyStep(Step):
             for lef in extra_lefs:
                 lefs.append("--input-lef")
                 lefs.append(lef)
+        if pad_lefs := self.config["PAD_LEFS"]:
+            for lef in pad_lefs:
+                lefs.append("--input-lef")
+                lefs.append(lef)
         if (design_lef := self.state_in.result().get(DesignFormat.LEF)) and (
             DesignFormat.LEF in self.inputs
         ):
@@ -184,6 +197,10 @@ class OdbpyStep(Step):
 
 @Step.factory.register()
 class CheckMacroAntennaProperties(OdbpyStep):
+    """
+    Prints warnings if the LEF views of macros are missing antenna information.
+    """
+
     id = "Odb.CheckMacroAntennaProperties"
     name = "Check Antenna Properties of Macros Pins in Their LEF Views"
     inputs = OdbpyStep.inputs
@@ -221,6 +238,10 @@ class CheckMacroAntennaProperties(OdbpyStep):
 
 @Step.factory.register()
 class CheckDesignAntennaProperties(CheckMacroAntennaProperties):
+    """
+    Prints warnings if the LEF view of the design is missing antenna information.
+    """
+
     id = "Odb.CheckDesignAntennaProperties"
     name = "Check Antenna Properties of Pins in The Generated Design LEF view"
     inputs = CheckMacroAntennaProperties.inputs + [DesignFormat.LEF]
@@ -527,6 +548,11 @@ class ReportDisconnectedPins(OdbpyStep):
 
 @Step.factory.register()
 class AddRoutingObstructions(OdbpyStep):
+    """
+    Adds obstructions on metal layers which prevent shapes from being created in
+    the designated areas.
+    """
+
     id = "Odb.AddRoutingObstructions"
     name = "Add Obstructions"
     config_vars = [
@@ -569,6 +595,11 @@ class AddRoutingObstructions(OdbpyStep):
 
 @Step.factory.register()
 class RemoveRoutingObstructions(AddRoutingObstructions):
+    """
+    Removes any routing obstructions previously placed by
+    <#Odb.AddRoutingObstructions>`_.
+    """
+
     id = "Odb.RemoveRoutingObstructions"
     name = "Remove Obstructions"
 
@@ -578,6 +609,15 @@ class RemoveRoutingObstructions(AddRoutingObstructions):
 
 @Step.factory.register()
 class AddPDNObstructions(AddRoutingObstructions):
+    """
+    Adds obstructions on metal layers which prevent shapes from being created in
+    the designated areas.
+
+    A soft-duplicate of <#Odb.AddRoutingObstructions>`_ , though this one uses
+    a different variable name so the obstructions can be restricted for PDN
+    steps only.
+    """
+
     id = "Odb.AddPDNObstructions"
     name = "Add PDN obstructions"
 
@@ -595,6 +635,11 @@ class AddPDNObstructions(AddRoutingObstructions):
 
 @Step.factory.register()
 class RemovePDNObstructions(RemoveRoutingObstructions):
+    """
+    Removes any PDN obstructions previously placed by
+    <#Odb.RemovePDNObstructions>`_.
+    """
+
     id = "Odb.RemovePDNObstructions"
     name = "Remove PDN obstructions"
 
@@ -651,9 +696,9 @@ class CustomIOPlacement(OdbpyStep):
                 "--config",
                 self.config["IO_PIN_ORDER_CFG"],
                 "--hor-layer",
-                self.config["FP_IO_HLAYER"],
+                self.config["IO_PIN_H_LAYER"],
                 "--ver-layer",
-                self.config["FP_IO_VLAYER"],
+                self.config["IO_PIN_V_LAYER"],
                 "--hor-width-mult",
                 str(self.config["IO_PIN_V_THICKNESS_MULT"]),
                 "--ver-width-mult",

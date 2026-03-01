@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +22,6 @@ import sys
 import json
 import fnmatch
 import shutil
-import subprocess
 from decimal import Decimal
 from abc import abstractmethod
 from typing import List, Literal, Optional, Set, Tuple
@@ -143,6 +146,18 @@ DesignFormat(
 ).register()
 
 
+def _validate_icg(
+    variable: Variable, input: Optional[str], warning_list_ref: List[str]
+):
+    if input is not None:
+        components = input.split("/")
+        if len(components) != 4:
+            raise ValueError(
+                f"{variable.name} must be in the form '<cell>/<ce>/<clk>/<gclk>'"
+            )
+    return input
+
+
 class PyosysStep(Step):
     config_vars = [
         Variable(
@@ -192,15 +207,24 @@ class PyosysStep(Step):
             pdk=True,
         ),
         Variable(
-            "USE_LIGHTER",
-            bool,
-            "Activates Lighter, an experimental plugin that attempts to optimize clock-gated flip-flops.",
-            default=False,
+            "SYNTH_CLOCKGATE_MIN_WIDTH",
+            Optional[int],
+            "If set to a value, a group of flip-flops with size >= SYNTH_CLOCKGATE_MIN_WIDTH and an enable signal are clock-gated instead.",
+            deprecated_names=[("USE_LIGHTER", lambda x: 1 if x else None)],
         ),
         Variable(
-            "LIGHTER_DFF_MAP",
-            Optional[Path],
-            "An override to the custom DFF map file provided for the given SCL by Lighter.",
+            "SYNTH_CLOCKGATE_POSEDGE_ICG",
+            Optional[str],
+            "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
+            pdk=True,
+            validator=_validate_icg,
+        ),
+        Variable(
+            "SYNTH_CLOCKGATE_NEGEDGE_ICG",
+            Optional[str],
+            "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
+            pdk=True,
+            validator=_validate_icg,
         ),
         Variable(
             "YOSYS_LOG_LEVEL",
@@ -213,6 +237,12 @@ class PyosysStep(Step):
             Optional[str],
             "A fully qualified IPVT corner to use during synthesis. If unspecified, the value for `DEFAULT_CORNER` from the PDK will be used.",
             pdk=True,
+        ),
+        Variable(
+            "SYNTH_SHOW",
+            bool,
+            "Generate a graphviz DOT file for the design. This will fail on a completely empty design.",
+            default=False,
         ),
     ]
 
@@ -243,12 +273,14 @@ class PyosysStep(Step):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         cmd = self.get_command(state_in)
+        kwargs, env = self.extract_env(kwargs)
         # HACK: Get Colab working
         if "google.colab" in sys.modules:
-            kwargs, env = self.extract_env(kwargs)
             env.pop("PATH", "")
-            kwargs["env"] = env
-        subprocess_result = super().run_subprocess(cmd, **kwargs)
+        env["PYTHONPATH"] = ":".join(
+            (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "pyosys"))
+        )
+        subprocess_result = super().run_subprocess(cmd, env=env, **kwargs)
         return {}, subprocess_result["generated_metrics"]
 
 
@@ -264,15 +296,26 @@ class VerilogStep(PyosysStep):
         scl_lib_list = self.toolbox.filter_views(
             self.config, self.config["LIB"], self.config.get("SYNTH_CORNER")
         )
-        if self.power_defines and self.config["CELL_VERILOG_MODELS"] is not None:
-            blackbox_models.extend(
-                [
-                    self.toolbox.create_blackbox_model(
-                        frozenset(self.config["CELL_VERILOG_MODELS"]),
-                        frozenset(["USE_POWER_PINS"]),
-                    )
-                ]
-            )
+
+        if self.power_defines:
+            if self.config["CELL_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["CELL_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
+            if self.config["PAD_VERILOG_MODELS"] is not None:
+                blackbox_models.extend(
+                    [
+                        self.toolbox.create_blackbox_model(
+                            frozenset(self.config["PAD_VERILOG_MODELS"]),
+                            frozenset(["USE_POWER_PINS"]),
+                        )
+                    ]
+                )
         else:
             blackbox_models.extend(str(f) for f in scl_lib_list)
 
@@ -321,6 +364,12 @@ class VerilogStep(PyosysStep):
 
 @Step.factory.register()
 class JsonHeader(VerilogStep):
+    """
+    Extracts a high-level hierarchical view of the circuit in JSON format,
+    including power connections. The power connections are used in later steps
+    to ensure macros and cells are connected as desired.
+    """
+
     id = "Yosys.JsonHeader"
     name = "Generate JSON Header"
     long_name = "Generate JSON Header"
@@ -444,14 +493,31 @@ class SynthesisCommon(VerilogStep):
         Variable(
             "SYNTH_HIERARCHY_MODE",
             Literal["flatten", "deferred_flatten", "keep"],
-            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it. Please note that when using the Slang plugin, you need to pass '--keep-hierarchy' to `SLANG_ARGUMENTS` separately.",
+            "Affects how hierarchy is maintained throughout and after synthesis. 'flatten' flattens it during and after synthesis. 'deferred_flatten' flattens it after synthesis. 'keep' never flattens it. Please note that when using the Slang plugin, you need to pass '--keep-hierarchy' to `SLANG_ARGUMENTS` separately. To keep the hierarchy partially, use one of the flattening options and set the 'keep_hierarchy' attribute on instances or modules via: `SYNTH_KEEP_HIERARCHY_INSTANCES`, `SYNTH_KEEP_HIERARCHY_MODULES` or `SYNTH_KEEP_HIERARCHY_MIN_COST`.",
             default="flatten",
             deprecated_names=[
                 (
                     "SYNTH_NO_FLAT",
                     lambda x: "deferred_flatten" if x else "flatten",
-                )
+                ),
+                ("SYNTH_ELABORATE_FLATTEN", lambda x: "flatten" if x else "keep"),
+                ("SYNTH_FLAT_TOP", lambda x: "flatten" if x else "keep"),
             ],
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_MIN_COST",
+            Optional[int],
+            "Sets the 'keep_hierarchy' attribute on modules where the gate count is estimated to exceed the specified threshold. This prevents larger modules from being flattened. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_INSTANCES",
+            Optional[List[str]],
+            "A list of instances for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
+        ),
+        Variable(
+            "SYNTH_KEEP_HIERARCHY_MODULES",
+            Optional[List[str]],
+            "A list of modules for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
         ),
         Variable(
             "SYNTH_SHARE_RESOURCES",
@@ -475,13 +541,6 @@ class SynthesisCommon(VerilogStep):
             bool,
             '"Elaborate" the design only without attempting any logic mapping. Useful when dealing with structural Verilog netlists.',
             default=False,
-        ),
-        Variable(
-            "SYNTH_ELABORATE_FLATTEN",
-            bool,
-            "If `SYNTH_ELABORATE_ONLY` is specified, this variable controls whether or not the top level should be flattened.",
-            default=True,
-            deprecated_names=["SYNTH_FLAT_TOP"],
         ),
         Variable(
             "SYNTH_MUL_BOOTH",
@@ -522,25 +581,7 @@ class SynthesisCommon(VerilogStep):
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
         )
-        cmd = super().get_command(state_in)
-        if self.config["USE_LIGHTER"]:
-            lighter_dff_map = self.config["LIGHTER_DFF_MAP"]
-            if lighter_dff_map is None:
-                scl = self.config["STD_CELL_LIBRARY"]
-                try:
-                    raw = subprocess.check_output(
-                        ["lighter_files", scl], encoding="utf8"
-                    )
-                    files = raw.strip().splitlines()
-                    lighter_dff_map = Path(files[0])
-                except FileNotFoundError:
-                    self.warn(
-                        "Lighter not found or not set up with LibreLane: If you're using a manual Lighter install, try setting LIGHTER_DFF_MAP explicitly."
-                    )
-                except subprocess.CalledProcessError:
-                    self.warn(f"{scl} not supported by Lighter.")
-            cmd.extend(["--lighter-dff-map", lighter_dff_map])
-        return cmd + ["--output", out_file]
+        return super().get_command(state_in) + ["--output", out_file]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(
@@ -661,5 +702,10 @@ class VHDLSynthesis(SynthesisCommon):
             "VHDL_FILES",
             List[Path],
             "The paths of the design's VHDL files.",
+        ),
+        Variable(
+            "GHDL_ARGUMENTS",
+            Optional[List[str]],
+            "Pass arguments to the ghdl frontend.",
         ),
     ]

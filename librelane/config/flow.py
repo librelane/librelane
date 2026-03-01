@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,12 +46,6 @@ pdk_variables = [
         pdk=True,
     ),
     Variable(
-        "VDD_PIN_VOLTAGE",
-        Decimal,
-        "The voltage of the VDD pin.",
-        pdk=True,
-    ),
-    Variable(
         "GND_PIN",
         str,
         "The ground pin for the cells.",
@@ -56,7 +54,7 @@ pdk_variables = [
     Variable(
         "TECH_LEFS",
         Dict[str, Path],
-        "Map of corner patterns to to technology LEF files. A corner not matched here will not be supported by OpenRCX in the default flow.",
+        "Map of corner patterns to technology LEF files. A corner not matched here will not be supported by OpenRCX in the default flow.",
         pdk=True,
     ),
     Variable(
@@ -75,23 +73,6 @@ pdk_variables = [
         pdk=True,
     ),
     Variable(
-        "SIGNAL_WIRE_RC_LAYERS",
-        Optional[List[str]],
-        "Sets estimated signal wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
-        pdk=True,
-        deprecated_names=[
-            ("WIRE_RC_LAYER", lambda x: [x]),
-            ("DATA_WIRE_RC_LAYER", lambda x: [x]),
-        ],
-    ),
-    Variable(
-        "CLOCK_WIRE_RC_LAYERS",
-        Optional[List[str]],
-        "Sets estimated clock wire RC values to the average of these layers'. If you provide more than two, the averages are grouped by preferred routing direction and you must provide at least one layer for each routing direction. If unset, tools should use the average of layers between RT_MIN_LAYER and RT_MAX_LAYER. This variable will be moved to the relevant step(s) in the next version of LibreLane.",
-        pdk=True,
-        deprecated_names=[("CLOCK_WIRE_RC_LAYER", lambda x: [x])],
-    ),
-    Variable(
         "DEFAULT_CORNER",
         str,
         "The interconnect/process/voltage/temperature corner (IPVT) to use the characterized lib files compatible with by default.",
@@ -104,18 +85,6 @@ pdk_variables = [
         pdk=True,
     ),
     # Floorplanning
-    Variable(
-        "FP_IO_HLAYER",
-        str,
-        "The metal layer on which to place horizontally-aligned (long side parallel with the horizon) pins alongside the east and west edges of the die.",
-        pdk=True,
-    ),
-    Variable(
-        "FP_IO_VLAYER",
-        str,
-        "The metal layer on which to place vertically-aligned (long side perpendicular to the horizon) pins alongside the north and south edges of the die.",
-        pdk=True,
-    ),
     Variable("RT_MIN_LAYER", str, "The lowest metal layer to route on.", pdk=True),
     Variable("RT_MAX_LAYER", str, "The highest metal layer to route on.", pdk=True),
 ]
@@ -328,7 +297,7 @@ scl_variables = [
     Variable(
         "DIODE_CELL",
         Optional[str],
-        "Defines a diode cell used to fix antenna violations, in the format {name}/{port}. If not defined, steps should not attempt to repair the antenna effect by inserting diode cells.",
+        "Defines a diode cell used to fix antenna violations, in the format `{cell}/{port}`. If not defined, steps should not attempt to repair the antenna effect by inserting diode cells.",
         pdk=True,
     ),
     Variable(
@@ -456,32 +425,116 @@ option_variables = [
     ),
 ]
 
-__for_whenever_we_implement_padring = [
+pad_variables = [
     Variable(
-        "GPIO_PADS_LEF",
+        "PAD_GDS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad LEF file(s).",
+        "Path(s) to IO pad GDS file(s).",
         pdk=True,
     ),
     Variable(
-        "GPIO_PADS_LEF_CORE_SIDE",
+        "PAD_LEFS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad LEF file(s) as used for routing (?).",
+        "Path(s) to IO pad LEF file(s).",
         pdk=True,
     ),
     Variable(
-        "GPIO_PADS_VERILOG",
+        "PAD_VERILOG_MODELS",
         Optional[List[Path]],
-        "Path(s) to GPIO pad Verilog models.",
+        "Path(s) to IO pads' Verilog model(s)",
         pdk=True,
     ),
     Variable(
-        "GPIO_PAD_CELLS",
+        "PAD_SPICE_MODELS",
+        Optional[List[Path]],
+        "Path(s) to IO pads' SPICE model(s)",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CDLS",
+        Optional[List[Path]],
+        description="A circuit-design language view of the io pad library.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_LIBS",
+        Optional[Dict[str, List[Path]]],
+        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER",
         Optional[List[str]],
-        "A list of pad cell name prefixes.",
-        deprecated_names=[("GPIO_PADS_PREFIX", _prefix_to_wildcard)],
+        "The pad corner cell.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FILLERS",
+        Optional[List[str]],
+        "A list of pad filler cells.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_SITE_NAME",
+        Optional[str],
+        "Name of the pad site.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CORNER_SITE_NAME",
+        Optional[str],
+        "Name of the corner site.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_FAKE_SITES",
+        Optional[Dict[str, Tuple[Decimal, Decimal]]],
+        "A dict of fake pad sites and their width and height tuple. Use this if the LEF does not include the site definitions for the IO pads.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_NAME",
+        Optional[str],
+        "Name of the bondpad cell, if empty, bondpads won't be placed.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_WIDTH",
+        Optional[Decimal],
+        "Width of the bondpad.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_HEIGHT",
+        Optional[Decimal],
+        "Height of the bondpad.",
+        units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_BONDPAD_OFFSETS",
+        Optional[Dict[str, Tuple[Decimal, Decimal]]],
+        "A dict of pad master names or regular expressions to their bondpad (offset_x, offset_y) tuple.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_PLACE_IO_TERMINALS",
+        Optional[List[str]],
+        "Place I/O terminals for these master/pin combinations.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_EDGE_SPACING",
+        Optional[Decimal],
+        "Distance from the padring to the die boundary. Used to account for the sealring when placing the pads.",
+        default=0,
+        units="µm",
         pdk=True,
     ),
 ]
 
-flow_common_variables = pdk_variables + scl_variables + option_variables
+flow_common_variables = pdk_variables + scl_variables + option_variables + pad_variables

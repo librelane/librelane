@@ -13,11 +13,14 @@
 # limitations under the License.
 import os
 import shutil
+import subprocess
 import textwrap
 from unittest import mock
 
 import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
+
+pytestmark = pytest.mark.all
 
 
 @pytest.fixture
@@ -378,7 +381,7 @@ def model_blackboxing():
     )
     out = textwrap.dedent(
         """
-        module sky130_fd_sc_hd__a2bb2o_1(X, A1_N, A2_N, B1, B2, VPWR, VGND, VPB, VNB);
+        module sky130_fd_sc_hd__a2bb2o_1_gold(X, A1_N, A2_N, B1, B2, VPWR, VGND, VPB, VNB);
           input A1_N;
           wire A1_N;
           input A2_N;
@@ -797,8 +800,29 @@ def test_blackbox_creation_w_yosys(model_blackboxing):
 
     out_path = toolbox.create_blackbox_model(frozenset(["start.v"]), frozenset())
 
+    with open("equiv.ys", "w", encoding="utf8") as f:
+        f.write(
+            "read_verilog << EOF\n"
+            + end
+            + "EOF"
+            + textwrap.dedent(
+                f"""
+                read_verilog {out_path}
+                equiv_make sky130_fd_sc_hd__a2bb2o_1 sky130_fd_sc_hd__a2bb2o_1_gold equiv
+                select -assert-any -module equiv t:$equiv 
+                equiv_induct 
+                equiv_status -assert
+                """
+            )
+        )
+
+    output = subprocess.check_output(
+        [shutil.which("yosys") or shutil.which("yowasp-yosys"), "equiv.ys"],
+        encoding="utf8",
+    )
+
     assert (
-        end.strip() in open(out_path, encoding="utf8").read().strip()
+        "Equivalence successfully proven" in output
     ), "Creating black-box file of SCL models did not return the expected result"
 
 

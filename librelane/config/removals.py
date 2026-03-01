@@ -20,8 +20,8 @@ removed_variables: Dict[str, str] = {
     "KLAYOUT_XOR_XML": "The XML database is always generated.",
     "MAGIC_GENERATE_GDS": "The GDS view is always generated when MAGIC_RUN_STREAMOUT is set.",
     "CLOCK_BUFFER_FANOUT": "The simple CTS script that used this variable no longer exists.",
-    "FP_IO_HMETAL": "Replaced by FP_IO_HLAYER in the PDK configuration variables, which uses a more specific layer name.",
-    "FP_IO_VMETAL": "Replaced by FP_IO_VLAYER in the PDK configuration variables, which uses a more specific layer name.",
+    "FP_IO_HMETAL": "Replaced by IO_PIN_H_LAYER in the PDK configuration variables of relevant steps, which uses a more specific layer name.",
+    "FP_IO_VMETAL": "Replaced by IO_PIN_V_LAYER in the PDK configuration variables of relevant steps, which uses a more specific layer name.",
     "GLB_OPTIMIZE_MIRRORING": "Shares DPL_OPTIMIZE_MIRRORING.",
     "GRT_MAX_DIODE_INS_ITERS": "Relevant diode insertion strategies removed.",
     "TAKE_LAYOUT_SCROT": "Buggy/dubious utility.",
@@ -43,4 +43,6 @@ removed_variables: Dict[str, str] = {
     "FP_CONTEXT_DEF": "To be implemented.",
     "FP_CONTEXT_LEF": "To be implemented.",
     "SYNLIG_DEFER": "Synlig replaced with Slang.",
+    "VDD_PIN_VOLTAGE": "Information should be obtained from dotlib files.",
+    "LIGHTER_DFF_MAP": "Lighter has been replaced with Yosys' built-in clock gate functionality.",
 }

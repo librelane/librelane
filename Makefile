@@ -21,8 +21,10 @@ librelane openlane:
 docker-image:
 	cat $(shell nix build --no-link --print-out-paths .#librelane-docker -L --verbose) | docker load
 
+# double-installing is still fast
 .PHONY: docs
 docs:
+	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= python3 -m pip install -r ./docs/requirements.txt; fi
 	$(MAKE) -C docs html
 
 .PHONY: host-docs
@@ -31,13 +33,13 @@ host-docs:
 	
 .PHONY: watch-docs
 watch-docs:
-	nodemon\
-		-w .\
-		-e md,py,css\
-		-i "docs/build/**/*"\
-		-i "docs/build/*"\
-		-i "docs/source/reference/*_vars.md"\
-		-i "docs/source/reference/flows.md"\
+	pymon\
+		-d\
+		-w '*.md'\
+		-w '*.css'\
+		-i "*docs/build/*"\
+		-i "*docs/source/reference/*_vars.md"\
+		-i "*docs/source/reference/flows.md"\
 		-x "$(MAKE) docs && python3 -m http.server --directory docs/build/html"
 
 .PHONY: lint
@@ -55,7 +57,7 @@ coverage-infrastructure:
 coverage-steps:
 	python3 -m pytest -n auto\
 		--cov=librelane.steps --cov-config=.coveragerc-steps --cov-report html:htmlcov_steps --cov-report term\
-		--step-rx "." -k test_all_steps
+		-k test_all_steps
 
 .PHONY: check-license
 check-license: venv/manifest.txt
@@ -71,7 +73,7 @@ venv/manifest.txt: ./pyproject.toml
 	python3 -m venv ./venv
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade pip
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade wheel poetry poetry-plugin-export
-	PYTHONPATH= ./venv/bin/poetry export --with dev --without-hashes --format=requirements.txt --output=requirements_tmp.txt
+	PYTHONPATH= ./venv/bin/poetry export --all-groups --without-hashes --format=requirements.txt --output=requirements_tmp.txt
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade -r requirements_tmp.txt
 	PYTHONPATH= ./venv/bin/python3 -m pip freeze > $@
 	@echo ">> Venv prepared."

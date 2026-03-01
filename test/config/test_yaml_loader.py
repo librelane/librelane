@@ -15,6 +15,10 @@ from io import StringIO
 from math import isinf, isnan
 from decimal import Decimal
 
+import pytest
+
+pytestmark = pytest.mark.all
+
 
 def test_yaml_decimals():
     import yaml

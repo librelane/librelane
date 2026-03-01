@@ -1,5 +1,7 @@
 # Contributing Code
 
+*Parts adapted from the [Mesa Contributor Policy](https://gitlab.freedesktop.org/mesa/mesa/-/blob/f6f2a73bbcd02540da39fe5718ce7d0b7f866216/docs/submittingpatches.rst).*
+
 We'd love to accept your patches and contributions to this project. There are
 just a few small guidelines you need to follow.
 
@@ -19,11 +21,11 @@ ensure nothing has gone horribly wrong.
 
 ### Python
 
-Python code should be written for Python 3.8.1+, and be **typed**. i.e., we
+Python code should be written for Python 3.10+, and be **typed**. i.e., we
 require explicit type annotations for all major API functions.
 
 You will need to ensure that your Python code passes linting with our three
-chosen tools:
+chosen tools (and one optional tool):
 
 ```{list-table}
 :header-rows: 1
@@ -45,10 +47,17 @@ chosen tools:
   - [Type-Checker](https://en.wikipedia.org/wiki/Type_system#Type_checking)
   - `mypy .`
   - Ensures that you're using compatible types, i.e., you are not passing a `string` to a function that accepts an `int`, or passing `None` to a non-optional variable, and such.
+* - [ruff](https://github.com/astral-sh/ruff) (optional)
+  - [Linter](https://en.wikipedia.org/wiki/Lint_(software)>)
+  - `ruff check .`
+  - Our `pyproject.toml` uses ruff as a simple parsing checker, i.e., makes sure
+    your code can still parse under Python 3.8 as it is entirely too easy to
+    write code that by accident only works on later versions of Python. We
+    presently do not use other features of ruff.
 ```
 
 Do all arithmetic either in integers or using the Python
-[`decimal`](https://docs.python.org/3.6/library/decimal.html) library. All
+[`decimal`](https://docs.python.org/3.10/library/decimal.html) library. All
 (numerous) existing uses of IEEE-754 are bugs we are interested in fixing.
 
 ### Tcl
@@ -77,11 +86,18 @@ There are some special guidelines for scripts in `scripts/yosys`,
 
 ## Submissions
 
-Make your changes and then submit them as a pull requests to the `master`
-branch.
+Make your changes and then submit them as a pull requests to the:
+
+* `main` branch: For bugfixes.
+* `dev` branch: For new features.
 
 Consult [GitHub Help](https://help.github.com/articles/about-pull-requests/) for
 more information on using pull requests.
+
+You need to understand what code you are changing, what the change does, and
+justify that change in the commit messages and PR. Using coding assistants or
+"Generative AI" software or similar tools does not grant additional concessions
+and low-quality code typical thereof will be rejected outright.
 
 ### The Approval Process
 
@@ -94,7 +110,14 @@ For a PR to be merged, there are two requirements:
 ## Licensing and Copyright
 
 Please note all code contributions must have the same license as LibreLane,
-i.e., the Apache License, version 2.0.
+i.e., the Apache License, version 2.0. You, as the submitter of the patch, are
+responsible for your patch, regardless of where that change came from; whether
+you:
+
+1. Wrote it yourself and are willing to release your changes under said license.
+2. Acquired it from other libre software with compatible license terms (and of
+   course the requisite copyright notices.)
+3. Created using coding assistants, "Generative AI" software, or similar tools.
 
 For significant changes, please add your (or your employer's) name to the
 Authors.md file at the root of the repository.

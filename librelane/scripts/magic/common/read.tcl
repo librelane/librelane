@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +17,16 @@
 # limitations under the License.
 
 
-proc read_pdk_gds {} {
-    set old_rescale [gds rescale]
-    set old_readonly [gds readonly]
-    gds rescale false
-    gds readonly true
-    set gds_files_in $::env(CELL_GDS)
-    foreach gds_file $gds_files_in {
-        puts "> gds read $gds_file"
-        gds read $gds_file
-    }
-    gds rescale $old_rescale
-    gds readonly $old_readonly
-}
-
 proc read_tech_lef {} {
     puts "> lef read $::env(TECH_LEF)"
     lef read $::env(TECH_LEF)
+}
+
+proc read_pdk_lef {} {
+    foreach lef_file $::env(CELL_LEFS) {
+        puts "> lef read $lef_file"
+        lef read $lef_file
+    }
 }
 
 proc read_macro_lef {} {
@@ -50,13 +47,36 @@ proc read_extra_lef {} {
     }
 }
 
-proc read_extra_gds {} {
+proc read_pad_lef {} {
+    if { [info exist ::env(PAD_LEFS)] } {
+        foreach lef_file $::env(PAD_LEFS) {
+            puts "> lef read $lef_file"
+            lef read $lef_file
+        }
+    }
+}
+
+proc read_pdk_gds {} {
     set old_rescale [gds rescale]
     set old_readonly [gds readonly]
     gds rescale false
     gds readonly true
-    if {  [info exist ::env(EXTRA_GDS)] } {
-        set gds_files_in $::env(EXTRA_GDS)
+    set gds_files_in $::env(CELL_GDS)
+    foreach gds_file $gds_files_in {
+        puts "> gds read $gds_file"
+        gds read $gds_file
+    }
+    gds rescale $old_rescale
+    gds readonly $old_readonly
+}
+
+proc read_macro_gds {} {
+    set old_rescale [gds rescale]
+    set old_readonly [gds readonly]
+    gds rescale false
+    gds readonly true
+    if { [info exist ::env(MACRO_GDS_FILES)] } {
+        set gds_files_in $::env(MACRO_GDS_FILES)
         foreach gds_file $gds_files_in {
             puts "> gds read $gds_file"
             gds read $gds_file
@@ -83,21 +103,36 @@ proc read_macro_gds_blackbox {} {
     }
 }
 
-proc read_macro_gds {} {
-    if { [info exist ::env(MACRO_GDS_FILES)] } {
-        set gds_files_in $::env(MACRO_GDS_FILES)
+proc read_extra_gds {} {
+    set old_rescale [gds rescale]
+    set old_readonly [gds readonly]
+    gds rescale false
+    gds readonly true
+    if {  [info exist ::env(EXTRA_GDS)] } {
+        set gds_files_in $::env(EXTRA_GDS)
         foreach gds_file $gds_files_in {
             puts "> gds read $gds_file"
             gds read $gds_file
         }
     }
+    gds rescale $old_rescale
+    gds readonly $old_readonly
 }
 
-proc read_pdk_lef {} {
-    foreach lef_file $::env(CELL_LEFS) {
-        puts "> lef read $lef_file"
-        lef read $lef_file
+proc read_pad_gds {} {
+    set old_rescale [gds rescale]
+    set old_readonly [gds readonly]
+    gds rescale false
+    gds readonly true
+    if { [info exist ::env(PAD_GDS)] } {
+        set gds_files_in $::env(PAD_GDS)
+        foreach gds_file $gds_files_in {
+            puts "> gds read $gds_file"
+            gds read $gds_file
+        }
     }
+    gds rescale $old_rescale
+    gds readonly $old_readonly
 }
 
 proc read_def {} {
@@ -111,4 +146,12 @@ proc read_def {} {
     }
     puts "> def read $def_read_args"
     def read {*}$def_read_args
+}
+
+proc read_pdk_spice {} {
+    set spice_files_in $::env(CELL_SPICE_MODELS)
+    foreach spice_file $spice_files_in {
+        puts "> spice read $spice_file"
+        readspice $spice_file
+    }
 }

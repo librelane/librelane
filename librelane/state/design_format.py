@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,4 +262,18 @@ DesignFormat(
     "vh",
     "Verilog Header",
     alts=["VERILOG_HEADER"],
+).register()
+
+DesignFormat(
+    "spice_rcx",
+    "rcx.spice",
+    "Simulation Program with Integrated Circuit Emphasis (with Resistance and Capacitance eXtraction)",
+    alts=["SPICE_RCX"],
+).register()
+
+DesignFormat(
+    "render",
+    "png",
+    "Render of the Layout",
+    alts=["KLAYOUT_RENDER"],
 ).register()

@@ -1,10 +1,19 @@
-# Tutorial: Implementing a Macro for [Caravel](https://caravel-harness.readthedocs.io/en/latest/)
+# Tutorial: Implementing a Macro for Caravel
 
 ```{admonition} Note
 :class: seealso
 If you do not have prior experience with LibreLane, please make sure to go
 through the [Getting Started: Newcomers](../../getting_started/newcomers/index.md) tutorial first.
 ```
+
+Initially released in 2020 by Efabless Corporation, the Caravel harness chip
+is comprised of base functions supporting IO, power, and configuration as well
+as drop-in modules for a management SoC core, and a ≈ 3mm x 3.6mm open project
+area for the placement of user IP blocks.
+
+Caravel is given special consideration as both OpenLane and LibreLane were
+initially developed for use with Caravel, which in turn was created for the
+{term}`OpenMPW` project.
 
 AES stands for Advanced Encryption Standard which is a symmetric encryption
 algorithm widely used across the globe to secure data. It operates on blocks of
@@ -16,23 +25,16 @@ as a
 macro to serve as an accelerator for the chip
 [Caravel](https://caravel-harness.readthedocs.io/en/latest/).
 
-```{admonition} About Caravel
-:class: seealso
-
-The Efabless Caravel chip is a ready-to-use test harness for creating designs
-with the Google/Skywater 130nm Open PDK. The Caravel harness comprises of base
-functions supporting IO, power, and configuration as well as drop-in modules for
-a management SoC core, and an approximately 3000um x 3600um open project area
-for the placement of user IP blocks.
-
-See [Caravel's documentation](https://caravel-harness.readthedocs.io/en/latest/)
-for more information.
-```
-
 ## Creating your own project repository
 
+```{note}
+For the purposes of this tutorial, we will be using a maintained fork of the
+Caravel User Project by UmbraLogic Technologies LLC that uses LibreLane instead
+of OpenLane.
+```
+
 1. Start by creating a new repository from the Caravel user project LibreLane
-   [template](https://github.com/efabless/caravel_user_project_ol2/generate).
+   [template](https://github.com/chipfoundry/caravel_user_project/generate).
    Let's call it `caravel_aes_accelerator`.
 
 1. Open a terminal and clone your repository as follows:
@@ -170,7 +172,7 @@ This is a basic configuration file which has only these variables:
 * {var}`::CLOCK_PERIOD`: the period of the primary clock port in nanoseconds,
   used to determine the chip frequency. Generally, the lowest you can get away
   with is the best.
-  {math}`\text{f} = 1 / (\texttt{CLOCK_PERIOD}ns) = 1 / (25\text{ns}) = 25 \text{MHz}`
+  {math}`\text{f} = 1 / (\texttt{CLOCK_PERIOD}ns) = 1 / (25\text{ns}) = 40 \text{MHz}`
 * {var}`Yosys.Synthesis::VERILOG_FILES`: List of input Verilog files.
 * {var}`OpenROAD.Floorplan::FP_CORE_UTIL`: The core utilization. Typical values
   for the core utilization range from 25% to 60%. 40% is a good starting value -

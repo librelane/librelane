@@ -16,7 +16,6 @@ import inspect
 from enum import Enum
 from decimal import Decimal, InvalidOperation
 from dataclasses import (
-    _MISSING_TYPE,
     MISSING,
     asdict,
     dataclass,
@@ -24,9 +23,12 @@ from dataclasses import (
     fields,
     is_dataclass,
 )
+import types
+import textwrap
 from typing import (
     ClassVar,
     Dict,
+    Iterable,
     List,
     Literal,
     Optional,
@@ -219,7 +221,8 @@ class Macro:
 
 def is_optional(t: Type[Any]) -> bool:
     type_args = get_args(t)
-    return get_origin(t) is Union and type(None) in type_args
+    origin = get_origin(t)
+    return (origin is Union or origin is types.UnionType) and type(None) in type_args
 
 
 def some_of(t: Type[Any]) -> Type[Any]:
@@ -229,11 +232,20 @@ def some_of(t: Type[Any]) -> Type[Any]:
     # t must be a Union with None if we're here
 
     type_args = get_args(t)
+    origin = get_origin(t)
 
-    args_without_none = [arg for arg in type_args if arg != type(None)]
+    args_without_none = [arg for arg in type_args if arg is not type(None)]
     if len(args_without_none) == 1:
         return args_without_none[0]
 
+    if origin is types.UnionType:
+        # Use the | operator to create a UnionType
+        result = args_without_none[0]
+        for arg in args_without_none[1:]:
+            result = result | arg
+        return result
+
+    # Otherwise, return a typing.Union
     new_union = Union[tuple(args_without_none)]  # type: ignore
     return new_union  # type: ignore
 
@@ -283,8 +295,8 @@ class Variable:
     Values supplied for configuration variables are the primary interface by
     which users configure LibreLane flows.
 
-    :param name: A string name for the Variable. Because of backwards compatibility
-        with LibreLane 1, the convention is ``UPPER_SNAKE_CASE``.
+    :param name: A string name for the Variable. Because of backwards
+        compatibility with OpenLane, the convention is ``UPPER_SNAKE_CASE``.
 
     :param type: A Python type object representing the variable.
 
@@ -307,6 +319,7 @@ class Variable:
         Other:
 
         - ``dataclass`` types composed of the above.
+        - Sum classes of the above.
 
     :param description: A human-readable description of the variable. Used to
         generate help strings and documentation.
@@ -317,13 +330,13 @@ class Variable:
 
     :param deprecated_names: A list of deprecated names for said variable.
 
-        An element of the list can alternative be a tuple of a name and a Callable
-        used to perform a translation for when a renamed variable is also slightly
-        modified.
+        An element of the list can alternative be a tuple of a name and a
+        Callable used to perform a translation for when a renamed variable is
+        also slightly modified.
 
     :param units: Used only in documentation: the unit corresponding to this
-        object, i.e., µm, pF, etc. Can be any string, but for consistency, SI units
-        must be represented in terms of their official symbols.
+        object, i.e., µm, pF, etc. Can be any string, but for consistency, SI
+        units must be represented in terms of their official symbols.
 
     :param pdk: Whether this variable is expected to be given a default value
         by a PDK or not.
@@ -339,6 +352,17 @@ class Variable:
         If this is false, a PDK is not allowed to set a default value for
         this variable. In current versions of LibreLane, the value will be
         silently ignored, but warnings or errors may occur in future versions.
+
+    :param validator: A customizable validator that is run AFTER type checks
+        and conversions. Takes three arguments:
+
+        * variable - the Variable object itself
+        * input - the user's input, whatever type it may be
+        * warning_list_ref - a list that may be appended to to emit warnings
+
+        The validator may update the value, however it is discouraged to do so
+        silently (i.e. it's best to emit a warning.) A validator may reject
+        user input by raising a ``ValueError``.
     """
 
     known_variable_names: ClassVar[Set[str]] = set()
@@ -353,6 +377,7 @@ class Variable:
 
     units: Optional[str] = None
     pdk: bool = False
+    validator: Callable[["Variable", Any, List[str]], Any] = lambda self, i, _: i
 
     def __post_init__(self):
         Variable.known_variable_names.add(self.name)
@@ -391,6 +416,112 @@ class Variable:
         :returns: The description, but with newlines escaped for Markdown.
         """
         return self.description.replace("\n", "<br />")
+
+    @staticmethod
+    def _render_table_md(
+        vars: Iterable["Variable"],
+        *,
+        myst_anchor_owner_id: Optional[str] = None,
+    ) -> str:  # pragma; no cover
+        """
+        Renders a markdown table for any iterable of configuration variables.
+
+        :param vars: Any iterable object returning configuration variables
+        :param myst_anchor_owner_id:
+            If set, the table is rendered for MyST using a mix of HTML and
+            Markdown, with anchors and a detail tag containing deprecated names.
+
+            For universal flow variables, set the anchor id to "".
+        :returns: A markdown string representing the table
+        """
+        include_units = any(c.units is not None for c in vars)
+        if myst_anchor_owner_id is None:
+            # Markdown mode
+            result = textwrap.dedent(
+                f"""
+                | Variable Name | Type | Description | Default | {'Units |' * include_units}
+                | - | - | - | - | {'- |' * include_units}
+                """
+            )
+            for var in vars:
+                units = var.units or ""
+                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
+                result += f"| `{var.name}` {pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` |"
+                if include_units:
+                    result += f" {units} |"
+                result += "\n"
+            result += "\n"
+        else:
+            if myst_anchor_owner_id == "":
+                # for _get_docs_identifier, where None is the behavior we want
+                # for a literal ""
+                myst_anchor_owner_id = None
+            result = textwrap.dedent(
+                f"""
+                <div class="table-wrapper colwidths-auto docutils container">
+                <table class="docutils align-default">
+                <thead><tr>
+                <th class="head">Variable Name</th>
+                <th class="head">Type</th>
+                <th class="head">Description</th>
+                <th class="head">Default</th>
+                {'<th class="head">Units</th>' * include_units}
+                </tr></thead>
+                <tbody>
+                """
+            )
+            for var in vars:
+                units = var.units or ""
+                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
+                var_anchor = f"{{#{var._get_docs_identifier(myst_anchor_owner_id)}}}"
+
+                result += textwrap.dedent(
+                    f"""
+                    <tr>
+                    <td>
+
+                    `{var.name}`{var_anchor} {pdk_superscript}
+                    """
+                )
+                if len(var.deprecated_names):
+                    result += "<details><summary>Deprecated names</summary>\n\n"
+                    for dn in var.deprecated_names:
+                        if isinstance(dn, tuple):
+                            dn = dn[0]
+                        result += f"* `{dn}`\n"
+                    result += "\n</details>\n"
+                result += textwrap.dedent(
+                    f"""
+                    </td>
+                    <td>
+
+                    {var.type_repr_md(for_document=True)}
+
+                    </td>
+                    <td>
+
+                    {var.desc_repr_md()}
+
+                    </td>
+                    <td>
+
+                    `{var.default}`
+
+                    </td>
+                    """
+                )
+                result += include_units * textwrap.dedent(
+                    f"""
+                    <td>
+
+                    {units}
+
+                    </td>
+                    """
+                )
+                result += "\n</tr>"
+            result += "</tbody></table></div>\n"
+        return result
 
     def __process(
         self,
@@ -440,10 +571,11 @@ class Variable:
             return_value = list()
             raw = value
             if isinstance(raw, list) or isinstance(raw, tuple):
-                if validating_type == List[Path]:
+                # HACK: Allow multiple globs within Path variables
+                if type_origin is list and type_args == (Path,):
                     if any(isinstance(item, List) for item in raw):
                         Variable.__flatten_list(value)
-                pass
+                pass  # do nothing, can be used as is
             elif is_string(raw):
                 if not permissive_typing:
                     raise ValueError(
@@ -462,7 +594,7 @@ class Variable:
                     f"List provided for variable '{key_path}' is invalid: {value}"
                 )
 
-            if type_origin == tuple:
+            if type_origin is tuple:
                 if len(raw) != len(type_args):
                     raise ValueError(
                         f"Value provided for variable '{key_path}' of type {validating_type} is invalid: ({len(raw)}/{len(type_args)}) tuple entries provided"
@@ -481,11 +613,11 @@ class Variable:
                     )
                 )
 
-            if type_origin == tuple:
+            if type_origin is tuple:
                 return tuple(return_value)
 
             return return_value
-        elif type_origin == dict:
+        elif type_origin is dict:
             raw = value
             key_type, value_type = type_args
             if isinstance(raw, dict):
@@ -586,7 +718,7 @@ class Variable:
                 field_default = None
                 if (
                     current_field.default is not None
-                    and type(current_field.default) != _MISSING_TYPE
+                    and current_field.default != MISSING
                 ):
                     field_default = current_field.default
                 if current_field.default_factory != MISSING:
@@ -615,7 +747,7 @@ class Variable:
             result = Path(value)
             result.validate(f"Path provided for variable '{key_path}' is invalid")
             return result
-        elif validating_type == bool:
+        elif validating_type is bool:
             if not permissive_typing and not isinstance(value, bool):
                 raise ValueError(
                     f"Refusing to automatically convert '{value}' at '{key_path}' to a Boolean"
@@ -629,7 +761,7 @@ class Variable:
                     f"Value provided for variable '{key_path}' of type {validating_type.__name__} is invalid: '{value}'"
                 )
         elif issubclass(validating_type, Enum):
-            if type(value) == validating_type:
+            if type(value) is validating_type:
                 return value
             try:
                 return validating_type[value]
@@ -675,12 +807,12 @@ class Variable:
         values_so_far: Optional[Mapping[str, Any]] = None,
         permissive_typing: bool = False,
     ) -> Tuple[Optional[str], Any]:
-        exists: Optional[str] = None
+        user_specified_key: Optional[str] = None
         value: Optional[Any] = None
 
         i = 0
         while (
-            not exists
+            user_specified_key is None
             and self.deprecated_names is not None
             and i < len(self.deprecated_names)
         ):
@@ -688,8 +820,8 @@ class Variable:
             deprecated_callable = lambda x: x
             if not isinstance(deprecated_name, str):
                 deprecated_name, deprecated_callable = deprecated_name
-            exists, value = mutable_config.check(deprecated_name)
-            if exists:
+            user_specified_key, value = mutable_config.check(deprecated_name)
+            if user_specified_key is not None:
                 warning_list_ref.append(
                     f"The configuration variable '{deprecated_name}' is deprecated. Please check the docs for the usage on the replacement variable '{self.name}'."
                 )
@@ -697,19 +829,22 @@ class Variable:
                 value = deprecated_callable(value)
             i = i + 1
 
-        if not exists:
-            exists, value = mutable_config.check(self.name)
+        if user_specified_key is None:
+            user_specified_key, value = mutable_config.check(self.name)
 
         processed = self.__process(
             key_path=self.name,
             value=value,
             default=self.default,
             validating_type=self.type,
-            explicitly_specified=exists is not None,
+            explicitly_specified=user_specified_key is not None,
             permissive_typing=permissive_typing,
         )
 
-        return (exists, processed)
+        if user_specified_key is not None:
+            processed = self.validator(self, processed, warning_list_ref)
+
+        return (user_specified_key, processed)
 
     def _get_docs_identifier(self, parent: Optional[str] = None) -> str:
         identifier = f"var-{self.name.lower()}"

@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,18 +17,36 @@
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/magic/common/read.tcl
 drc off
+crashbackups disable
 
-read_pdk_gds
 gds noduplicates true
+gds readonly true
 
+# read stdcells
+read_pdk_gds
+# annotate with lef
+read_pdk_lef
+
+# read macros
 if { $::env(MAGIC_MACRO_STD_CELL_SOURCE) == "PDK" } {
     read_macro_gds
+    # annotate with lef
+    read_macro_lef
 } else {
     read_macro_gds_blackbox
+    # annotate with lef
+    read_macro_lef
 }
 
+# read extras
 read_extra_gds
+# annotate with lef
 read_extra_lef
+
+# read pads
+read_pad_gds
+# annotate with lef
+read_pad_lef
 
 load (NEWCELL)
 
@@ -33,6 +55,8 @@ read_def
 
 load $::env(DESIGN_NAME)
 select top cell
+
+units microns
 
 if { $::env(MAGIC_ZEROIZE_ORIGIN) } {
 	# assuming scalegrid 1 2
@@ -51,8 +75,7 @@ if { $::env(MAGIC_ZEROIZE_ORIGIN) } {
 	# file. Shapes can extend outside the block boundary.
 	# magic "lef write -hide" doesn't produce nice results in this
 	# case for shapes outside the boundary.
-	box [lindex $::env(DIE_AREA) 0]um [lindex $::env(DIE_AREA) 1]um [lindex $::env(DIE_AREA) 2]um [lindex $::env(DIE_AREA) 3]um
-	property FIXED_BBOX [box values]
+	property FIXED_BBOX [lindex $::env(DIE_AREA) 0]um [lindex $::env(DIE_AREA) 1]um [lindex $::env(DIE_AREA) 2]um [lindex $::env(DIE_AREA) 3]um
 }
 
 select top cell
@@ -74,6 +97,10 @@ gds nodatestamp yes
 
 if { $::env(MAGIC_GDS_POLYGON_SUBCELLS) } {
 	gds polygon subcells true
+}
+
+if { $::env(MAGIC_GDS_MERGE) } {
+	gds merge yes
 }
 
 gds write $::env(SAVE_MAG_GDS)

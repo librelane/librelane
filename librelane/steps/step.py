@@ -182,7 +182,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
             # and terminal emulators will slow the flow down.
             self.current_rpt.write(line)
         elif not self.silent:
-            logging.subprocess(line.strip())
+            logging.subprocess(line.rstrip())
         return True
 
     def result(self) -> Dict[str, Any]:
@@ -485,6 +485,7 @@ class Step(ABC):
         flow: Optional[Any] = None,
         _config_quiet: bool = False,
         _no_revalidate_conf: bool = False,
+        _no_filter_conf: bool = False,
         **kwargs,
     ):
         self.__class__.assert_concrete()
@@ -521,11 +522,18 @@ class Step(ABC):
         elif not hasattr(self, "long_name"):
             self.long_name = self.name
 
+        if _no_filter_conf and _no_revalidate_conf:
+            raise ValueError(
+                "Cannot pass both _no_filter_conf and _no_revalidate_conf as True"
+            )
+
         if _no_revalidate_conf:
             self.config = config.copy_filtered(
                 self.get_all_config_variables(),
                 include_flow_variables=False,  # get_all_config_variables() gets them anyway
             )
+        elif _no_filter_conf:
+            self.config = config.copy()
         else:
             self.config = config.with_increment(
                 self.get_all_config_variables(),
@@ -635,7 +643,7 @@ class Step(ABC):
                 %s
                 ```
 
-                {':::{dropdown} Importing' if use_dropdown else '#### Importing'}
+                {":::{dropdown} Importing" if use_dropdown else "#### Importing"}
                 ```python
                 from {Self.__module__} import {Self.__name__}
 
@@ -645,7 +653,7 @@ class Step(ABC):
 
                 {Self.__name__} = Step.factory.get("{Self.id}")
                 ```
-                {':::' if use_dropdown else ''}
+                {":::" if use_dropdown else ""}
                 """
             )
             % doc_string
@@ -662,10 +670,8 @@ class Step(ABC):
             for input, output in zip_longest(Self.inputs, Self.outputs):
                 input_str = ""
                 if input is not None:
-                    optional = "?" if input.value.optional else ""
-                    input_str = (
-                        f"{input.value.name}{optional} (.{input.value.extension})"
-                    )
+                    optional = "?" if input.optional else ""
+                    input_str = f"{input.id}{optional} (.{input.extension})"
 
                 output_str = ""
                 if output is not None:
@@ -677,22 +683,16 @@ class Step(ABC):
                 result += f"| {input_str} | {output_str} |\n"
 
         if len(Self.config_vars):
-            all_vars_anchor = f"({Self.id.lower()}-configuration-variables)="
+            config_var_anchors = f"({Self.id.lower()}-configuration-variables)="
             result += textwrap.dedent(
                 f"""
-                {all_vars_anchor * myst_anchors}
+                {config_var_anchors * myst_anchors}
                 #### Configuration Variables
-                
-                | Variable Name | Type | Description | Default | Units |
-                | - | - | - | - | - |
                 """
             )
-            for var in Self.config_vars:
-                units = var.units or ""
-                pdk_superscript = "<sup>PDK</sup>" if var.pdk else ""
-                var_anchor = f"{{#{var._get_docs_identifier(Self.id)}}}"
-                result += f"| `{var.name}`{var_anchor * myst_anchors} {pdk_superscript} | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} | `{var.default}` | {units} |\n"
-            result += "\n"
+            result += Variable._render_table_md(
+                Self.config_vars, myst_anchor_owner_id=Self.id if myst_anchors else None
+            )
 
         step_anchor = f"(step-{slugify(Self.id.lower())})="
         result = (
@@ -907,9 +907,6 @@ class Step(ABC):
             form an indirect dependency on many `.mag` files or similar that
             cannot be enumerated by LibreLane.
 
-        Reproducibles are automatically generated for failed steps, but
-        this may be called manually on any step, too.
-
         :param target_dir: The directory in which to create the reproducible
         :param include_pdk: Include PDK files. If set to false, Path pointing
             to PDK files will be prefixed with ``pdk_dir::`` instead of being
@@ -1016,6 +1013,7 @@ class Step(ABC):
         state_in: GenericDict[str, Any] = self.state_in.result().copy_mut()
         for format_id in state_in:
             format = DesignFormat.factory.get(format_id)
+            assert format is not None
             if format not in self.__class__.inputs and not (
                 format == DesignFormat.DEF
                 and DesignFormat.ODB

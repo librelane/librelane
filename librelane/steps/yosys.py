@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,12 +80,19 @@ def _generate_read_deps(
                 commands += f"lappend ::_synlig_defines {TclUtils.escape(f'+define+{power_define}')}\n"
 
     # Try your best to use powered blackbox models if power_defines is true
-    if power_defines and config["CELL_VERILOG_MODELS"] is not None:
-        scl_blackbox_models = toolbox.create_blackbox_model(
-            frozenset(config["CELL_VERILOG_MODELS"]),
-            frozenset(["USE_POWER_PINS"]),
-        )
-        commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+    if power_defines:
+        if config["CELL_VERILOG_MODELS"] is not None:
+            scl_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["CELL_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {scl_blackbox_models}\n"
+        if config["PAD_VERILOG_MODELS"] is not None:
+            pad_blackbox_models = toolbox.create_blackbox_model(
+                frozenset(config["PAD_VERILOG_MODELS"]),
+                frozenset(["USE_POWER_PINS"]),
+            )
+            commands += f"read_verilog -sv -lib {pad_blackbox_models}\n"
     else:
         # Fall back to scl_lib_list if you cant
         for lib in scl_lib_list:
@@ -198,17 +209,6 @@ class YosysStep(TclStep):
             pdk=True,
         ),
         Variable(
-            "USE_LIGHTER",
-            bool,
-            "Activates Lighter, an experimental plugin that attempts to optimize clock-gated flip-flops.",
-            default=False,
-        ),
-        Variable(
-            "LIGHTER_DFF_MAP",
-            Optional[Path],
-            "An override to the custom DFF map file provided for the given SCL by Lighter.",
-        ),
-        Variable(
             "YOSYS_LOG_LEVEL",
             Literal["ALL", "WARNING", "ERROR"],
             "Which log level for Yosys. At WARNING or higher, the initialization splash is also disabled.",
@@ -258,6 +258,14 @@ class YosysStep(TclStep):
 
 @Step.factory.register()
 class EQY(Step):
+    """
+    Experimental: Uses the `EQY <https://github.com/yosyshq/eqy>`_ utility to
+    perform an RTL vs. Netlist equivalence check.
+
+    Currently, you are expected to provide your own EQY script if you want this
+    to work properly.
+    """
+
     id = "Yosys.EQY"
     name = "Equivalence Check"
     long_name = "RTL/Netlist Equivalence Check"
@@ -272,7 +280,7 @@ class EQY(Step):
             Variable(
                 "EQY_SCRIPT",
                 Optional[Path],
-                "An optional override for the automatically generated EQY script for more complex designs.",
+                "The EQY script to use. If unset, a generic EQY script will be generated, but this fails in a number of scenarios.",
             ),
             Variable(
                 "MACRO_PLACEMENT_CFG",

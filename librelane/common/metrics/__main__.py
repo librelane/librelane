@@ -358,9 +358,10 @@ def compare_remote(
                 for chunk in r.iter_bytes(chunk_size=8192):
                     bio_gz.write(chunk)
             bio_gz.seek(0)
-            with gzip.GzipFile(fileobj=bio_gz) as bio, tarfile.TarFile(
-                fileobj=bio, mode="r"
-            ) as tf:
+            with (
+                gzip.GzipFile(fileobj=bio_gz) as bio,
+                tarfile.TarFile(fileobj=bio, mode="r") as tf,
+            ):
                 for file in tf:
                     if file.isdir():
                         continue

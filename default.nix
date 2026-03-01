@@ -1,24 +1,9 @@
-# Copyright 2025 LibreLane Contributors
-#
-# Adapted from OpenLane
-#
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2023-2025 UmbraLogic Technologies LLC
 {
   flake ? null,
   lib,
-  system,
   clangStdenv,
   fetchFromGitHub,
   nix-gitignore,
@@ -30,27 +15,34 @@
   opensta,
   openroad,
   ruby,
-  surelog,
-  tclFull,
+  tcl,
+  tclPackages,
   verilator,
-  verilog,
-  ciel,
+  iverilog,
   yosys,
   yosys-sby,
   yosys-eqy,
-  yosys-lighter,
   yosys-slang,
   yosys-ghdl,
+  yosys-plugin-set ? [
+    yosys-sby
+    yosys-eqy
+    yosys-slang
+  ]
+  ++ lib.optionals (lib.lists.any (
+    el: el == clangStdenv.hostPlatform.system
+  ) yosys-ghdl.meta.platforms) [ yosys-ghdl ],
+  extra-yosys-plugins ? [ ],
   # Python
   buildPythonPackage,
   poetry-core,
+  ciel,
   click,
   cloup,
   pyyaml,
   yamlcore,
   rich,
   requests,
-  pcpp,
   tkinter,
   lxml,
   deprecated,
@@ -61,48 +53,43 @@
   rapidfuzz,
   semver,
   klayout,
-}: let
-  yosys-with-plugins = yosys.withPlugins (
-    [
-      yosys-sby
-      yosys-eqy
-      yosys-lighter
-      yosys-slang
-    ]
-    ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]
-  );
-  yosys-env = (yosys.withPythonPackages.override {target = yosys-with-plugins;}) (ps: with ps; [click]);
-  openroad-env = openroad.withPythonPackages (ps:
-    with ps; [
+  extra-python-interpreter-packages ? ps: [ ],
+}:
+let
+  yosys-with-plugins = yosys.withPlugins (yosys-plugin-set ++ extra-yosys-plugins);
+  python-interpreter-packages =
+    ps:
+    (with ps; [
       click
       rich
       pyyaml
-    ]);
+    ])
+    ++ (extra-python-interpreter-packages ps);
+  yosys-env =
+    (yosys.withPythonPackages.override { target = yosys-with-plugins; })
+      python-interpreter-packages;
+  openroad-env = openroad.withPythonPackages python-interpreter-packages;
   self = buildPythonPackage {
     pname = "librelane";
-    version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.version;
+    version = (builtins.fromTOML (builtins.readFile ./pyproject.toml)).project.version;
     format = "pyproject";
 
-    src =
-      if (flake != null)
-      then flake
-      else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
+    src = if (flake != null) then flake else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     nativeBuildInputs = [
       poetry-core
     ];
 
-    includedTools = [
-      opensta.out # HACK: for whatever reason, opensta.dev is prioritized by computed_PATH.
+    includedTools = lib.map lib.getBin [
+      opensta
       yosys-env
       openroad-env
       netgen
       magic-vlsi
       klayout-app
-      verilog
+      iverilog
       verilator
-      tclFull
-      surelog
+      tcl
       ruby
     ];
 
@@ -116,7 +103,6 @@
       yamlcore
       rich
       requests
-      pcpp
       ciel
       tkinter
       lxml
@@ -129,22 +115,26 @@
     ];
 
     doCheck = true;
-    checkInputs = [pytestCheckHook pytest-xdist pyfakefs];
+    checkInputs = [
+      pytestCheckHook
+      pytest-xdist
+      pyfakefs
+    ];
 
-    computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
+    computed_PATH = lib.makeBinPath self.includedTools;
 
     # Make PATH available to LibreLane subprocesses
     makeWrapperArgs = [
       "--prefix PATH : ${self.computed_PATH}"
     ];
 
-    meta = with lib; {
+    meta = {
       description = "Hardware design and implementation infrastructure library and ASIC flow";
-      homepage = "https://efabless.com/librelane";
+      homepage = "https://librelane.org/";
       mainProgram = "librelane";
-      license = licenses.asl20;
-      platforms = platforms.linux ++ platforms.darwin;
+      license = lib.licenses.asl20;
+      platforms = with lib.platforms; linux ++ darwin;
     };
   };
 in
-  self
+self

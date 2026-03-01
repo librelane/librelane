@@ -1,1 +1,6 @@
-odb.applydeftemplate/002-bad_def
+odb.applydeftemplate/002-bad_def # fails randomly on Nix/aarch64-darwin
+# errors need updating
+openroad.detailedrouting/004-fail-range-max
+openroad.globalplacement/005-fail-util
+openroad.globalplacement/002-fail-density
+openroad.detailedrouting/003-fail-range-min

@@ -1,16 +1,6 @@
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 LibreLane Contributors
+# Copyright (c) 2023-2024 UmbraLogic Technologies LLC
 {
   lib,
   clangStdenv,
@@ -26,9 +16,10 @@
   cudd,
   zlib,
   eigen,
-  rev ? "ffabd65e39f036b9eb511d3b9d9887772d56e72b",
-  rev-date ? "2025-06-06",
-  sha256 ? "sha256-EQCO82H8mYbRaXCbUhmI6HnzR6wK+eFDXv6Jd2IzqMw=",
+  ninja,
+  rev ? "857316ff001b2a8dbbdc5996944d08a6d38c87ab",
+  rev-date ? "2026-02-14",
+  sha256 ? "sha256-4lxyNQeBTx+bIEM4RVZzG4UU/ilv9sjFFUcB5S4Evgw=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
@@ -45,6 +36,11 @@ clangStdenv.mkDerivation (finalAttrs: {
     inherit rev;
     inherit sha256;
   };
+
+  postPatch = ''
+    # utter bazel nonsense
+    rm -f BUILD
+  '';
 
   cmakeFlags = [
     "-DTCL_LIBRARY=${tcl}/lib/libtcl${clangStdenv.hostPlatform.extensions.sharedLibrary}"
@@ -90,13 +86,14 @@ clangStdenv.mkDerivation (finalAttrs: {
     gnumake
     flex
     bison
+    ninja
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Gate-level static timing verifier";
     homepage = "https://parallaxsw.com";
     mainProgram = "sta";
-    license = licenses.gpl3Plus;
-    platforms = platforms.darwin ++ platforms.linux;
+    license = lib.licenses.gpl3Plus;
+    platforms = with lib.platforms; linux ++ darwin;
   };
 })
