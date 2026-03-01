@@ -850,6 +850,7 @@ class MultiCornerSTA(OpenSTAStep):
         table.add_column("of which reg to reg")
         table.add_column("Max Cap Violations")
         table.add_column("Max Slew Violations")
+        table.add_column("Max Frequency")
         for corner in ["Overall"] + self.config["STA_CORNERS"]:
             modifier = ""
             if corner != "Overall":
@@ -870,6 +871,7 @@ class MultiCornerSTA(OpenSTAStep):
                 "timing__setup_r2r_vio__count",
                 "design__max_cap_violation__count",
                 "design__max_slew_violation__count",
+                "timing__clock__fmax",
             ]:
                 formatter = format_count if metric.endswith("count") else format_slack
                 row.append(

@@ -178,6 +178,7 @@ puts "==========================================================================
 
 set ws [worst_slack -corner [$corner name] -max]
 write_metric_num "timing__setup__ws__corner:[$corner name]" $ws
+set w_s $ws
 puts "[$corner name]: $ws"
 puts "%OL_END_REPORT"
 
@@ -389,6 +390,19 @@ foreach clock [all_clocks] {
     puts "report_clock_min_period"
     puts "============================================================================"
     report_clock_min_period -clocks [get_property $clock name]
+
+
+    set CLK_PERIOD [get_property $clock period]
+    set min_period [expr $CLK_PERIOD-$w_s]
+    if { $min_period == 0.0 } {
+      set min_period 0
+      set fmax "INF"
+    } else {
+      # max frequency in MHz
+      set fmax [expr 1.0e3 / $min_period]
+    }
+    
+    write_metric_num "timing__clock__fmax__corner:[$corner name]" $fmax
 }
 
 puts "%OL_END_REPORT"
