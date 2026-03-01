@@ -19,10 +19,11 @@ set f [open $::env(STEP_DIR)/cif_scale.txt "w"]
 puts $f [expr {((round([magic::cif scale output] * 10000)) / 10000.0) * 1}]
 close $f
 
+source $::env(SCRIPTS_DIR)/magic/common/read.tcl
+
 if { $::env(MAGIC_EXT_USE_GDS) } {
     gds read $::env(CURRENT_GDS)
 } else {
-    source $::env(SCRIPTS_DIR)/magic/common/read.tcl
     read_tech_lef
     read_pdk_lef
     read_macro_lef
@@ -30,6 +31,9 @@ if { $::env(MAGIC_EXT_USE_GDS) } {
     read_pad_lef
     read_def
 }
+
+# annotate stdcell port order
+read_pdk_spice
 
 if { [info exists ::env(MAGIC_EXT_ABSTRACT_CELLS)] } {
     set cells [cellname list allcells]
