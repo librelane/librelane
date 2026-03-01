@@ -1,12 +1,16 @@
-# macOS 11+
+# macOS 14+
+
+```{note}
+macOS 12 and 13 may work, but they are not officially supported.
+```
 
 * **Minimum Requirements**
-    * macOS 11 (Big Sur)
+    * macOS 14 (Sonoma)
     * 6th Gen Intel® Core CPU or later
     * 16 GiB of RAM
     
 * **Recommended**
-    * macOS 11 (Big Sur)
+    * macOS 14 (Sonoma)
     * Apple Silicon CPU
     * 32 GiB of RAM
 

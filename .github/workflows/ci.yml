@@ -719,10 +719,7 @@ jobs:
           generate_release_notes: true
           body: |+
             📖 Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html
-            🧾 Full changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md
-
-            AppImage releases are provided for testing and are not currently the
-            primary supported method for installation.
+            🧾 Changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md
 
             ---
 

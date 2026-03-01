@@ -5,7 +5,7 @@
     * 8 GiB of RAM
     
 * **Recommended Requirements**
-    * 6th Gen Intel® Core CPU or later OR AMD Ryzen™️ 1000-series or later
+    * 6th Gen Intel® Core CPU or later OR AMD Ryzen™ 1000-series or later
     * 16 GiB of RAM
 
 Only Ubuntu 22.04 and above are supported.
