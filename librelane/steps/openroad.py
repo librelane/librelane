@@ -286,6 +286,11 @@ class OpenROADStep(TclStep):
             "Points to the DEF file to be used as a template.",
         ),
         Variable(
+            "STA_EXTRA_CORNER_TCL_FILE",
+            Optional[Path],
+            "Experimental: specifies a additional configuration .tcl file to be called during (PnR) steps.",
+        ),
+        Variable(
             "DEDUPLICATE_CORNERS",
             bool,
             "Cull duplicate IPVT corners during PNR, i.e. corners that share the same set of lib files and values for LAYERS_RC and VIAS_R as another corner are not considered outside of STA.",
@@ -325,6 +330,8 @@ class OpenROADStep(TclStep):
         env["_MACRO_LIBS"] = TclStep.value_to_tcl(
             self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
         )
+        if self.config["STA_EXTRA_CORNER_TCL_FILE"]:
+            env["_EXTRA_CORNER_TCL_FILE"] = self.config["STA_EXTRA_CORNER_TCL_FILE"]
 
         excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
         excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
