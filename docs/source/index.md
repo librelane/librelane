@@ -26,10 +26,10 @@ Here are some of the key benefits of using LibreLane:
 * **Open source**: LibreLane is an open-source project, which means that it is
   freely available to use and modify. This makes it a good choice for designers
   who are looking for a cost-effective and transparent solution.
-* **Community support**: LibreLane capitalizes on LibreLane's existing community of
-  users and contributors. This means that there is a wealth of resources
-  available to help designers get started and troubleshoot any problems
-  they encounter.
+* **Community support**: LibreLane capitalizes on both it and its predecessor's
+  (OpenLane's) existing community of users and contributors. This means that
+  there is a wealth of resources available to help designers get started and
+  troubleshoot any problems they encounter.
 
 Follow the navigation element below (or check the sidebar on the left) to
 get started.
