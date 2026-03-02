@@ -715,7 +715,7 @@ jobs:
         with:
           token: "${{ secrets.BOT_GITHUB_TOKEN }}"
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ contains(env.NEW_TAG, 'dev') || contains(env.NEW_TAG, 'b') || contains(env.NEW_TAG, 'a') }}
+          prerelease: ${{ contains(env.NEW_TAG, 'dev') || contains(env.NEW_TAG, 'b') || contains(env.NEW_TAG, 'a') || contains(env.NEW_TAG, 'rc') }}
           generate_release_notes: true
           body: |+
             📖 Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html
