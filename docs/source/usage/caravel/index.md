@@ -814,8 +814,17 @@ our design. To be able to use any design as a Caravel User Project, it has to
 match the footprint that Caravel is expecting. Also, the top-level design
 Caravel is expecting any Caravel User Project to have the IO pins at specific
 locations and with specific dimensions. So, we need a fixed floorplan, fixed
-I/Os pin shapes and locations, and fixed power rings. The fixed configuration
-section can be found at the end of the configurations file
+I/Os pin shapes and locations, and fixed power rings. 
+
+1. The provided configuration files can be found in `openlane/user_project_wrapper`
+   directory, therefore they need to be copied to the `librelane/user_project_wrapper`
+   directory:
+
+```console
+$ cp -r ~/caravel_aes_accelerator/openlane/user_project_wrapper/ ~/caravel_aes_accelerator/librelane/user_project_wrapper/
+```
+
+A fixed configuration section can be found at the end of the configurations file
 `librelane/user_project_wrapper/config.json`:
 
 ```json
