@@ -458,6 +458,7 @@ Style Notes
   * Updated Verilator to `5.044`
 * Updated OpenROAD to `dcf36133`
 * Updated OpenSTA to `857316ff`
+  * Added a patch for fixing cell delays in certain situations
 * Nix
   * `librelane` derivation:
     * Added new arguments `yosys-plugin-set` and `extra-yosys-plugins`

@@ -37,6 +37,10 @@ clangStdenv.mkDerivation (finalAttrs: {
     inherit sha256;
   };
 
+  patches = [
+    ./patches/opensta/fix_cell_delays.patch
+  ];
+
   postPatch = ''
     # utter bazel nonsense
     rm -f BUILD
