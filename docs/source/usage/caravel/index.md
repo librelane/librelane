@@ -140,6 +140,13 @@ ______________________________________________________________________
    $ mkdir -p ~/caravel_aes_accelerator/librelane/aes_wb_wrapper
    ```
 
+1. After hardening the `aes` macro, a script will be used for copying the physical views of the macro to a specified project folder, this script is in the `openlane` directory but not in the `librelane` directory, copy this script into the correct directory and replace the keyword 'openlane' to 'liberlane'
+
+   ```console
+   $ cp ~/caravel_aes_accelerator/openlane/copy_views.sh ~/caravel_aes_accelerator/librelane/copy_views.sh
+   $ sed -i 's/openlane/librelane/g' ~/caravel_aes_accelerator/librelane/copy_views.sh
+   ```
+
 1. Create the file
    `~/caravel_aes_accelerator/librelane/aes_wb_wrapper/config.json` and add the
    following simple configuration to it
