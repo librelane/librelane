@@ -154,6 +154,11 @@ class LVS(NetgenStep):
             Optional[List[str]],
             "A list of cell names to be flattened while running LVS",
         ),
+        Variable(
+            "LVS_IGNORE_CELLS",
+            Optional[List[str]],
+            "A list of cell names to be ignored while running LVS",
+        ),
     ]
 
     def get_command(self) -> List[str]:
