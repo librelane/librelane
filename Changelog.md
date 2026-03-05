@@ -84,6 +84,7 @@ Style Notes
 * `Netgen.LVS`
 
   * Display the top-level Verilog file name.
+  * Added `LVS_IGNORE_CELLS`: A list of cells to ignore in LVS.
 
 * `KLayout.StreamOut`
 

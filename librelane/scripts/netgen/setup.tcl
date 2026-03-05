@@ -26,3 +26,14 @@ if { [info exists ::env(LVS_FLATTEN_CELLS)] } {
         }
     }
 }
+
+if { [info exists ::env(LVS_IGNORE_CELLS)] } {
+    foreach cell $::env(LVS_IGNORE_CELLS) {
+        if { [lsearch $cells1 "$cell"] >= 0 } {
+            ignore class "-circuit1 $cell"
+        }
+        if { [lsearch $cells2 "$cell"] >= 0 } {
+            ignore class "-circuit2 $cell"
+        }
+    }
+}
