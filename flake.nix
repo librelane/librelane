@@ -31,6 +31,30 @@
       overlays = {
         default = lib.composeManyExtensions [
           (ciel.overlays.default)
+          # Override yosys to use the src_retention_abc9 fork for \src annotation support
+          (
+            pkgs': pkgs: {
+              yosys = pkgs.yosys.overrideAttrs (old: {
+                src = pkgs.fetchFromGitHub {
+                  owner = "robtaylor";
+                  repo = "yosys";
+                  rev = "420eefd0043b51267bc7ed6d133b110c1d0c64bc"; # src_retention_abc9
+                  hash = "sha256-cNqvU6ct35e0EU0nRQPqYN2cqWZVui/szzF5TsDb7rk=";
+                  fetchSubmodules = true;
+                };
+                # fetchFromGitHub strips .git metadata; create .gitcommit files so
+                # the Makefile treats this as a tarball build (check-git-abc, version)
+                postPatch = (old.postPatch or "") + ''
+                  echo "420eefd00" > .gitcommit
+                  echo "tarball" > abc/.gitcommit
+                '';
+              });
+              # Fix stale hash for yosys-eqy in nix-eda 6.0.2 (tag v0.60 was re-tagged upstream)
+              yosys-eqy = pkgs.yosys-eqy.override {
+                sha256 = "sha256-7OwtyV3+9vZhTD0Ur8Dhd39xNtqNs2M5XETBN1F6Xb0=";
+              };
+            }
+          )
           (
             pkgs': pkgs:
             let
