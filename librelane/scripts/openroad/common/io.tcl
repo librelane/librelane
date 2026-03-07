@@ -1,4 +1,4 @@
-# Copyright 2025 LibreLane Contributors
+# Copyright 2025-2026 LibreLane Contributors
 #
 # Adapted from OpenLane
 #
@@ -17,6 +17,40 @@
 # limitations under the License.
 source $::env(_TCL_ENV_IN)
 source $::env(SCRIPTS_DIR)/openroad/common/set_global_connections.tcl
+
+namespace eval lln {
+    proc get_corner_names {} {
+        # returns: names as a Tcl list, compatible with both OpenSTA 2 and 3
+        if {[string length [namespace which sta::scenes]] != 0} {
+            # scenes are bridged as a list of strings
+            return [sta::scenes]
+        } else {
+            # corners are not bridged as strings
+            set result [list]
+            foreach corner [sta::corners] {
+                lappend result [$corner name]
+            }
+            return $result
+        }
+    }
+    proc get_corner_dict {} {
+        # returns: Tcl dictionary from corner names to whatever object is
+        # interpreted as a corner for internal commands that expect corners:
+        # - in OpenSTA 3, that's the scene's name again
+        # - in OpenSTA 2, that's an opaque Tcl pointer
+        set result [dict create]
+        if {[string length [namespace which sta::scenes]] != 0} {
+            foreach scene [sta::scenes] {
+                dict set result $scene $scene
+            }
+        } else {
+            foreach corner [sta::corners] {
+                dict set result [$corner name] $corner
+            }
+        }
+        return $result
+    }
+};
 
 proc string_in_file {file_path substring} {
     set f [open $file_path r]
@@ -532,9 +566,7 @@ proc write_views {args} {
     }
 
     if { [info exists ::env(SAVE_SDF)] } {
-        set corners [sta::corners]
-        if { [llength $corners] > 1 } {
-        } else {
+        if { [llength [lln::get_corner_names]] <= 1 } {
             puts "Writing SDF to '$::env(SAVE_SDF)'…"
             write_sdf -include_typ -divider . $::env(SAVE_SDF)
         }
@@ -543,11 +575,8 @@ proc write_views {args} {
 
 proc write_sdfs {} {
     if { [info exists ::env(_SDF_SAVE_DIR)] } {
-        set corners [sta::corners]
-
         puts "Writing SDF files for all corners…"
-        foreach corner $corners {
-            set corner_name [$corner name]
+        foreach corner_name [lln::get_corner_names] {
             set target $::env(_SDF_SAVE_DIR)/$::env(DESIGN_NAME)__$corner_name.sdf
             write_sdf -include_typ -divider . -corner $corner_name $target
         }
@@ -560,10 +589,8 @@ proc write_libs {} {
         # This is to avoid OpenSTA writing a context-dependent timing model
         set_clock_latency -source -max 0 [all_clocks]
         set_clock_latency -source -min 0 [all_clocks]
-        set corners [sta::corners]
         puts "Writing timing models for all corners…"
-        foreach corner $corners {
-            set corner_name [$corner name]
+        foreach corner_name [lln::get_corner_names] {
             set target $::env(_LIB_SAVE_DIR)/$::env(DESIGN_NAME)__$corner_name.lib
             puts "Writing timing models for the $corner_name corner to $target…"
             write_timing_model -corner $corner_name $target
