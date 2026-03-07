@@ -76,7 +76,7 @@ set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1
     set drc_report_iter_step_arg "-drc_report_iter_step 1"
-    detailed_route_debug -snapshot_dir "$::env(STEP_DIR)/$directory"
+    detailed_route_debug -snapshot_dir "$::env(STEP_DIR)"
 }
 if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
     set drc_report_iter_step_arg "-drc_report_iter_step $::env(DRT_SAVE_DRC_REPORT_ITERS)"
