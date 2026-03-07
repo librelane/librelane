@@ -457,7 +457,6 @@ class OpenROADStep(TclStep):
             command,
             env=env,
             check=check,
-            cwd=self.step_dir,
             **kwargs,
         )
 
@@ -1945,7 +1944,7 @@ class DetailedRouting(OpenROADStep):
             Variable(
                 "DRT_SAVE_SNAPSHOTS",
                 bool,
-                "This is an experimental variable. Saves an odb snapshot of the layout each routing iteration. This generates multiple odb files increasing disk usage.",
+                "Experimental: saves an odb snapshot of the layout each routing iteration. This increases disk usage considerably but is useful for debugging.",
                 default=False,
             ),
             Variable(
