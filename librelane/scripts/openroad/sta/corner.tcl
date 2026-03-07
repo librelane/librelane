@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2020-2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +17,8 @@
 # limitations under the License.
 
 # This file supports one defined corner per-process.
-# Any more defined corners will be ignored.
-# Aggregation is left to the LibreLane step.
+# Any more defined corners will be ignored: aggregation is left to the LibreLane
+# step.
 
 
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
@@ -44,8 +48,11 @@ if { [namespace exists ::ord] } {
 }
 read_spefs
 
-set corner [lindex [sta::corners] 0]
-sta::set_cmd_corner $corner
+foreach {corner_name corner_object} [lln::get_corner_dict] {
+    # corner_name set for rest of eternity
+    sta::set_cmd_corner $corner_object
+    break
+}
 
 set clocks [sta::sort_by_name [sta::all_clocks]]
 
@@ -57,8 +64,8 @@ puts "%OL_CREATE_REPORT min.rpt"
 puts "\n==========================================================================="
 puts "report_checks -path_delay min (Hold)"
 puts "============================================================================"
-puts "======================= [$corner name] Corner ===================================\n"
-report_checks -sort_by_slack -path_delay min -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_checks -sort_by_slack -path_delay min -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner $corner_name
 puts ""
 puts "%OL_END_REPORT"
 
@@ -67,8 +74,8 @@ puts "%OL_CREATE_REPORT max.rpt"
 puts "\n==========================================================================="
 puts "report_checks -path_delay max (Setup)"
 puts "============================================================================"
-puts "======================= [$corner name] Corner ===================================\n"
-report_checks -sort_by_slack -path_delay max -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_checks -sort_by_slack -path_delay max -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner $corner_name
 puts ""
 puts "%OL_END_REPORT"
 
@@ -77,23 +84,23 @@ puts "%OL_CREATE_REPORT checks.rpt"
 puts "\n==========================================================================="
 puts "report_checks -unconstrained"
 puts "==========================================================================="
-puts "======================= [$corner name] Corner ===================================\n"
-report_checks -unconstrained -fields {slew cap input net fanout} -format full_clock_expanded -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_checks -unconstrained -fields {slew cap input net fanout} -format full_clock_expanded -corner $corner_name
 puts ""
 
 
 puts "\n==========================================================================="
 puts "report_checks --slack_max -0.01"
 puts "============================================================================"
-puts "======================= [$corner name] Corner ===================================\n"
-report_checks -slack_max -0.01 -fields {slew cap input net fanout} -format full_clock_expanded -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_checks -slack_max -0.01 -fields {slew cap input net fanout} -format full_clock_expanded -corner $corner_name
 puts ""
 
 puts "\n==========================================================================="
 puts " report_check_types -max_slew -max_cap -max_fanout -violators"
 puts "============================================================================"
-puts "======================= [$corner name] Corner ===================================\n"
-report_check_types -max_slew -max_capacitance -max_fanout -violators -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_check_types -max_slew -max_capacitance -max_fanout -violators -corner $corner_name
 puts ""
 
 puts "\n==========================================================================="
@@ -103,11 +110,11 @@ report_parasitic_annotation -report_unannotated
 
 puts "\n==========================================================================="
 puts "max slew violation count [sta::max_slew_violation_count]"
-write_metric_int "design__max_slew_violation__count__corner:[$corner name]" [sta::max_slew_violation_count]
+write_metric_int "design__max_slew_violation__count__corner:$corner_name" [sta::max_slew_violation_count]
 puts "max fanout violation count [sta::max_fanout_violation_count]"
-write_metric_int "design__max_fanout_violation__count__corner:[$corner name]" [sta::max_fanout_violation_count]
+write_metric_int "design__max_fanout_violation__count__corner:$corner_name" [sta::max_fanout_violation_count]
 puts "max cap violation count [sta::max_capacitance_violation_count]"
-write_metric_int "design__max_cap_violation__count__corner:[$corner name]" [sta::max_capacitance_violation_count]
+write_metric_int "design__max_cap_violation__count__corner:$corner_name" [sta::max_capacitance_violation_count]
 puts "============================================================================"
 
 puts "\n==========================================================================="
@@ -122,10 +129,10 @@ puts "%OL_CREATE_REPORT power.rpt"
 puts "\n==========================================================================="
 puts " report_power"
 puts "============================================================================"
-puts "======================= [$corner name] Corner ===================================\n"
-report_power -corner [$corner name]
+puts "======================= $corner_name Corner ===================================\n"
+report_power -corner $corner_name
 
-set power_result [sta::design_power $corner]
+set power_result [sta::design_power $corner_object]
 set totals       [lrange $power_result  0  3]
 lassign $totals design_internal design_switching design_leakage design_total
 
@@ -143,10 +150,10 @@ puts "\n========================================================================
 puts "Clock Skew (Hold)"
 puts "============================================================================"
 set skew_corner [worst_clock_skew -hold]
-write_metric_num "clock__skew__worst_hold__corner:[$corner name]" $skew_corner
+write_metric_num "clock__skew__worst_hold__corner:$corner_name" $skew_corner
 
-puts "======================= [$corner name] Corner ===================================\n"
-report_clock_skew -corner [$corner name] -hold
+puts "======================= $corner_name Corner ===================================\n"
+report_clock_skew -corner $corner_name -hold
 
 puts "%OL_END_REPORT"
 
@@ -155,10 +162,10 @@ puts "\n========================================================================
 puts "Clock Skew (Setup)"
 puts "============================================================================"
 set skew_corner [worst_clock_skew -setup]
-write_metric_num "clock__skew__worst_setup__corner:[$corner name]" $skew_corner
+write_metric_num "clock__skew__worst_setup__corner:$corner_name" $skew_corner
 
-puts "======================= [$corner name] Corner ===================================\n"
-report_clock_skew -corner [$corner name] -setup
+puts "======================= $corner_name Corner ===================================\n"
+report_clock_skew -corner $corner_name -setup
 
 puts "%OL_END_REPORT"
 
@@ -166,9 +173,9 @@ puts "%OL_CREATE_REPORT ws.min.rpt"
 puts "\n==========================================================================="
 puts "Worst Slack (Hold)"
 puts "============================================================================"
-set ws [worst_slack -corner [$corner name] -min]
-write_metric_num "timing__hold__ws__corner:[$corner name]" $ws
-puts "[$corner name]: $ws"
+set ws [worst_slack -corner $corner_name -min]
+write_metric_num "timing__hold__ws__corner:$corner_name" $ws
+puts "$corner_name: $ws"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT ws.max.rpt"
@@ -176,9 +183,9 @@ puts "\n========================================================================
 puts "Worst Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner [$corner name] -max]
-write_metric_num "timing__setup__ws__corner:[$corner name]" $ws
-puts "[$corner name]: $ws"
+set ws [worst_slack -corner $corner_name -max]
+write_metric_num "timing__setup__ws__corner:$corner_name" $ws
+puts "$corner_name: $ws"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT tns.min.rpt"
@@ -186,18 +193,18 @@ puts "\n========================================================================
 puts "Total Negative Slack (Hold)"
 puts "============================================================================"
 
-set tns [total_negative_slack -corner [$corner name] -min]
-write_metric_num "timing__hold__tns__corner:[$corner name]" $tns
-puts "[$corner name]: $tns"
+set tns [total_negative_slack -corner $corner_name -min]
+write_metric_num "timing__hold__tns__corner:$corner_name" $tns
+puts "$corner_name: $tns"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT tns.max.rpt"
 puts "\n==========================================================================="
 puts "Total Negative Slack (Setup)"
 puts "============================================================================"
-set tns [total_negative_slack -corner [$corner name] -max]
-write_metric_num "timing__setup__tns__corner:[$corner name]" $tns
-puts "[$corner name]: $tns"
+set tns [total_negative_slack -corner $corner_name -max]
+write_metric_num "timing__setup__tns__corner:$corner_name" $tns
+puts "$corner_name: $tns"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT wns.min.rpt"
@@ -205,13 +212,13 @@ puts "\n========================================================================
 puts "Worst Negative Slack (Hold)"
 puts "============================================================================"
 
-set ws [worst_slack -corner [$corner name] -min]
+set ws [worst_slack -corner $corner_name -min]
 set wns 0
 if { $ws < 0 } {
     set wns $ws
 }
-write_metric_num "timing__hold__wns__corner:[$corner name]" $wns
-puts "[$corner name]: $wns"
+write_metric_num "timing__hold__wns__corner:$corner_name" $wns
+puts "$corner_name: $wns"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT wns.max.rpt"
@@ -219,13 +226,13 @@ puts "\n========================================================================
 puts "Worst Negative Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner [$corner name] -max]
+set ws [worst_slack -corner $corner_name -max]
 set wns 0.0
 if { $ws < 0 } {
     set wns $ws
 }
-write_metric_num "timing__setup__wns__corner:[$corner name]" $wns
-puts "[$corner name]: $wns"
+write_metric_num "timing__setup__wns__corner:$corner_name" $wns
+puts "$corner_name: $wns"
 puts "%OL_END_REPORT"
 
 proc check_if_terminal {pin_object} {
@@ -333,12 +340,12 @@ foreach path $setup_paths {
     }
 }
 
-write_metric_int "timing__hold_vio__count__corner:[$corner name]" $total_hold_vios
-write_metric_num "timing__hold_r2r__ws__corner:[$corner name]" $worst_r2r_hold_slack
-write_metric_int "timing__hold_r2r_vio__count__corner:[$corner name]" $r2r_hold_vios
-write_metric_int "timing__setup_vio__count__corner:[$corner name]" $total_setup_vios
-write_metric_num "timing__setup_r2r__ws__corner:[$corner name]" $worst_r2r_setup_slack
-write_metric_int "timing__setup_r2r_vio__count__corner:[$corner name]" $r2r_setup_vios
+write_metric_int "timing__hold_vio__count__corner:$corner_name" $total_hold_vios
+write_metric_num "timing__hold_r2r__ws__corner:$corner_name" $worst_r2r_hold_slack
+write_metric_int "timing__hold_r2r_vio__count__corner:$corner_name" $r2r_hold_vios
+write_metric_int "timing__setup_vio__count__corner:$corner_name" $total_setup_vios
+write_metric_num "timing__setup_r2r__ws__corner:$corner_name" $worst_r2r_setup_slack
+write_metric_int "timing__setup_r2r_vio__count__corner:$corner_name" $r2r_setup_vios
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT unpropagated.rpt"

@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2020-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,8 +67,8 @@ proc resizer_rc_values {header} {
     upvar 1 r_entry r_entry
 
     puts $header
-    foreach corner [sta::corners] {
-        puts "=== Corner [$corner name] ==="
+    foreach {corner_name corner} [lln::get_corner_dict] {
+        puts "=== Corner $corner_name ==="
         puts "==== Estimation RC Values ===="
         puts [format $rc_header "Name" "Direction" "Res/Unit Distance" "Cap/Unit Distance"]
         puts [format $rc_entry "Signal" "Avg" [scale_ohm_per_meter [est::wire_signal_resistance $corner]] [scale_f_per_meter [est::wire_signal_capacitance $corner]]]
