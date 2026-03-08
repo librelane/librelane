@@ -1,4 +1,4 @@
-# Copyright 2025-2026 LibreLane Contributors
+# Copyright 2025 LibreLane Contributors
 #
 # Adapted from OpenLane
 #
