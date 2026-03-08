@@ -214,7 +214,6 @@ ref_rx = re.compile(r"^\$([A-Za-z_][A-Za-z0-9_\.\[\]]*)")
 def process_string(
     value: str,
     symbols: Mapping[str, Any],
-    readable_paths: Optional[List[str]] = None,
 ) -> Valid:
     global ref_rx
     EXPR_PREFIX = "expr::"
@@ -271,22 +270,12 @@ def process_string(
 
         ## If we're refg, all returns beyond this point must be of type
         ## List[str]
-
-        # Glob only if readable_paths isn't null
-        if readable_paths is None:
-            return [target]
-
         final_abspath = os.path.abspath(concatenated)
 
         # Glob only if it doesn't already resolve to a valid file
         if os.path.exists(final_abspath):
             return [final_abspath]
 
-        in_exposed = [final_abspath.startswith(p) for p in readable_paths]
-        if True not in in_exposed:
-            raise PermissionError(
-                f"'{concatenated}' is not located any path readable to LibreLane"
-            )
         files = sorted(glob.glob(final_abspath))
         files_escaped = [file.replace("$", r"\$") for file in files]
         files_escaped.sort()
@@ -307,7 +296,6 @@ def process_list_recursive(
     input: Sequence[Any],
     ref: List[Any],
     symbols: Dict[str, Any],
-    readable_paths: Optional[List[str]],
     *,
     key_path: str = "",
 ):
@@ -320,7 +308,6 @@ def process_list_recursive(
                 value,
                 processed,
                 symbols,
-                readable_paths,
                 key_path=current_key_path,
             )
         elif isinstance(value, Sequence) and not is_string(value):
@@ -329,11 +316,10 @@ def process_list_recursive(
                 value,
                 processed,
                 symbols,
-                readable_paths,
                 key_path=current_key_path,
             )
         elif is_string(value):
-            processed = process_string(value, symbols, readable_paths)
+            processed = process_string(value, symbols)
         else:
             processed = value
 
@@ -346,7 +332,6 @@ def process_dict_recursive(
     input: Mapping[str, Any],
     ref: Dict[str, Any],
     symbols: Dict[str, Any],
-    readable_paths: Optional[List[str]],
     *,
     key_path: str = "",
 ):
@@ -363,7 +348,6 @@ def process_dict_recursive(
                         value,
                         ref,
                         symbols,
-                        readable_paths,
                         key_path=key_path,
                     )
             elif key.startswith(SCL_PREFIX):
@@ -375,7 +359,6 @@ def process_dict_recursive(
                         value,
                         ref,
                         symbols,
-                        readable_paths,
                         key_path=key_path,
                     )
             else:
@@ -384,7 +367,6 @@ def process_dict_recursive(
                     value,
                     processed,
                     symbols,
-                    readable_paths,
                     key_path=current_key_path,
                 )
 
@@ -394,11 +376,10 @@ def process_dict_recursive(
                 value,
                 processed,
                 symbols,
-                readable_paths,
                 key_path=current_key_path,
             )
         elif is_string(value):
-            processed = process_string(value, symbols, readable_paths)
+            processed = process_string(value, symbols)
         else:
             processed = value
 
@@ -410,11 +391,10 @@ def process_dict_recursive(
 def process_config_dict(
     config_in: Mapping[str, Any],
     exposed_variables: Dict[str, Any],
-    readable_paths: Optional[List[str]],
 ) -> Dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
-    process_dict_recursive(config_in, state, symbols, readable_paths)
+    process_dict_recursive(config_in, state, symbols)
     return state
 
 
@@ -434,11 +414,7 @@ def preprocess_dict(
     pdkpath: Optional[str] = None,
     scl: Optional[str] = None,
     pad: Optional[str] = None,
-    readable_paths: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """
-    If readable_paths are set to None, refg:: will not work
-    """
     if None in (pdk, pdkpath, scl):
         if only_extract_process_info:
             pdkpath = ""
@@ -460,7 +436,6 @@ def preprocess_dict(
     preprocessed = process_config_dict(
         config_dict,
         base_vars,
-        readable_paths,
     )
     if only_extract_process_info:
         preprocessed = extract_process_vars(preprocessed)

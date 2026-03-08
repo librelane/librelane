@@ -707,12 +707,6 @@ class Config(GenericImmutableDict[str, Any]):
             if pdk_root is not None:
                 pdkpath = os.path.join(pdk_root, mutable["PDK"])
 
-        readable_paths = [
-            os.path.abspath(design_dir),
-        ]
-        if pdkpath != "":
-            readable_paths.append(os.path.abspath(pdkpath))
-
         mutable.update(
             preprocess_dict(
                 raw,
@@ -721,7 +715,6 @@ class Config(GenericImmutableDict[str, Any]):
                 scl=mutable[SpecialKeys.scl],
                 pad=mutable.get(SpecialKeys.pad, None),
                 design_dir=design_dir,
-                readable_paths=readable_paths,
             )
         )
 

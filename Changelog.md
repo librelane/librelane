@@ -543,6 +543,9 @@ Style Notes
 
   * `pdk_compat` set some compatibility values only if necessary.
 
+  * `refg::`, `dir::`, `pdk_dir::` now support globs outside the PDK directory
+    and the config directory.
+
 * `librelane.state`
 
   * `DesignFormat`
