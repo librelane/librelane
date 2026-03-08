@@ -74,8 +74,8 @@ endmodule
 ```
 
 Here, the clock for `u_ff2` is delayed, forcing a hold violation into existence.
-In a more realistic scenario, the resizer will invariably fix something so
-simple, but for the sake of demonstration, let's just turn it off.
+In a more realistic scenario, the resizer will usually be able to fix something
+so simple, but for the sake of demonstration, let's just turn it off.
 
 So running this config:
 

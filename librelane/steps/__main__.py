@@ -122,9 +122,10 @@ o = partial(option, show_default=True)
     sequential_flow_controls=False,
     jobs=False,
     accept_config_files=False,
+    pdk_options=False,
 )
 @pass_context
-def run(ctx, output, state_in, config, id, pdk_root, pdk, scl):
+def run(ctx, output, state_in, config, id, pdk_root):
     """
     Runs a step using a step-specific configuration object and an input state.
 
