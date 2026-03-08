@@ -24,7 +24,7 @@ proc log_cmd_rc {cmd args} {
 }
 
 proc set_layers_custom_rc {args} {
-    # Returns: All corners for which RC values were found
+    # Returns: All corner names for which RC values were found
     set i "0"
     set tc_key "_LAYER_RC_$i"
     set custom_corner_rc [list]
@@ -41,9 +41,8 @@ proc set_layers_custom_rc {args} {
             -resistance $res_value
         incr i
         set tc_key "_LAYER_RC_$i"
-        set corner [sta::find_corner $corner_name]
-        if { [lsearch $custom_corner_rc $corner] == -1 } {
-            lappend custom_corner_rc $corner
+        if { [lsearch $custom_corner_rc $corner_name] == -1 } {
+            lappend custom_corner_rc $corner_name
         }
     }
     return $custom_corner_rc
@@ -63,9 +62,8 @@ proc set_via_custom_r {args} {
             -corner $corner_name
         incr i
         set tc_key "_VIA_R_$i"
-        set corner [sta::find_corner $corner_name]
-        if { [lsearch $custom_corner_r $corner] == -1 } {
-            lappend custom_corner_r $corner
+        if { [lsearch $custom_corner_r $corner_name] == -1 } {
+            lappend custom_corner_r $corner_name
         }
     }
     return $custom_corner_r
@@ -77,7 +75,7 @@ proc set_layers_default_rc {corners} {
         lassign [est::dblayer_wire_rc $layer] layer_wire_res_ohm_m layer_wire_cap_farad_m
         set layer_wire_res_per_unit_distance [expr $layer_wire_res_ohm_m * [sta::unit_scale distance] / [sta::unit_scale resistance]]
         set layer_wire_cap_per_unit_distance [expr $layer_wire_cap_farad_m * [sta::unit_scale distance] / [sta::unit_scale capacitance]]
-        foreach corner "$corners" {
+        foreach corner $corners {
             log_cmd_rc set_layer_rc \
                 -layer $layer_name\
                 -corner $corner\
@@ -132,9 +130,9 @@ proc set_wire_rc_wrapper {args} {
     }
 
     if { [info exists flags(-use_corners)] } {
-        foreach corner [sta::corners] {
-            log_cmd_rc set_wire_rc {*}$clock_args -corner [$corner name]
-            log_cmd_rc set_wire_rc {*}$signal_args -corner [$corner name]
+        foreach corner [lln::get_corner_names] {
+            log_cmd_rc set_wire_rc {*}$clock_args -corner $corner
+            log_cmd_rc set_wire_rc {*}$signal_args -corner $corner
         }
     } else {
         log_cmd_rc set_wire_rc {*}$clock_args
@@ -163,8 +161,8 @@ proc set_diff {setA setB} {
 
 set corners_with_custom_layer_rc [set_layers_custom_rc]
 set corners_with_custom_via_r [set_via_custom_r]
-set corners_without_custom_layer_rc [set_diff [sta::corners] $corners_with_custom_layer_rc]
-set corners_without_custom_via_r [set_diff [sta::corners] $corners_with_custom_via_r]
+set corners_without_custom_layer_rc [set_diff [lln::get_corner_names] $corners_with_custom_layer_rc]
+set corners_without_custom_via_r [set_diff [lln::get_corner_names] $corners_with_custom_via_r]
 
 # If ANY CORNERS have custom RC values set, set the tech LEF values for the
 # remaining corners.
@@ -175,7 +173,7 @@ set corners_without_custom_via_r [set_diff [sta::corners] $corners_with_custom_v
 # This is because, technically, while both behaviors SHOULD be identical, they
 # aren't because of roundoff errors emblematic of IEEE 754.
 if { [llength $corners_with_custom_layer_rc] } {
-    log_cmd_rc set_layers_default_rc [lmap corner $corners_without_custom_layer_rc "\$corner name"]
+    log_cmd_rc set_layers_default_rc $corners_without_custom_layer_rc
 }
 if { [llength $corners_with_custom_via_r] } {
     log_cmd_rc set_vias_default_r $corners_without_custom_via_r
