@@ -497,6 +497,14 @@ jobs:
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ env.PDK_HASH }}
 
+      - name: Smoke Test (Nix)
+        run: |
+            nix run . --\
+              --pdk ${{ matrix.design.pdk }}\
+              --scl ${{ matrix.design.scl }}\
+              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
+              --smoke
+
       - name: Run Test
         id: test_run
         continue-on-error: true
