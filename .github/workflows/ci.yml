@@ -503,7 +503,7 @@ jobs:
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
               --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
-              --smoke
+              --smoke-test
 
       - name: Run Test
         id: test_run
