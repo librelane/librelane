@@ -19,11 +19,6 @@ set_propagated_clock [all_clocks]
 
 source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
 
-# Check Antennas (Pre-Repair)
-puts "%OL_CREATE_REPORT antenna.rpt"
-check_antennas -verbose
-puts "%OL_END_REPORT"
-
 source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 estimate_parasitics -global_routing
 

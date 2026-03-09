@@ -66,36 +66,21 @@ def test_process_string():
     with pytest.raises(KeyError, match="not found"):
         process_string("ref::$A", {})
 
-    assert process_string(
-        "refg::$DESIGN_DIR/src/a*.v",
-        {"DESIGN_DIR": "/cwd"},
-        ["/cwd"],
-    ) == [
+    assert process_string("refg::$DESIGN_DIR/src/a*.v", {"DESIGN_DIR": "/cwd"}) == [
         "/cwd/src/a_file.v",
         "/cwd/src/another_file.v",
     ], "refg:: in design dir not working"
 
     assert process_string(
-        "refg::$DESIGN_DIR/src/a*.v",
-        {"DESIGN_DIR": "/cwd"},
-        ["/cwd"],
+        "refg::$DESIGN_DIR/src/a*.v", {"DESIGN_DIR": "/cwd"}
     ) == process_string(
-        "dir::src/a*.v",
-        {"DESIGN_DIR": "/cwd"},
-        ["/cwd"],
+        "dir::src/a*.v", {"DESIGN_DIR": "/cwd"}
     ), "dir:: doesn't match refg::$DESIGN_DIR"
 
-    with pytest.raises(PermissionError, match="readable to"):
-        process_string(
-            "refg::$MY_VARIABLE/src/a*.v",
-            {"DESIGN_DIR": "/cwd", "MY_VARIABLE": "/ncwd"},
-            ["/cwd"],
-        )
-
-    assert process_string("refg::$A/*", {"A": "B"}, ["/cwd"]) == [
+    assert process_string("refg::$A/*", {"A": "B"}) == [
         "B/*"
     ], "refg:: on non-existent directory not working"
-    assert process_string("refg::$A", {"A": "B"}, ["/cwd"]) == [
+    assert process_string("refg::$A", {"A": "B"}) == [
         "B"
     ], "refg:: without asterisks or ? did not return the same file path"
 
@@ -151,7 +136,6 @@ def test_preprocess_dict():
         pdk="sky130A",
         pdkpath="/cwd",
         scl="sky130_fd_sc_hd",
-        readable_paths=["/cwd"],
     )
     expected = {
         "PDK": "sky130A",
