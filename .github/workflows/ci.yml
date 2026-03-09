@@ -249,6 +249,21 @@ jobs:
           shell: "zsh {0}"
           run_tests: "true"
           pdk_root: ${{ github.workspace }}/.ciel-sky130
+      - name: Smoke (Sky130)
+        run: |
+            nix run . -- \
+              --pdk sky130A \
+              --smoke-test
+      - name: Smoke (ihp-sg13g2)
+        run: |
+            nix run . -- \
+              --pdk ihp-sg13g2 \
+              --smoke-test
+      - name: Smoke (GF180MCU)
+        run: |
+            nix run . -- \
+              --pdk gf180mcuD \
+              --smoke-test
       - name: Cache to S3
         uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
         with:
@@ -496,14 +511,6 @@ jobs:
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ env.PDK_HASH }}
-
-      - name: Smoke Test (Nix)
-        run: |
-            nix run . --\
-              --pdk ${{ matrix.design.pdk }}\
-              --scl ${{ matrix.design.scl }}\
-              --pdk-root ./.ciel-${{ matrix.design.pdk_family }}\
-              --smoke-test
 
       - name: Run Test
         id: test_run
