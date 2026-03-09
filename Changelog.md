@@ -66,7 +66,7 @@ Style Notes
 
 * Created `KLayout.Filler`
 
-  * Add generic implementation.
+  * Added generic implementation.
   * Added ihp-sg13g2/ihp-sg13cmos5l implementation.
 
 * Created `KLayout.Density`
@@ -110,6 +110,10 @@ Style Notes
   * Added `MAGIC_DRC_MAGLEFS`
 
     * Used to blackbox cells during DRC
+
+* Created `Magic.Filler`
+
+  * Added generic implementation.
 
 * `Magic.StreamOut`
 

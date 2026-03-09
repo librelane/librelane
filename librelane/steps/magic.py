@@ -19,6 +19,7 @@ import os
 import re
 import shutil
 import subprocess
+from os.path import abspath
 from signal import SIGKILL
 from decimal import Decimal
 from abc import abstractmethod
@@ -380,6 +381,109 @@ class StreamOut(MagicStep):
         )
 
         return views_updates, metrics_updates
+
+
+@Step.factory.register()
+class Filler(Step):
+    """
+    Generates the filler cells according to the design rules and adds them to the GDS.
+    """
+
+    id = "Magic.Filler"
+    name = "Filler Generation"
+
+    inputs = [DesignFormat.GDS]
+    outputs = [DesignFormat.GDS]
+
+    config_vars = [
+        Variable(
+            "MAGIC_FILLER_SCRIPT",
+            Optional[Path],
+            "Path to the magic filler script.",
+            pdk=True,
+        ),
+        Variable(
+            "MAGIC_FILLER_OPTIONS",
+            Optional[List[str]],
+            "Options passed directly to the magic filler script.",
+            pdk=True,
+        ),
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        metrics_updates: MetricsUpdate = {}
+        views_updates: ViewsUpdate = {}
+
+        if not self.config["MAGIC_FILLER_SCRIPT"]:
+            self.warn(
+                f"MAGIC_FILLER_SCRIPT is unset. Magic.Filler may not be supported for the {self.config['PDK']} PDK. This step will be skipped."
+            )
+            return views_updates, metrics_updates
+
+        views_updates, metrics_updates = self.run_generic(state_in, **kwargs)
+
+        return views_updates, metrics_updates
+
+    def run_generic(
+        self, state_in: State, **kwargs
+    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates: ViewsUpdate = {}
+        kwargs, env = self.extract_env(kwargs)
+
+        input_gds = state_in[DesignFormat.GDS]
+        assert isinstance(input_gds, Path)
+
+        fill_gds = os.path.join(
+            self.step_dir,
+            f"{self.config['DESIGN_NAME']}_fill.{DesignFormat.GDS.extension}",
+        )
+        output_gds = os.path.join(
+            self.step_dir, f"{self.config['DESIGN_NAME']}.{DesignFormat.GDS.extension}"
+        )
+
+        script = abspath(self.config["MAGIC_FILLER_SCRIPT"])
+        opts = self.config["MAGIC_FILLER_OPTIONS"] or []
+
+        env["PDK_ROOT"] = self.config["PDK_ROOT"]
+        env["PDK"] = self.config["PDK"]
+
+        # Run filler generation
+        self.run_subprocess(
+            [
+                "python3",
+                script,
+                input_gds,
+                fill_gds,
+                *opts,
+            ],
+            env=env,
+        )
+
+        # Combine fill and layout
+        self.run_subprocess(
+            [
+                "klayout",
+                "-b",
+                "-zz",
+                "-r",
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "insert_cell.py",
+                ),
+                "-rd",
+                f"input={abspath(input_gds)}",
+                "-rd",
+                f"insert={abspath(fill_gds)}",
+                "-rd",
+                f"output={abspath(output_gds)}",
+            ],
+            env=env,
+        )
+
+        views_updates[DesignFormat.GDS] = Path(output_gds)
+
+        return views_updates, {}
 
 
 @Step.factory.register()
