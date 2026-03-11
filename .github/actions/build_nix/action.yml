@@ -26,6 +26,7 @@ runs:
       run: |
         echo "#################################################################"
         outPath=$(nix build\
+          -L\
           --print-out-paths\
           --no-link\
           --accept-flake-config\
