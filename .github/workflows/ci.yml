@@ -582,7 +582,7 @@ jobs:
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-librelane || true
-      - name: Smoke (Sky130)
+      - name: Smoke (sky130)
         run: |
             nix run . -- \
               --pdk sky130A \
@@ -592,7 +592,7 @@ jobs:
             nix run . -- \
               --pdk ihp-sg13g2 \
               --smoke-test
-      - name: Smoke (GF180MCU)
+      - name: Smoke (gf180mcu)
         run: |
             nix run . -- \
               --pdk gf180mcuD \
