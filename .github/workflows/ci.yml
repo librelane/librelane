@@ -544,6 +544,60 @@ jobs:
       - name: Propagate test failure after uploading metrics
         if: steps.test_run.outcome == 'failure'
         run: exit -1
+
+  smoke:
+    runs-on: ubuntu-22.04
+    needs: [build-linux-x86_64, build-linux-aarch64]
+    name: Smoke Test on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [x86_64-linux, aarch64-linux]
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Check if Git
+        run: |
+          git status || true
+          tree .git || true
+      - uses: ./.github/actions/setup_nix
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+      - name: Build with Nix
+        uses: ./.github/actions/build_nix
+        with:
+          nix_system: x86_64-linux
+      - name: Check Nix
+        run: |
+          sudo du -hs /nix/store/* | sort -h | tail -n 10
+          sudo tree /nix/store/*-librelane || true
+      - name: Smoke (sky130)
+        run: |
+            nix run . -- \
+              --pdk sky130A \
+              --smoke-test
+      - name: Smoke (ihp-sg13g2)
+        run: |
+            nix run . -- \
+              --pdk ihp-sg13g2 \
+              --smoke-test
+      - name: Smoke (gf180mcu)
+        run: |
+            nix run . -- \
+              --pdk gf180mcuD \
+              --smoke-test
+
   merge_metrics:
     name: Merge Metrics
     runs-on: ubuntu-22.04
