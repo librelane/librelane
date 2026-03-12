@@ -1,5 +1,7 @@
 gds read $::env(_GDS_IN)
 load $::env(_MACRO_NAME_IN)
+set curunits [units]
+units internal
 set properties [property]
 foreach property [property] {
     if {[lindex $property 0] == "FIXED_BBOX"} {
@@ -9,3 +11,4 @@ foreach property [property] {
         puts "%OL_METRIC_I ury [lindex $property 4]"
     }
 }
+units {*}$curunits

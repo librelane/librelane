@@ -116,6 +116,8 @@ Style Notes
   * Added `MAGIC_GDS_MERGE` to merge tiles into polygons during gds write (Default: True).
 
   * Set `MAGIC_DEF_LABELS` to False by default.
+  
+  * Simplified get_bbox and make it more robust
 
 * `Magic.SpiceExtraction`:
 
@@ -449,10 +451,10 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 6.8.0
+* Updated nix-eda to 6.9.0
   * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
   * Updated KLayout to `0.30.6`
-  * Updated Magic to `8.3.616`
+  * Updated Magic to `8.3.619`
   * Updated Netgen to `1.5.316`
   * Updated Yosys to `0.62`
     * Replaced Synlig with [Slang](https://github.com/povik/yosys-slang)
