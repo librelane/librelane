@@ -183,10 +183,10 @@ puts "\n========================================================================
 puts "Worst Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner [$corner name] -max]
-write_metric_num "timing__setup__ws__corner:[$corner name]" $ws
+set ws [worst_slack -corner $corner_name -max]
+write_metric_num "timing__setup__ws__corner:$corner_name" $ws
 set w_s $ws
-puts "[$corner name]: $ws"
+puts "$corner_name: $ws"
 puts "%OL_END_REPORT"
 
 puts "%OL_CREATE_REPORT tns.min.rpt"
@@ -409,7 +409,7 @@ foreach clock [all_clocks] {
       set fmax [expr 1.0e3 / $min_period]
     }
     
-    write_metric_num "timing__clock__fmax__corner:[$corner name]" $fmax
+    write_metric_num "timing__clock__fmax__corner:$corner_name" $fmax
 }
 
 puts "%OL_END_REPORT"
