@@ -403,10 +403,13 @@ foreach clock [all_clocks] {
     set min_period [expr $CLK_PERIOD-$w_s]
     if { $min_period == 0.0 } {
       set min_period 0
-      set fmax "INF"
+      set fmax_n "INF"
     } else {
       # max frequency in MHz
       set fmax [expr 1.0e3 / $min_period]
+      if {$w_s <0} {
+	      set fmax [expr {$fmax * -1.0}]
+      }
     }
     
     write_metric_num "timing__clock__fmax__corner:$corner_name" $fmax
