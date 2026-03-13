@@ -523,6 +523,8 @@ Style Notes
 
   * `_eval_env`: Add support for nested dicts in tcl
 
+  * `Path`: Add support for `write_text` and `read_text`
+
 * `librelane.flows`
 
   * `SequentialFlow`
