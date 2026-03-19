@@ -84,6 +84,20 @@ class Orientation(str, Enum):
     def __str__(self) -> str:
         return self.value
 
+@dataclass
+class InstanceArray:
+    """
+    An array of instantiated instances.
+
+    :param offset: The coordinate of the bottom-left position of this array in microns.
+    :param step: The number of microns to increase the coordinates by when placing each instance in this
+    array.
+    :param dimensions: Specified as (rows, columns) that define this array.
+    """
+    offset: Tuple[Decimal, Decimal]
+    step: Tuple[Decimal, Decimal]
+    dimensions: Tuple[int, int]
+
 
 @dataclass
 class Instance:
@@ -93,10 +107,14 @@ class Instance:
     :param location: The physical co-ordinates of the object's origin. Leave
         empty for automatic placement.
     :param orientation: The orientation of the object's placement. 'N'/'R0' by default.
+    :param array: If specified, this macro instance will be placed in an array pattern.
     """
 
     location: Optional[Tuple[Decimal, Decimal]]
     orientation: Optional[Orientation]
+
+    # specify as None by default, as this is a new change, and so we don't break existing tests
+    array: Optional[InstanceArray] = None
 
 
 @dataclass

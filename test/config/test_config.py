@@ -185,9 +185,9 @@ def test_tcl_config():
                 /cwd/src/a.v\\
                 /cwd/src/b.v\\
             "
-                    
+
             set ::env(RANDOM_ARRAY) ""
-            
+
             # cant test glob because of the mock filesystem
             """
         )
@@ -728,3 +728,58 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
         "See 'Migrating DIODE_INSERTION_STRATEGY'" in caplog.text
     ), "diode insertion strategy did not trigger a warning"
     caplog.clear()
+
+
+# @pytest.mark.usefixtures("_mock_conf_fs")
+# @mock_variables()
+# def test_resolve_macro_array():
+#     from librelane.state import DesignFormat
+#     from librelane.config import Macro, Instance, InstanceArray
+#     from librelane.common import Toolbox
+#
+#     cfg = {
+#         "MACROS": {
+#             "epic_sram_512x8": Macro(
+#                 gds=[""],
+#                 lef=[""],
+#                 instances={"srams": Instance((10, 10), "N", InstanceArray(
+#                     offset=[10., 10.],
+#                     step=[100., 100.],
+#                     dimensions=[2, 2]
+#                 ))},
+#                 nl=["macro_a.nl.v"],
+#                 spef={
+#                     "nom_*": ["a_nom.spef"],
+#                     "min_*": ["a_nin.spef"],
+#                     "max_*": ["a_max.spef"],
+#                 },
+#                 lib={
+#                     "nom_tt_025C_1v80": ["a_tt.lib"],
+#                     "nom_ss_n40C_1v80": ["a_ss.lib"],
+#                     "min_ff_025C_5v00": ["a_ff.lib"],
+#                 },
+#                 spice=[],
+#                 sdf={},
+#                 json_h=None,
+#             ),
+#         }
+#     }
+#
+#     toolbox = Toolbox(".")
+#
+#     assert set(
+#         toolbox.get_macro_views_by_priority(
+#             cfg,
+#             [
+#                 DesignFormat.VERILOG_HEADER,
+#                 DesignFormat.NETLIST,
+#                 DesignFormat.POWERED_NETLIST,
+#             ],
+#             "nom_tt_025C_1v80",
+#         )
+#     ) == {
+#         ("macro_a.nl.v", DesignFormat.NETLIST),
+#         ("macro_b.pnl.v", DesignFormat.POWERED_NETLIST),
+#         ("macro_c.vh", DesignFormat.VERILOG_HEADER),
+#     }, "test_get_macro_views_by_priority returned unexpected result"
+#

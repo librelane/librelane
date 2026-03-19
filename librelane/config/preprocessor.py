@@ -388,13 +388,64 @@ def process_dict_recursive(
             symbols[current_key_path] = processed
 
 
+def expand_macro_array(
+    name_template: str,
+    array: Mapping[str, Any],
+    exposed_variables: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Expands a single macro array.
+
+    Returns a list of macro instantiations.
+    """
+    out = []
+
+    # prepare this outside the hot loop
+    subs = exposed_variables.copy()
+
+    rows, cols = array["dimensions"]
+    for row in range(rows):
+        for col in range(cols):
+            # expand the name template, defining the X and Y variables
+            subs["X"] = col
+            subs["Y"] = row
+            # also support row/col syntax
+            subs["COL"] = col
+            subs["ROW"] = row
+            expanded = process_string(name_template, subs)
+
+    return out
+
+
+def locate_and_expand_macro_arrays(
+    config_in: Mapping[str, Any],
+    exposed_variables: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Looks for, and expands, macro arrays.
+
+    Returns the config with macro arrays fully expanded.
+    """
+    out = config_in
+    if (macros := config_in.get("MACROS")) is not None:
+        for macro_name, macro in macros.items():
+            # assume instances must exist
+            for instance_name, instance in macro["instances"].items():
+                if (array := instance.get("array")) is not None:
+                    out = expand_macro_array(instance_name, array, exposed_variables)
+                    # TODO rewrite it
+    return out
+
+
 def process_config_dict(
     config_in: Mapping[str, Any],
     exposed_variables: Dict[str, Any],
 ) -> Dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
-    process_dict_recursive(config_in, state, symbols)
+    # ensure that we expand macro arrays *first*, such that the macro name template is resolved
+    expanded = locate_and_expand_macro_arrays(config_in, symbols)
+    process_dict_recursive(expanded, state, symbols)
     return state
 
 
