@@ -455,9 +455,10 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 6.10.0
+* Updated nix-eda to 6.11.0
   * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
-  * Updated KLayout to `0.30.6`
+  * Updated KLayout to `0.30.7`
+    * Added a patch for fixing a performance regression
   * Updated Magic to `8.3.623`
   * Updated Netgen to `1.5.316`
   * Updated Yosys to `0.62`
