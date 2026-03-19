@@ -604,7 +604,7 @@ class OpenSTAStep(OpenROADStep):
         name = timing_corner
         current_corner_spef = None
         input_spef_dict = state_in.get(DesignFormat.SPEF)
-        if input_spef_dict is not None:
+        if input_spef_dict is not None and len(input_spef_dict):
             if not isinstance(input_spef_dict, dict):
                 raise StepException(
                     "Malformed input state: value for 'spef' is not a dictionary"
