@@ -423,7 +423,9 @@ def expand_macro_array(
             subs["ROW"] = row
             # we perform a full preprocess on the string, in case the user has declared other variable names
             # in their macro name, in addition to row/col
-            expanded = process_string(name_template, subs)
+            # we also assume that process_string *should* return a string, but to appease mypy, we coax it
+            # into being a string here as well
+            expanded = str(process_string(name_template, subs))
             out[expanded] = {"location": [x, y], **additional_attributes}
             x += x_incr
         # new row, reset
