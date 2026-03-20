@@ -225,15 +225,13 @@ def process_string(
 
     mutable: str = value
 
-    # before we do anything else, apply inline variable substitution
-    mutable = mutable.format(**symbols)
-
-    print(f"Process string with value '{value}' symbols '{symbols}'\n    result: {mutable}")
-
     if value.startswith(DIR_PREFIX):
         mutable = value.replace(DIR_PREFIX, f"refg::${Keys.design_dir}/")
     elif value.startswith(PDK_DIR_PREFIX):
         mutable = value.replace(PDK_DIR_PREFIX, f"refg::${Keys.pdkpath}/")
+
+    # before we do anything else, apply inline variable substitution
+    mutable = mutable.format(**symbols)
 
     if mutable.startswith(EXPR_PREFIX):
         try:
@@ -288,10 +286,8 @@ def process_string(
         if len(files_escaped) == 0:
             files_escaped = [concatenated]
 
-        print(f"return: {files_escaped}")
         return files_escaped
     else:
-        print(f"return: {mutable}")
         return mutable
 
 
