@@ -471,6 +471,12 @@ def locate_and_expand_macro_arrays(
                 __coerce_dict(macro)["instances"].copy().items()
             ):
                 if (array := instance.get("array")) is not None:
+                    # check that location has not been manually specified: this conflicts
+                    if instance.get("location"):
+                        raise RuntimeError(
+                            f"Macro instance '{instance_name}' specifies both a manully placed location and an array."
+                        )
+
                     # perform expansion of this array
                     orientation = __coerce_dict(instance)["orientation"]
                     expansions = expand_macro_array(
