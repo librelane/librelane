@@ -426,6 +426,7 @@ def expand_macro_array(
     x, y = array["offset"]
     x_init, y_init = array["offset"]
     x_incr, y_incr = array["step"]
+    seq = 0
 
     rows, cols = array["dimensions"]
     for row in range(rows):
@@ -436,6 +437,7 @@ def expand_macro_array(
             # also support row/col syntax
             subs["COL"] = col
             subs["ROW"] = row
+            subs["SEQ"] = seq
             # we perform a full preprocess on the string, in case the user has declared other variable names
             # in their macro name, in addition to row/col
             # we also assume that process_string *should* return a string, but to appease mypy, we coax it
@@ -443,6 +445,7 @@ def expand_macro_array(
             expanded = str(process_string(name_template, subs))
             out[expanded] = {"location": [x, y], "orientation": orientation}
             x += x_incr
+            seq += 1
         # new row, reset
         x = x_init
         y += y_incr

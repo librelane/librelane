@@ -410,7 +410,7 @@ instances:
 A few things have happened here. Firstly, the instance name `sram_inst_x{X}_y{Y}` has been templated using
 LibreLane's expression system, using the newly supported inline variable expansion. The variables `X` and `Y`
 will be substituted with column and row numbers in the expansion process. `ROW` and `COL` are also supported,
-if you prefer.
+if you prefer, as is `SEQ`, which just refers to the sequence described below.
 
 Next, the `array` attribute has been added to indicate we'd like these instances to be placed in an array
 pattern, and we also configure the array itself. The array configuration attributes are as follows:
