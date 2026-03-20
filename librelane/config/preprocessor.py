@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 import re
 import os
 import glob
@@ -20,6 +21,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping, Sequence, Tuple, Union, Optional
 
+from .variable import Instance, Macro
 from ..common import is_string
 
 Keys = SimpleNamespace(
@@ -390,11 +392,16 @@ def process_dict_recursive(
             ref[key] = processed
             symbols[current_key_path] = processed
 
+def __coerce_dict(item: Any) -> Mapping[str, Any]:
+    if dataclasses.is_dataclass(item):
+        return dataclasses.asdict(item)
+    else:
+        return item
 
 def expand_macro_array(
     name_template: str,
     array: Mapping[str, Any],
-    additional_attributes: Mapping[str, Any],
+    orientation: str,
     exposed_variables: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
@@ -426,7 +433,8 @@ def expand_macro_array(
             # we also assume that process_string *should* return a string, but to appease mypy, we coax it
             # into being a string here as well
             expanded = str(process_string(name_template, subs))
-            out[expanded] = {"location": [x, y], **additional_attributes}
+            out[expanded] = {"location": [x, y], "orientation": orientation}
+            print(out[expanded], [x, y])
             x += x_incr
         # new row, reset
         x = x_init
@@ -449,20 +457,28 @@ def locate_and_expand_macro_arrays(
         for macro_name, macro in macros.items():
             # assume instances must exist
             # we also need to make a copy here, as we're modifying the dictionary as we iterate
-            for instance_name, instance in macro["instances"].copy().items():
+            for instance_name, instance in __coerce_dict(macro)["instances"].copy().items():
                 if (array := instance.get("array")) is not None:
                     # perform expansion of this array
-                    attrib = {k: v for k, v in instance.items() if k != "array"}
+                    orientation = __coerce_dict(instance)["orientation"]
                     expansions = expand_macro_array(
-                        instance_name, array, attrib, exposed_variables
+                        instance_name, __coerce_dict(array), orientation, exposed_variables
                     )
+                    print(expansions)
 
                     # add array elements to the root macro instances
                     for expansion_name, expansion in expansions.items():
-                        macro["instances"][expansion_name] = expansion
+                        if isinstance(macro, Macro):
+                            macro.instances[expansion_name] = Instance(location=expansion["location"],
+                                                                       orientation=expansion["orientation"])
+                        else:
+                            macro["instances"][expansion_name] = expansion
 
                     # delete this whole templated instance, since it has now been substituted
-                    del macro["instances"][instance_name]
+                    if isinstance(macro, Macro):
+                        del macro.instances[instance_name]
+                    else:
+                        del macro["instances"][instance_name]
     return out
 
 

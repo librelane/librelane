@@ -15,6 +15,7 @@ import os
 from decimal import Decimal
 
 import pytest
+from librelane.config.variable import Instance, InstanceArray, Macro
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 
@@ -246,10 +247,56 @@ def test_preprocess_array_macro():
         },
     }
 
-    # import pprint
-    # print("ACTUAL")
-    # pprint.pp(preprocessed)
-    # print("\nEXPECTED")
-    # pprint.pp(expected)
+    assert preprocessed == expected, "Preprocessor produced a different result"
+
+def test_preprocess_array_macro_with_macro_instances():
+    from librelane.config.preprocessor import preprocess_dict
+
+    design = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FILES": "dir::src/*.v",
+        "MACROS": {
+            "spm": Macro(gds="/foo", lef="/foo", instances={ "epic_sram_512x8_{X}_{Y}": Instance(
+                location=None,
+                orientation="N",
+                array=InstanceArray(
+                    offset=(100, 100),
+                    step=(100, 100),
+                    dimensions=(2, 2)
+                    )
+                )})
+        },
+    }
+
+    preprocessed = preprocess_dict(
+        design,
+        "/cwd",
+        pdk="sky130A",
+        pdkpath="/cwd",
+        scl="sky130_fd_sc_hd",
+    )
+
+    expected = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FILES": ["/cwd/src/a_file.v", "/cwd/src/another_file.v"],
+        "DESIGN_DIR": "/cwd",
+        "PAD_CELL_LIBRARY": None,
+        "PDKPATH": "/cwd",
+
+        "MACROS": {
+            "spm": Macro(gds="/foo", lef="/foo", instances={
+                "epic_sram_512x8_0_0": Instance(location=[100.,100.,], orientation="N"),
+                "epic_sram_512x8_1_0": Instance(location=[200.,100.,], orientation="N"),
+                "epic_sram_512x8_0_1": Instance(location=[100.,200.,], orientation="N"),
+                "epic_sram_512x8_1_1": Instance(location=[200.,200.,], orientation="N"),
+            })
+        },
+    }
 
     assert preprocessed == expected, "Preprocessor produced a different result"
