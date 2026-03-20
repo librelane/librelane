@@ -554,6 +554,13 @@ Style Notes
   * `refg::`, `dir::`, `pdk_dir::` now support globs outside the PDK directory
     and the config directory.
 
+  * Inline variable references are now possible using `{VAR_NAME}`
+
+  * Added `InstanceArray`
+
+  * Added the `array` attribute to a macro instance, to declare it should be expanded to
+    an array of instances; and updated the preprocessor to support this behaviour
+
 * `librelane.state`
 
   * `DesignFormat`
