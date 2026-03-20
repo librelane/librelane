@@ -472,7 +472,7 @@ def process_config_dict(
     symbols = dict(exposed_variables)
     # ensure that we expand macro arrays *first*, such that the macro name template is resolved
     expanded = locate_and_expand_macro_arrays(config_in, symbols)
-    process_dict_recursive(config_in, state, symbols)
+    process_dict_recursive(expanded, state, symbols)
     return state
 
 
