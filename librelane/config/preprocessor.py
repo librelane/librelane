@@ -394,7 +394,7 @@ def process_dict_recursive(
 def expand_macro_array(
     name_template: str,
     array: Mapping[str, Any],
-    additional_attributes: Mapping[str, any],
+    additional_attributes: Mapping[str, Any],
     exposed_variables: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
@@ -402,7 +402,7 @@ def expand_macro_array(
 
     Returns a list of macro instantiations.
     """
-    out = {}
+    out: dict[str, Any] = {}
 
     # prepare this outside the hot loop
     subs = exposed_variables.copy()
@@ -436,7 +436,7 @@ def expand_macro_array(
 def locate_and_expand_macro_arrays(
     config_in: Mapping[str, Any],
     exposed_variables: Dict[str, Any],
-) -> Dict[str, Any]:
+) -> Mapping[str, Any]:
     """
     Looks for, and expands, macro arrays.
 
