@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from _typeshed import DataclassInstance
 import dataclasses
 import re
 import os
@@ -24,6 +23,12 @@ from typing import Any, Dict, List, Mapping, Sequence, Tuple, Union, Optional
 
 from .variable import Instance, Macro
 from ..common import is_string
+
+# https://stackoverflow.com/a/77145529
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
 
 Keys = SimpleNamespace(
     pdk_root="PDK_ROOT",
@@ -394,7 +399,7 @@ def process_dict_recursive(
             symbols[current_key_path] = processed
 
 
-def __coerce_dict(item: Mapping[str, Any] | DataclassInstance) -> Mapping[str, Any]:
+def __coerce_dict(item: Mapping[str, Any] | "DataclassInstance") -> Mapping[str, Any]:
     if dataclasses.is_dataclass(item):
         return dataclasses.asdict(item)
     else:
