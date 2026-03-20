@@ -249,6 +249,7 @@ def test_preprocess_array_macro():
 
     assert preprocessed == expected, "Preprocessor produced a different result"
 
+
 def test_preprocess_array_macro_with_macro_instances():
     from librelane.config.preprocessor import preprocess_dict
 
@@ -259,15 +260,19 @@ def test_preprocess_array_macro_with_macro_instances():
         "DESIGN_NAME": "manual_macro_placement_test",
         "VERILOG_FILES": "dir::src/*.v",
         "MACROS": {
-            "spm": Macro(gds="/foo", lef="/foo", instances={ "epic_sram_512x8_{X}_{Y}": Instance(
-                location=None,
-                orientation="N",
-                array=InstanceArray(
-                    offset=(100, 100),
-                    step=(100, 100),
-                    dimensions=(2, 2)
+            "spm": Macro(
+                gds="/foo",
+                lef="/foo",
+                instances={
+                    "epic_sram_512x8_{X}_{Y}": Instance(
+                        location=None,
+                        orientation="N",
+                        array=InstanceArray(
+                            offset=(100, 100), step=(100, 100), dimensions=(2, 2)
+                        ),
                     )
-                )})
+                },
+            )
         },
     }
 
@@ -288,14 +293,41 @@ def test_preprocess_array_macro_with_macro_instances():
         "DESIGN_DIR": "/cwd",
         "PAD_CELL_LIBRARY": None,
         "PDKPATH": "/cwd",
-
         "MACROS": {
-            "spm": Macro(gds="/foo", lef="/foo", instances={
-                "epic_sram_512x8_0_0": Instance(location=[100.,100.,], orientation="N"),
-                "epic_sram_512x8_1_0": Instance(location=[200.,100.,], orientation="N"),
-                "epic_sram_512x8_0_1": Instance(location=[100.,200.,], orientation="N"),
-                "epic_sram_512x8_1_1": Instance(location=[200.,200.,], orientation="N"),
-            })
+            "spm": Macro(
+                gds="/foo",
+                lef="/foo",
+                instances={
+                    "epic_sram_512x8_0_0": Instance(
+                        location=[
+                            100.0,
+                            100.0,
+                        ],
+                        orientation="N",
+                    ),
+                    "epic_sram_512x8_1_0": Instance(
+                        location=[
+                            200.0,
+                            100.0,
+                        ],
+                        orientation="N",
+                    ),
+                    "epic_sram_512x8_0_1": Instance(
+                        location=[
+                            100.0,
+                            200.0,
+                        ],
+                        orientation="N",
+                    ),
+                    "epic_sram_512x8_1_1": Instance(
+                        location=[
+                            200.0,
+                            200.0,
+                        ],
+                        orientation="N",
+                    ),
+                },
+            )
         },
     }
 
