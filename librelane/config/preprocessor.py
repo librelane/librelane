@@ -394,17 +394,23 @@ def process_dict_recursive(
 def expand_macro_array(
     name_template: str,
     array: Mapping[str, Any],
+    additional_attributes: Mapping[str, any],
     exposed_variables: Dict[str, Any],
-) -> List[Dict[str, Any]]:
+) -> Dict[str, Any]:
     """
     Expands a single macro array.
 
     Returns a list of macro instantiations.
     """
-    out = []
+    out = {}
 
     # prepare this outside the hot loop
     subs = exposed_variables.copy()
+
+    # initial position
+    x, y = array["offset"]
+    x_init, y_init = array["offset"]
+    x_incr, y_incr = array["step"]
 
     rows, cols = array["dimensions"]
     for row in range(rows):
@@ -416,8 +422,16 @@ def expand_macro_array(
             subs["COL"] = col
             subs["ROW"] = row
             # we perform a full preprocess on the string, in case the user has declared other variable names
-            # in their macro name
+            # in their macro name, in addition to row/col
             expanded = process_string(name_template, subs)
+            out[expanded] = {
+                "location": [x, y],
+                **additional_attributes
+            }
+            x += x_incr
+        # new row, reset
+        x = x_init
+        y += y_incr
 
     return out
 
@@ -435,10 +449,20 @@ def locate_and_expand_macro_arrays(
     if (macros := config_in.get("MACROS")) is not None:
         for macro_name, macro in macros.items():
             # assume instances must exist
-            for instance_name, instance in macro["instances"].items():
+            # we also need to make a copy here, as we're modifying the dictionary as we iterate
+            for instance_name, instance in macro["instances"].copy().items():
                 if (array := instance.get("array")) is not None:
-                    out = expand_macro_array(instance_name, array, exposed_variables)
-                    # TODO rewrite it
+                    # perform expansion of this array
+                    attrib = {k: v for k, v in instance.items() if k != "array"}
+                    expansions = expand_macro_array(instance_name,
+                                                          array, attrib, exposed_variables)
+
+                    # add array elements to the root macro instances
+                    for expansion_name, expansion in expansions.items():
+                        macro["instances"][expansion_name] = expansion
+
+                    # delete this whole templated instance, since it has now been substituted
+                    del macro["instances"][instance_name]
     return out
 
 
@@ -449,7 +473,7 @@ def process_config_dict(
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
     # ensure that we expand macro arrays *first*, such that the macro name template is resolved
-    # expanded = locate_and_expand_macro_arrays(config_in, symbols)
+    expanded = locate_and_expand_macro_arrays(config_in, symbols)
     process_dict_recursive(config_in, state, symbols)
     return state
 

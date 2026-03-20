@@ -170,58 +170,81 @@ def test_preprocess_dict():
     }
     assert preprocessed == expected, "Preprocessor produced a different result"
 
-# def test_preprocess_array_macro():
-#     from librelane.config.preprocessor import preprocess_dict
-#
-#     design = {
-#         "meta": {"version": 2},
-#         "PDK": "sky130A",
-#         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
-#         "DESIGN_NAME": "manual_macro_placement_test",
-#         "VERILOG_FILES": "dir::src/*.v",
-#         "MACROS": {
-#             "spm": {
-#                 "instances": {
-#                     "epic_sram_512x8_${X}_${Y}": {
-#                         "orientation": "N",
-#                         "array": {
-#                             "offset": [10., 10.,],
-#                             "step": [100., 100.0,],
-#                             "dimensions": [2, 2],
-#                         }
-#                     },
-#                 },
-#             },
-#         },
-#     }
-#
-#     preprocessed = preprocess_dict(
-#         design,
-#         "/cwd",
-#         pdk="sky130A",
-#         pdkpath="/cwd",
-#         scl="sky130_fd_sc_hd",
-#     )
-#
-#     expected = {
-#         "meta": {"version": 2},
-#         "PDK": "sky130A",
-#         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
-#         "DESIGN_NAME": "manual_macro_placement_test",
-#         "VERILOG_FILES": "dir::src/*.v",
-#         "MACROS": {
-#             "spm": {
-#                 "instances": {
-#                     "epic_sram_512x8_${X}_${Y}": {
-#                         "orientation": "N",
-#                         "array": {
-#                             "offset": [10., 10.,],
-#                             "step": [100., 100.0,],
-#                             "dimensions": [2, 2],
-#                         }
-#                     },
-#                 },
-#             },
-#         },
-#     }
-#     assert preprocessed == expected, "Preprocessor produced a different result"
+def test_preprocess_array_macro():
+    from librelane.config.preprocessor import preprocess_dict
+
+    design = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FILES": "dir::src/*.v",
+        "MACROS": {
+            "spm": {
+                "instances": {
+                    "epic_sram_512x8_{X}_{Y}": {
+                        "orientation": "N",
+                        "array": {
+                            "offset": [100., 100.,],
+                            "step": [100., 100.0,],
+                            "dimensions": [2, 2],
+                        }
+                    },
+                },
+            },
+        },
+    }
+
+    preprocessed = preprocess_dict(
+        design,
+        "/cwd",
+        pdk="sky130A",
+        pdkpath="/cwd",
+        scl="sky130_fd_sc_hd",
+    )
+
+    expected = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FILES": ["/cwd/src/a_file.v", "/cwd/src/another_file.v"],
+        "DESIGN_DIR": "/cwd",
+        "PAD_CELL_LIBRARY": None,
+        "PDKPATH": "/cwd",
+        "MACROS": {
+            "spm": {
+                "instances": {
+                    "epic_sram_512x8_0_0": {
+                        "location": [100., 100.],
+                        "orientation": "N",
+                    },
+
+                    "epic_sram_512x8_1_0": {
+                        "location": [200., 100.],
+                        "orientation": "N",
+                    },
+
+                    # next row
+
+                    "epic_sram_512x8_0_1": {
+                        "location": [100., 200.],
+                        "orientation": "N",
+                    },
+
+                    "epic_sram_512x8_1_1": {
+                        "location": [200., 200.],
+                        "orientation": "N",
+                    },
+                },
+            },
+        },
+    }
+
+    # import pprint
+    # print("ACTUAL")
+    # pprint.pp(preprocessed)
+    # print("\nEXPECTED")
+    # pprint.pp(expected)
+
+    assert preprocessed == expected, "Preprocessor produced a different result"

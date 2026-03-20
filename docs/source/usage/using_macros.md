@@ -378,11 +378,11 @@ the hardened version of the Macro. Additionally, as the power pins have no relev
 for the RTL, they can simply be left out when PnR is not defined.
 
 ## Automatic placing of macros in grid patterns
-Sometimes, one would like to place a number of macros of the same type in a grid pattern. This is particularly
-useful for SRAM arrays, but can also be useful for other patterns like FPGAs or some types of mixed-signal
-designs.
+Sometimes, one would like to place a number of macros of the same type in a grid pattern, otherwise known as
+an array. This is particularly useful for SRAM arrays, but can also be useful for other patterns like FPGAs or
+some types of mixed-signal designs.
 
-LibreLane now includes the ability to _expand_ an grid of macro instantiations. In LibreLane terminology, this
+LibreLane includes the ability to _expand_ an grid of macro instantiations. In LibreLane terminology, this
 is referred to as a _macro array_.
 
 The macro array expansion process runs as part of the pre-processor. To understand this, let's consider a
@@ -399,7 +399,7 @@ vh:
 lib:
   - # removed for brevity
 instances:
-  sram_inst_x${X}_y${Y}:
+  sram_inst_{X}_{Y}:
     array:
       offset: [10, 10]
       step: [100, 100]
@@ -407,14 +407,13 @@ instances:
     orientation: N
 ```
 
-A few things have happened here. Firstly, the `sram_inst-x${X}_y${Y}` has been templated using LibreLane's
-expression system. The variables `X` and `Y` will be substituted with column and row numbers in the expansion
-process.
+A few things have happened here. Firstly, the instance name `sram_inst_x{X}_y{Y}` has been templated using
+LibreLane's expression system, using the newly supported inline variable expansion. The variables `X` and `Y`
+will be substituted with column and row numbers in the expansion process. `ROW` and `COL` are also supported,
+if you prefer.
 
 Next, the `array` attribute has been added to indicate we'd like these instances to be placed in an array
-pattern.
-
-The array attributes are as follows:
+pattern, and we also configure the array itself. The array configuration attributes are as follows:
 - **offset:** The position, in microns, of the bottom left corner of the macro array
 - **step:** How much to increase the X and Y coordinates by each time a macro is instantiated, in microns
 - **dimensions:** The number of columns and rows (**in that order**) that the array should have

@@ -729,8 +729,6 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
     ), "diode insertion strategy did not trigger a warning"
     caplog.clear()
 
-# FIXME this should work with dir:: as well
-
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_config_inline_var_substitution():
