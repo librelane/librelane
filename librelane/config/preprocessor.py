@@ -225,6 +225,11 @@ def process_string(
 
     mutable: str = value
 
+    # before we do anything else, apply inline variable substitution
+    mutable = mutable.format(**symbols)
+
+    print(f"Process string with value '{value}' symbols '{symbols}'\n    result: {mutable}")
+
     if value.startswith(DIR_PREFIX):
         mutable = value.replace(DIR_PREFIX, f"refg::${Keys.design_dir}/")
     elif value.startswith(PDK_DIR_PREFIX):
@@ -283,8 +288,10 @@ def process_string(
         if len(files_escaped) == 0:
             files_escaped = [concatenated]
 
+        print(f"return: {files_escaped}")
         return files_escaped
     else:
+        print(f"return: {mutable}")
         return mutable
 
 
@@ -412,6 +419,8 @@ def expand_macro_array(
             # also support row/col syntax
             subs["COL"] = col
             subs["ROW"] = row
+            # we perform a full preprocess on the string, in case the user has declared other variable names
+            # in their macro name
             expanded = process_string(name_template, subs)
 
     return out
@@ -444,8 +453,8 @@ def process_config_dict(
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
     # ensure that we expand macro arrays *first*, such that the macro name template is resolved
-    expanded = locate_and_expand_macro_arrays(config_in, symbols)
-    process_dict_recursive(expanded, state, symbols)
+    # expanded = locate_and_expand_macro_arrays(config_in, symbols)
+    process_dict_recursive(config_in, state, symbols)
     return state
 
 

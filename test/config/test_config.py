@@ -729,57 +729,58 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
     ), "diode insertion strategy did not trigger a warning"
     caplog.clear()
 
+# FIXME this should work with dir:: as well
 
-# @pytest.mark.usefixtures("_mock_conf_fs")
-# @mock_variables()
-# def test_resolve_macro_array():
-#     from librelane.state import DesignFormat
-#     from librelane.config import Macro, Instance, InstanceArray
-#     from librelane.common import Toolbox
-#
-#     cfg = {
-#         "MACROS": {
-#             "epic_sram_512x8": Macro(
-#                 gds=[""],
-#                 lef=[""],
-#                 instances={"srams": Instance((10, 10), "N", InstanceArray(
-#                     offset=[10., 10.],
-#                     step=[100., 100.],
-#                     dimensions=[2, 2]
-#                 ))},
-#                 nl=["macro_a.nl.v"],
-#                 spef={
-#                     "nom_*": ["a_nom.spef"],
-#                     "min_*": ["a_nin.spef"],
-#                     "max_*": ["a_max.spef"],
-#                 },
-#                 lib={
-#                     "nom_tt_025C_1v80": ["a_tt.lib"],
-#                     "nom_ss_n40C_1v80": ["a_ss.lib"],
-#                     "min_ff_025C_5v00": ["a_ff.lib"],
-#                 },
-#                 spice=[],
-#                 sdf={},
-#                 json_h=None,
-#             ),
-#         }
-#     }
-#
-#     toolbox = Toolbox(".")
-#
-#     assert set(
-#         toolbox.get_macro_views_by_priority(
-#             cfg,
-#             [
-#                 DesignFormat.VERILOG_HEADER,
-#                 DesignFormat.NETLIST,
-#                 DesignFormat.POWERED_NETLIST,
-#             ],
-#             "nom_tt_025C_1v80",
-#         )
-#     ) == {
-#         ("macro_a.nl.v", DesignFormat.NETLIST),
-#         ("macro_b.pnl.v", DesignFormat.POWERED_NETLIST),
-#         ("macro_c.vh", DesignFormat.VERILOG_HEADER),
-#     }, "test_get_macro_views_by_priority returned unexpected result"
-#
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables()
+def test_config_inline_var_substitution():
+    from librelane.config import Meta, Config
+
+    with open("/cwd/config.yaml", "w") as f:
+        f.write(
+            """
+            DESIGN_NAME: whatever
+            VERILOG_FILES:
+                - "src2/{DESIGN_NAME}_top.v"
+                - dir::src/*.v
+            meta:
+                version: 2
+                flow: Whatever
+            """
+        )
+
+    cfg, _ = Config.load(
+        "/cwd/config.yaml",
+        config.flow_common_variables,
+        pdk="dummy",
+        scl="dummy_scl",
+        pdk_root="/pdk",
+    )
+
+    assert cfg == Config(
+        {
+            "DESIGN_DIR": "/cwd",
+            "DESIGN_NAME": "whatever",
+            "PDK_ROOT": "/pdk",
+            "PDK": "dummy",
+            "STD_CELL_LIBRARY": "dummy_scl",
+            "VERILOG_FILES": ["src2/whatever_top.v", "/cwd/src/a.v", "/cwd/src/b.v"],
+            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "GRT_REPAIR_ANTENNAS": True,
+            "RUN_HEURISTIC_DIODE_INSERTION": False,
+            "DIODE_ON_PORTS": "none",
+            "MACROS": None,
+            "TECH_LEFS": {
+                "nom_*": Path(
+                    "/pdk/dummy/libs.ref/techlef/dummy_scl/dummy_tech_lef.tlef"
+                )
+            },
+            "DEFAULT_CORNER": "nom_tt_025C_1v80",
+            "RANDOM_ARRAY": None,
+        },
+        meta=Meta(version=2, flow="Whatever"),
+    ), "Generated configuration does not match expected value"
+
+    assert Config.get_meta("/cwd/config.yaml", flow_override="OtherWhatever") == Meta(
+        version=2, flow="OtherWhatever"
+    ), "get_meta test failed"

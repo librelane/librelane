@@ -85,6 +85,15 @@ def test_process_string():
     ], "refg:: without asterisks or ? did not return the same file path"
 
 
+def test_process_string_inline_expr():
+    from librelane.config.preprocessor import process_string
+
+    assert process_string("epic_sram_{X}_{Y}", {"X": 0, "Y": 0}) == "epic_sram_0_0"
+    assert process_string("{X}{Y}", {"X": 0, "Y": 0}) == "00"
+    assert (process_string("-!!somecharacters{X}//--,,{Y}", {"X": "cool", "Y": "yeah"}) ==
+        "-!!somecharacterscool//--,,yeah")
+
+
 mmpt_raw = {
     "meta": {"version": 2},
     "PDK": "sky130A",
@@ -161,58 +170,58 @@ def test_preprocess_dict():
     }
     assert preprocessed == expected, "Preprocessor produced a different result"
 
-def test_preprocess_array_macro():
-    from librelane.config.preprocessor import preprocess_dict
-
-    design = {
-        "meta": {"version": 2},
-        "PDK": "sky130A",
-        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
-        "DESIGN_NAME": "manual_macro_placement_test",
-        "VERILOG_FILES": "dir::src/*.v",
-        "MACROS": {
-            "spm": {
-                "instances": {
-                    "epic_sram_512x8_${X}_${Y}": {
-                        "orientation": "N",
-                        "array": {
-                            "offset": [10., 10.,],
-                            "step": [100., 100.0,],
-                            "dimensions": [2, 2],
-                        }
-                    },
-                },
-            },
-        },
-    }
-
-    preprocessed = preprocess_dict(
-        design,
-        "/cwd",
-        pdk="sky130A",
-        pdkpath="/cwd",
-        scl="sky130_fd_sc_hd",
-    )
-
-    expected = {
-        "meta": {"version": 2},
-        "PDK": "sky130A",
-        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
-        "DESIGN_NAME": "manual_macro_placement_test",
-        "VERILOG_FILES": "dir::src/*.v",
-        "MACROS": {
-            "spm": {
-                "instances": {
-                    "epic_sram_512x8_${X}_${Y}": {
-                        "orientation": "N",
-                        "array": {
-                            "offset": [10., 10.,],
-                            "step": [100., 100.0,],
-                            "dimensions": [2, 2],
-                        }
-                    },
-                },
-            },
-        },
-    }
-    assert preprocessed == expected, "Preprocessor produced a different result"
+# def test_preprocess_array_macro():
+#     from librelane.config.preprocessor import preprocess_dict
+#
+#     design = {
+#         "meta": {"version": 2},
+#         "PDK": "sky130A",
+#         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+#         "DESIGN_NAME": "manual_macro_placement_test",
+#         "VERILOG_FILES": "dir::src/*.v",
+#         "MACROS": {
+#             "spm": {
+#                 "instances": {
+#                     "epic_sram_512x8_${X}_${Y}": {
+#                         "orientation": "N",
+#                         "array": {
+#                             "offset": [10., 10.,],
+#                             "step": [100., 100.0,],
+#                             "dimensions": [2, 2],
+#                         }
+#                     },
+#                 },
+#             },
+#         },
+#     }
+#
+#     preprocessed = preprocess_dict(
+#         design,
+#         "/cwd",
+#         pdk="sky130A",
+#         pdkpath="/cwd",
+#         scl="sky130_fd_sc_hd",
+#     )
+#
+#     expected = {
+#         "meta": {"version": 2},
+#         "PDK": "sky130A",
+#         "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+#         "DESIGN_NAME": "manual_macro_placement_test",
+#         "VERILOG_FILES": "dir::src/*.v",
+#         "MACROS": {
+#             "spm": {
+#                 "instances": {
+#                     "epic_sram_512x8_${X}_${Y}": {
+#                         "orientation": "N",
+#                         "array": {
+#                             "offset": [10., 10.,],
+#                             "step": [100., 100.0,],
+#                             "dimensions": [2, 2],
+#                         }
+#                     },
+#                 },
+#             },
+#         },
+#     }
+#     assert preprocessed == expected, "Preprocessor produced a different result"

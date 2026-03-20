@@ -133,8 +133,18 @@ i.e., the second example with the sky130A PDK simply becomes:
 
 #### Variable Reference
 
+Variables may be referenced in two distinct ways.
+
 If a string's value starts with `ref::`, you can interpolate exactly one
 **string** variable at the beginning of your string.
+
+Alternatively, variables may be referenced inline using the syntax `{VAR}`. In that case, a string does not
+necessarily have to start with `ref::`; variables may be referenced at any point.
+
+```{important}
+Due to YAML and JSON syntax, you typically must quote variable references, e.g.:
+`- "dir::rtl/{DESIGN_NAME}_top.sv"`, otherwise unexpected behaviour may occur.
+```
 
 Like conditional execution, the order of declarations matter: i.e., you cannot
 reference a variable that is declared after the current expression.
