@@ -84,6 +84,7 @@ class Orientation(str, Enum):
     def __str__(self) -> str:
         return self.value
 
+
 @dataclass
 class InstanceArray:
     """
@@ -94,6 +95,7 @@ class InstanceArray:
     array.
     :param dimensions: Specified as (rows, columns) that define this array.
     """
+
     offset: Tuple[Decimal, Decimal]
     step: Tuple[Decimal, Decimal]
     dimensions: Tuple[int, int]

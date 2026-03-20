@@ -424,10 +424,7 @@ def expand_macro_array(
             # we perform a full preprocess on the string, in case the user has declared other variable names
             # in their macro name, in addition to row/col
             expanded = process_string(name_template, subs)
-            out[expanded] = {
-                "location": [x, y],
-                **additional_attributes
-            }
+            out[expanded] = {"location": [x, y], **additional_attributes}
             x += x_incr
         # new row, reset
         x = x_init
@@ -454,8 +451,9 @@ def locate_and_expand_macro_arrays(
                 if (array := instance.get("array")) is not None:
                     # perform expansion of this array
                     attrib = {k: v for k, v in instance.items() if k != "array"}
-                    expansions = expand_macro_array(instance_name,
-                                                          array, attrib, exposed_variables)
+                    expansions = expand_macro_array(
+                        instance_name, array, attrib, exposed_variables
+                    )
 
                     # add array elements to the root macro instances
                     for expansion_name, expansion in expansions.items():

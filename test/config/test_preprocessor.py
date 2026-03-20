@@ -90,8 +90,10 @@ def test_process_string_inline_expr():
 
     assert process_string("epic_sram_{X}_{Y}", {"X": 0, "Y": 0}) == "epic_sram_0_0"
     assert process_string("{X}{Y}", {"X": 0, "Y": 0}) == "00"
-    assert (process_string("-!!somecharacters{X}//--,,{Y}", {"X": "cool", "Y": "yeah"}) ==
-        "-!!somecharacterscool//--,,yeah")
+    assert (
+        process_string("-!!somecharacters{X}//--,,{Y}", {"X": "cool", "Y": "yeah"})
+        == "-!!somecharacterscool//--,,yeah"
+    )
 
 
 mmpt_raw = {
@@ -170,6 +172,7 @@ def test_preprocess_dict():
     }
     assert preprocessed == expected, "Preprocessor produced a different result"
 
+
 def test_preprocess_array_macro():
     from librelane.config.preprocessor import preprocess_dict
 
@@ -185,10 +188,16 @@ def test_preprocess_array_macro():
                     "epic_sram_512x8_{X}_{Y}": {
                         "orientation": "N",
                         "array": {
-                            "offset": [100., 100.,],
-                            "step": [100., 100.0,],
+                            "offset": [
+                                100.0,
+                                100.0,
+                            ],
+                            "step": [
+                                100.0,
+                                100.0,
+                            ],
                             "dimensions": [2, 2],
-                        }
+                        },
                     },
                 },
             },
@@ -216,24 +225,20 @@ def test_preprocess_array_macro():
             "spm": {
                 "instances": {
                     "epic_sram_512x8_0_0": {
-                        "location": [100., 100.],
+                        "location": [100.0, 100.0],
                         "orientation": "N",
                     },
-
                     "epic_sram_512x8_1_0": {
-                        "location": [200., 100.],
+                        "location": [200.0, 100.0],
                         "orientation": "N",
                     },
-
                     # next row
-
                     "epic_sram_512x8_0_1": {
-                        "location": [100., 200.],
+                        "location": [100.0, 200.0],
                         "orientation": "N",
                     },
-
                     "epic_sram_512x8_1_1": {
-                        "location": [200., 200.],
+                        "location": [200.0, 200.0],
                         "orientation": "N",
                     },
                 },

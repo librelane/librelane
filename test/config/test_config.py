@@ -729,6 +729,7 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
     ), "diode insertion strategy did not trigger a warning"
     caplog.clear()
 
+
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_config_inline_var_substitution():
@@ -763,7 +764,12 @@ def test_config_inline_var_substitution():
             "PDK_ROOT": "/pdk",
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
-            "VERILOG_FILES": ["src2/whatever_top.v", "/cwd/src2/whatever_top.v", "/cwd/src/a.v", "/cwd/src/b.v"],
+            "VERILOG_FILES": [
+                "src2/whatever_top.v",
+                "/cwd/src2/whatever_top.v",
+                "/cwd/src/a.v",
+                "/cwd/src/b.v",
+            ],
             "EXAMPLE_PDK_VAR": Decimal("10"),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
