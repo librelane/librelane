@@ -472,6 +472,11 @@ class SynthesisCommon(VerilogStep):
             default=False,
         ),
         Variable(
+            "SYNTH_ABC_STRATEGY_SCRIPT",
+            Optional[Path],
+            "Custom ABC strategy script. Runs instead of the default script for the selected 'SYNTH_STRATEGY'. All other 'SYNTH_ABC_*' variables except 'SYNTH_ABC_DFF' will have no effect.",
+        ),
+        Variable(
             "SYNTH_DIRECT_WIRE_BUFFERING",
             bool,
             "Enables inserting buffer cells for directly connected wires.",

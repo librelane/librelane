@@ -449,11 +449,16 @@ def synthesize(
     script_creator = ABCScriptCreator(config)
 
     def run_strategy(d):
-        abc_script = script_creator.generate_abc_script(
-            step_dir,
-            config["SYNTH_STRATEGY"],
-        )
-        ys.log(f"[INFO] Using generated ABC script '{abc_script}'…")
+        abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
+        if abc_script:
+            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…")
+        else:
+            abc_script = script_creator.generate_abc_script(
+                step_dir,
+                config["SYNTH_STRATEGY"],
+            )
+            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…")
+
         d.run_pass(
             "abc",
             "-script",
