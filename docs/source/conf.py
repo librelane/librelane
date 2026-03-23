@@ -27,8 +27,8 @@ sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 project = "LibreLane"
-copyright = "2020-2025 Efabless Corporation and contributors"
-author = "Efabless Corporation"
+copyright = "2020-2026 Efabless Corporation and LibreLane Contributors. LibreLane and the LibreLane logo are trademarks of the FOSSi Foundation."
+author = "LibreLane Contributors"
 repo = "https://github.com/librelane/librelane"
 branch = "main"
 
@@ -125,6 +125,14 @@ html_theme_options = {
             "class": "",
         },
     ],
+    "light_logo": "logo/librelane-logo-full.svg",
+    "dark_logo": "logo/librelane-logo-white.svg",
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-brand-primary": "#6320EE",
+        "color-brand-content": "#6320EE",
+        "color-brand-visited": "#F72585",
+    },
 }
 
 html_static_path = ["../_static"]

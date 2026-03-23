@@ -1,4 +1,4 @@
-<h1 align="center">LibreLane</h1>
+<h1 align="center"><img src="docs/_static/logo/librelane-logo-full.svg" width="200px" /></h1>
 <p align="center">
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
     <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.10-3776AB.svg?style=flat&logo=python&logoColor=white" alt="Python ≥3.10" /></a>
@@ -12,19 +12,61 @@
     <a href="https://fossi-chat.org"><img src="https://img.shields.io/badge/Community-FOSSi%20Chat-1bb378?logo=element" alt="Invite to FOSSi Chat"/></a>
 </p>
 
-LibreLane is an ASIC infrastructure library based on several components including
-OpenROAD, Yosys, Magic, Netgen, CVC, KLayout and a number of custom scripts for
-design exploration and optimization, currently developed and maintained under
-the stewardship of the [FOSSi Foundation](https://fossi-foundation.org).
+LibreLane is a powerful and versatile infrastructure library that enables the
+construction of digital implementation flows for application specific integrated
+circuits (ASICs) based on open-source and commercial electronic design
+automation (EDA) tools.
 
-A reference flow, "Classic", performs all ASIC implementation steps from RTL all
-the way down to GDSII.
+LibreLane is:
+
+- **Simple to use** – Configure your entire ASIC implementation flow using one
+  file.
+
+- **Free and open source** – With a complementary set of open-source process
+  design kits (PDKs), design and implement your chip without signing a single
+  document. Freely modify both the infrastructure, underlying tools, and PDK to
+  fit your needs – you're in control. Not a vendor.
+
+- **Flexible and extensible** – Create custom flows, both by simple
+  modifications to the default flows in the configuration file, or by writing
+  Python scripts or plugins to implement advanced functionality.
+
+- **Hermetic** – Rewind and explore alternative configurations without losing
+  data; LibreLane captures explicit snapshots of the configuration and state of
+  your design at every step.
+
+- **Reproducible and traceable** – LibreLane comes packaged with a verified
+  environment of free EDA utilities with a simple goal in mind: same tools, same
+  flow, same configuration; same result. Capture your modifications and
+  engineering change orders (ECOs) as automated steps, and make your flow your
+  documentation.
+
+LibreLane includes two reference flows (`Classic` and `Chip`) that are built
+entirely using open-source EDA tools.
 
 You can find the documentation
 [here](https://librelane.readthedocs.io/en/latest/getting_started/) to get
 started. You can discuss LibreLane in the
 [FOSSi Chat Matrix Server](https://fossi-chat.org).
 
+```python
+from librelane.flows import Flow
+
+Classic = Flow.factory.get("Classic")
+
+flow = Classic(
+    {
+        "PDK": "sky130A",
+        "DESIGN_NAME": "spm",
+        "VERILOG_FILES": ["./src/spm.v"],
+        "CLOCK_PORT": "clk",
+        "CLOCK_PERIOD": 10,
+    },
+    design_dir=".",
+)
+
+flow.start()
+```
 
 ## Try it out
 
@@ -119,7 +161,10 @@ Please be sure to read our [contributor's guide](https://librelane.readthedocs.i
 
 ## License and Legal Info
 
-LibreLane is a trademark of the [FOSSi Foundation](https://fossi-foundation.org).
+LibreLane and the LibreLane logo are trademarks of
+[the FOSSi Foundation](https://fossi-foundation.org).
+
+The LibreLane logo was created by [Jon Walters](http://wolde.tv/).
 
 LibreLane code and binaries are available under
 [The Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt),
