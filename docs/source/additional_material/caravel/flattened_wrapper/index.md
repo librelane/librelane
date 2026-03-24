@@ -1,5 +1,11 @@
 # Option 2 — Full-Wrapper Flattening strategy
 
+```{note}
+We're assuming your RTL files still have the modifications from Option 1.
+
+Please follow Option 1 first if you haven't already.
+```
+
 In this strategy, we will harden the `user_project_wrapper` with the aes as one
 large flattened macro.
 
@@ -76,7 +82,7 @@ Now the full configuration file will be:
     "PDN_HSPACING": 15.5,
     "PDN_VPITCH": 180,
     "PDN_HPITCH": 180,
-    "QUIT_ON_PDN_VIOLATIONS": false,
+    "ERROR_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
     "MAGIC_DRC_USE_GDS": true,
@@ -117,7 +123,7 @@ Now the full configuration file will be:
 
 ______________________________________________________________________
 
-## Running the flow
+## Running the flow and dealing with the synthesis checks
 
 To harden macros with LibreLane, we use the default flow, {flow}`Classic`.
 
@@ -125,7 +131,49 @@ To harden macros with LibreLane, we use the default flow, {flow}`Classic`.
 [nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
 ```
 
-The flow will finish successfully in ~2 hours and we will see:
+This time however, the flow will stop shortly after synthesis with the message
+`207 Yosys check errors found.`.
+
+Synthesis checks are reported in two files that both exist in `xx-yosys-synthesis`:
+
+* `reports/pre_synth_chk.rpt`
+* `reports/chk.rpt`
+
+If you investigate, these files, you'll run into these errors:
+
+```
+28. Executing CHECK pass (checking for obvious problems).
+Checking module user_project_wrapper...
+Warning: Wire user_project_wrapper.\la_data_out [127] is used but has no driver.
+…
+Warning: Wire user_project_wrapper.\io_out [37] is used but has no driver.
+…
+Warning: Wire user_project_wrapper.\io_oeb [37] is used but has no driver.
+…
+Warning: Wire user_project_wrapper.\user_irq [2] is used but has no driver.
+…
+```
+
+As we're performing full synthesis and not simple elaboration on the wrapper
+like in Option 1, Yosys checks a very crucial element of our design:
+we need to ensure that all outputs are driven.
+
+In this case, you may simply add these lines to `verilog/rtl/user_project_wrapper.v`:
+
+```verilog
+assign io_out = {`MPRJ_IO_PADS{1'b0}};
+assign io_oeb = {`MPRJ_IO_PADS{1'b0}};
+assign la_data_out = 128'b0;
+assign user_irq = 3'b0;
+```
+
+Then simply re-run the flow.
+
+```console
+[nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
+```
+
+The flow will finish successfully in ~1-2 hours and we will see:
 
 ```console
 Flow complete.
@@ -155,27 +203,9 @@ Final layout of the user_project_wrapper after flattening
 
 ### `OpenROAD.CheckAntennas`
 
-There are around 260 antenna violations with ratios up to 7.
+Once again, with LibreLane ≥ 3.0.0, there should be no antenna violations.
 
-```
-┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━┓
-┃ Partial/Required ┃ Required ┃ Partial ┃ Net                                       ┃ Pin          ┃ Layer ┃
-┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━┩
-│ 7.55             │ 400.00   │ 3018.79 │ _14743_                                   │ _28341_/B    │ met3  │
-│ 6.82             │ 400.00   │ 2727.89 │ net1493                                   │ _24384_/B    │ met1  │
-│ 4.68             │ 400.00   │ 1870.11 │ mprj.aes.core.enc_block.block_w0_reg[18\] │ _20471_/A    │ met1  │
-│ 3.86             │ 400.00   │ 1544.22 │ _11561_                                   │ _22409_/A0   │ met1  │
-│ 3.80             │ 400.00   │ 1519.33 │ _11868_                                   │ _22752_/A0   │ met1  │
-│ 3.71             │ 400.00   │ 1485.23 │ _14658_                                   │ fanout1328/A │ met1  │
-│ 3.61             │ 400.00   │ 1443.72 │ net19                                     │ hold86/A     │ met2  │
-│ 3.45             │ 400.00   │ 1380.11 │ mprj.aes.core.enc_block.block_w1_reg[6\]  │ _22727_/A1   │ met1  │
-⋮
-```
-
-In the event they appear, w can fix those the same way we did in the AES
-[here](#caravel-openroad-checkantennas-with-fixes).
-
-______________________________________________________________________
+In the event they do appear though, the same strategy as [](./
 
 ### `OpenROAD.STAPostPnR`
 
@@ -305,11 +335,6 @@ To fix the previous issues in the implementation, the following was added to the
 
 ```json
     "//": "New variables",
-    "GRT_ANTENNA_ITERS": 10,
-    "RUN_HEURISTIC_DIODE_INSERTION": true,
-    "HEURISTIC_ANTENNA_THRESHOLD": 200,
-    "DESIGN_REPAIR_MAX_WIRE_LENGTH": 800,
-    "PL_WIRE_LENGTH_COEF": 0.05,
     "DEFAULT_CORNER": "max_tt_025C_1v80",
     "RUN_POST_GRT_DESIGN_REPAIR": true,
     "RUN_POST_GRT_RESIZER_TIMING": true,
@@ -518,18 +543,13 @@ be:
     "PDN_HSPACING": 15.5,
     "PDN_VPITCH": 180,
     "PDN_HPITCH": 180,
-    "QUIT_ON_PDN_VIOLATIONS": false,
+    "ERROR_ON_PDN_VIOLATIONS": false,
 
     "//": "Magic variables",
     "MAGIC_DRC_USE_GDS": true,
     "MAX_TRANSITION_CONSTRAINT": 1.5,
 
     "//": "New variables",
-    "GRT_ANTENNA_ITERS": 10,
-    "RUN_HEURISTIC_DIODE_INSERTION": true,
-    "HEURISTIC_ANTENNA_THRESHOLD": 200,
-    "DESIGN_REPAIR_MAX_WIRE_LENGTH": 800,
-    "PL_WIRE_LENGTH_COEF": 0.05,
     "DEFAULT_CORNER": "max_tt_025C_1v80",
     "RUN_POST_GRT_DESIGN_REPAIR": true,
     "RUN_POST_GRT_RESIZER_TIMING": true,
@@ -573,7 +593,7 @@ Now let's try re-running the flow:
 [nix-shell:~/librelane]$ librelane ~/caravel_aes_accelerator/openlane/user_project_wrapper/config.json
 ```
 
-The flow will finish successfully in ~2 hours and we will see:
+The flow will finish successfully in ~1-2 hours and you will see:
 
 ```console
 Flow complete.
@@ -583,26 +603,8 @@ ______________________________________________________________________
 
 ## Re-checking the reports
 
-Now, the antenna report under
-`xx-openroad-checkantennas-1/reports/antenna_summary.rpt` has much less
-violations:
-
-```text
-┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┓
-┃ Partial/Required ┃ Required ┃ Partial ┃ Net                                 ┃ Pin        ┃ Layer ┃
-┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━┩
-│ 2.03             │ 400.00   │ 810.79  │ _08755_                             │ _19772_/C  │ met3  │
-│ 2.00             │ 400.00   │ 798.00  │ _14836_                             │ _28092_/A  │ met1  │
-│ 1.75             │ 400.00   │ 701.33  │ _11832_                             │ _22711_/A0 │ met1  │
-│ 1.70             │ 400.00   │ 678.78  │ _11884_                             │ _22770_/A0 │ met1  │
-│ 1.62             │ 400.00   │ 647.67  │ net1481                             │ _25071_/B  │ met1  │
-│ 1.61             │ 3130.28  │ 5050.41 │ _14758_                             │ _28362_/B  │ met4  │
-│ 1.40             │ 3130.28  │ 4394.16 │ _14751_                             │ _28352_/B  │ met4  │
-│ 1.39             │ 3130.28  │ 4350.98 │ _14707_                             │ _28292_/B  │ met4  │
-⋮
-```
-
-Also, the STA report `xx-openroad-stapostpnr/summary.rpt` has no issues:
+There should still be no antenna violations, but this time, the STA report at
+`xx-openroad-stapostpnr/summary.rpt` should also show no issues:
 
 ```text
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓

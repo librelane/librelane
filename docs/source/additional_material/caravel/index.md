@@ -117,6 +117,8 @@ See the
 for more information about these options.
 ```
 
+For this tutorial, we will be following all three in order.
+
 ```{toctree}
 :maxdepth: 1
 

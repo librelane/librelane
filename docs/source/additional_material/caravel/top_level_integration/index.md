@@ -1,6 +1,13 @@
 
 # Option 3 — Top-Level Integration Strategy
 
+```{note}
+We're assuming your RTL files still have the modifications from Options 1 and
+2.
+
+Please follow Options 1 and 2 first if you haven't already.
+```
+
 In the top-level integration methodology, we will need the AES with the wishbone
 wrapper as a macro, then integrate it in the User Project's Wrapper with
 optimizations and cell insertion enabled on the top level.
@@ -167,13 +174,6 @@ So, the final config.json for the User Project's Wrapper will be:
     
     "MAX_TRANSITION_CONSTRAINT": 1.5,
 
-    "//": "New variables",
-    "GRT_ANTENNA_ITERS": 10,
-    "RUN_HEURISTIC_DIODE_INSERTION": true,
-    "HEURISTIC_ANTENNA_THRESHOLD": 200,
-    "DESIGN_REPAIR_MAX_WIRE_LENGTH": 800,
-    "CTS_CLK_MAX_WIRE_LENGTH": 800,
-
     "//": "Fixed configurations for caravel. You should NOT edit this section",
     "DESIGN_NAME": "user_project_wrapper",
     "FP_SIZING": "absolute",
@@ -246,8 +246,7 @@ Final layout of the user_project_wrapper with Top-level integration
 
 ### `OpenROAD.CheckAntennas`
 
-There are no antenna violations at all since we already have the antenna
-variables in our configuration.
+There should once again be no antenna violations.
 
 ```
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┳━━━━━┳━━━━━┳━━━━━━━┓
