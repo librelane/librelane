@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 project = "LibreLane"
-copyright = "2020-2026 Efabless Corporation and LibreLane Contributors. LibreLane and the LibreLane logo are trademarks of the FOSSi Foundation."
+copyright = "2020-2026 LibreLane Authors. LibreLane and the LibreLane logo are trademarks of the FOSSi Foundation."
 author = "LibreLane Contributors"
 repo = "https://github.com/librelane/librelane"
 branch = "main"

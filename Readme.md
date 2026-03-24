@@ -12,10 +12,10 @@
     <a href="https://fossi-chat.org"><img src="https://img.shields.io/badge/Community-FOSSi%20Chat-1bb378?logo=element" alt="Invite to FOSSi Chat"/></a>
 </p>
 
-LibreLane is a powerful and versatile infrastructure library that enables the
-construction of digital implementation flows for application specific integrated
-circuits (ASICs) based on open-source and commercial electronic design
-automation (EDA) tools.
+[LibreLane](https://librelane.org) is a powerful and versatile infrastructure
+library that enables the construction of digital implementation flows for
+application specific integrated circuits (ASICs) based on open-source and
+commercial electronic design automation (EDA) tools.
 
 LibreLane is:
 
