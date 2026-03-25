@@ -673,6 +673,8 @@ Style Notes
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+  * `FP_DEF_TEMPLATE` no longer a variable for all OpenROAD steps and must be
+    added to steps that need it.
 
 * `OpenROAD.BasicMacroPlacement`
 
