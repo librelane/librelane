@@ -53,6 +53,7 @@
   rapidfuzz,
   semver,
   klayout,
+  gdsfill,
   extra-python-interpreter-packages ? ps: [ ],
 }:
 let
@@ -110,6 +111,7 @@ let
       libparse
       psutil
       klayout
+      gdsfill
       rapidfuzz
       semver
     ];
