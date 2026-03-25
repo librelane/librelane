@@ -450,13 +450,13 @@ def __parse_f_list(
         for file in visit_files:
             with open(str(file)) as f:
                 for line in f.readlines():
-                    l = line.strip()
+                    clean = line.strip()
 
                     # skip blank lines
-                    if not l:
+                    if not clean:
                         continue
 
-                    __parse_f_list_item(l, mut)
+                    __parse_f_list_item(clean, mut)
 
         # omit ourselves, effectively consider ourselves "expanded"; we're not necessary in the config anymore
         del mut["VERILOG_FLIST_FILES"]
