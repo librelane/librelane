@@ -387,13 +387,16 @@ def process_dict_recursive(
             ref[key] = processed
             symbols[current_key_path] = processed
 
+
 F_ITEM_REGEX = re.compile(r"\+(.*)\+(.*)")
+
 
 def __add_or_append(d: Dict[str, Any], key: str, value: Any):
     if key in d:
         d[key].append(value)
     else:
         d[key] = [value]
+
 
 def __parse_f_list_item(line: str, config_in: Dict[str, Any]):
     match = re.match(F_ITEM_REGEX, line)
@@ -406,20 +409,27 @@ def __parse_f_list_item(line: str, config_in: Dict[str, Any]):
         elif directive == "define":
             __add_or_append(config_in, "VERILOG_DEFINES", contents)
         else:
-            raise RuntimeError(f"Unknown F-list directive '{directive}' in line: {line}")
+            raise RuntimeError(
+                f"Unknown F-list directive '{directive}' in line: {line}"
+            )
 
     else:
         # assume source file
         __add_or_append(config_in, "VERILOG_FILES", line)
 
-def __parse_f_list(config_in: Mapping[str, Any], exposed_variables: Dict[str, Any]) -> Dict[str, Any]:
+
+def __parse_f_list(
+    config_in: Mapping[str, Any], exposed_variables: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Parse an F-list (*.f) file from the key "VERILOG_FLIST_FILES", and update the config accordingly.
     """
-    mut = dict(config_in)   # our mutable copy
+    mut = dict(config_in)  # our mutable copy
     if verilog_f_files := config_in.get("VERILOG_FLIST_FILES"):
         if not isinstance(verilog_f_files, list):
-            raise TypeError(f"VERILOG_FLIST_FILES should be a list, instead it is: {type(verilog_f_files)}")
+            raise TypeError(
+                f"VERILOG_FLIST_FILES should be a list, instead it is: {type(verilog_f_files)}"
+            )
 
         visit_files = []
 
@@ -433,7 +443,9 @@ def __parse_f_list(config_in: Mapping[str, Any], exposed_variables: Dict[str, An
             elif isinstance(file, list):
                 visit_files.extend(file)
             else:
-                raise RuntimeError("Internal error: process_string returned unexpected type")
+                raise RuntimeError(
+                    "Internal error: process_string returned unexpected type"
+                )
 
         for file in visit_files:
             with open(str(file)) as f:
