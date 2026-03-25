@@ -408,6 +408,9 @@ Style Notes
 
     * Removed `LIGHTER_DFF_MAP`: tangentially related to above
 
+  * Added `SYNTH_ABC_STRATEGY_SCRIPT`: custom ABC strategy script that runs
+    instead of the default script of the selected `SYNTH_STRATEGY`.
+
 * `Yosys.Synthesis`
 
   * Graphviz DOT file generation, which frequently fails and brings down the
