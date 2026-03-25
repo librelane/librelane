@@ -195,3 +195,23 @@ def test_preprocess_f_list():
         "VERILOG_INCLUDE_DIRS": ["/cwd/src"]
     }
     assert preprocessed == expected, "Preprocessor produced a different result"
+
+def test_preprocess_invalid_f_list():
+    from librelane.config.preprocessor import preprocess_dict
+
+    config = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FLIST_FILES": ["refg::$DESIGN_DIR/src/invalid.f"]
+    }
+
+    with pytest.raises(RuntimeError):
+        preprocessed = preprocess_dict(
+            config,
+            "/cwd",
+            pdk="sky130A",
+            pdkpath="/cwd",
+            scl="sky130_fd_sc_hd",
+        )
