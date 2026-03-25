@@ -148,6 +148,7 @@ bibtex_default_style = "unsrt"
 
 # Autodoc
 generate_module_autodocs = [("librelane", "reference/api")]
+autodoc_mock_imports = ["gdsfill"]
 autodoc_typehints = "both"
 autodoc_member_order = "bysource"
 autosectionlabel_prefix_document = True
