@@ -1,3 +1,7 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020-2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +24,7 @@ if { $::env(MAGIC_LEF_WRITE_USE_GDS) } {
     read_pdk_gds
     read_macro_gds
     read_extra_gds
+    read_pad_gds
     load (REFRESHLAYOUT?)
     read_def
 }

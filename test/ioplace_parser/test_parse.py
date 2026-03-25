@@ -20,6 +20,8 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.all
+
 
 def test_parse():
     from librelane.scripts.odbpy.ioplace_parser import parse, Order

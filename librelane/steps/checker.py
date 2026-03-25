@@ -265,7 +265,16 @@ class WireLength(MetricChecker):
         default=True,
         deprecated_names=["QUIT_ON_LONG_WIRE"],
     )
-    config_vars = [error_on_var]
+    config_vars = [
+        error_on_var,
+        Variable(
+            "WIRE_LENGTH_THRESHOLD",
+            Optional[Decimal],
+            "A value above which wire lengths generate warnings.",
+            units="µm",
+            pdk=True,
+        ),
+    ]
 
     def get_threshold(self) -> Optional[Decimal]:
         threshold = self.config["WIRE_LENGTH_THRESHOLD"]
@@ -428,6 +437,42 @@ class KLayoutDRC(MetricChecker):
     config_vars = [error_on_var]
 
 
+@Step.factory.register()
+class KLayoutDensity(MetricChecker):
+    id = "Checker.KLayoutDensity"
+    name = "KLayout Density Checker"
+    long_name = "KLayout Density Checker"
+
+    metric_name = "klayout__density_error__count"
+    metric_description = "KLayout density errors"
+
+    error_on_var = Variable(
+        "ERROR_ON_KLAYOUT_DENSITY",
+        bool,
+        "Checks for density violations after KLayout density check is executed and exits the flow if any was found.",
+        default=True,
+    )
+    config_vars = [error_on_var]
+
+
+@Step.factory.register()
+class KLayoutAntenna(MetricChecker):
+    id = "Checker.KLayoutAntenna"
+    name = "KLayout Antenna Checker"
+    long_name = "KLayout Antenna Checker"
+
+    metric_name = "klayout__antenna_error__count"
+    metric_description = "KLayout antenna errors"
+
+    error_on_var = Variable(
+        "ERROR_ON_KLAYOUT_ANTENNA",
+        bool,
+        "Checks for antenna violations after KLayout antenna check is executed and exits the flow if any was found.",
+        default=True,
+    )
+    config_vars = [error_on_var]
+
+
 class TimingViolations(MetricChecker):
     """
     Abstract class for timing violations.
@@ -476,6 +521,7 @@ class TimingViolations(MetricChecker):
             cls.base_corner_var_name.replace("TIMING", replace_by),
             Optional[List[str]],
             f"A list of wildcards matching IPVT corners to use during checking for {cls.violation_type} violations.",
+            pdk=True,
         )
         if cls.corner_override:
             variable.default = cls.corner_override
@@ -634,3 +680,4 @@ class HoldViolations(TimingViolations):
     violation_type = "hold"
 
     metric_name = "timing__hold_vio__count"
+    corner_override = ["*"]

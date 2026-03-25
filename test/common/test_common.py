@@ -21,6 +21,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
+pytestmark = pytest.mark.all
+
 
 class MyString(UserString):
     pass

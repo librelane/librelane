@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Efabless Corporation
+# Copyright 2025 LibreLane Contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
-macro_placement\
-    -channel $::env(PL_MACRO_CHANNEL)\
-    -halo $::env(PL_MACRO_HALO)
+source $::env(SCRIPTS_DIR)/openroad/common/set_power_nets.tcl
+
+# load the pad configuration
+read_pad_cfg
 
 write_views
-
 report_design_area_metrics
-

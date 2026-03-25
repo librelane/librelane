@@ -166,7 +166,7 @@ class OdbReader(object):
         grt.setMinLayerForClock(min_clk_idx)
         grt.setMaxLayerForClock(max_clk_idx)
         grt.setMacroExtension(self.config["GRT_MACRO_EXTENSION"])
-        grt.setOverflowIterations(self.config["GRT_OVERFLOW_ITERS"])
+        grt.setCongestionIterations(self.config["GRT_OVERFLOW_ITERS"])
         grt.setAllowCongestion(self.config["GRT_ALLOW_CONGESTION"])
         grt.setVerbose(True)
         grt.initFastRoute(min_layer_idx, max_layer_idx)

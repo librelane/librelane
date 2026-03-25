@@ -17,6 +17,8 @@ from typing import Dict
 import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
+pytestmark = pytest.mark.all
+
 
 @pytest.fixture
 def _mock_fs():
@@ -126,15 +128,15 @@ def test_copy():
 
 
 def test_empty():
-    from librelane.state import DesignFormat, State
+    from librelane.state import State
 
     test_dict = {}
     test_metrics = {}
     state = State(test_dict, metrics=test_metrics)
 
     assert state.metrics == test_metrics
-    for format in DesignFormat:
-        assert state[format.value.id] is None, "new state has non-none value"
+
+    assert len(state) == 0, "New empty state has entries"
 
 
 def test_path_fail_exists():

@@ -91,7 +91,7 @@ class Toolbox(object):
             corner.
         :param views_by_corner: The mapping from (wild cards) of corner names to
             views.
-        :param corner: An explicit override for the default corner. Must be a
+        :param timing_corner: An explicit override for the default corner. Must be a
             fully qualified IPVT corner.
         :returns: The created list
         """
@@ -351,7 +351,9 @@ class Toolbox(object):
             with tempfile.TemporaryDirectory(prefix="librelane_klayout_tmp_") as d:
                 render_step = KLayout.Render(config, state_in, _config_quiet=True)
                 render_step.start(self, d)
-                return open(os.path.join(d, "out.png"), "rb").read()
+                return open(
+                    os.path.join(d, f"{config['DESIGN_NAME']}.png"), "rb"
+                ).read()
         except InvalidConfig:
             warn("PDK is incompatible with KLayout. Unable to generate preview.")
             return None

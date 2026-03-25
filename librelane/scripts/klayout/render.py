@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright (c) 2021-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,6 +80,42 @@ import click
     required=True,
     help="KLayout .map (LEF/DEF layer map) file",
 )
+@click.option(
+    "--grid-visible",
+    required=False,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "--grid-show-ruler",
+    required=False,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "--text-visible",
+    required=False,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "--background-color",
+    required=False,
+    default=False,
+    type=str,
+)
+@click.option(
+    "--resolution",
+    required=False,
+    default=1000,
+    type=int,
+)
+@click.option(
+    "--oversampling",
+    required=False,
+    default=0,
+    type=int,
+)
 @click.argument("input")
 def render(
     input_lefs: Tuple[str, ...],
@@ -84,6 +124,12 @@ def render(
     lyp: str,
     lym: str,
     input: str,
+    grid_visible: bool,
+    grid_show_ruler: bool,
+    text_visible: bool,
+    background_color: str,
+    resolution: int,
+    oversampling: int,
 ):
     try:
         gds = input.endswith(".gds")
@@ -100,18 +146,38 @@ def render(
             layout_options.lefdef_config.read_lef_with_def = False
             layout_options.lefdef_config.lef_files = list(input_lefs)
 
-        view = pya.LayoutView()
-        view.load_layer_props(lyp)
+        lv = pya.LayoutView()
+
+        lv.set_config("grid-visible", str(grid_visible).lower())
+        lv.set_config("grid-show-ruler", str(grid_show_ruler).lower())
+        lv.set_config("text-visible", str(text_visible).lower())
+        background_color = "#FFFFFF" if background_color == "white" else "#000000"
+        lv.set_config("background-color", background_color)
 
         if gds:
-            view.load_layout(input)
+            lv.load_layout(input)
         else:
-            view.load_layout(input, layout_options, lyt)
-        view.max_hier()
-        pixels = view.get_pixels_with_options(1000, 1000)
+            lv.load_layout(input, layout_options, lyt)
 
-        with open(output, "wb") as f:
-            f.write(pixels.to_png_data())
+        lv.max_hier()
+
+        # Get aspect ratio
+        top_cell = lv.active_cellview().layout().top_cell()
+        top_bbox = top_cell.dbbox()
+        aspect_ratio = top_bbox.width() / top_bbox.height()
+
+        width = resolution
+        height = int(width / aspect_ratio)
+
+        lv.load_layer_props(lyp)
+
+        lv.save_image_with_options(
+            output,
+            width,
+            height,
+            oversampling=oversampling,
+        )
+
     except Exception as e:
         print(e)
         exit(1)

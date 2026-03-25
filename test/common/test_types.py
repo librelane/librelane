@@ -14,6 +14,10 @@
 from math import inf
 from decimal import Decimal
 
+import pytest
+
+pytestmark = pytest.mark.all
+
 
 def test_is_number():
     from librelane.common import is_number

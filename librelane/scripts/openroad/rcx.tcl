@@ -26,7 +26,7 @@ if { !$::env(RCX_MERGE_VIA_WIRE_RES) } {
 # RCX
 puts "Using RCX ruleset '$::env(RCX_RULESET)'…"
 define_process_corner -ext_model_index 0 CURRENT_CORNER
-extract_parasitics $rcx_flags\
+log_cmd extract_parasitics $rcx_flags\
     -ext_model_file $::env(RCX_RULESET)\
     -lef_res
 write_views

@@ -18,6 +18,7 @@ import pytest
 from librelane.flows import flow as flow_module, sequential as sequential_flow_module
 from librelane.steps import Step, step as step_module
 
+pytestmark = pytest.mark.all
 
 mock_variables = pytest.mock_variables
 
@@ -82,7 +83,7 @@ def test_sequential_flow(MetricIncrementer: Type[Step]):
 def test_custom_seqflow(MetricIncrementer):
     from librelane.flows import SequentialFlow
 
-    MyFlow = SequentialFlow.make(
+    MyFlow = SequentialFlow.Make(
         [
             "Test.MetricIncrementer",
             "Test.MetricIncrementer",
@@ -117,7 +118,7 @@ def test_custom_seqflow_bad_id(MetricIncrementer):
     from librelane.flows import SequentialFlow
 
     with pytest.raises(TypeError, match="No step found with id"):
-        SequentialFlow.make(
+        SequentialFlow.Make(
             [
                 "Test.MetricIncrementer",
                 "Test.MetricIncrementer",
@@ -147,7 +148,7 @@ def test_substitution(MetricIncrementer):
         id = "Test.FinalMetricIncrementer"
         counter_name = "final_counter"
 
-    MyFlow = SequentialFlow.make(
+    MyFlow = SequentialFlow.Make(
         [
             "Test.MetricIncrementer",
             "Test.MetricIncrementer",
@@ -156,7 +157,14 @@ def test_substitution(MetricIncrementer):
         ]
     )
 
-    flow = MyFlow(
+    flow = MyFlow.Substitute(
+        {
+            "-Test.MetricIncrementer": FirstMetricIncrementer,
+            "Test.MetricIncrementer-1": OtherMetricIncrementer,
+            "Test.MetricIncrementer": "Test.OtherMetricIncrementer",
+            "+Test.MetricIncrementer-1": "Test.FinalMetricIncrementer",
+        }
+    )(
         {
             "DESIGN_NAME": "WHATEVER",
             "VERILOG_FILES": ["/cwd/src/a.v"],
@@ -165,20 +173,14 @@ def test_substitution(MetricIncrementer):
         pdk="dummy",
         scl="dummy_scl",
         pdk_root="/pdk",
-        Substitute={
-            "-Test.MetricIncrementer": FirstMetricIncrementer,
-            "Test.MetricIncrementer": OtherMetricIncrementer,
-            "Test.MetricIncrementer-1": "Test.OtherMetricIncrementer",
-            "+Test.MetricIncrementer-3": "Test.FinalMetricIncrementer",
-        },
     )
 
     assert [step.id for step in flow.Steps] == [
         "Test.FirstMetricIncrementer",
         "Test.OtherMetricIncrementer",
         "Test.OtherMetricIncrementer-1",
-        "Test.MetricIncrementer-2",
-        "Test.MetricIncrementer-3",
+        "Test.MetricIncrementer",
+        "Test.MetricIncrementer-1",
         "Test.FinalMetricIncrementer",
     ], "SequentialFlow did not increment IDs properly for duplicate steps"
 
@@ -190,13 +192,40 @@ def test_substitution(MetricIncrementer):
         "final_counter": 1,
     }, "step substitution execution returned unexpected metrics"
 
+    flow2 = MyFlow.Substitute(
+        [
+            ("-Test.MetricIncrementer", FirstMetricIncrementer),
+            ("Test.MetricIncrementer", "Test.OtherMetricIncrementer"),
+            ("Test.MetricIncrementer", OtherMetricIncrementer),
+            ("+Test.MetricIncrementer-1", "Test.FinalMetricIncrementer"),
+        ]
+    )(
+        {
+            "DESIGN_NAME": "WHATEVER",
+            "VERILOG_FILES": ["/cwd/src/a.v"],
+        },
+        design_dir="/cwd",
+        pdk="dummy",
+        scl="dummy_scl",
+        pdk_root="/pdk",
+    )
+
+    assert [step.id for step in flow2.Steps] == [
+        "Test.FirstMetricIncrementer",
+        "Test.OtherMetricIncrementer",
+        "Test.OtherMetricIncrementer-1",
+        "Test.MetricIncrementer",
+        "Test.MetricIncrementer-1",
+        "Test.FinalMetricIncrementer",
+    ], "SequentialFlow did not increment IDs properly for duplicate steps when using tuples"
+
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_substitute_none(MetricIncrementer):
     from librelane.flows import SequentialFlow, FlowException
 
-    MyFlow = SequentialFlow.make(
+    MyFlow = SequentialFlow.Make(
         [
             "Test.MetricIncrementer",
             "Test.MetricIncrementer",
@@ -206,12 +235,12 @@ def test_substitute_none(MetricIncrementer):
     )
 
     with pytest.raises(FlowException, match="Cannot prepend or append None"):
-        MyFlow(Substitute={"-Test.MetricIncrementer": None})
+        MyFlow.Substitute({"-Test.MetricIncrementer": None})
 
     with pytest.raises(FlowException, match="Cannot prepend or append None"):
-        MyFlow(Substitute={"+Test.MetricIncrementer": None})
+        MyFlow.Substitute({"+Test.MetricIncrementer": None})
 
-    flow_with_removal = MyFlow(
+    flow_with_removal = MyFlow.Substitute({"Test.MetricIncrementer-1": None})(
         {
             "DESIGN_NAME": "WHATEVER",
             "VERILOG_FILES": ["/cwd/src/a.v"],
@@ -220,18 +249,15 @@ def test_substitute_none(MetricIncrementer):
         pdk="dummy",
         scl="dummy_scl",
         pdk_root="/pdk",
-        Substitute={
-            "Test.MetricIncrementer-1": None,
-        },
     )
     assert [step.id for step in flow_with_removal.Steps] == [
         "Test.MetricIncrementer",
+        "Test.MetricIncrementer-1",
         "Test.MetricIncrementer-2",
-        "Test.MetricIncrementer-3",
     ], "Removal did not work as expected"
 
     with pytest.raises(FlowException, match="no steps with ID"):
-        MyFlow(Substitute={"Test.MetricIncrementer-80": None})
+        MyFlow.Substitute({"Test.MetricIncrementer-80": None})
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
@@ -239,7 +265,7 @@ def test_substitute_none(MetricIncrementer):
 def test_bad_substitution(MetricIncrementer):
     from librelane.flows import SequentialFlow, FlowException
 
-    MyFlow = SequentialFlow.make(
+    MyFlow = SequentialFlow.Make(
         [
             "Test.MetricIncrementer",
             "Test.MetricIncrementer",
@@ -251,7 +277,7 @@ def test_bad_substitution(MetricIncrementer):
     with pytest.raises(
         FlowException, match=r"no replacement step with ID '[\w\.]+' found"
     ):
-        MyFlow(
+        MyFlow.Substitute({"Test.MetricIncrementer": "Test.NotARealStep"})(
             {
                 "DESIGN_NAME": "WHATEVER",
                 "VERILOG_FILES": ["/cwd/src/a.v"],
@@ -260,14 +286,11 @@ def test_bad_substitution(MetricIncrementer):
             pdk="dummy",
             scl="dummy_scl",
             pdk_root="/pdk",
-            Substitute={
-                "Test.MetricIncrementer": "Test.NotARealStep",
-            },
         )
     with pytest.raises(
         FlowException, match=r"no steps with ID '[\w\.]+' found in flow"
     ):
-        MyFlow(
+        MyFlow.Substitute({"Test.NotAStepInTheFlow": "Test.MetricIncrementer"})(
             {
                 "DESIGN_NAME": "WHATEVER",
                 "VERILOG_FILES": ["/cwd/src/a.v"],
@@ -276,9 +299,6 @@ def test_bad_substitution(MetricIncrementer):
             pdk="dummy",
             scl="dummy_scl",
             pdk_root="/pdk",
-            Substitute={
-                "Test.NotAStepInTheFlow": "Test.MetricIncrementer",
-            },
         )
 
 

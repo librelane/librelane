@@ -1,0 +1,23 @@
+From 62cd210a8aff98cb8bf795e7b70c610faf5deebb Mon Sep 17 00:00:00 2001
+From: James Cherry <cherry@parallaxsw.com>
+Date: Tue, 3 Mar 2026 07:59:09 -0800
+Subject: [PATCH] back edge->to is a root resolves #395
+
+Signed-off-by: James Cherry <cherry@parallaxsw.com>
+---
+ search/Levelize.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/search/Levelize.cc b/search/Levelize.cc
+index d04891bf..5a0127b0 100644
+--- a/search/Levelize.cc
++++ b/search/Levelize.cc
+@@ -323,7 +323,7 @@ Levelize::findCycleBackEdges()
+       stack.emplace(vertex, new VertexOutEdgeIterator(vertex, graph_));
+       EdgeSet back_edges = findBackEdges(path, stack);
+       for (Edge *back_edge : back_edges)
+-        roots_.insert(back_edge->from(graph_));
++        roots_.insert(back_edge->to(graph_));
+       back_edge_count += back_edges.size();
+     }
+   }

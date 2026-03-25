@@ -47,31 +47,34 @@ Config variables are declared using the {class}`librelane.config.Variable` objec
 
 There are some conventions to writing these variables.
 
-* Variable names are declared in `UPPER_SNAKE_CASE`, and must be valid identifiers
-  in the Python programming language.
+* Variable names are declared in `UPPER_SNAKE_CASE`, and must be valid
+  identifiers in the Python programming language.
 * Composite types should be declared using the `typing` module, i.e., for a list
   of strings, try `typing.List[str]` instead of `list[str]` or just `list`.
-  * `list[str]` is incompatible with Python 3.8.1.
+  * `list[str]` will technically work as of LibreLane 3.0.0, but in older
+    versions it did not and even in current versions of Python the type objects
+    do not match, i.e. `List[str] != list[str]`. This may cause unexpected bugs.
   * `list` does not give LibreLane adequate information to validate the child
-    variables.
+    variables and should not be used under any cirumstance.
 * Variables that capture a physical quantity, such as time, distance or similar,
   must declare units using their `"units"` field.
-  * In case of micro-, the only SI prefix denoted with a non-Latin letter, use this
-    exact Unicode codepoint: `µ`
-* Variables may be declared as `pdk`, which determines the compatibility of a PDK
-  with your step. If you use a PDK that does not declare one of your declared PDK
-  variables, the configuration will not compile and the step will raise a
-  {class}`librelane.steps.StepException`.
-  * PDK variables should generally avoid having default values other than `None`.
-    An exception is when a quantity may be defined by some PDKs, but needs a fallback
-    value for others.
+  * In case of micro-, the only SI prefix denoted with a non-Latin letter, use
+    this exact Unicode codepoint: `µ`
+* Variables may be declared as `pdk`, which determines the compatibility of a
+  PDK with your step. If you use a PDK that does not declare one of your
+  declared PDK variables, the configuration will not compile and the step will
+  raise a {class}`librelane.steps.StepException`.
+  * PDK variables should generally avoid having default values other than
+    `None`. An exception is when a quantity may be defined by some PDKs, but
+    needs a fallback value for others.
 * No complex defaults. Defaults must be scalar and quick to evaluate- if your
   default value depends on the default value of another variable, for example,
-* All filesystem paths must be declared as {class}`librelane.common.Path`, objects
-  which adds some very necessary validation and enables easier processing of the
-  variables down the line.
-  * Avoid pointing to entire folders. If your step may require multiple files within
-    a folder, try using the type `List[Path]`.
+  set it to `None` and calculate the default value in the step itself.
+* All filesystem paths must be declared as {class}`librelane.common.Path`,
+  objects which adds some very necessary validation and enables easier
+  processing of the variables down the line.
+  * Avoid pointing to directories. If your step may require multiple files
+    within a directory, try using the type `List[Path]`.
 
 ### Implementing `run`
 

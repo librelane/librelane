@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+
 read_pnr_libs
 read_lefs
 read_current_netlist
@@ -33,10 +35,18 @@ puts "Using site height: $::default_site_height and site width: $::default_site_
 
 unset_propagated_clock [all_clocks]
 
-set bottom_margin  [expr $::default_site_height * $::env(BOTTOM_MARGIN_MULT)]
-set top_margin  [expr $::default_site_height * $::env(TOP_MARGIN_MULT)]
-set left_margin [expr $::default_site_width * $::env(LEFT_MARGIN_MULT)]
-set right_margin [expr $::default_site_width * $::env(RIGHT_MARGIN_MULT)]
+proc set_margin {var site_dimension mult} {
+    set value [expr $site_dimension * $mult]
+    if { $value < 0 } {
+        puts stderr "\[ERROR IFP-0013\] Negative values not allowed for margins."
+        exit_unless_gui 1
+    }
+    uplevel 1 set "$var $value"
+}
+set_margin bottom_margin $::default_site_height $::env(BOTTOM_MARGIN_MULT)
+set_margin top_margin $::default_site_height $::env(TOP_MARGIN_MULT)
+set_margin left_margin $::default_site_width $::env(LEFT_MARGIN_MULT)
+set_margin right_margin $::default_site_width $::env(RIGHT_MARGIN_MULT)
 
 set arg_list [list]
 
@@ -53,7 +63,7 @@ puts "\[INFO\] Using $::env(FP_SIZING) sizing for the floorplan."
 if {$::env(FP_SIZING) == "absolute"} {
     if { [llength $::env(DIE_AREA)] != 4 } {
         puts stderr "Invalid die area string '$::env(DIE_AREA)'."
-        exit -1
+        exit_unless_gui 1
     }
     if { ! [info exists ::env(CORE_AREA)] } {
         set die_x0 [lindex $::env(DIE_AREA) 0]
@@ -73,7 +83,7 @@ if {$::env(FP_SIZING) == "absolute"} {
     } else {
         if { [llength $::env(CORE_AREA)] != 4 } {
             puts stderr "Invalid core area string '$::env(CORE_AREA)'."
-            exit -1
+            exit_unless_gui 1
         }
         puts "\[INFO\] Using the set CORE_AREA; ignoring core margin parameters"
     }
@@ -97,7 +107,9 @@ if { [info exists ::env(FP_OBSTRUCTIONS)] } {
     }
 }
 
-initialize_floorplan {*}$arg_list
+append_if_exists_argument arg_list FP_FLIP_SITES -flip_sites
+
+log_cmd initialize_floorplan {*}$arg_list
 
 insert_tiecells $::env(SYNTH_TIELO_CELL) -prefix "TIE_ZERO_"
 insert_tiecells $::env(SYNTH_TIEHI_CELL) -prefix "TIE_ONE_"

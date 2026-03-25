@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Efabless Corporation
+# Copyright 2020-2025 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,19 @@ import shlex
 from enum import IntEnum
 from decimal import Decimal, InvalidOperation
 from dataclasses import dataclass, field, asdict
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Iterable
 
-BoundingBox = Tuple[Decimal, Decimal, Decimal, Decimal]  # microns
+
+@dataclass
+class BoundingBox(Iterable[Decimal]):
+    llx: Decimal
+    lly: Decimal
+    urx: Decimal
+    ury: Decimal
+    info: Optional[str] = None
+
+    def __iter__(self):
+        return iter([self.llx, self.lly, self.urx, self.ury])
 
 
 @dataclass
@@ -53,6 +63,75 @@ class DRC:
 
     module: str
     violations: Dict[str, Violation]
+
+    @classmethod
+    def from_openroad(
+        Self,
+        report: io.TextIOWrapper,
+        module: str,
+    ) -> Tuple["DRC", int]:
+        class State(IntEnum):
+            vio_type = 0
+            src = 1
+            bbox = 10
+
+        re_violation = re.compile(r"violation type: (?P<type>.*)$")
+        re_src = re.compile(r"srcs: (?P<src1>\S+)( (?P<src2>\S+))?")
+        re_bbox = re.compile(
+            r"bbox = \((?P<llx>\S+), (?P<lly>\S+)\) - \((?P<urx>\S+), (?P<ury>\S+)\) on Layer (?P<layer>\S+)"
+        )
+        bbox_count = 0
+        violations: Dict[str, Violation] = {}
+        state = State.vio_type
+        vio_type = src1 = src2 = lly = llx = urx = ury = ""
+        for line in report:
+            line = line.strip()
+            if line.strip() == "":
+                continue
+            if state == State.vio_type:
+                vio_match = re_violation.match(line)
+                assert (
+                    vio_match is not None
+                ), f"Error while parsing drc report file: Could not match violation line '{line}'"
+                vio_type = vio_match.group("type")
+                state = State.src
+            elif state == State.src:
+                src_match = re_src.match(line)
+                assert (
+                    src_match is not None
+                ), f"Error while parsing drc report file: Could not match source line '{line}'"
+                src1 = src_match.group("src1")
+                src2 = src_match.group("src2")
+                state = State.bbox
+            elif state == State.bbox:
+                bbox_match = re_bbox.match(line)
+                assert (
+                    bbox_match is not None
+                ), f"Error while parsing drc report file: Could not match bbox line '{line}'"
+                llx = bbox_match.group("llx")
+                lly = bbox_match.group("lly")
+                urx = bbox_match.group("urx")
+                ury = bbox_match.group("ury")
+                layer = bbox_match.group("layer")
+                bbox_count += 1
+                bounding_box = BoundingBox(
+                    Decimal(llx),
+                    Decimal(lly),
+                    Decimal(urx),
+                    Decimal(ury),
+                    f"{src1} to {src2}",
+                )
+                violation = (layer, vio_type)
+                description = vio_type
+                if violations.get(vio_type) is not None:
+                    violations[vio_type].bounding_boxes.append(bounding_box)
+                else:
+                    violations[vio_type] = Violation(
+                        [violation], description, [bounding_box]
+                    )
+                state = State.vio_type
+
+        return (Self(module, violations), bbox_count)
 
     @classmethod
     def from_magic(
@@ -125,7 +204,7 @@ class DRC:
                         f"invalid bounding box at line {i}: bounding box has {len(coord_list)}/4 elements"
                     )
 
-                bounding_box: BoundingBox = (
+                bounding_box = BoundingBox(
                     coord_list[0],
                     coord_list[1],
                     coord_list[2],
@@ -146,6 +225,7 @@ class DRC:
         violations: Dict[str, Violation] = {}
         last_bounding_box: Optional[BoundingBox] = None
         lex = shlex.shlex(feedback.read(), posix=True)
+        lex.wordchars = lex.wordchars + "-"
         components = list(lex)
         while len(components):
             instruction = components.pop(0)
@@ -155,7 +235,7 @@ class DRC:
                         "Invalid syntax: 'box' command has less than 4 arguments"
                     )
                 lx, ly, ux, uy = components[0:4]
-                last_bounding_box = (
+                last_bounding_box = BoundingBox(
                     Decimal(lx) * cif_scale,
                     Decimal(ly) * cif_scale,
                     Decimal(ux) * cif_scale,
@@ -240,7 +320,9 @@ class DRC:
                                 multiplicity.text = str(len(violation.bounding_boxes))
                                 xf.write(cell, category, visited, multiplicity)
                                 with xf.element("values"):
-                                    llx, lly, urx, ury = bounding_box
                                     value = ET.Element("value")
-                                    value.text = f"polygon: ({llx},{lly};{urx},{lly};{urx},{ury};{llx},{ury})"
+                                    value.text = f"polygon: ({bounding_box.llx},{bounding_box.lly};{bounding_box.urx},{bounding_box.lly};{bounding_box.urx},{bounding_box.ury};{bounding_box.llx},{bounding_box.ury})"
+                                    xf.write(value)
+                                    value = ET.Element("value")
+                                    value.text = f"text: '{bounding_box.info}'"
                                     xf.write(value)

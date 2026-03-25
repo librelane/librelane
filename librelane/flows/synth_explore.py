@@ -18,7 +18,7 @@ import os
 import rich
 import rich.table
 from concurrent.futures import Future
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from .flow import Flow
 from ..state import State
@@ -40,20 +40,19 @@ class SynthesisExploration(Flow):
 
     The output is represented in a tabulated format, e.g.: ::
 
-      ┏━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
-      ┃                ┃       ┃               ┃ Worst Setup      ┃ Total Negative   ┃
-      ┃ SYNTH_STRATEGY ┃ Gates ┃ Area (µm²)    ┃ Slack (ns)       ┃ Setup Slack (ns) ┃
-      ┡━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
-      │ AREA 0         │ 8781  │ 97141.916800  │ 6.288794         │ 0.0              │
-      │ AREA 1         │ 8692  │ 96447.500800  │ 6.434102         │ 0.0              │
-      │ AREA 2         │ 8681  │ 96339.897600  │ 6.276806         │ 0.0              │
-      │ AREA 3         │ 11793 │ 111084.038400 │ 7.011374         │ 0.0              │
-      │ DELAY 0        │ 8969  │ 101418.518400 │ 6.511191         │ 0.0              │
-      │ DELAY 1        │ 8997  │ 101275.881600 │ 6.656564         │ 0.0              │
-      │ DELAY 2        │ 9013  │ 101177.036800 │ 6.691765         │ 0.0              │
-      │ DELAY 3        │ 8733  │ 99190.131200  │ 6.414865         │ 0.0              │
-      │ DELAY 4        │ 8739  │ 101011.878400 │ 6.274565         │ 0.0              │
-      └────────────────┴───────┴───────────────┴──────────────────┴──────────────────┘
+        ┏━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+        ┃ SYNTH_STRATEGY ┃ Gates ┃ Area (µm²)    ┃ Worst R2R Setup Slack (ns) ┃ Worst Setup Slack (ns) ┃ Total -ve Setup Slack (ns) ┃
+        ┡━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+        │ AREA 0         │ 6692  │ 88675.046400  │ 8.601737                   │ 8.066582297115897      │ 0.0                        │
+        │ AREA 1         │ 6776  │ 88750.118400  │ 8.196377                   │ 7.965740292847976      │ 0.0                        │
+        │ AREA 2         │ 6720  │ 88352.236800  │ 8.628829                   │ 8.628828562575336      │ 0.0                        │
+        │ AREA 3         │ 11620 │ 110656.128000 │ 8.688749                   │ 8.688749521355085      │ 0.0                        │
+        │ DELAY 0        │ 6797  │ 91976.963200  │ 8.135016                   │ 8.13501644628924       │ 0.0                        │
+        │ DELAY 1        │ 6877  │ 92278.502400  │ 8.828732                   │ 8.828731773329311      │ 0.0                        │
+        │ DELAY 2        │ 6891  │ 92394.864000  │ 8.775793                   │ 6.444352789363264      │ 0.0                        │
+        │ DELAY 3        │ 6792  │ 91675.424000  │ 9.102930                   │ 8.078121511470991      │ 0.0                        │
+        │ DELAY 4        │ 8533  │ 98833.539200  │ 8.665778                   │ 8.665778562236717      │ 0.0                        │
+        └────────────────┴───────┴───────────────┴────────────────────────────┴────────────────────────┴────────────────────────────┘
 
     You can then update your config file with the best ``SYNTH_STRATEGY`` for your
     use-case so it can be used with other flows.
@@ -119,7 +118,9 @@ class SynthesisExploration(Flow):
 
             synth_futures.append((config, sta_future))
 
-        results: Dict[str, Optional[Tuple[Decimal, Decimal, Decimal, Decimal]]] = {}
+        results: Dict[
+            str, Tuple[Decimal, Decimal, Decimal, Decimal, Decimal] | None
+        ] = {}
         for config, future in synth_futures:
             strategy = config["SYNTH_STRATEGY"]
             results[strategy] = None
@@ -128,6 +129,7 @@ class SynthesisExploration(Flow):
                 results[strategy] = (
                     state.metrics["design__instance__count"],
                     state.metrics["design__instance__area"],
+                    state.metrics["timing__setup_r2r__ws"],
                     state.metrics["timing__setup__ws"],
                     state.metrics["timing__setup__tns"],
                 )
@@ -139,27 +141,33 @@ class SynthesisExploration(Flow):
         successful_results = {k: v for k, v in results.items() if v is not None}
         min_gates = min(map(lambda x: x[0], successful_results.values()))
         min_area = min(map(lambda x: x[1], successful_results.values()))
-        max_slack = max(map(lambda x: x[2], successful_results.values()))
-        max_tns = max(map(lambda x: x[3], successful_results.values()))
+        max_r2r_slack = max(map(lambda x: x[2], successful_results.values()))
+        max_slack = max(map(lambda x: x[3], successful_results.values()))
+        max_tns = max(map(lambda x: x[4], successful_results.values()))
 
         table = rich.table.Table()
         table.add_column("SYNTH_STRATEGY")
         table.add_column("Gates")
         table.add_column("Area (µm²)")
+        table.add_column("Worst R2R Setup Slack (ns)")
         table.add_column("Worst Setup Slack (ns)")
         table.add_column("Total -ve Setup Slack (ns)")
         for key, result in results.items():
             gates_s = "[red]Failed"
             area_s = "[red]Failed"
+            r2r_slack_s = "[red]Failed"
             slack_s = "[red]Failed"
             tns_s = "[red]Failed"
             if result is not None:
-                gates, area, slack, tns = result
+                gates, area, r2r_slack, slack, tns = result
                 gates_s = f"{'[green]' if gates == min_gates else ''}{gates}"
                 area_s = f"{'[green]' if area == min_area else ''}{area}"
+                r2r_slack_s = (
+                    f"{'[green]' if r2r_slack == max_r2r_slack else ''}{r2r_slack}"
+                )
                 slack_s = f"{'[green]' if slack == max_slack else ''}{slack}"
                 tns_s = f"{'[green]' if tns == max_tns else ''}{tns}"
-            table.add_row(key, gates_s, area_s, slack_s, tns_s)
+            table.add_row(key, gates_s, area_s, r2r_slack_s, slack_s, tns_s)
 
         console.print(table)
         assert self.run_dir is not None

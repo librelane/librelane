@@ -38,7 +38,7 @@ def json_header(
     defines = (
         (config["VERILOG_DEFINES"] or [])
         + [
-            f"PDK_{config['PDK']}",
+            f"PDK_{config['PDK'].replace('-','_')}",
             f"SCL_{config['STD_CELL_LIBRARY']}",
             "__librelane__",
             "__pnr__",
@@ -62,8 +62,8 @@ def json_header(
         synth_parameters=config["SYNTH_PARAMETERS"] or [],
         includes=includes,
         defines=defines,
-        use_synlig=config["USE_SYNLIG"],
-        synlig_defer=config["SYNLIG_DEFER"],
+        use_slang=config["USE_SLANG"],
+        slang_arguments=config["SLANG_ARGUMENTS"] or [],
     )
     d.run_pass(
         "hierarchy",

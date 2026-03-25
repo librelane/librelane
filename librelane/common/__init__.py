@@ -32,7 +32,7 @@ from .misc import (
     idem,
     get_librelane_root,
     get_script_dir,
-    get_opdks_rev,
+    get_pdk_hash,
     slugify,
     protected,
     final,
@@ -57,7 +57,7 @@ from .types import (
     ScopedFile,
 )
 from .toolbox import Toolbox
-from .drc import DRC, Violation
+from .drc import DRC, Violation, BoundingBox
 from . import cli
 from .tpe import get_tpe, set_tpe
 from .ring_buffer import RingBuffer

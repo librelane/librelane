@@ -11,6 +11,9 @@ All categories arranged alphabetically.
 * Leo Moser \<leo.moser@pm.me\>
 * Mohamed Gaber \<me@donn.website\>
 * Mohamed Shalan \<mshalan@aucegypt.edu\>
+* M. L. Young \<matt@mlyoung.cool\>
+* Sylvain Munaut \<tnt@246tNt.com\>
+* Tamas H. \<mpw@htamas.net\>
 
 ## OpenLane
 

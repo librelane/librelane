@@ -90,6 +90,18 @@ class Path(UserString, os.PathLike):
         else:
             return Path(my_abspath)
 
+    def write_text(self, data: str, encoding=None, errors=None, newline=None):
+        with open(
+            self, "w", encoding=encoding, errors=errors, newline=newline
+        ) as ofile:
+            return ofile.write(data)
+
+    def read_text(self, encoding=None, errors=None, newline=None):
+        with open(
+            self, "r", encoding=encoding, errors=errors, newline=newline
+        ) as ifile:
+            return ifile.read()
+
 
 AnyPath = Union[str, os.PathLike]
 

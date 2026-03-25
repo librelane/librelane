@@ -13,17 +13,18 @@
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
-source $::env(SCRIPTS_DIR)/openroad/common/dpl_cell_pad.tcl
 
-set_propagated_clock [all_clocks]
+set diode_cell [lindex [split $::env(DIODE_CELL) "/"] 0]
 
-source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
+set arg_list [list]
+lappend arg_list $diode_cell
+lappend arg_list -iterations $::env(GRT_ANTENNA_REPAIR_ITERS)
+lappend arg_list -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
+append_if_flag arg_list GRT_ALLOW_CONGESTION -allow_congestion
+append_if_flag arg_list GRT_ANTENNA_REPAIR_JUMPER_ONLY -jumper_only
+append_if_flag arg_list GRT_ANTENNA_REPAIR_DIODE_ONLY -diode_only
 
-set diode_split [split $::env(DIODE_CELL) "/"]
-repair_antennas "[lindex $diode_split 0]" -iterations $::env(GRT_ANTENNA_ITERS) -ratio_margin $::env(GRT_ANTENNA_MARGIN)
-
-source $::env(SCRIPTS_DIR)/openroad/common/dpl.tcl
-source $::env(SCRIPTS_DIR)/openroad/common/grt.tcl
+log_cmd repair_antennas {*}$arg_list
 
 source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 estimate_parasitics -global_routing
