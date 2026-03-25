@@ -387,6 +387,46 @@ def process_dict_recursive(
             ref[key] = processed
             symbols[current_key_path] = processed
 
+F_ITEM_REGEX = re.compile(r"\+(.*)\+(.*)")
+
+def __add_or_append(d: Dict[str, Any], key: str, value: Any):
+    if key in d:
+        d[key].append(value)
+    else:
+        d[key] = [value]
+
+def __parse_f_list_item(line: str, config_in: Dict[str, Any]):
+    match = re.match(F_ITEM_REGEX, line)
+    if match is not None:
+        directive = match.group(0)
+        contents = match.group(1)
+
+        if directive == "incdir":
+            __add_or_append(config_in, "VERILOG_INCLUDE_DIRS", contents)
+        elif directive == "define":
+            __add_or_append(config_in, "VERILOG_DEFINES", contents)
+        else:
+            raise RuntimeError(f"Unknown F-list directive '{directive}' in line: {line}")
+
+    else:
+        # assume source file
+        __add_or_append(config_in, "VERILOG_FILES", line)
+
+def __parse_f_list(config_in: Mapping[str, Any], exposed_variables: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Parse an F-list (*.f) file from the key "VERILOG_FLIST_FILES", and update the config accordingly.
+    """
+    mut = dict(config_in)   # our mutable copy
+    if verilog_f_files := config_in.get("VERILOG_FLIST_FILES"):
+        for file in verilog_f_files:
+            # apply any preprocessing the user included in this path
+            file = process_string(file, exposed_variables)
+            print("FIXME REMOVE Parse F-list: {file}")
+            with open(str(file)) as f:
+                for line in f.readlines():
+                    __parse_f_list_item(line.strip(), mut)
+    return mut
+
 
 def process_config_dict(
     config_in: Mapping[str, Any],
@@ -394,7 +434,13 @@ def process_config_dict(
 ) -> Dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
-    process_dict_recursive(config_in, state, symbols)
+
+    # parse any *.f files first
+    updated = __parse_f_list(config_in, exposed_variables)
+
+    # proceed as normal
+    process_dict_recursive(updated, state, symbols)
+
     return state
 
 
