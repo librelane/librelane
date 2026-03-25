@@ -555,6 +555,8 @@ Style Notes
   * `refg::`, `dir::`, `pdk_dir::` now support globs outside the PDK directory
     and the config directory.
 
+  * Add support for parsing F-lists (`*.f` files)
+
 * `librelane.state`
 
   * `DesignFormat`
