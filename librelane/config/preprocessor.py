@@ -398,8 +398,8 @@ def __add_or_append(d: Dict[str, Any], key: str, value: Any):
 def __parse_f_list_item(line: str, config_in: Dict[str, Any]):
     match = re.match(F_ITEM_REGEX, line)
     if match is not None:
-        directive = match.group(0)
-        contents = match.group(1)
+        directive = match.group(1)
+        contents = match.group(2)
 
         if directive == "incdir":
             __add_or_append(config_in, "VERILOG_INCLUDE_DIRS", contents)
@@ -418,13 +418,37 @@ def __parse_f_list(config_in: Mapping[str, Any], exposed_variables: Dict[str, An
     """
     mut = dict(config_in)   # our mutable copy
     if verilog_f_files := config_in.get("VERILOG_FLIST_FILES"):
+        if not isinstance(verilog_f_files, list):
+            raise TypeError(f"VERILOG_FLIST_FILES should be a list, instead it is: {type(verilog_f_files)}")
+
+        visit_files = []
+
+        # expand globs, if necessary
         for file in verilog_f_files:
             # apply any preprocessing the user included in this path
             file = process_string(file, exposed_variables)
-            print("FIXME REMOVE Parse F-list: {file}")
+
+            if isinstance(file, str):
+                visit_files.append(file)
+            elif isinstance(file, list):
+                visit_files.extend(file)
+            else:
+                raise RuntimeError("Internal error: process_string returned unexpected type")
+
+        for file in visit_files:
             with open(str(file)) as f:
                 for line in f.readlines():
-                    __parse_f_list_item(line.strip(), mut)
+                    l = line.strip()
+
+                    # skip blank lines
+                    if not l:
+                        continue
+
+                    __parse_f_list_item(l, mut)
+
+        # omit ourselves, effectively consider ourselves "expanded"; we're not necessary in the config anymore
+        del mut["VERILOG_FLIST_FILES"]
+
     return mut
 
 
