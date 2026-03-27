@@ -25,6 +25,14 @@ Style Notes
 
 -->
 
+# 3.0.1
+
+## Steps
+
+* `Magic.DRC`
+
+  * Set units to internal to fix DRC markers for newer magic versions.
+
 # 3.0.0
 
 ## Steps

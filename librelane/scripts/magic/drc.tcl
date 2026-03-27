@@ -17,6 +17,7 @@
 # limitations under the License.
 
 crashbackups disable
+units internal
 
 # Read in maglef views in order to blackbox cells
 if { [info exists ::env(MAGIC_DRC_MAGLEFS)] } {
