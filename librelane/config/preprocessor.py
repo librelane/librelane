@@ -21,14 +21,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping, Sequence, Tuple, Union, Optional
 
-from .variable import Instance, Macro
 from ..common import is_string
-
-# https://stackoverflow.com/a/77145529
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from _typeshed import DataclassInstance
 
 Keys = SimpleNamespace(
     pdk_root="PDK_ROOT",
