@@ -100,6 +100,7 @@ class InstanceArray:
     step: Tuple[Decimal, Decimal]
     dimensions: Tuple[int, int]
 
+
 @dataclass
 class Instance:
     """
@@ -189,7 +190,7 @@ class Macro:
         self,
         name_template: str,
         array: InstanceArray,
-        orientation: Orientation|None,
+        orientation: Orientation | None,
     ) -> Dict[str, Instance]:
         """
         Expands a single macro array.
@@ -247,10 +248,12 @@ class Macro:
                     raise RuntimeError(
                         f"Macro instance '{instance_name}' specifies both a manully placed location and an array."
                         f" The location was: {instance.location}."
-                        )
+                    )
 
                 # perform expansion of this array
-                expansions = self.__expand_macro_array(instance_name, array, instance.orientation)
+                expansions = self.__expand_macro_array(
+                    instance_name, array, instance.orientation
+                )
 
                 # add array elements to the root macro instances
                 for expansion_name, expansion in expansions.items():
@@ -261,7 +264,6 @@ class Macro:
 
                 # delete this whole templated instance, since it has now been substituted
                 instance.array = None
-
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(%s)" % ", ".join(

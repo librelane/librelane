@@ -830,7 +830,7 @@ def test_config_array_macro():
         pdk_root="/pdk",
     )
 
-    expected =  Config(
+    expected = Config(
         {
             "DESIGN_DIR": "/cwd",
             "DESIGN_NAME": "whatever",
