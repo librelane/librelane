@@ -382,7 +382,7 @@ Sometimes, one would like to place a number of macros of the same type in a grid
 an array. This is particularly useful for SRAM arrays, but can also be useful for other patterns like FPGAs or
 some types of mixed-signal designs.
 
-LibreLane includes the ability to _expand_ an grid of macro instantiations. In LibreLane terminology, this
+LibreLane includes the ability to _expand_ a grid of macro instantiations. In LibreLane terminology, this
 is referred to as a _macro array_.
 
 The macro array expansion process runs as part of the pre-processor. To understand this, let's consider a
@@ -407,7 +407,7 @@ instances:
     orientation: N
 ```
 
-A few things have happened here. Firstly, the instance name `sram_inst_x{X}_y{Y}` has been templated using
+A few things have happened here. Firstly, the instance name `sram_inst_{X}_{Y}` has been templated using
 LibreLane's expression system, using the newly supported inline variable expansion. The variables `X` and `Y`
 will be substituted with column and row numbers in the expansion process. `ROW` and `COL` are also supported,
 if you prefer, as is `SEQ`, which just refers to the sequence described below.
@@ -419,23 +419,26 @@ pattern, and we also configure the array itself. The array configuration attribu
 - **dimensions:** The number of columns and rows (**in that order**) that the array should have
 
 The macro expander works left to right, from the bottom of the array to the top. To clarify, for this 2x2
-grid, the following diagram demonstrates the order of macro instantiation:
+grid, the following diagram demonstrates the order of macro instantiation (and thus the value of the `SEQ`
+variable):
 
 ```
  +---+ +---+
  |   | |   |
- | 3 | | 4 |
+ | 2 | | 3 |
  |   | |   |
  +---+ +---+
  +---+ +---+
  |   | |   |
- | 1 | | 2 |
+ | 0 | | 1 |
  |   | |   |
  +---+ +---+
 ```
 
 Take care that, since this is a preprocessor-based system, no attempt is made to validate the positions or
-lack of overlap between instantiated macros - you must verify this yourself.
+lack of overlap between instantiated macros - you must verify this yourself. Remember also that errors you
+may receive in the flow will refer to the _expanded_ macro array (i.e. _after_ pre-processing), which will not
+be visible to you directly in the configuration.
 
 ## Misc. Useful Variables
 
