@@ -15,8 +15,9 @@ from decimal import Decimal
 
 import pytest
 
-from librelane.config import config
+from librelane.config import config, Macro, Instance
 from librelane.common import Path
+from librelane.config.variable import Orientation
 
 pytestmark = pytest.mark.all
 
@@ -789,3 +790,147 @@ def test_config_inline_var_substitution():
     assert Config.get_meta("/cwd/config.yaml", flow_override="OtherWhatever") == Meta(
         version=2, flow="OtherWhatever"
     ), "get_meta test failed"
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables()
+def test_config_array_macro():
+    from librelane.config import Meta, Config
+
+    with open("/cwd/config.yaml", "w") as f:
+        f.write(
+            """
+            DESIGN_NAME: whatever
+            VERILOG_FILES:
+                - dir::src/*.v
+            MACROS:
+                spm:
+                    gds:
+                        - "/cwd"
+                    lef:
+                        - "/cwd"
+                    instances:
+                        epic_sram_512x8_{X}_{Y}:
+                            orientation: N
+                            array:
+                                offset: [100, 100]
+                                step: [100, 100]
+                                dimensions: [2, 2]
+            meta:
+                version: 2
+                flow: Whatever
+            """
+        )
+
+    cfg, _ = Config.load(
+        "/cwd/config.yaml",
+        config.flow_common_variables,
+        pdk="dummy",
+        scl="dummy_scl",
+        pdk_root="/pdk",
+    )
+
+    expected =  Config(
+        {
+            "DESIGN_DIR": "/cwd",
+            "DESIGN_NAME": "whatever",
+            "PDK_ROOT": "/pdk",
+            "PDK": "dummy",
+            "STD_CELL_LIBRARY": "dummy_scl",
+            "VERILOG_FILES": [
+                "/cwd/src/a.v",
+                "/cwd/src/b.v",
+            ],
+            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "GRT_REPAIR_ANTENNAS": True,
+            "RUN_HEURISTIC_DIODE_INSERTION": False,
+            "DIODE_ON_PORTS": "none",
+            "MACROS": {
+                "spm": Macro(
+                    gds=[Path("/cwd")],
+                    lef=[Path("/cwd")],
+                    instances={
+                        "epic_sram_512x8_0_0": Instance(
+                            location=(
+                                Decimal("100.0"),
+                                Decimal("100.0"),
+                            ),
+                            orientation=Orientation.N,
+                        ),
+                        "epic_sram_512x8_1_0": Instance(
+                            location=(
+                                Decimal(200.0),
+                                Decimal(100.0),
+                            ),
+                            orientation=Orientation.N,
+                        ),
+                        "epic_sram_512x8_0_1": Instance(
+                            location=(
+                                Decimal(100.0),
+                                Decimal(200.0),
+                            ),
+                            orientation=Orientation.N,
+                        ),
+                        "epic_sram_512x8_1_1": Instance(
+                            location=(
+                                Decimal(200.0),
+                                Decimal(200.0),
+                            ),
+                            orientation=Orientation.N,
+                        ),
+                    },
+                )
+            },
+            "TECH_LEFS": {
+                "nom_*": Path(
+                    "/pdk/dummy/libs.ref/techlef/dummy_scl/dummy_tech_lef.tlef"
+                )
+            },
+            "DEFAULT_CORNER": "nom_tt_025C_1v80",
+            "RANDOM_ARRAY": None,
+        },
+        meta=Meta(version=2, flow="Whatever"),
+    )
+
+    assert cfg == expected, "Generated configuration does not match expected value"
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables()
+def test_config_array_macro_invalid():
+    from librelane.config import Meta, Config
+
+    with open("/cwd/config.yaml", "w") as f:
+        f.write(
+            """
+            DESIGN_NAME: whatever
+            VERILOG_FILES:
+                - dir::src/*.v
+            MACROS:
+                spm:
+                    gds:
+                        - "/cwd"
+                    lef:
+                        - "/cwd"
+                    instances:
+                        foobar_{{X}}_{{Y}}:
+                            location: [1,1]
+                            orientation: N
+                            array:
+                                offset: [100, 100]
+                                step: [100, 100]
+                                dimensions: [2, 2]
+            meta:
+                version: 2
+                flow: Whatever
+            """
+        )
+
+    with pytest.raises(RuntimeError):
+        cfg, _ = Config.load(
+            "/cwd/config.yaml",
+            config.flow_common_variables,
+            pdk="dummy",
+            scl="dummy_scl",
+            pdk_root="/pdk",
+        )

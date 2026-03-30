@@ -100,7 +100,6 @@ class InstanceArray:
     step: Tuple[Decimal, Decimal]
     dimensions: Tuple[int, int]
 
-
 @dataclass
 class Instance:
     """
@@ -186,6 +185,49 @@ class Macro:
         except AttributeError:
             return None
 
+    def __expand_macro_array(
+        self,
+        name_template: str,
+        array: InstanceArray,
+        orientation: Orientation|None,
+    ) -> Dict[str, Instance]:
+        """
+        Expands a single macro array.
+
+        Returns a list of macro instantiations.
+        """
+        out = {}
+
+        # initial position
+        x, y = array.offset
+        x_init, y_init = array.offset
+        x_incr, y_incr = array.step
+        seq = 0
+
+        rows, cols = array.dimensions
+        for row in range(rows):
+            for col in range(cols):
+                subs = {}
+                # expand the name template, defining the X and Y variables
+                subs["X"] = col
+                subs["Y"] = row
+                # also support row/col syntax
+                subs["COL"] = col
+                subs["ROW"] = row
+                subs["SEQ"] = seq
+                # assume preprocessor has expanded regular variable references like {FOO}, so now we only need
+                # to expand the array-specific stuff
+                # we also can't import the preprocessor here due to circular imports
+                expanded = name_template.format(**subs)
+                out[expanded] = Instance(location=(x, y), orientation=orientation)
+                x += x_incr
+                seq += 1
+            # new row, reset
+            x = x_init
+            y += y_incr
+
+        return out
+
     def __post_init__(self):
         if len(self.gds) < 1:
             raise ValueError(
@@ -195,6 +237,31 @@ class Macro:
             raise ValueError(
                 "Macro definition invalid- at least one LEF file must be specified."
             )
+
+        # we need to make a copy here, as we're modifying the dictionary as we iterate
+        for instance_name, instance in self.instances.copy().items():
+            if (array := instance.array) is not None:
+                # we have a macro to expand
+                # first, check it's valid
+                if instance.location is not None:
+                    raise RuntimeError(
+                        f"Macro instance '{instance_name}' specifies both a manully placed location and an array."
+                        f" The location was: {instance.location}."
+                        )
+
+                # perform expansion of this array
+                expansions = self.__expand_macro_array(instance_name, array, instance.orientation)
+
+                # add array elements to the root macro instances
+                for expansion_name, expansion in expansions.items():
+                    self.instances[expansion_name] = expansion
+
+                # delete the original instance with the preprocessor stuff, we don't need it
+                del self.instances[instance_name]
+
+                # delete this whole templated instance, since it has now been substituted
+                instance.array = None
+
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(%s)" % ", ".join(
