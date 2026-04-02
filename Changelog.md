@@ -25,6 +25,14 @@ Style Notes
 
 -->
 
+# 3.0.2
+
+## Tool Updates
+
+* OpenROAD: Backported
+  [#9975](https://github.com/The-OpenROAD-Project/OpenROAD/pull/9975) to fix a
+  bug with a certain PDK and added missing Qt plugins.
+
 # 3.0.1
 
 ## Steps
