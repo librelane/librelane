@@ -25,6 +25,14 @@ Style Notes
 
 -->
 
+# 3.1.0
+
+## Tool Updates
+
+* Updated OpenROAD to `aec50a45`
+* Updated OpenSTA to `a56edf27`
+* Updated OpenROAD-ABC to `17cadca0`
+
 # 3.0.0
 
 ## Steps

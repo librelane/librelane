@@ -17,9 +17,10 @@
   zlib,
   eigen,
   ninja,
-  rev ? "857316ff001b2a8dbbdc5996944d08a6d38c87ab",
-  rev-date ? "2026-02-14",
-  sha256 ? "sha256-4lxyNQeBTx+bIEM4RVZzG4UU/ilv9sjFFUcB5S4Evgw=",
+  gtest,
+  rev ? "a56edf27677801ca8e9bb42fcaa1d5a6e40d5d11",
+  rev-date ? "2026-04-11",
+  sha256 ? "sha256-OA8oRug7keFopBT3s/MA08AzalHadwOmjI9B4A5vJ0c=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
   name = "opensta";
@@ -37,10 +38,6 @@ clangStdenv.mkDerivation (finalAttrs: {
     inherit sha256;
   };
 
-  patches = [
-    ./patches/opensta/fix_cell_delays.patch
-  ];
-
   postPatch = ''
     # utter bazel nonsense
     rm -f BUILD
@@ -57,6 +54,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     eigen
     tcl
     zlib
+    gtest
   ];
 
   # Files needed by OpenROAD when building with external OpenSTA
