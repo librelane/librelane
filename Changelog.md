@@ -25,6 +25,21 @@ Style Notes
 
 -->
 
+# 3.1.0
+
+## Tool Updates
+
+* Updated nix-eda to 6.16.0
+  * Updated Magic to `8.3.635`
+  * Updated Netgen to `1.5.318`
+  * Updated Yosys to `0.64`
+    * Updated yosys-eqy `0.64`
+    * Updated yosys-sby `0.64`
+    * Updated yosys-slang to `2026-03-25`
+    * Removed yosys-lighter (no longer required by LibreLane)
+  * Updated Verilator to `5.046`
+  * Updated Iverilog to `13.0`
+
 # 3.0.0
 
 ## Steps
