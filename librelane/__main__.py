@@ -99,9 +99,9 @@ def run(
                     if meta.flow is None:
                         err("config_file has substituting_steps set with no flow.")
                         ctx.exit(1)
-                    assert (
-                        TargetFlow is not None
-                    ), "run() failed to properly deduce TargetFlow -- please file an issue"
+                    assert TargetFlow is not None, (
+                        "run() failed to properly deduce TargetFlow -- please file an issue"
+                    )
                     if issubclass(TargetFlow, SequentialFlow):
                         TargetFlow = TargetFlow.Substitute(meta.substituting_steps)  # type: ignore  # Type checker is being rowdy with this one
 
@@ -133,9 +133,9 @@ def run(
                 overrides=overrides,
             )
 
-        assert (
-            TargetFlow is not None
-        ), "TargetFlow is unexpectedly None. Please report this as a bug."
+        assert TargetFlow is not None, (
+            "TargetFlow is unexpectedly None. Please report this as a bug."
+        )
 
         kwargs: Dict[str, Any] = {
             "pdk_root": pdk_root,

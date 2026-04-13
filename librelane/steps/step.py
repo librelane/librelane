@@ -737,12 +737,12 @@ class Step(ABC):
             """
         state_in = self.state_in.result()
 
-        assert (
-            self.start_time is not None
-        ), "Start time not set even though self.state_out exists"
-        assert (
-            self.end_time is not None
-        ), "End time not set even though self.state_out exists"
+        assert self.start_time is not None, (
+            "Start time not set even though self.state_out exists"
+        )
+        assert self.end_time is not None, (
+            "End time not set even though self.state_out exists"
+        )
         result = f"#### Time Elapsed: {'%.2f' % (self.end_time - self.start_time)}s\n"
 
         views_updated = []

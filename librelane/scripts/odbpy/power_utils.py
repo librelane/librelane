@@ -124,9 +124,9 @@ class Design(object):
                 top_module,
                 connection_bit,
             )
-            (power_pins if sigtype == "POWER" else ground_pins)[
-                pin_name
-            ] = connected_to_v
+            (power_pins if sigtype == "POWER" else ground_pins)[pin_name] = (
+                connected_to_v
+            )
 
         return power_pins, ground_pins
 

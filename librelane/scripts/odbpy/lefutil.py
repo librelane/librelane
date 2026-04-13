@@ -63,8 +63,9 @@ def zeroize_origin(output, lef):
                 continue
             origin_match = ORIGIN_REGEX.search(line)
             if origin_match:
-                OFFSET_X, OFFSET_Y = float(origin_match.group(1)), float(
-                    origin_match.group(2)
+                OFFSET_X, OFFSET_Y = (
+                    float(origin_match.group(1)),
+                    float(origin_match.group(2)),
                 )
                 print(line[: line.find("O")] + "ORIGIN %.3f %.3f ;" % (0, 0), file=f)
             else:

@@ -234,11 +234,12 @@ def label_macro_pins(
             ]
         )
     )
-    assert pad_pins_to_label_count == len(
-        bterms
-    ), "Some pins were not going to be labeled %d/%d" % (
-        pad_pins_to_label_count,
-        len(bterms),
+    assert pad_pins_to_label_count == len(bterms), (
+        "Some pins were not going to be labeled %d/%d"
+        % (
+            pad_pins_to_label_count,
+            len(bterms),
+        )
     )
     print("Labeling", len(pad_pin_map), "pads")
     print("Labeling", pad_pins_to_label_count, "pad pins")
