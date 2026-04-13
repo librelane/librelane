@@ -13,73 +13,72 @@
 # limitations under the License.
 from __future__ import annotations
 
-import os
-import sys
-import json
-import time
-import psutil
-import shutil
-import textwrap
 import datetime
+import json
+import os
+import shutil
 import subprocess
-from signal import Signals
-from decimal import Decimal
-from io import TextIOWrapper
-from threading import Thread
-from inspect import isabstract
-from itertools import zip_longest
-from abc import abstractmethod, ABC
+import sys
+import textwrap
+import time
+from abc import ABC, abstractmethod
 from concurrent.futures import Future
+from decimal import Decimal
+from inspect import isabstract
+from io import TextIOWrapper
+from itertools import zip_longest
+from signal import Signals
+from threading import Thread
 from typing import (
     Any,
-    List,
     Callable,
-    Optional,
-    Set,
-    Union,
-    Tuple,
-    Sequence,
-    Dict,
     ClassVar,
-    Type,
+    Dict,
     Generic,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
     TypeVar,
+    Union,
 )
 
+import psutil
 from rich.markup import escape
 
+from .. import logging
+from ..__version__ import __version__
+from ..common import (
+    GenericDict,
+    GenericDictEncoder,
+    GenericImmutableDict,
+    Path,
+    RingBuffer,
+    Toolbox,
+    copy_recursive,
+    final,
+    format_elapsed_time,
+    format_size,
+    mkdirp,
+    protected,
+    slugify,
+)
 from ..config import (
     Config,
     Variable,
     universal_flow_config_variables,
 )
-from ..state import DesignFormat, State, InvalidState, StateElement
-from ..common import (
-    GenericDict,
-    GenericImmutableDict,
-    GenericDictEncoder,
-    Toolbox,
-    Path,
-    RingBuffer,
-    mkdirp,
-    slugify,
-    final,
-    protected,
-    copy_recursive,
-    format_size,
-    format_elapsed_time,
-)
-from .. import logging
 from ..logging import (
+    debug,
+    err,
+    info,
     rule,
     verbose,
-    info,
     warn,
-    err,
-    debug,
 )
-from ..__version__ import __version__
-
+from ..state import DesignFormat, InvalidState, State, StateElement
 
 VT = TypeVar("VT")
 
@@ -722,8 +721,9 @@ class Step(ABC):
 
             IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
         except NameError:
-            from ..logging import console
             from rich.markdown import Markdown
+
+            from ..logging import console
 
             console.log(Markdown(Self.get_help_md()))
 
@@ -737,12 +737,12 @@ class Step(ABC):
             """
         state_in = self.state_in.result()
 
-        assert (
-            self.start_time is not None
-        ), "Start time not set even though self.state_out exists"
-        assert (
-            self.end_time is not None
-        ), "End time not set even though self.state_out exists"
+        assert self.start_time is not None, (
+            "Start time not set even though self.state_out exists"
+        )
+        assert self.end_time is not None, (
+            "End time not set even though self.state_out exists"
+        )
         result = f"#### Time Elapsed: {'%.2f' % (self.end_time - self.start_time)}s\n"
 
         views_updated = []
@@ -1568,32 +1568,19 @@ class CompositeStep(Step):
 
 
 class WhileStep(Step):
-    """A step that runs a sub-step repeatedly while a condition is met.
-
-    ``inputs`` and ``config_vars`` are automatically generated based on the
-    constituent steps.
-
-    ``outputs`` may be set explicitly. If not set, it is automatically generated
-    based on the constituent steps.
-
-    Each iteration will always start with the original input state.
-
-    Unlike ``CompositeStep``, the steps can take additional ``config_vars``, which
-    allows config that are specific to the loop and can be used to control its behavior.
-
-    Multiple callback function is provided to allow for custom behavior
-    at different points in the loop. For example to carry state across iterations,
-    you can use ``post_iteration_callback`` to store the iteration end state and set
-    starting state with ``pre_iteration_callback``.
-    """
+    """A step that runs a sub-step repeatedly while a condition is met."""
 
     Steps: list[type[Step]]
 
     max_iterations: int = 10
 
+    raise_on_failure: bool = True
+
     break_on_failure: bool = True
 
-    def __init_subclass__(Self):
+    _current_iter_dir: Path | None = None
+
+    def __init_subclass__(Self):  # noqa: ANN204, D105
         super().__init_subclass__()
         available_inputs = set()
 
@@ -1601,7 +1588,7 @@ class WhileStep(Step):
         output_set: set[DesignFormat] = set()
         config_var_dict: dict[str, Variable] = {}
         for step in Self.Steps:
-            for input in step.inputs:
+            for input in step.inputs:  # noqa: A001
                 if input not in available_inputs:
                     input_set.add(input)
                     available_inputs.add(input)
@@ -1612,7 +1599,7 @@ class WhileStep(Step):
                 if existing := config_var_dict.get(cvar.name):
                     if existing != cvar:
                         raise TypeError(
-                            "Internal error: While step has mismatching "
+                            "Internal error: composite step has mismatching "
                             f"config_vars: {cvar.name} contradicts an "
                             "earlier declaration"
                         )
@@ -1625,47 +1612,53 @@ class WhileStep(Step):
             config_var_dict.update({v.name: v for v in Self.config_vars})
         Self.config_vars = list(config_var_dict.values())
 
-    def condition(self, state: State) -> bool:
-        """A function for determining whether to continue iterating."""
+    def condition(self, _state: State) -> bool:
+        """Return true if the condition is met and keep the loop going."""
         return True
 
-    def mid_iteration_break(self, state: State, step: Step) -> bool:
-        """Callback to decide whether to break the current iteration.
-        If True, breaks the current iteration and starts the next iteration.
-        Breaking mid-iteration will not trigger the post_iteration_callback.
-        The current step is provided as an argument to enable step-specific decision.
+    def mid_iteration_break(self, _state: State, _step: type[Step]) -> bool:
+        """Return True to break the current iteration and start the next iteration.
+
+        If True, breaks the current iteration and starts the next iteration. Breaking
+        mid-iteration will not trigger the post_iteration_callback.
         """
         return False
 
     def post_loop_callback(self, state: State) -> State:
-        """A callback after the loop is done, for any final processing."""
+        """Modify the state after all iterations are complete."""
         return state
 
     def pre_iteration_callback(self, pre_iteration: State) -> State:
-        """A callback before each iteration, for any per-iteration processing."""
+        """Modify the state before each iteration."""
         return pre_iteration
 
     def post_iteration_callback(
-        self, post_iteration: State, full_iter_completed: bool
+        self, post_iteration: State, _full_iter_completed: bool
     ) -> State:
-        """A callback after each iteration, for any per-iteration processing.
-        An extra argument `full_iter_completed` is provided to indicate whether the
-        entire iteration completed (True) or was broken mid-iteration (False).
-        """
+        """Modify the state after each iteration."""
         return post_iteration
+
+    def get_current_iteration_dir(self) -> Path | None:
+        """Get the current iteration directory, if any."""
+        return self._current_iter_dir
 
     def run(
         self,
         state_in: State,
-        **kwargs,
+        **_kwargs: dict,
     ) -> tuple[ViewsUpdate, MetricsUpdate]:
+        """Run the while loop step."""
         current_state = state_in
-        total_views_update: ViewsUpdate = {}
-        total_metrics_update: MetricsUpdate = {}
+        total_views_update: dict = {}
+        total_metrics_update: dict = {}
+        progress_bar = FlowProgressBar(self.name)
 
         ordinal_length = len(str(len(self.Steps) - 1))
         start_state = state_in.copy()
+        progress_bar.start()
+        progress_bar.set_max_stage_count(self.max_iterations)
         for i in range(self.max_iterations):
+            progress_bar.start_stage(f"Iteration {i + 1}/{self.max_iterations}")
             if not self.condition(current_state):
                 break
             current_state = start_state.copy()
@@ -1675,25 +1668,27 @@ class WhileStep(Step):
             for si, cStep in enumerate(self.Steps):
                 step = cStep(self.config, current_state)
                 try:
+                    self._current_iter_dir = Path(self.step_dir) / f"iter_{i}"
                     current_state = step.start(
                         toolbox=self.toolbox,
                         step_dir=str(
-                            os.path.join(
-                                self.step_dir,
-                                f"iter_{i}",
-                                f"{si:0{ordinal_length}d}-{slugify(step.id)}",
-                            )
+                            self._current_iter_dir
+                            / f"{si:0{ordinal_length}d}-{slugify(step.id)}"
                         ),
                         _no_rule=True,
                     )
                     if self.mid_iteration_break(current_state, step):
                         break
                 except Exception as e:
-                    if self.break_on_failure:
+                    if self.raise_on_failure:
                         raise e from None
+                    if self.break_on_failure:
+                        break
+
                     warn(
                         f"Step {step.name} failed with exception {e}, "
-                        "but continuing as break_on_failure is False."
+                        "but continuing as both break_on_failure and "
+                        "break_on_raise is False."
                     )
             else:
                 full_iter_completed = True
@@ -1701,14 +1696,16 @@ class WhileStep(Step):
             current_state = self.post_iteration_callback(
                 current_state, full_iter_completed
             )
-
+            progress_bar.end_stage()
         current_state = self.post_loop_callback(current_state)
-
         for key in current_state:
-            key_df = DesignFormat.factory.get(key)
-            if state_in.get(key) != current_state.get(key) and key_df in self.outputs:
-                total_views_update[key_df] = current_state[key]
+            if (
+                state_in.get(key) != current_state.get(key)
+                and DesignFormat.factory.get(key) in self.outputs
+            ):
+                total_views_update[key] = current_state[key]
         for key in current_state.metrics:
             if state_in.metrics.get(key) != current_state.metrics.get(key):
                 total_metrics_update[key] = current_state.metrics[key]
+        progress_bar.end()
         return total_views_update, total_metrics_update
