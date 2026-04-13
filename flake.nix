@@ -166,10 +166,9 @@
                 pytest-cov
                 pillow
                 mdformat
-                black
                 ipython
                 tokenize-rt
-                flake8
+                ruff
                 mypy
                 types-deprecated
                 types-pyyaml

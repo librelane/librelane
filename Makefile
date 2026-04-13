@@ -44,8 +44,8 @@ watch-docs:
 
 .PHONY: lint
 lint:
-	black --check .
-	flake8 .
+	ruff format --check .
+	ruff check .
 	mypy --check-untyped-defs .
 
 .PHONY: coverage-infrastructure
