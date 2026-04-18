@@ -78,6 +78,12 @@ class Lint(Step):
             default=True,
         ),
         Variable(
+            "LINTER_ERROR_ON_MULTIDRIVEN",
+            bool,
+            "When a net has multiple drivers, report this as a linter error.",
+            default=True,
+        ),
+        Variable(
             "VERILOG_DEFINES",
             Optional[List[str]],
             "Preprocessor defines for input Verilog files",
@@ -196,6 +202,10 @@ class Lint(Step):
 
         if self.config["LINTER_ERROR_ON_LATCH"]:
             extra_args.append("--Werror-LATCH")
+
+        # It's more user-friendly to catch multiple-driver conflicts here in Verilator (if possible) than later in Yosys.
+        if self.config["LINTER_ERROR_ON_MULTIDRIVEN"]:
+            extra_args.append("--Werror-MULTIDRIVEN")
 
         if include_dirs := self.config["VERILOG_INCLUDE_DIRS"]:
             extra_args.extend([f"-I{dir}" for dir in include_dirs])
