@@ -722,7 +722,7 @@ See the document {doc}`/reference/pin_placement_cfg.md` for more information
 about configuring pin placements.
 ```
 
-3. Add `"FP_PIN_ORDER_CFG": "dir::pin_order.cfg"` to the config.json so the new
+3. Add `"IO_PIN_ORDER_CFG": "dir::pin_order.cfg"` to the config.json so the new
    config file will be like this
 
 ````{dropdown} config.json
@@ -733,7 +733,7 @@ about configuring pin placements.
   "VERILOG_FILES": ["dir::pm32.v", "dir::spm.v"],
   "CLOCK_PERIOD": 25,
   "CLOCK_PORT": "clk",
-  "FP_PIN_ORDER_CFG": "dir::pin_order.cfg"
+  "IO_PIN_ORDER_CFG": "dir::pin_order.cfg"
 }
 ```
 ````
