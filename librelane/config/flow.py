@@ -18,7 +18,7 @@
 import os
 
 from decimal import Decimal
-from typing import List, Optional, Dict, Sequence, Union, Tuple
+from typing import List, Optional, Dict, Sequence, Union, Tuple, Literal
 
 from .variable import Variable, Macro
 from ..common import Path, get_script_dir
@@ -533,6 +533,27 @@ pad_variables = [
         "Distance from the padring to the die boundary. Used to account for the sealring when placing the pads.",
         default=0,
         units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_HORIZONTAL",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the horizontal sites to ensure pads are placed correctly.",
+        default="R0",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_VERTICAL",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the vertical sites to ensure pads are placed correctly.",
+        default="R0",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_CORNER",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the corner sites to ensure pads are placed correctly.",
+        default="R0",
         pdk=True,
     ),
 ]
