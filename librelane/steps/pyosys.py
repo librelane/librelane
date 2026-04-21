@@ -294,9 +294,13 @@ class VerilogStep(PyosysStep):
 
         blackbox_models = []
         scl_lib_list = self.toolbox.filter_views(
-            self.config, self.config["LIB"], self.config.get("SYNTH_CORNER")
+            self.config, self.config["CELL_LIBS"], self.config.get("SYNTH_CORNER")
+        )
+        pad_lib_list = self.toolbox.filter_views(
+            self.config, self.config["PAD_LIBS"], self.config.get("SYNTH_CORNER")
         )
 
+        # Try your best to use powered blackbox models if power_defines is true
         if self.power_defines:
             if self.config["CELL_VERILOG_MODELS"] is not None:
                 blackbox_models.extend(
@@ -317,7 +321,8 @@ class VerilogStep(PyosysStep):
                     ]
                 )
         else:
-            blackbox_models.extend(str(f) for f in scl_lib_list)
+            # Fall back to scl_lib_list and pad_lib_list if you cant
+            blackbox_models.extend(str(f) for f in scl_lib_list + pad_lib_list)
 
         # Priorities from higher to lower
         format_list = (
@@ -352,7 +357,7 @@ class VerilogStep(PyosysStep):
         excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
 
         libs_synth = self.toolbox.remove_cells_from_lib(
-            frozenset([str(lib) for lib in scl_lib_list]),
+            frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
             excluded_cells=frozenset(excluded_cells),
         )
         extra_path = os.path.join(self.step_dir, "extra.json")
