@@ -34,6 +34,18 @@ Style Notes
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
+* OpenROAD.PadRing
+
+  * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
+
+* OpenROAD.GeneratePDN
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+## Misc. Enhancements/Bugfixes
+
+- Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+
 # 3.0.2
 
 ## Tool Updates
