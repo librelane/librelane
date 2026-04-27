@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
+import sys
+from unittest.mock import MagicMock
 from docutils import nodes
 from sphinx.application import Sphinx
 from docutils.parsers.rst.states import Struct
@@ -24,6 +26,9 @@ from librelane.common import slugify
 from librelane.flows import Flow
 from librelane.steps import Step
 from librelane.config import universal_flow_config_variables
+
+for _mod in ["gdsfill", "gdsfill.gdsfill", "gdsfill.library", "gdsfill.library.common"]:
+    sys.modules.setdefault(_mod, MagicMock())
 
 custom_text_rx = re.compile(r"([\s\S]+)\s+\<([A-Za-z_\-\.:]+)\>")
 

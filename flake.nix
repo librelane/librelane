@@ -77,6 +77,7 @@
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
               yamlcore = callPythonPackage ./nix/yamlcore.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };
+              gdsfill = callPythonPackage ./nix/gdsfill.nix { };
 
               # ---
               librelane = callPythonPackage ./default.nix {
