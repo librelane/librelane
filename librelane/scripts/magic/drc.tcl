@@ -32,6 +32,10 @@ if { [info exists ::env(MAGIC_DRC_MAGLEFS)] } {
 gds noduplicates true
 gds readonly true
 
+# Enable maskhints so that DRC rules against generated layers are run
+# against the closest possible version to what's actually in the GDS
+gds maskhints true
+
 # Flatten cells
 if { [info exists ::env(MAGIC_GDS_FLATGLOB)] } {
     foreach {gds_flatglob} $::env(MAGIC_GDS_FLATGLOB) {
