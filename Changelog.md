@@ -25,6 +25,15 @@ Style Notes
 
 -->
 
+# 3.1.0
+
+## Steps
+
+* Magic.DRC
+
+  * Enabled maskhints so that DRC rules against generated layers are run
+    against the closest possible version to what's actually in the GDS.
+
 # 3.0.2
 
 ## Tool Updates
