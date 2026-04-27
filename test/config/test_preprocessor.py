@@ -29,6 +29,11 @@ def _mock_fs():
         patcher.fs.create_file("/cwd/src/another_file.v")
         patcher.fs.create_file("/ncwd/src/a_file.v")
         patcher.fs.create_file("/ncwd/src/another_file.v")
+        patcher.fs.create_file(
+            "/cwd/src/foo.f",
+            contents="/cwd/src/a_file.v\n/cwd/src/another_file.v\n+incdir+/cwd/src",
+        )
+        patcher.fs.create_file("/cwd/src/invalid.f", contents="+foo+notvalid.v")
         os.chdir("/cwd")
         yield
 
@@ -160,3 +165,57 @@ def test_preprocess_dict():
         },
     }
     assert preprocessed == expected, "Preprocessor produced a different result"
+
+
+def test_preprocess_f_list():
+    from librelane.config.preprocessor import preprocess_dict
+
+    config = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FLIST_FILES": ["refg::$DESIGN_DIR/src/foo.f"],
+    }
+
+    preprocessed = preprocess_dict(
+        config,
+        "/cwd",
+        pdk="sky130A",
+        pdkpath="/cwd",
+        scl="sky130_fd_sc_hd",
+    )
+
+    expected = {
+        "PDK": "sky130A",
+        "PDKPATH": "/cwd",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "PAD_CELL_LIBRARY": None,
+        "DESIGN_DIR": "/cwd",
+        "meta": {"version": 2},
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FILES": ["/cwd/src/a_file.v", "/cwd/src/another_file.v"],
+        "VERILOG_INCLUDE_DIRS": ["/cwd/src"],
+    }
+    assert preprocessed == expected, "Preprocessor produced a different result"
+
+
+def test_preprocess_invalid_f_list():
+    from librelane.config.preprocessor import preprocess_dict
+
+    config = {
+        "meta": {"version": 2},
+        "PDK": "sky130A",
+        "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+        "DESIGN_NAME": "manual_macro_placement_test",
+        "VERILOG_FLIST_FILES": ["refg::$DESIGN_DIR/src/invalid.f"],
+    }
+
+    with pytest.raises(RuntimeError):
+        preprocessed = preprocess_dict(
+            config,
+            "/cwd",
+            pdk="sky130A",
+            pdkpath="/cwd",
+            scl="sky130_fd_sc_hd",
+        )
