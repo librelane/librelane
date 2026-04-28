@@ -32,7 +32,7 @@ Let's take `openroad.nix` as an example:
 ---
 language: nix
 start-after: name = "openroad";
-end-before: cmakeFlagsAll = [
+end-before: cmakeFlags = (
 ---
 ```
 

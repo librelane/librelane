@@ -2,7 +2,8 @@
 :class: note 
 
 You will need to enable LibreLane's
-[Binary Cache](https://nixos.wiki/wiki/Binary_Cache) manually.
+[Binary Cache](https://nixos.wiki/wiki/Binary_Cache) manually, as well as
+the "experimental" `nix-command` and `flakes` features.
 
 See <https://github.com/fossi-foundation/nix-eda/blob/main/docs/installation.md> for
 more info.
@@ -14,6 +15,7 @@ If you *do* know what this means, the values are as follows:
 ```ini
 extra-substituters = https://nix-cache.fossi-foundation.org
 extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+extra-experimental-features = nix-command flakes
 ```
 
 Make sure to restart `nix-daemon` after updating `/etc/nix/nix.conf`.

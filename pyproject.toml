@@ -1,9 +1,10 @@
 [project]
 name = "librelane"
-version = "3.0.0rc1"
+version = "3.1.0.dev1"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
-    {name = "Mohamed Gaber", email = "me@donn.website"}
+    {name = "Mohamed Gaber", email = "donn@fossi-foundation.org"},
+    {name = "Leo Moser", email = "leo@fossi-foundation.org"}
 ]
 readme = "Readme.md"
 license = "Apache-2.0"

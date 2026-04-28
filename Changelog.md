@@ -25,6 +25,31 @@ Style Notes
 
 -->
 
+# 3.1.0
+
+## Steps
+
+* Magic.DRC
+
+  * Enabled maskhints so that DRC rules against generated layers are run
+    against the closest possible version to what's actually in the GDS.
+
+# 3.0.2
+
+## Tool Updates
+
+* OpenROAD: Backported
+  [#9975](https://github.com/The-OpenROAD-Project/OpenROAD/pull/9975) to fix a
+  bug with a certain PDK and added missing Qt plugins.
+
+# 3.0.1
+
+## Steps
+
+* `Magic.DRC`
+
+  * Set units to internal to fix DRC markers for newer magic versions.
+
 # 3.0.0
 
 ## Steps
@@ -455,9 +480,10 @@ Style Notes
 
 * Python requirement bumped up to ≥3.10
   * Does not affect Nix users where Python 3.12 is used anyway.
-* Updated nix-eda to 6.10.0
+* Updated nix-eda to 6.11.0
   * Updated nixpkgs to nixos-25.11 (@ `b3aad46`)
-  * Updated KLayout to `0.30.6`
+  * Updated KLayout to `0.30.7`
+    * Added a patch for fixing a performance regression
   * Updated Magic to `8.3.623`
   * Updated Netgen to `1.5.316`
   * Updated Yosys to `0.62`
@@ -679,6 +705,8 @@ Style Notes
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+  * `FP_DEF_TEMPLATE` no longer a variable for all OpenROAD steps and must be
+    added to steps that need it.
 
 * `OpenROAD.BasicMacroPlacement`
 
