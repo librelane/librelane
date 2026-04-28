@@ -214,6 +214,7 @@ ref_rx = re.compile(r"^\$([A-Za-z_][A-Za-z0-9_\.\[\]]*)")
 def process_string(
     value: str,
     symbols: Mapping[str, Any],
+    version: int = 1
 ) -> Valid:
     global ref_rx
     EXPR_PREFIX = "expr::"
@@ -230,8 +231,10 @@ def process_string(
     elif value.startswith(PDK_DIR_PREFIX):
         mutable = value.replace(PDK_DIR_PREFIX, f"refg::${Keys.pdkpath}/")
 
-    # before we do anything else, apply inline variable substitution
-    mutable = mutable.format(**symbols)
+    # gate this behind meta version 3
+    if version >= 3:
+        # before we do anything else, apply inline variable substitution
+        mutable = mutable.format(**symbols)
 
     if mutable.startswith(EXPR_PREFIX):
         try:
@@ -299,6 +302,7 @@ def process_list_recursive(
     input: Sequence[Any],
     ref: List[Any],
     symbols: Dict[str, Any],
+    version: int = 1,
     *,
     key_path: str = "",
 ):
@@ -311,6 +315,7 @@ def process_list_recursive(
                 value,
                 processed,
                 symbols,
+                version,
                 key_path=current_key_path,
             )
         elif isinstance(value, Sequence) and not is_string(value):
@@ -319,10 +324,11 @@ def process_list_recursive(
                 value,
                 processed,
                 symbols,
+                version,
                 key_path=current_key_path,
             )
         elif is_string(value):
-            processed = process_string(value, symbols)
+            processed = process_string(value, symbols, version)
         else:
             processed = value
 
@@ -335,6 +341,7 @@ def process_dict_recursive(
     input: Mapping[str, Any],
     ref: Dict[str, Any],
     symbols: Dict[str, Any],
+    version: int = 1,
     *,
     key_path: str = "",
 ):
@@ -351,6 +358,7 @@ def process_dict_recursive(
                         value,
                         ref,
                         symbols,
+                        version,
                         key_path=key_path,
                     )
             elif key.startswith(SCL_PREFIX):
@@ -362,6 +370,7 @@ def process_dict_recursive(
                         value,
                         ref,
                         symbols,
+                        version,
                         key_path=key_path,
                     )
             else:
@@ -370,6 +379,7 @@ def process_dict_recursive(
                     value,
                     processed,
                     symbols,
+                    version,
                     key_path=current_key_path,
                 )
 
@@ -379,10 +389,11 @@ def process_dict_recursive(
                 value,
                 processed,
                 symbols,
+                version,
                 key_path=current_key_path,
             )
         elif is_string(value):
-            processed = process_string(value, symbols)
+            processed = process_string(value, symbols, version)
         else:
             processed = value
 
@@ -394,10 +405,11 @@ def process_dict_recursive(
 def process_config_dict(
     config_in: Mapping[str, Any],
     exposed_variables: Dict[str, Any],
+    version: int = 1
 ) -> Dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
-    process_dict_recursive(config_in, state, symbols)
+    process_dict_recursive(config_in, state, symbols, version)
     return state
 
 
@@ -417,6 +429,7 @@ def preprocess_dict(
     pdkpath: Optional[str] = None,
     scl: Optional[str] = None,
     pad: Optional[str] = None,
+    version: int = 1
 ) -> Dict[str, Any]:
     if None in (pdk, pdkpath, scl):
         if only_extract_process_info:
@@ -439,6 +452,7 @@ def preprocess_dict(
     preprocessed = process_config_dict(
         config_dict,
         base_vars,
+        version
     )
     if only_extract_process_info:
         preprocessed = extract_process_vars(preprocessed)

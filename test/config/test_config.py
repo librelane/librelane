@@ -745,7 +745,7 @@ def test_config_inline_var_substitution():
                 - "dir::src2/{DESIGN_NAME}_top.v"
                 - dir::src/*.v
             meta:
-                version: 2
+                version: 3
                 flow: Whatever
             """
         )
@@ -784,11 +784,11 @@ def test_config_inline_var_substitution():
             "DEFAULT_CORNER": "nom_tt_025C_1v80",
             "RANDOM_ARRAY": None,
         },
-        meta=Meta(version=2, flow="Whatever"),
+        meta=Meta(version=3, flow="Whatever"),
     ), "Generated configuration does not match expected value"
 
     assert Config.get_meta("/cwd/config.yaml", flow_override="OtherWhatever") == Meta(
-        version=2, flow="OtherWhatever"
+        version=3, flow="OtherWhatever"
     ), "get_meta test failed"
 
 
@@ -817,7 +817,7 @@ def test_config_array_macro():
                                 step: [100, 100]
                                 dimensions: [2, 2]
             meta:
-                version: 2
+                version: 3
                 flow: Whatever
             """
         )
@@ -889,7 +889,7 @@ def test_config_array_macro():
             "DEFAULT_CORNER": "nom_tt_025C_1v80",
             "RANDOM_ARRAY": None,
         },
-        meta=Meta(version=2, flow="Whatever"),
+        meta=Meta(version=3, flow="Whatever"),
     )
 
     assert cfg == expected, "Generated configuration does not match expected value"
@@ -921,7 +921,7 @@ def test_config_array_macro_invalid():
                                 step: [100, 100]
                                 dimensions: [2, 2]
             meta:
-                version: 2
+                version: 3
                 flow: Whatever
             """
         )
