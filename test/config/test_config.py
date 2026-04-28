@@ -59,7 +59,7 @@ def test_dict_config():
             "DEFAULT_CORNER": "nom_tt_025C_1v80",
             "RANDOM_ARRAY": None,
         },
-        meta=Meta(version=2, flow=None),
+        meta=Meta(version=3, flow=None),
     )
     assert cfg == assert_cfg, "Generated configuration does not match expected value"
 

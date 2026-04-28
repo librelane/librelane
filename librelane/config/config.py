@@ -353,7 +353,7 @@ class Config(GenericImmutableDict[str, Any]):
         :param config_in: A configuration object or file.
         :returns: Either a Meta object, or if the file is invalid, None.
         """
-        default_meta_version = 2
+        default_meta_version = 3
 
         if is_string(config_in):
             config_in = str(config_in)
