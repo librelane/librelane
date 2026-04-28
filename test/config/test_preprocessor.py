@@ -89,10 +89,15 @@ def test_process_string():
 def test_process_string_inline_expr():
     from librelane.config.preprocessor import process_string
 
-    assert process_string("epic_sram_{X}_{Y}", {"X": 0, "Y": 0}, version=3) == "epic_sram_0_0"
+    assert (
+        process_string("epic_sram_{X}_{Y}", {"X": 0, "Y": 0}, version=3)
+        == "epic_sram_0_0"
+    )
     assert process_string("{X}{Y}", {"X": 0, "Y": 0}, version=3) == "00"
     assert (
-        process_string("-!!somecharacters{X}//--,,{Y}", {"X": "cool", "Y": "yeah"}, version=3)
+        process_string(
+            "-!!somecharacters{X}//--,,{Y}", {"X": "cool", "Y": "yeah"}, version=3
+        )
         == "-!!somecharacterscool//--,,yeah"
     )
 

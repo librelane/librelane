@@ -211,11 +211,7 @@ class Expr(object):
 ref_rx = re.compile(r"^\$([A-Za-z_][A-Za-z0-9_\.\[\]]*)")
 
 
-def process_string(
-    value: str,
-    symbols: Mapping[str, Any],
-    version: int = 1
-) -> Valid:
+def process_string(value: str, symbols: Mapping[str, Any], version: int = 1) -> Valid:
     global ref_rx
     EXPR_PREFIX = "expr::"
     REF_PREFIX = "ref::"
@@ -403,9 +399,7 @@ def process_dict_recursive(
 
 
 def process_config_dict(
-    config_in: Mapping[str, Any],
-    exposed_variables: Dict[str, Any],
-    version: int = 1
+    config_in: Mapping[str, Any], exposed_variables: Dict[str, Any], version: int = 1
 ) -> Dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
@@ -429,7 +423,7 @@ def preprocess_dict(
     pdkpath: Optional[str] = None,
     scl: Optional[str] = None,
     pad: Optional[str] = None,
-    version: int = 1
+    version: int = 1,
 ) -> Dict[str, Any]:
     if None in (pdk, pdkpath, scl):
         if only_extract_process_info:
@@ -449,11 +443,7 @@ def preprocess_dict(
         Keys.design_dir: design_dir,
     }
 
-    preprocessed = process_config_dict(
-        config_dict,
-        base_vars,
-        version
-    )
+    preprocessed = process_config_dict(config_dict, base_vars, version)
     if only_extract_process_info:
         preprocessed = extract_process_vars(preprocessed)
 
