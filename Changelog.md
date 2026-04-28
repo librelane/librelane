@@ -34,6 +34,17 @@ Style Notes
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
+## Misc Enhancements/Bugfixes
+
+* `librelane.config`
+
+  * Inline variable references are now possible using `{VAR_NAME}` at `meta.version >= 3`
+
+  * Added `InstanceArray`
+
+  * Added the `array` attribute to a macro instance, to declare it should be expanded to
+    an array of instances; and updated the preprocessor to support this behaviour
+
 # 3.0.2
 
 ## Tool Updates
@@ -579,13 +590,6 @@ Style Notes
 
   * `refg::`, `dir::`, `pdk_dir::` now support globs outside the PDK directory
     and the config directory.
-
-  * Inline variable references are now possible using `{VAR_NAME}`
-
-  * Added `InstanceArray`
-
-  * Added the `array` attribute to a macro instance, to declare it should be expanded to
-    an array of instances; and updated the preprocessor to support this behaviour
 
 * `librelane.state`
 
