@@ -678,6 +678,7 @@ class Config(GenericImmutableDict[str, Any]):
                 raw,
                 only_extract_process_info=True,
                 design_dir=design_dir,
+                version=meta.version,
             )
         )
 
@@ -715,6 +716,7 @@ class Config(GenericImmutableDict[str, Any]):
                 scl=mutable[SpecialKeys.scl],
                 pad=mutable.get(SpecialKeys.pad, None),
                 design_dir=design_dir,
+                version=meta.version,
             )
         )
 
@@ -775,6 +777,9 @@ class Config(GenericImmutableDict[str, Any]):
             tcl_config,
             only_extract_process_info=True,
             design_dir=design_dir,
+            # Tcl is version 1 by default I believe; on par with JSON
+            # also this path is deprecated anyways
+            version=1,
         )
 
         pdk = process_info.get(SpecialKeys.pdk) or pdk

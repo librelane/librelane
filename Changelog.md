@@ -34,6 +34,27 @@ Style Notes
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
+## Misc Enhancements/Bugfixes
+
+* `librelane.config`
+
+  * Inline variable references are now possible using `{VAR_NAME}` at `meta.version >= 3`
+
+  * Added `InstanceArray`
+
+  * Added the `array` attribute to a macro instance, to declare it should be expanded to
+    an array of instances; and updated the preprocessor to support this behaviour
+
+## API Breaks
+
+* `librelane.config`
+
+  * Default meta version for YAML files is now `3`. This enables inline variable substitution.
+
+      * Strings with curly braces in them will be parsed as variable substitutions.
+
+      * Curly braces can be escaped using double curly braces, i.e. `{{LIKE_THIS}}` will produce `{LIKE_THIS}`
+
 # 3.0.2
 
 ## Tool Updates

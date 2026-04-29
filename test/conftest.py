@@ -45,10 +45,12 @@ def pytest_assertrepr_compare(op, left, right):
 def _mock_conf_fs():
     with Patcher() as patcher:
         patcher.fs.create_dir("/cwd/src")
+        patcher.fs.create_dir("/cwd/src2")
         patcher.fs.create_file("/cwd/src/a.v")
         patcher.fs.create_file("/cwd/src/b.v")
         patcher.fs.create_dir("/cwd/spef")
         patcher.fs.create_file("/cwd/spef/b.spef")
+        patcher.fs.create_file("/cwd/src2/whatever_top.v")
         patcher.fs.create_file(
             "/pdk/dummy/libs.tech/librelane/config.tcl",
             contents="""

@@ -377,6 +377,69 @@ Linting using LibreLane, `__pnr__` will be defined, thereby using the header for
 the hardened version of the Macro. Additionally, as the power pins have no relevance
 for the RTL, they can simply be left out when PnR is not defined.
 
+## Automatic placing of macros in grid patterns
+Sometimes, one would like to place a number of macros of the same type in a grid pattern, otherwise known as
+an array. This is particularly useful for SRAM arrays, but can also be useful for other patterns like FPGAs or
+some types of mixed-signal designs.
+
+LibreLane includes the ability to _expand_ a grid of macro instantiations. In LibreLane terminology, this
+is referred to as a _macro array_.
+
+The macro array expansion process runs as part of the pre-processor. To understand this, let's consider a
+worked example of an SRAM array.
+
+```yaml
+gf180mcu_fd_ip_sram__sram512x8m8wm1:
+gds:
+  - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/gds/gf180mcu_fd_ip_sram__sram512x8m8wm1.gds
+lef:
+  - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lef/gf180mcu_fd_ip_sram__sram512x8m8wm1.lef
+vh:
+  - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/verilog/gf180mcu_fd_ip_sram__sram512x8m8wm1__blackbox.v
+lib:
+  - # removed for brevity
+instances:
+  sram_inst_{X}_{Y}:
+    array:
+      offset: [10, 10]
+      step: [100, 100]
+      dimensions: [2, 2]
+    orientation: N
+```
+
+A few things have happened here. Firstly, the instance name `sram_inst_{X}_{Y}` has been templated using
+LibreLane's expression system, using the newly supported inline variable expansion. The variables `X` and `Y`
+will be substituted with column and row numbers in the expansion process. `ROW` and `COL` are also supported,
+if you prefer, as is `SEQ`, which just refers to the sequence described below.
+
+Next, the `array` attribute has been added to indicate we'd like these instances to be placed in an array
+pattern, and we also configure the array itself. The array configuration attributes are as follows:
+- **offset:** The position, in microns, of the bottom left corner of the macro array
+- **step:** How much to increase the X and Y coordinates by each time a macro is instantiated, in microns
+- **dimensions:** The number of columns and rows (**in that order**) that the array should have
+
+The macro expander works left to right, from the bottom of the array to the top. To clarify, for this 2x2
+grid, the following diagram demonstrates the order of macro instantiation (and thus the value of the `SEQ`
+variable):
+
+```
+ +---+ +---+
+ |   | |   |
+ | 2 | | 3 |
+ |   | |   |
+ +---+ +---+
+ +---+ +---+
+ |   | |   |
+ | 0 | | 1 |
+ |   | |   |
+ +---+ +---+
+```
+
+Take care that, since this is a preprocessor-based system, no attempt is made to validate the positions or
+lack of overlap between instantiated macros - you must verify this yourself. Remember also that errors you
+may receive in the flow will refer to the _expanded_ macro array (i.e. _after_ pre-processing), which will not
+be visible to you directly in the configuration.
+
 ## Misc. Useful Variables
 
 There are some variables used in the Classic that you may want to configure when
