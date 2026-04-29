@@ -25,6 +25,28 @@ Style Notes
 
 -->
 
+# 3.0.3
+
+## Steps
+
+* `OpenROAD.STA*`
+
+  * Steps now support versions 3.0 and higher of OpenSTA, which require a
+    slightly different invocation for `write_timing_model`.
+
+* `Verilator.Lint`
+
+  * Upgraded warnings on multiply-driven nets to an error that can be disabled
+    by setting `LINTER_ERROR_ON_MULTIDRIVEN` to `false`.
+
+## Misc. Enhancements/Bugfixes
+
+* `openlane.config`
+
+  * Applied hack/band-aid for an issue where the default standard cell library's
+    variables may clobber those of the current standard cell library because of
+    `STD_CELL_LIBRARY_OPT`, a legacy OpenLane variable.
+
 # 3.0.2
 
 ## Tool Updates
