@@ -602,7 +602,11 @@ proc write_libs {} {
         foreach corner_name [lln::get_corner_names] {
             set target $::env(_LIB_SAVE_DIR)/$::env(DESIGN_NAME)__$corner_name.lib
             puts "Writing timing models for the $corner_name corner to $target…"
-            write_timing_model -corner $corner_name $target
+            if {[string length [namespace which sta::scenes]] != 0} {
+                write_timing_model -scene $corner_name $target
+            } else {
+                write_timing_model -corner $corner_name $target
+            }
         }
     }
 }
