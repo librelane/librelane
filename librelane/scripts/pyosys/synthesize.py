@@ -252,7 +252,7 @@ def synthesize(
 
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
     defines = (config.get("VERILOG_DEFINES") or []) + [
-        f"PDK_{config['PDK'].replace('-','_')}",
+        f"PDK_{config['PDK'].replace('-', '_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",

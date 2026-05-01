@@ -76,13 +76,12 @@ class TclUtils(object):
         def py_dict(command, target=None, *args):
             if command == "set":
                 if match := _env_rx.fullmatch(target):
-
                     if len(args) > 1:
                         value = args[-1]
                         keys = args[:-1]
 
                         # Create new dict if it does not exist
-                        if not match.group(1) in env_out:
+                        if match.group(1) not in env_out:
                             env_out[match.group(1)] = {}
 
                         # set ::env(...) [dict create]

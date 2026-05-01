@@ -626,9 +626,8 @@ class Config(GenericImmutableDict[str, Any]):
         values_title = (
             "Initial Values" if self == Config.current_interactive else "Values"
         )
-        return (
-            dedent(
-                f"""
+        return dedent(
+            f"""
                 ### {title}
                 #### {values_title}
 
@@ -638,9 +637,7 @@ class Config(GenericImmutableDict[str, Any]):
                 %s
                 ```
                 """
-            )
-            % yaml.safe_dump(json.loads(self.dumps()))
-        )
+        ) % yaml.safe_dump(json.loads(self.dumps()))
 
     ## Private Methods
     @classmethod
@@ -867,9 +864,9 @@ class Config(GenericImmutableDict[str, Any]):
         )
 
         scl = pdk_env.get("STD_CELL_LIBRARY", None)
-        assert (
-            scl is not None
-        ), "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
+        assert scl is not None, (
+            "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
+        )
 
         scl_config_path = os.path.join(
             pdkpath, "libs.tech", "librelane", scl, "config.tcl"
