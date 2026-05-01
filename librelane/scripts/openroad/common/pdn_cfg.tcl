@@ -139,6 +139,7 @@ if { $::env(PDN_CORE_RING) == 1 } {
         append_if_flag arg_list PDN_CORE_RING_ALLOW_OUT_OF_DIE -allow_out_of_die
         append_if_flag arg_list PDN_CORE_RING_CONNECT_TO_PADS -connect_to_pads
         append_if_equals arg_list PDN_EXTEND_TO "boundary" -extend_to_boundary
+        append_if_exists_argument arg_list PDN_CORE_RING_CONNECT_TO_PAD_LAYERS -connect_to_pad_layers
 
         set pdn_core_vertical_layer $::env(PDN_VERTICAL_LAYER)
         set pdn_core_horizontal_layer $::env(PDN_HORIZONTAL_LAYER)
