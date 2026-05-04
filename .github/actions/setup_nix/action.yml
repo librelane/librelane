@@ -39,6 +39,8 @@ runs:
           access-tokens = ${{ env.GITHUB_ACCESS_TOKEN_STR }}
           extra-substituters = ${{ env.EXTRA_SUBSTITUTER_STR }} https://nix-cache.fossi-foundation.org
           extra-trusted-public-keys = ${{ env.EXTRA_TRUSTED_KEY_STR }} nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+    - name: Enable magic-nix-cache (GitHub Actions cache as Nix binary cache)
+      uses: DeterminateSystems/magic-nix-cache-action@main
     - name: Inject GitHub Token into Environment
       if: inputs.github_token != ''
       uses: fossi-foundation/nix-eda/.github/actions/nix_daemon_inject_github_token@5.5.0
