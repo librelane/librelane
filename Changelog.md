@@ -44,7 +44,9 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
-- Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+* Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+
+* CI: add sky130 full-chip design.
 
 # 3.0.3
 
@@ -570,7 +572,7 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
-- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
+* Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
 
