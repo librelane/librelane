@@ -54,6 +54,9 @@
       script: harden.py
     - name: hold_violations_3
       script: harden.py
+    # Full chip design
+    - name: full_chip_sky130
+      config_file: config.yaml
 - scl: sky130A/sky130_fd_sc_hdll
   name: fastest_test_set
   designs:
