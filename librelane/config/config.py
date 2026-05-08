@@ -833,6 +833,11 @@ class Config(GenericImmutableDict[str, Any]):
         if scl is not None:
             pdk_config[SpecialKeys.scl] = scl
 
+            # HACK: Prevent loading default SCL cfg vars for old openlane PDK
+            # configs
+            # For more info: https://github.com/librelane/librelane/issues/932
+            pdk_config["STD_CELL_LIBRARY_OPT"] = scl
+
         if pad is not None:
             pdk_config[SpecialKeys.pad] = pad
 
