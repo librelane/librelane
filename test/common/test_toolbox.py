@@ -29,9 +29,10 @@ def mock_macros_config():
 
     return {
         "DEFAULT_CORNER": "nom_tt_025C_1v80",
-        "LIB": {
+        "CELL_LIBS": {
             "*": "/pdk/my.lib",
         },
+        "PAD_LIBS": {},
         "MACROS": {
             "a": Macro(
                 gds=[""],
@@ -705,7 +706,7 @@ def test_get_timing_files_warnings(
 
     # 2. No SCLs
     cfg = cfg.copy()
-    cfg["LIB"] = {}
+    cfg["CELL_LIBS"] = {}
 
     assert toolbox.get_timing_files(
         cfg,

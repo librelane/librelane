@@ -67,8 +67,6 @@ Documentation [regarding reStructuredText can be found here:](https://www.sphinx
 ## Documentation organization
 
 All of the documentation is concentrated in `docs/`.
-Static files for a certain document are stored in `docs/_static` in its respective directory: for example, screenshots for this guide are located in `docs/_static/docs_contrbution`,
-while the screenshots for the installation guide are located in `docs/_static/installation`.
 
 Directory `docs/source/` contains all of the page's content.
 You can add pages by creating the corresponding file in that folder.

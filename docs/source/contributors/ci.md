@@ -12,6 +12,8 @@ The LibreLane CI uses Nix and PIP to produce the following components:
   * Derivative: **Docker Image** → Uploaded to [GHCR](https://ghcr.io/)
     * Usable by using the Python package and adding `--dockerized` at the
       beginning of an invocation, no Nix needed
+  * Derivative: **AppImage** → Uploaded to GitHub Releases]
+    * Usable by [downloading the AppImage from GitHub Releases](https://github.com/librelane/librelane/releases/latest)
 * Cached macOS Binaries -> Uploaded to the
   [FOSSi Foundation Nix Cache](https://nix-cache.fossi-foundation.org)
   * Usable by invoking `nix-shell` on the LibreLane repository

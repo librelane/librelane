@@ -74,7 +74,10 @@ make_io_sites \
     -horizontal_site $::env(PAD_SITE_NAME) \
     -vertical_site $::env(PAD_SITE_NAME) \
     -corner_site $::env(PAD_CORNER_SITE_NAME) \
-    -offset $::env(PAD_EDGE_SPACING)
+    -offset $::env(PAD_EDGE_SPACING) \
+    -rotation_horizontal $::env(PAD_ROTATION_HORIZONTAL) \
+    -rotation_vertical $::env(PAD_ROTATION_VERTICAL) \
+    -rotation_corner $::env(PAD_ROTATION_CORNER)
 
 set sides {PAD_SOUTH PAD_EAST PAD_NORTH PAD_WEST}
 set vertical_sides [list PAD_EAST PAD_WEST]
@@ -150,7 +153,7 @@ foreach side $sides {
     # For all instances
     foreach inst_name $::env($side) {
         if { [set inst [$block findInst $inst_name]] == "NULL" } {
-            puts stderr "\[ERROR\] No instance $instance_name found."
+            puts stderr "\[ERROR\] No instance $inst_name found."
             exit 1
         }
         set master_name [[$inst getMaster] getName]

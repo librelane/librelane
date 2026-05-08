@@ -56,9 +56,11 @@ Netlist
     A representation of the circuit modeling pre-hardened elements (standard
     cells and macros) and the connections between them.
 
-    In LibreLane, Netlists can be in Verilog, where they model cells in ideal conditions
-    and are only interested in verifying the logical correctness of the circuit,
-    or they can be {term}`SPICE netlist`(s), which model more physical conditions.
+    In LibreLane, Netlists can be in Verilog, in which case they are
+    **gate-level netlists** that model cells in ideal conditions and are only
+    interested in verifying the logical correctness of the circuit, or they can
+    be {term}`SPICE netlist`(s), which model down to the transistor level and
+    can simulate various physical conditions.
 
 GDSII
 
@@ -426,11 +428,12 @@ HDL
     behavior of a hardware chip. The most famous of which is Verilog.
 
     HDLs can model hardware at various levels of abstraction, from listing every
-    single gate used in the design (gate-level netlist) to more abstract
-    behavioral models ({term}`register transfer level <RTL>`). A synthesis tool
-    is used to transform the abstract behavioral models into concrete netlists.
+    single gate used in the design ({term}`gate-level netlist <netlist>`) to
+    more abstract behavioral models ({term}`register transfer level <RTL>`).
+    A synthesis tool is used to transform the abstract behavioral models into
+    concrete netlists.
 
-    The most famous hardware description languages are Verilog and VHDL.
+    The most famous hardware description languages are {term}`Verilog` and VHDL.
 
 tape-out
 

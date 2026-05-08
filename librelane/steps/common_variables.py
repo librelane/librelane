@@ -264,6 +264,12 @@ pdn_variables = [
         pdk=True,
     ),
     Variable(
+        "PDN_CORE_RING_CONNECT_TO_PAD_LAYERS",
+        Optional[List[str]],
+        "Restrict the pad pins layers to this list.",
+        pdk=True,
+    ),
+    Variable(
         "PDN_CORE_RING_ALLOW_OUT_OF_DIE",
         bool,
         "If specified, the ring shapes are allowed to be outside the die boundary.",

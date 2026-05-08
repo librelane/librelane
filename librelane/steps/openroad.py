@@ -281,11 +281,6 @@ class OpenROADStep(TclStep):
             "Specifies the SDC file used during all implementation (PnR) steps",
         ),
         Variable(
-            "FP_DEF_TEMPLATE",
-            Optional[Path],
-            "Points to the DEF file to be used as a template.",
-        ),
-        Variable(
             "STA_EXTRA_CORNER_TCL_FILE",
             Optional[Path],
             "Experimental: specifies a additional configuration .tcl file to be called during (PnR) steps.",
@@ -322,7 +317,8 @@ class OpenROADStep(TclStep):
     def prepare_env(self, env: dict, state: State) -> dict:
         env = super().prepare_env(env, state)
 
-        lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
+        lib_list = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        lib_list += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
@@ -1338,15 +1334,16 @@ class IOPlacement(OpenROADStep):
                 deprecated_names=["FP_PIN_ORDER_CFG"],
             ),
             Variable(
-                "FP_DEF_TEMPLATE",
-                Optional[Path],
-                "Points to the DEF file to be used as a template.",
-            ),
-            Variable(
                 "IO_EXCLUDE_PIN_REGION",
                 Optional[List[str]],
                 "List of regions where pins cannot be placed. The regions are strings in the format `{edge}:{interval}` where edge is `top|bottom|left|right` and the interval is either `*` to exclude the entire edge or `{begin}-{end}` to exclude a part of the edge, where `begin` and `end` are either absolute distance values or themselves `*` to denote the very start or end of an edge.",
                 units="µm",
+            ),
+            # Only used by this step to skip:
+            Variable(
+                "FP_DEF_TEMPLATE",
+                Optional[Path],
+                "Points to the DEF file to be used as a template.",
             ),
         ]
     )
@@ -1644,11 +1641,17 @@ class GlobalPlacementSkipIO(_GlobalPlacement):
             deprecated_names=["FP_PPL_MODE"],
             validator=_validate_io_ppl_mode,
         ),
+        # Only used by this step to skip:
         Variable(
             "IO_PIN_ORDER_CFG",
             Optional[Path],
             "Path to a custom pin configuration file.",
             deprecated_names=["FP_PIN_ORDER_CFG"],
+        ),
+        Variable(
+            "FP_DEF_TEMPLATE",
+            Optional[Path],
+            "Points to the DEF file to be used as a template.",
         ),
     ]
 
@@ -2237,7 +2240,8 @@ class IRDropReport(OpenROADStep):
         elif len(spefs_in) < 1:
             raise StepException("No SPEF file found for the default corner.")
 
-        libs_in = self.toolbox.filter_views(self.config, self.config["LIB"])
+        libs_in = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        libs_in += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
 
         if self.config["VSRC_LOC_FILES"] is None:
             self.warn(

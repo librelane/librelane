@@ -24,7 +24,7 @@ The module consists of four submodules:
 
 …with an assisting module named {mod}`librelane.common`.
 
-### States
+## States
 
 A {class}`librelane.state.State` is a snapshot of paths to the various different
 views of the design (e.g. Netlist, DEF, GDS, etc.) at any point in time.

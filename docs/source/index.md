@@ -1,38 +1,39 @@
 # The LibreLane Documentation
 
-LibreLane is a powerful and versatile infrastructure library that enables the
-construction of digital ASIC implementation flows based on open-source and
-commercial EDA tools. It includes a reference flow ({flow}`Classic`) that is
-built entirely using open-source EDA tools, and allowing designers to abstract
-the underlying tools and configure their behavior with a single configuration
-file.
+[LibreLane](https://librelane.org) is a powerful and versatile infrastructure
+library that enables the construction of digital implementation flows for
+application specific integrated circuits (ASICs) based on open-source and
+commercial electronic design automation (EDA) tools.
 
-LibreLane also supports the ability to freely extend or modify flows using
-Python scripts and utilities.
+LibreLane is:
 
-Currently, LibreLane and its default flow support all variants of the
-open-source [Skywater PDK](https://github.com/google/skywater-pdk) and some
-variants of the open-source
-[GlobalFoundries PDK](https://github.com/google/gf180mcu-pdk).
+- **Simple to use** – Configure your entire ASIC implementation flow using one
+  file.
 
-See [Using PDKs](./usage/about_pdks.md) for more info.
+- **Free and open source** – With a complementary set of open-source process
+  design kits (PDKs), design and implement your chip without signing a single
+  document. Freely modify both the infrastructure, underlying tools, and PDK to
+  fit your needs – you're in control. Not a vendor.
 
-Here are some of the key benefits of using LibreLane:
+- **Flexible and extensible** – Create custom flows, both by simple
+  modifications to the default flows in the configuration file, or by writing
+  Python scripts or plugins to implement advanced functionality.
 
-* **Flexibility and extensibility**: LibreLane is designed to be flexible and
-  extensible, allowing designers to customize flows to meet their specific
-  needs. This can be done by writing Python scripts and utilities,
-  or by modifying the existing configuration file.
-* **Open source**: LibreLane is an open-source project, which means that it is
-  freely available to use and modify. This makes it a good choice for designers
-  who are looking for a cost-effective and transparent solution.
-* **Community support**: LibreLane capitalizes on both it and its predecessor's
-  (OpenLane's) existing community of users and contributors. This means that
-  there is a wealth of resources available to help designers get started and
-  troubleshoot any problems they encounter.
+- **Hermetic** – Rewind and explore alternative configurations without losing
+  data; LibreLane captures explicit snapshots of the configuration and state of
+  your design at every step.
+
+- **Reproducible and traceable** – LibreLane comes packaged with a verified
+  environment of free EDA utilities with a simple goal in mind: same tools, same
+  flow, same configuration; same result. Capture your modifications and
+  engineering change orders (ECOs) as automated steps, and make your flow your
+  documentation.
+
+LibreLane includes two reference flows ({flow}`Classic` and {flow}`Chip`) that
+are built entirely using open-source EDA tools.
 
 Follow the navigation element below (or check the sidebar on the left) to
-get started.
+get started installing and using LibreLane.
 
 ```{toctree}
 :glob:
@@ -42,7 +43,7 @@ installation/index
 getting_started/index
 usage/index
 reference/index
-additional_material
+additional_material/index
 glossary
 faq
 contributors/index

@@ -73,6 +73,10 @@ stdenv.mkDerivation (finalAttrs: {
     inherit sha256;
   };
 
+  patches = [
+    ./patches/openroad/grt_pin_layers.patch
+  ];
+
   cmakeFlags = (cmakeFlagsCommon false) ++ [
     "-DENABLE_TESTS:BOOL=${if enableTesting then "ON" else "OFF"}"
     "-DUSE_SYSTEM_ABC:BOOL=ON"
@@ -94,6 +98,13 @@ stdenv.mkDerivation (finalAttrs: {
     chmod +x ./openroad.build_env_info
   '';
 
+  qt5Libs = with libsForQt5.qt5; [
+    qtbase
+    qtcharts
+    qtsvg
+    qtdeclarative
+  ];
+
   buildInputs = [
     openroad-abc
     boost186
@@ -105,8 +116,6 @@ stdenv.mkDerivation (finalAttrs: {
     tclreadline
     spdlog
     libffi
-    libsForQt5.qtbase
-    libsForQt5.qt5.qtcharts
     llvmPackages.openmp
     llvmPackages.libunwind
 
@@ -120,7 +129,7 @@ stdenv.mkDerivation (finalAttrs: {
     yaml-cpp
 
     or-tools_9_14
-  ];
+  ] ++ finalAttrs.qt5Libs;
 
   nativeBuildInputs = [
     swig

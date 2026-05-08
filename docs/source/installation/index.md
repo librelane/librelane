@@ -32,7 +32,7 @@ the easiest way to get up and running with LibreLane is by downloading an
 that requires no further installation, but does not work in certain environments
 such as inside Docker containers.
 
-Follow the installation guide here: `doc`{/installation/appimage_installation/index}.
+Follow the installation guide here: {doc}`/installation/appimage_installation/index`.
 
 ## Docker
 

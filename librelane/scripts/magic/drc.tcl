@@ -17,6 +17,7 @@
 # limitations under the License.
 
 crashbackups disable
+units internal
 
 # Read in maglef views in order to blackbox cells
 if { [info exists ::env(MAGIC_DRC_MAGLEFS)] } {
@@ -30,6 +31,10 @@ if { [info exists ::env(MAGIC_DRC_MAGLEFS)] } {
 # that have been previously loaded as maglef
 gds noduplicates true
 gds readonly true
+
+# Enable maskhints so that DRC rules against generated layers are run
+# against the closest possible version to what's actually in the GDS
+gds maskhints true
 
 # Flatten cells
 if { [info exists ::env(MAGIC_GDS_FLATGLOB)] } {

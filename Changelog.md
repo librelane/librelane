@@ -25,6 +25,43 @@ Style Notes
 
 -->
 
+# 3.1.0
+
+## Steps
+
+* Magic.DRC
+
+  * Enabled maskhints so that DRC rules against generated layers are run
+    against the closest possible version to what's actually in the GDS.
+
+* OpenROAD.PadRing
+
+  * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
+
+* OpenROAD.GeneratePDN
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+## Misc. Enhancements/Bugfixes
+
+- Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+
+# 3.0.2
+
+## Tool Updates
+
+* OpenROAD: Backported
+  [#9975](https://github.com/The-OpenROAD-Project/OpenROAD/pull/9975) to fix a
+  bug with a certain PDK and added missing Qt plugins.
+
+# 3.0.1
+
+## Steps
+
+* `Magic.DRC`
+
+  * Set units to internal to fix DRC markers for newer magic versions.
+
 # 3.0.0
 
 ## Steps
@@ -675,6 +712,8 @@ Style Notes
     description of the new format.
   * `VIAS_RC` removed and replaced by `VIAS_R` with a format similar to
     `LAYERS_RC`.
+  * `FP_DEF_TEMPLATE` no longer a variable for all OpenROAD steps and must be
+    added to steps that need it.
 
 * `OpenROAD.BasicMacroPlacement`
 

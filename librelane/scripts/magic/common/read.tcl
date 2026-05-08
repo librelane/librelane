@@ -56,34 +56,37 @@ proc read_pad_lef {} {
     }
 }
 
-proc read_pdk_gds {} {
-    set old_rescale [gds rescale]
-    set old_readonly [gds readonly]
+proc _read_gds {env_name} {
+    # Pre-check
+    if { ![info exist ::env($env_name)] } {
+        return
+    }
+
+    # Save options
+    set old [list]
+    lappend old [gds rescale]
+    lappend old [gds readonly]
     gds rescale false
     gds readonly true
-    set gds_files_in $::env(CELL_GDS)
+
+    # Read GDS
+    set gds_files_in $::env($env_name)
     foreach gds_file $gds_files_in {
         puts "> gds read $gds_file"
         gds read $gds_file
     }
-    gds rescale $old_rescale
-    gds readonly $old_readonly
+
+    # Restore options
+    gds rescale [lindex $old 0]
+    gds readonly [lindex $old 1]
+}
+
+proc read_pdk_gds {} {
+    _read_gds CELL_GDS
 }
 
 proc read_macro_gds {} {
-    set old_rescale [gds rescale]
-    set old_readonly [gds readonly]
-    gds rescale false
-    gds readonly true
-    if { [info exist ::env(MACRO_GDS_FILES)] } {
-        set gds_files_in $::env(MACRO_GDS_FILES)
-        foreach gds_file $gds_files_in {
-            puts "> gds read $gds_file"
-            gds read $gds_file
-        }
-    }
-    gds rescale $old_rescale
-    gds readonly $old_readonly
+    _read_gds MACRO_GDS_FILES
 }
 
 proc read_macro_gds_blackbox {} {
@@ -104,35 +107,11 @@ proc read_macro_gds_blackbox {} {
 }
 
 proc read_extra_gds {} {
-    set old_rescale [gds rescale]
-    set old_readonly [gds readonly]
-    gds rescale false
-    gds readonly true
-    if {  [info exist ::env(EXTRA_GDS)] } {
-        set gds_files_in $::env(EXTRA_GDS)
-        foreach gds_file $gds_files_in {
-            puts "> gds read $gds_file"
-            gds read $gds_file
-        }
-    }
-    gds rescale $old_rescale
-    gds readonly $old_readonly
+    _read_gds EXTRA_GDS
 }
 
 proc read_pad_gds {} {
-    set old_rescale [gds rescale]
-    set old_readonly [gds readonly]
-    gds rescale false
-    gds readonly true
-    if { [info exist ::env(PAD_GDS)] } {
-        set gds_files_in $::env(PAD_GDS)
-        foreach gds_file $gds_files_in {
-            puts "> gds read $gds_file"
-            gds read $gds_file
-        }
-    }
-    gds rescale $old_rescale
-    gds readonly $old_readonly
+    _read_gds PAD_GDS
 }
 
 proc read_def {} {

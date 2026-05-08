@@ -2,8 +2,9 @@
 
 > Adapted from
 > [original guide](https://docs.google.com/document/d/13J1AY1zhzxur8vaFs3rRW9ZWX113rSDs63LezOOoXZ8/edit#heading=h.9y68197ebff7)
-> by Mohamed Shalan based on his experience designing the Caravel chip using
-> LibreLane and his digital systems design teaching materials.
+> by [Mohamed Shalan](https://github.com/shalan) based on his experience
+> designing the Caravel chip using OpenLane and his digital systems design
+> teaching materials.
 >
 > The document is released under the [CC-BY-SA 4.0 License](https://creativecommons.org/licenses/by-sa/4.0/).
 
