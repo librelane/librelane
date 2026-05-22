@@ -495,10 +495,10 @@ class Config(GenericImmutableDict[str, Any]):
         :param pdk: A process design kit to use. Required unless specified via the
             "PDK" key in a configuration object.
 
-        :param pdk_root: Required if Volare is not installed.
+        :param pdk_root: Required if Ciel is not installed.
 
-            If Volare is installed, this value can be used to optionally override
-            Volare's default.
+            If Ciel is installed, this value can be used to optionally override
+            Ciel's default.
 
         :param scl: A standard cell library to use. If not specified, the PDK's
             default standard cell library will be used instead.
@@ -713,7 +713,7 @@ class Config(GenericImmutableDict[str, Any]):
                 pdk=pdk,
                 pdkpath=pdkpath,
                 scl=mutable[SpecialKeys.scl],
-                pad=mutable.get(SpecialKeys.pad, None),
+                pad=mutable.get(SpecialKeys.pad, pad),
                 design_dir=design_dir,
             )
         )
