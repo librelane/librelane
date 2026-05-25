@@ -157,6 +157,7 @@ def librelane_synth(
 ):
 
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
+    d.run_pass("chformal", "-remove")
     librelane_proc(d, report_dir)
 
     if keep_hierarchy_min_cost:
