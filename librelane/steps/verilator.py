@@ -168,7 +168,11 @@ class Lint(Step):
             f"SCL_{self.config['STD_CELL_LIBRARY']}",
             "__librelane__",
             "__pnr__",
-        ]
+        ] + (
+            [f"PAD_{self.config['PAD_CELL_LIBRARY']}"]
+            if "PAD_CELL_LIBRARY" in self.config
+            else []
+        )
         if verilog_power_define := self.config.get("VERILOG_POWER_DEFINE"):
             defines += [verilog_power_define]
 
