@@ -39,6 +39,12 @@ Style Notes
   * Upgraded warnings on multiply-driven nets to an error that can be disabled
     by setting `LINTER_ERROR_ON_MULTIDRIVEN` to `false`.
 
+* `Yosys.*Synthesis`
+
+  * Removed unused variables `SYNTH_MUX_MAP`/`SYNTH_MUX4_MAP`.
+    As a note, Yosys and ABC are able to map multiplexers to SCL cells
+    without explicit technology mapping.
+
 ## Misc. Enhancements/Bugfixes
 
 * `openlane.config`
