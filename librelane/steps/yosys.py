@@ -198,18 +198,6 @@ class YosysStep(TclStep):
             pdk=True,
         ),
         Variable(
-            "SYNTH_MUX_MAP",
-            Optional[Path],
-            "A path to a file containing the mux mapping for Yosys.",
-            pdk=True,
-        ),
-        Variable(
-            "SYNTH_MUX4_MAP",
-            Optional[Path],
-            "A path to a file containing the mux4 mapping for Yosys.",
-            pdk=True,
-        ),
-        Variable(
             "YOSYS_LOG_LEVEL",
             Literal["ALL", "WARNING", "ERROR"],
             "Which log level for Yosys. At WARNING or higher, the initialization splash is also disabled.",

@@ -31,7 +31,7 @@ Style Notes
 
 * Magic.DRC
 
-  * Enabled maskhints so that DRC rules against generated layers are run
+  * Enabled mask hints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
 * OpenROAD.PadRing
@@ -41,6 +41,12 @@ Style Notes
 * OpenROAD.GeneratePDN
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+- `Yosys.*Synthesis`
+
+  * Removed unused variables `SYNTH_MUX_MAP`/`SYNTH_MUX4_MAP`.
+    As a note, Yosys and ABC are able to map multiplexers to SCL cells
+    without explicit technology mapping.
 
 ## Misc. Enhancements/Bugfixes
 
