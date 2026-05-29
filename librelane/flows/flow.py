@@ -839,9 +839,9 @@ class Flow(ABC):
             target_dir = os.path.join(path, subdirectory)
             if not isinstance(value, Path):
                 if isinstance(value, dict):
-                    assert (
-                        self.toolbox is not None
-                    ), "toolbox check was not executed properly"
+                    assert self.toolbox is not None, (
+                        "toolbox check was not executed properly"
+                    )
                     default_corner_view = self.toolbox.filter_views(self.config, value)
                     default_corner_target_dir = os.path.dirname(target_dir)
                     mkdirp(default_corner_target_dir)

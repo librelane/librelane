@@ -20,4 +20,5 @@ This is a modified version of https://github.com/efabless/ioplace_parser that
 does NOT use Antlr4 and instead uses a custom parser that is faster and
 dependency-free.
 """
+
 from .parse import Side, Order, parse

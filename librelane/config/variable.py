@@ -439,8 +439,8 @@ class Variable:
             # Markdown mode
             result = textwrap.dedent(
                 f"""
-                | Variable Name | Type | Description | Default | {'Units |' * include_units}
-                | - | - | - | - | {'- |' * include_units}
+                | Variable Name | Type | Description | Default | {"Units |" * include_units}
+                | - | - | - | - | {"- |" * include_units}
                 """
             )
             for var in vars:

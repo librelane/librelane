@@ -302,11 +302,14 @@ class OpenROADStep(TclStep):
         pass
 
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
-        if alert.code in [
-            "ORD-0039",  # .openroad ignored with -python
-            "ODB-0220",  # lef parsing/NOWIREEXTENSIONATPIN statement is obsolete in version 5.6 or later.
-            "STA-1256",  # table template \w+ not found
-        ]:
+        if (
+            alert.code
+            in [
+                "ORD-0039",  # .openroad ignored with -python
+                "ODB-0220",  # lef parsing/NOWIREEXTENSIONATPIN statement is obsolete in version 5.6 or later.
+                "STA-1256",  # table template \w+ not found
+            ]
+        ):
             return alert
         if alert.cls == "error":
             self.err(str(alert), extra={"key": alert.code})

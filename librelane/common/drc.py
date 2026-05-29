@@ -90,24 +90,24 @@ class DRC:
                 continue
             if state == State.vio_type:
                 vio_match = re_violation.match(line)
-                assert (
-                    vio_match is not None
-                ), f"Error while parsing drc report file: Could not match violation line '{line}'"
+                assert vio_match is not None, (
+                    f"Error while parsing drc report file: Could not match violation line '{line}'"
+                )
                 vio_type = vio_match.group("type")
                 state = State.src
             elif state == State.src:
                 src_match = re_src.match(line)
-                assert (
-                    src_match is not None
-                ), f"Error while parsing drc report file: Could not match source line '{line}'"
+                assert src_match is not None, (
+                    f"Error while parsing drc report file: Could not match source line '{line}'"
+                )
                 src1 = src_match.group("src1")
                 src2 = src_match.group("src2")
                 state = State.bbox
             elif state == State.bbox:
                 bbox_match = re_bbox.match(line)
-                assert (
-                    bbox_match is not None
-                ), f"Error while parsing drc report file: Could not match bbox line '{line}'"
+                assert bbox_match is not None, (
+                    f"Error while parsing drc report file: Could not match bbox line '{line}'"
+                )
                 llx = bbox_match.group("llx")
                 lly = bbox_match.group("lly")
                 urx = bbox_match.group("urx")

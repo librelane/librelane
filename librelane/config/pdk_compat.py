@@ -57,11 +57,11 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
 
     # 5. Interconnect Corners
     if "RCX_RULESETS" not in new and config.get("RCX_RULES") is not None:
-        new["RCX_RULESETS"] = f"nom_* \"{config['RCX_RULES']}\""
+        new["RCX_RULESETS"] = f'nom_* "{config["RCX_RULES"]}"'
         if config.get("RCX_RULES_MIN") is not None:
-            new["RCX_RULESETS"] += f" min_* \"{config['RCX_RULES_MIN']}\""
+            new["RCX_RULESETS"] += f' min_* "{config["RCX_RULES_MIN"]}"'
         if config.get("RCX_RULES_MAX") is not None:
-            new["RCX_RULESETS"] += f" max_* \"{config['RCX_RULES_MAX']}\""
+            new["RCX_RULESETS"] += f' max_* "{config["RCX_RULES_MAX"]}"'
     if "RCX_RULES" in new:
         del new["RCX_RULES"]
     if "RCX_RULES_MIN" in new:
@@ -70,11 +70,11 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         del new["RCX_RULES_MAX"]
 
     if "TECH_LEFS" not in new and config.get("TECH_LEF") is not None:
-        new["TECH_LEFS"] = f"nom_* \"{config['TECH_LEF']}\""
+        new["TECH_LEFS"] = f'nom_* "{config["TECH_LEF"]}"'
         if config.get("TECH_LEF_MIN") is not None:
-            new["TECH_LEFS"] += f" min_* \"{config['TECH_LEF_MIN']}\""
+            new["TECH_LEFS"] += f' min_* "{config["TECH_LEF_MIN"]}"'
         if config.get("TECH_LEF_MAX") is not None:
-            new["TECH_LEFS"] += f" max_* \"{config['TECH_LEF_MAX']}\""
+            new["TECH_LEFS"] += f' max_* "{config["TECH_LEF_MAX"]}"'
     if "TECH_LEF" in new:
         del new["TECH_LEF"]
     if "TECH_LEF_MIN" in new:

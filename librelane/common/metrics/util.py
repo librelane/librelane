@@ -208,8 +208,8 @@ class MetricDiff(object):
         if len(listed_differences) > 0:
             table = textwrap.dedent(
                 f"""
-                | {'Metric':<70} | {'Before':<10} | {'After':<10} | {'Delta':<20} |
-                | {'-':<70} | {'-':<10} | {'-':<10} | {'-':<20} |
+                | {"Metric":<70} | {"Before":<10} | {"After":<10} | {"Delta":<20} |
+                | {"-":<70} | {"-":<10} | {"-":<10} | {"-":<20} |
                 """
             )
 
