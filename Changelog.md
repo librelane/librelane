@@ -34,6 +34,10 @@ Style Notes
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
+* Odb.SetPowerConnections
+
+  * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
+
 * OpenROAD.PadRing
 
   * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
@@ -41,6 +45,19 @@ Style Notes
 * OpenROAD.GeneratePDN
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+## Tool Updates
+
+* Updated nix-eda to 6.21.0
+  * Updated Magic to `8.3.651`
+  * Updated Netgen to `1.5.320`
+  * Updated Yosys to `0.65`
+    * Updated yosys-eqy `0.65`
+    * Updated yosys-sby `0.65`
+    * Updated yosys-slang to `803d5219`
+    * Removed yosys-lighter (no longer required by LibreLane)
+  * Updated Verilator to `5.046`
+  * Updated Iverilog to `13.0`
 
 ## Misc. Enhancements/Bugfixes
 
