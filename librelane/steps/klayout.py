@@ -434,7 +434,7 @@ class DRC(KLayoutStep):
     Unlike most steps, the KLayout scripts vary quite wildly by PDK. If a PDK
     is not supported by this step, it will simply be skipped.
 
-    Currently, only sky130A and sky130B are supported.
+    Currently, sky130, gf180mcu and ihp-sg13 are supported.
     """
 
     id = "KLayout.DRC"
@@ -513,9 +513,6 @@ class DRC(KLayoutStep):
         if threads != "1":
             opts.extend(
                 [
-                    "-rd",
-                    f"thr={threads}",
-                    # Use "threads" if possible
                     "-rd",
                     f"threads={threads}",
                 ]
@@ -602,6 +599,8 @@ class DRC(KLayoutStep):
                 "-rd",
                 f"seal={seal}",
                 "-rd",
+                f"thr={threads}",
+                "-rd",
                 f"threads={threads}",
             ],
             env=env,
@@ -658,7 +657,7 @@ class DRC(KLayoutStep):
             opts.extend(
                 [
                     "-rd",
-                    f"thr={threads}",
+                    f"threads={threads}",
                 ]
             )
 
@@ -727,7 +726,7 @@ class DRC(KLayoutStep):
             opts.extend(
                 [
                     "-rd",
-                    f"thr={threads}",
+                    f"threads={threads}",
                 ]
             )
 
