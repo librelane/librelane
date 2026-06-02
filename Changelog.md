@@ -29,6 +29,16 @@ Style Notes
 
 ## Steps
 
+* KLayout.DRC
+
+  * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
+
+  * `run_gf180mcu`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_ihp_sg13g2`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_sky130`: added `thr` to match DRC deck.
+
 * Magic.DRC
 
   * Enabled maskhints so that DRC rules against generated layers are run
@@ -64,6 +74,8 @@ Style Notes
 * Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
 
 * CI: add sky130 full-chip design.
+
+* Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
 # 3.0.3
 
