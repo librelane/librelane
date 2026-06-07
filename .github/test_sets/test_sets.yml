@@ -122,6 +122,26 @@
     - picorv32a
     - PPU
     - y_huff
+- scl: gf180mcuD/gf180mcu_fd_sc_mcu9t5v0
+  name: fastest_test_set
+  designs:
+    - spm
+    - APU
+    - usb
+    - usb_cdc_core
+    - zipdiv
+    - blink
+    - wbqspiflash
+- scl: gf180mcuD/gf180mcu_as_sc_mcu7t3v3
+  name: fastest_test_set
+  designs:
+    - spm
+    - APU
+    - usb
+    - usb_cdc_core
+    - zipdiv
+    - blink
+    - wbqspiflash
 - scl: ihp-sg13g2/sg13g2_stdcell
   name: fastest_test_set
   designs:
