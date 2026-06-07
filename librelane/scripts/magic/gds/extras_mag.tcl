@@ -17,6 +17,8 @@
 # corresponding maglefs
 
 drc off
+crashbackups disable
+locking disable
 
 gds readonly true
 gds rescale false

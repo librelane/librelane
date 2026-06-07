@@ -13,6 +13,8 @@
 # limitations under the License.
 
 drc off
+crashbackups disable
+locking disable
 
 lef read $::env(signoff_results)/$::env(DESIGN_NAME).lef
 
