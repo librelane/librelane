@@ -25,6 +25,14 @@ Style Notes
 
 -->
 
+# 3.0.4
+
+## Steps
+
+* `Magic.*`
+
+  * Added `locking disable` to scripts to prevent exceeding max open file descriptor limit.
+
 # 3.0.3
 
 ## Steps

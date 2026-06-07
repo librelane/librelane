@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+crashbackups disable
+locking disable
+
 if { [info exists ::env(TECH)] } {
     tech load $::env(TECH)
 }

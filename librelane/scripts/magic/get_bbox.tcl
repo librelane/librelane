@@ -1,3 +1,7 @@
+drc off
+crashbackups disable
+locking disable
+
 gds read $::env(_GDS_IN)
 load $::env(_MACRO_NAME_IN)
 set curunits [units]
