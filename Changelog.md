@@ -58,16 +58,17 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 6.21.0
-  * Updated Magic to `8.3.651`
+* Updated nix-eda to 6.24.0
+  * Updated Magic to `8.3.660`
   * Updated Netgen to `1.5.320`
-  * Updated Yosys to `0.65`
-    * Updated yosys-eqy `0.65`
-    * Updated yosys-sby `0.65`
-    * Updated yosys-slang to `803d5219`
+  * Updated Yosys to `0.66`
+    * Updated yosys-eqy `0.66`
+    * Updated yosys-sby `0.66`
+    * Updated yosys-slang to `35de0406`
     * Removed yosys-lighter (no longer required by LibreLane)
   * Updated Verilator to `5.046`
   * Updated Iverilog to `13.0`
+  * Updated KLayout to `0.30.9`
 
 ## Misc. Enhancements/Bugfixes
 
