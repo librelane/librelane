@@ -17,6 +17,7 @@
 # limitations under the License.
 
 crashbackups disable
+locking disable
 units internal
 
 # Read in maglef views in order to blackbox cells

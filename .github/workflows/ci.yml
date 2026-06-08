@@ -43,7 +43,7 @@ jobs:
       gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
       ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
@@ -65,7 +65,7 @@ jobs:
           echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
           echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.sky130_hash }}
@@ -75,7 +75,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
       - name: Cache gf180mcu PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.gf180mcu_hash }}
@@ -85,7 +85,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.gf180mcu_hash }} --include-libraries all
       - name: Cache ihp-sg13g2 PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-ihp-sg13g2
           key: cache-ihp-sg13g2-pdk-${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
@@ -95,7 +95,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk ihp-sg13g2 --pdk-root ./.ciel-ihp-sg13g2 ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
       - name: Checkout submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
   lint:
@@ -103,9 +103,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - name: Install Linters
@@ -123,9 +123,9 @@ jobs:
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run Unit Tests
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-22.04
     name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -224,7 +224,7 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
     name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -237,7 +237,7 @@ jobs:
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
@@ -292,7 +292,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Lix
         run: |
           curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
@@ -316,7 +316,7 @@ jobs:
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           $IMAGE_PATH librelane --smoke-test
       - name: Upload AppImage Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appimage-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
@@ -353,7 +353,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Lix # CppNix crashes on Docker build
         run: |
           curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
@@ -379,7 +379,7 @@ jobs:
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           cat $IMAGE_PATH | docker load
       - name: Upload Docker Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docker-image-${{ matrix.os.arch }}
           path: ${{ env.IMAGE_PATH }}
@@ -402,9 +402,9 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - if: ${{ matrix.engine == 'docker' }}
@@ -422,7 +422,7 @@ jobs:
           echo "lln_no_tty=--container-no-tty" >> $GITHUB_ENV
           echo "lln_containerized=--containerized" >> $GITHUB_ENV
       - name: Download Image (Docker/x86_64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docker-image-x86_64
           path: /tmp/docker
@@ -459,7 +459,7 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Check if Git
@@ -484,7 +484,7 @@ jobs:
           echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
       - name: Cache PDK
         id: cache-pdk
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-${{ matrix.design.pdk_family }}
           key: cache-${{ matrix.design.pdk_family }}-pdk-${{ env.PDK_HASH }}
@@ -524,7 +524,7 @@ jobs:
           fi
 
       - name: Upload Run Folder
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.design.test_name }}-${{ matrix.design.pdk }}-${{ matrix.design.scl }}
           path: ${{ matrix.design.run_dir }}
@@ -536,7 +536,7 @@ jobs:
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
 
       - name: Upload Metrics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
           path: ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
@@ -562,7 +562,7 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Check if Git
@@ -618,7 +618,7 @@ jobs:
     if: needs.merge_metrics.result == 'success'
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup
@@ -627,7 +627,7 @@ jobs:
           python3 -m pip install -e .
           echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Download Metrics
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: metrics
           path: current
@@ -683,7 +683,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Environment
@@ -697,7 +697,7 @@ jobs:
           password: ${{ secrets.BOT_GITHUB_TOKEN }}
       # Splitting load to help with disk space issue
       - name: Download Image (Docker/x86_64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docker-image-x86_64
           path: /tmp/docker
@@ -708,7 +708,7 @@ jobs:
             rm $file
           done
       - name: Download Image (Docker/aarch64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docker-image-aarch64
           path: /tmp/docker
@@ -736,18 +736,18 @@ jobs:
 
           yes | docker system prune -a --volumes
       - name: Download Image (AppImage/x86_64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: appimage-x86_64
           path: /tmp/appimage
       - name: Download Image (AppImage/aarch64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: appimage-aarch64
           path: /tmp/appimage
       - name: Set Up Python
         if: ${{ env.PUBLISH == '1' }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - name: Build Distribution

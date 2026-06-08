@@ -15,6 +15,8 @@
 # convert all external macros to maglef views with GDS_* pointers
 
 drc off
+crashbackups disable
+locking disable
 
 if {  [info exist ::env(EXTRA_LEFS)] } {
 	foreach lef_file $::env(EXTRA_LEFS) {
