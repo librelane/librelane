@@ -33,12 +33,15 @@ if { $::env(DESIGN_REPAIR_REMOVE_BUFFERS) } {
     remove_buffers
 }
 
+# Use SYNTH_BUFFER_CELL as buffer, since OpenROAD may select a hold/delay buffer
+# See: https://github.com/librelane/librelane/pull/961
+
 if { $::env(DESIGN_REPAIR_BUFFER_INPUT_PORTS) } {
-    buffer_ports -inputs
+    buffer_ports -inputs -buffer_cell [lindex [split $::env(SYNTH_BUFFER_CELL) "/"] 0]
 }
 
 if { $::env(DESIGN_REPAIR_BUFFER_OUTPUT_PORTS) } {
-    buffer_ports -outputs
+    buffer_ports -outputs -buffer_cell [lindex [split $::env(SYNTH_BUFFER_CELL) "/"] 0]
 }
 
 set arg_list [list]
