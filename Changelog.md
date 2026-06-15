@@ -39,6 +39,10 @@ Style Notes
 
   * `run_sky130`: added `thr` to match DRC deck.
 
+* KLayout.Render
+
+  * Allow to run with only GDS as input format.
+
 * Magic.DRC
 
   * Enabled maskhints so that DRC rules against generated layers are run

@@ -171,7 +171,7 @@ class Render(KLayoutStep):
     id = "KLayout.Render"
     name = "Render Image (w/ KLayout)"
 
-    inputs = [DesignFormat.DEF]
+    inputs = []
     outputs = []
 
     config_vars = KLayoutStep.config_vars + [
@@ -216,9 +216,13 @@ class Render(KLayoutStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         views_updates: ViewsUpdate = {}
 
-        input_view = state_in[DesignFormat.DEF]
+        input_view = state_in.get(DesignFormat.DEF)
+
         if gds := state_in.get(DesignFormat.GDS):
             input_view = gds
+
+        if input_view is None:
+            raise StepError(f"{id} requires at least one of LEF or GDS as input.")
 
         assert isinstance(input_view, Path)
 
