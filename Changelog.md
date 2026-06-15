@@ -56,6 +56,10 @@ Style Notes
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
 
+* OpenROAD.RepairDesign
+
+  * Use `SYNTH_BUFFER_CELL` for port buffering.
+
 ## Tool Updates
 
 * Updated nix-eda to 6.24.0
@@ -69,6 +73,7 @@ Style Notes
   * Updated Verilator to `5.046`
   * Updated Iverilog to `13.0`
   * Updated KLayout to `0.30.9`
+* Updated Ciel to 2.5.0
 
 ## Misc. Enhancements/Bugfixes
 
