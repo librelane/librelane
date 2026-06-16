@@ -1267,6 +1267,13 @@ class PadRing(OpenROADStep):
             Optional[List[str]],
             "The pad instance names for the west pad row.",
         ),
+        Variable(
+            "PAD_SPACING_MULTIPLE",
+            Decimal,
+            "The spacing between the pad cells will be a multiple of this value. Please ensure that the remaining space on the sides is divisible by the minimum site width.",
+            default=1,
+            units="µm",
+        ),
     ]
 
     def get_script_path(self):

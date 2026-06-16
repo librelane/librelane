@@ -52,6 +52,8 @@ Style Notes
 
   * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
 
+  * Added `PAD_SPACING_MULTIPLE` to make the pad spacing configurable.
+
 * OpenROAD.GeneratePDN
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
