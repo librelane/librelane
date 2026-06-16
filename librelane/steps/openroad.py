@@ -1274,6 +1274,12 @@ class PadRing(OpenROADStep):
             default=1,
             units="µm",
         ),
+        Variable(
+            "PAD_TRIM_ROWS",
+            bool,
+            "If any of `PAD_[SOUTH|EAST|NORTH|WEST]` is empty, skip io fill for those rows and delete the corners with two neighbouring empty rows.",
+            default=False,
+        ),
     ]
 
     def get_script_path(self):

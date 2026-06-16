@@ -183,10 +183,18 @@ place_corners $::env(PAD_CORNER)
 puts "\[INFO\] Placing filler cells…"
 
 # Place filler cells
-place_io_fill -row IO_NORTH {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_SOUTH {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_WEST {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_EAST {*}$::env(PAD_FILLERS)
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_NORTH) ne "")} { place_io_fill -row IO_NORTH {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_SOUTH) ne "")} { place_io_fill -row IO_SOUTH {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_WEST) ne "")} { place_io_fill -row IO_WEST {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_EAST) ne "")} { place_io_fill -row IO_EAST {*}$::env(PAD_FILLERS) }
+
+puts "\[INFO\] Deleting corner cells (if required)…"
+
+# Delete corner cells if required
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_NORTH) eq "") && ($::env(PAD_WEST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_NORTH_WEST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_NORTH) eq "") && ($::env(PAD_EAST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_NORTH_EAST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_SOUTH) eq "") && ($::env(PAD_WEST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_SOUTH_WEST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_SOUTH) eq "") && ($::env(PAD_EAST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_SOUTH_EAST_INST] }
 
 puts "\[INFO\] Connecting ring signals…"
 

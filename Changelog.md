@@ -54,6 +54,8 @@ Style Notes
 
   * Added `PAD_SPACING_MULTIPLE` to make the pad spacing configurable.
 
+  * Added `PAD_TRIM_ROWS` to allow for pad rings with fewer than four rows.
+
 * OpenROAD.GeneratePDN
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
