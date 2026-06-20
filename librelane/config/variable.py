@@ -778,9 +778,16 @@ class Variable:
         elif issubclass(validating_type, Decimal) or issubclass(validating_type, int):
             try:
                 final = validating_type(value)
-            except (InvalidOperation, TypeError):
+            except (InvalidOperation, TypeError, ValueError):
                 raise ValueError(
                     f"Value provided for variable '{key_path}' of type {validating_type.__name__} is invalid: '{value}'"
+                )
+            if issubclass(validating_type, int) and isinstance(
+                value, (float, Decimal)
+            ) and final != value:
+                raise ValueError(
+                    f"Value provided for variable '{key_path}' of type int has a"
+                    f" fractional part and cannot be losslessly converted: '{value}'"
                 )
             if not permissive_typing and not (
                 isinstance(value, int)

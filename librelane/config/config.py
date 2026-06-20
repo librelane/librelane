@@ -1003,7 +1003,7 @@ class Config(GenericImmutableDict[str, Any]):
                 dis = int(dis)
             except ValueError:
                 pass
-            if not isinstance(dis, int) or dis in [1, 2, 5] or dis > 6:
+            if not isinstance(dis, int) or dis < 0 or dis in [1, 2, 5] or dis > 6:
                 errors.append(
                     f"DIODE_INSERTION_STRATEGY '{dis}' is not available in LibreLane 2.0 or higher. See 'Migrating DIODE_INSERTION_STRATEGY' in the docs for more info."
                 )

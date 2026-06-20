@@ -11,11 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import pkgutil
 import importlib
 
-discovered_plugins = {
-    name: importlib.import_module(name)
-    for finder, name, ispkg in pkgutil.iter_modules()
-    if name.startswith("librelane_plugin_") or name.startswith("openlane_plugin_")
-}
+discovered_plugins = {}
+for _finder, _name, _ispkg in pkgutil.iter_modules():
+    if _name.startswith("librelane_plugin_") or _name.startswith("openlane_plugin_"):
+        try:
+            discovered_plugins[_name] = importlib.import_module(_name)
+        except Exception as _e:
+            logging.getLogger(__name__).warning(
+                f"Failed to load plugin '{_name}': {_e}"
+            )

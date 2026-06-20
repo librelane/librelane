@@ -290,9 +290,8 @@ class State(GenericImmutableDict[str, StateElement]):
 
     @classmethod
     def load(Self, dict_in: dict, validate_path: bool = True) -> "State":
-        metrics = dict_in.get("metrics")
-        if metrics is not None:
-            del dict_in["metrics"]
+        dict_in = dict_in.copy()
+        metrics = dict_in.pop("metrics", None)
 
         views = Self.__load_recursive(dict_in, validate_path)
         return Self(views, metrics=metrics)

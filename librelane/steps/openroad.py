@@ -404,7 +404,7 @@ class OpenROADStep(TclStep):
         vias_r = self.config["VIAS_R"]
         if vias_r is not None:
             for corner_wildcard, metal_layers in vias_r.items():
-                for corner in Filter(corner_wildcard).filter(corners):
+                for corner in Filter([corner_wildcard]).filter(corners):
                     ipvt_corners[corner].vias_r = metal_layers
 
         filtered_ipvt_corners_names_sorted = corners
@@ -1064,7 +1064,7 @@ class STAPostPNR(STAPrePNR):
                 "Malformed input state: value for LIB is not a dictionary."
             )
 
-        lib_dict.copy()
+        lib_dict = lib_dict.copy()
 
         for corner in self.config["STA_CORNERS"]:
             lib = os.path.join(
@@ -2178,6 +2178,7 @@ class RCX(OpenROADStep):
                 "Malformed input state: value for SPEF is not a dictionary."
             )
 
+        spef_dict = spef_dict.copy()
         for corner, future in futures.items():
             if result := future.result():
                 spef_dict[corner] = Path(result)
@@ -2261,27 +2262,21 @@ class IRDropReport(OpenROADStep):
         worst_drop_rx = re.compile(r"Worstcase IR drop\s*:\s*([\d\.\+\-e]+)\s*V")
 
         if m := voltage_rx.search(report):
-            value_float = float(m[1])
-            value_dec = Decimal(value_float)
-            metrics_updates["ir__voltage__worst"] = value_dec
+            metrics_updates["ir__voltage__worst"] = Decimal(m[1])
         else:
             raise Exception(
                 "OpenROAD IR Drop Log format has changed- please file an issue."
             )
 
         if m := avg_drop_rx.search(report):
-            value_float = float(m[1])
-            value_dec = Decimal(value_float)
-            metrics_updates["ir__drop__avg"] = value_dec
+            metrics_updates["ir__drop__avg"] = Decimal(m[1])
         else:
             raise Exception(
                 "OpenROAD IR Drop Log format has changed- please file an issue."
             )
 
         if m := worst_drop_rx.search(report):
-            value_float = float(m[1])
-            value_dec = Decimal(value_float)
-            metrics_updates["ir__drop__worst"] = value_dec
+            metrics_updates["ir__drop__worst"] = Decimal(m[1])
         else:
             raise Exception(
                 "OpenROAD IR Drop Log format has changed- please file an issue."

@@ -139,11 +139,13 @@ class SynthesisExploration(Flow):
         options.set_condensed_mode(False)
 
         successful_results = {k: v for k, v in results.items() if v is not None}
-        min_gates = min(map(lambda x: x[0], successful_results.values()))
-        min_area = min(map(lambda x: x[1], successful_results.values()))
-        max_r2r_slack = max(map(lambda x: x[2], successful_results.values()))
-        max_slack = max(map(lambda x: x[3], successful_results.values()))
-        max_tns = max(map(lambda x: x[4], successful_results.values()))
+        min_gates = min(map(lambda x: x[0], successful_results.values()), default=None)
+        min_area = min(map(lambda x: x[1], successful_results.values()), default=None)
+        max_r2r_slack = max(
+            map(lambda x: x[2], successful_results.values()), default=None
+        )
+        max_slack = max(map(lambda x: x[3], successful_results.values()), default=None)
+        max_tns = max(map(lambda x: x[4], successful_results.values()), default=None)
 
         table = rich.table.Table()
         table.add_column("SYNTH_STRATEGY")

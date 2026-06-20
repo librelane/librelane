@@ -114,7 +114,7 @@ class GenericDict(Mapping[KT, VT]):
 
     def __eq__(self, __o: object) -> bool:
         if not (isinstance(__o, GenericDict) or isinstance(__o, dict)):
-            raise NotImplementedError()
+            return NotImplemented
 
         rhs = __o
         if isinstance(__o, GenericDict):
@@ -123,14 +123,6 @@ class GenericDict(Mapping[KT, VT]):
         lhs = self.to_raw_dict()
 
         return rhs == lhs
-
-        # ---
-        for key in set(self.keys()).union(__o.keys()):
-            if key not in self or key not in __o:
-                return False
-            if self[key] != __o[key]:
-                return False
-        return True
 
     def pop(self, key: KT, /) -> VT:
         """

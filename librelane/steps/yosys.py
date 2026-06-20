@@ -299,7 +299,7 @@ class EQY(Step):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         processed_pdk = os.path.join(self.step_dir, "formal_pdk.v")
 
-        if self.config["PDK"].startswith("sky130A"):
+        if self.config["PDK"].startswith("sky130"):
             subprocess.check_call(
                 [
                     "eqy.formal_pdk_proc",

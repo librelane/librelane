@@ -88,9 +88,15 @@ class Optimizing(Flow):
 
             synthesis_futures.append((config, sta_future))
 
-        synthesis_states: List[Tuple[Config, State]] = [
-            (config, future.result()) for config, future in synthesis_futures
-        ]
+        synthesis_states: List[Tuple[Config, State]] = []
+        for config, future in synthesis_futures:
+            try:
+                synthesis_states.append((config, future.result()))
+            except StepError:
+                pass
+
+        if not synthesis_states:
+            raise StepError("All synthesis strategies failed.")
 
         self.end_stage()
         set_log_level(log_level_bk)

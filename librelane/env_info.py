@@ -111,7 +111,7 @@ class ContainerInfo(StringRepresentable):
             except Exception:
                 pass
 
-            security_options = info.get("SecurityOptions")
+            security_options = info.get("SecurityOptions") or []
             for option in security_options:
                 if "rootless" in option:
                     cinfo.rootless = True
@@ -261,7 +261,7 @@ class OSInfo(StringRepresentable):
                         continue
                     if line.strip().startswith("#"):
                         continue
-                    key, value = line.split("=")
+                    key, value = line.split("=", 1)
                     value = value.strip('"')
 
                     config[key] = value

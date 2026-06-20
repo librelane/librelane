@@ -106,7 +106,7 @@ def remote_manifest_exists(image: str) -> bool:
     try:
         httpx.Client(follow_redirects=True).get(
             url, headers={"Accept": "application/json"}
-        )
+        ).raise_for_status()
     except httpx.NetworkError:
         err("Couldn't connect to the internet to pull container images.")
         return False
