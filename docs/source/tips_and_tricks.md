@@ -8,7 +8,7 @@ Chat Matrix room](https://matrix.to/#/#librelane:fossi-chat.org) to chat more.
 
 ## For users
 ### Continuous integration
-_Contributed by:_ Mel Young
+_Contributed by:_ [Mel Young](https://github.com/mlyoung101)
 
 Continuous integration is becoming much more common in chip design, and LibreLane is a great tool for running
 this. Using runners based on GitHub Actions (e.g. act, Forgejo Actions, etc), you will often find that
@@ -51,7 +51,7 @@ In the LibreLane repository, open `docs/source/tips_and_tricks.md`. Choose the c
 
 ```md
 ### Your tip or trick name
-_Contributed by:_ Your Name
+_Contributed by:_ [Your Name](https://github.com/YourNameOnGitHub)
 
 Put your tip or trick here.
 ```
