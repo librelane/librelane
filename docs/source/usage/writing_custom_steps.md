@@ -192,3 +192,158 @@ config_vars = OpenROADStep.config_vars + [
 ```
 
 Be sure to read the subclasses' `run` docstrings as they may contain critical information.
+
+## While Step
+
+The {class}`librelane.steps.WhileStep` is a specialized step that allows you to execute a sequence of steps repeatedly while a condition is met. This is particularly useful for iterative optimization algorithms or refinement processes.
+
+### Basic Usage
+
+To create a while step, subclass `WhileStep` and define the steps to loop over:
+
+```python
+from librelane.steps import WhileStep
+
+class MyIterativeStep(WhileStep):
+    id = "MyIterative"
+    Steps = [FirstStep, SecondStep, ThirdStep]  # Steps to execute in order
+    max_iterations = 10  # Maximum number of iterations
+```
+
+The `inputs`, `outputs`, and `config_vars` are automatically generated based on the constituent steps. However, you can explicitly set them if needed.
+
+### Key Attributes
+
+* **`Steps`**: A list of Step classes to execute in each iteration. Required.
+* **`max_iterations`**: Maximum number of iterations to run (default: 10).
+* **`break_on_failure`**: Whether to stop execution if a step fails (default: True). If False, the loop continues even if a step raises an exception.
+
+### Important Behavior
+
+* **Each iteration starts fresh**: Each iteration always begins with the original input state, not the state from the previous iteration.
+* **State persistence**: To carry state across iterations, use the callback functions (see below).
+
+### Callback Functions
+
+`WhileStep` provides several callback functions to customize behavior:
+
+#### `condition(self, state: State) -> bool`
+
+Determines whether to continue iterating. The next iteration will run if the function returns `True`. 
+
+```python
+def condition(self, state: State) -> bool:
+    # Stop if slack is acceptable
+    return state.metrics.get("worst_slack", -999) < -0.5
+```
+
+#### `pre_iteration_callback(self, pre_iteration: State) -> State`
+
+Called before each iteration starts. Use this to modify the starting state or prepare for the iteration.
+
+```python
+def pre_iteration_callback(self, pre_iteration: State) -> State:
+    # Initialize or modify state before iteration
+    info(f"Starting iteration with count: {pre_iteration.metrics.get('count', 0)}")
+    return pre_iteration
+```
+
+#### `mid_iteration_break(self, state: State, step: Step) -> bool`
+
+Called after each individual step within an iteration. If it returns `True`, the current iteration is broken and the next iteration begins immediately. The `post_iteration_callback` is NOT called when breaking mid-iteration. This is useful to stop the iteration early if unfeasible state is found early and stop it to save time.
+
+```python
+def mid_iteration_break(self, state: State, step: Step) -> bool:
+    # Break if we've reached target after placement
+    if step.id == "Placement" and state.metrics.get("target_reached"):
+        return True
+    return False
+```
+
+#### `post_iteration_callback(self, post_iteration: State, full_iter_completed: bool) -> State`
+
+Called after each iteration completes. The `full_iter_completed` parameter indicates whether all steps completed (`True`) or the iteration was broken mid-way (`False`).
+
+```python
+def post_iteration_callback(self, post_iteration: State, full_iter_completed: bool) -> State:
+    if full_iter_completed:
+        # Save the successful iteration state
+        self.best_state = post_iteration
+    return post_iteration
+```
+
+#### `post_loop_callback(self, state: State) -> State`
+
+Called once after all iterations are complete. Use this for final cleanup or processing.
+
+```python
+def post_loop_callback(self, state: State) -> State:
+    # Restore the best state if we saved one
+    if hasattr(self, 'best_state'):
+        return self.best_state
+    return state
+```
+
+### Complete Example
+
+Here's a complete example showing how to use `WhileStep` to iteratively optimize a design:
+
+```python
+from librelane.steps import WhileStep, Step
+from librelane.state import State
+
+class OptimizationStep(Step):
+    id = "Optimize"
+    inputs = [DesignFormat.NETLIST]
+    outputs = [DesignFormat.NETLIST]
+    
+    def run(self, state_in: State, **kwargs):
+        # Perform optimization
+        slack = state_in.metrics.get("worst_slack", -999)
+        improved_slack = slack * 0.9  # Simulated improvement
+        
+        return {}, {"worst_slack": improved_slack}
+
+class IterativeOptimization(WhileStep):
+    id = "IterativeOpt"
+    Steps = [OptimizationStep]
+    max_iterations = 20
+    break_on_failure = True
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.iteration_count = 0
+        self.best_slack = -999
+    
+    def condition(self, state: State) -> bool:
+        """Continue until slack is acceptable"""
+        current_slack = state.metrics.get("worst_slack", -999)
+
+        # Stop if slack is good enough
+        return current_slack < -0.1
+    
+    def pre_iteration_callback(self, pre_iteration: State) -> State:
+        """Log iteration start"""
+        info(f"Starting iteration {self.iteration_count}")
+
+        # update the current worst case for next iteration, 
+        # as by default we always start an iteration from the original starting state 
+        pre_iteration.metrics["worst_slack"] = self.best_slack
+        return pre_iteration
+    
+    def post_iteration_callback(self, post_iteration: State, full_iter_completed: bool) -> State:
+        """Track best result"""
+        if full_iter_completed:
+            current_slack = post_iteration.metrics.get("worst_slack", -999)
+            if current_slack > self.best_slack:
+                self.best_slack = current_slack
+                info(f"New best slack: {self.best_slack}")
+        self.iteration_count += 1
+        return post_iteration
+    
+    def post_loop_callback(self, state: State) -> State:
+        """Final reporting"""
+        info(f"Optimization complete after {self.iteration_count} iterations")
+        info(f"Best slack achieved: {self.best_slack}")
+        return state
+```
