@@ -323,10 +323,13 @@ class VerilogStep(PyosysStep):
                 DesignFormat.LIB,
             ]
         )
-        for view, _ in self.toolbox.get_macro_views_by_priority(
+        macro_lib_views = []
+        for view, fmt in self.toolbox.get_macro_views_by_priority(
             self.config, format_list
         ):
             blackbox_models.append(str(view))
+            if fmt == DesignFormat.LIB:
+                macro_lib_views.append(str(view))
 
         if libs := self.config.get("EXTRA_LIBS"):
             blackbox_models.extend(str(f) for f in libs)
@@ -343,6 +346,10 @@ class VerilogStep(PyosysStep):
             frozenset([str(lib) for lib in scl_lib_list]),
             excluded_cells=frozenset(excluded_cells),
         )
+        if extra_libs := self.config.get("EXTRA_LIBS"):
+            libs_synth.extend(str(f) for f in extra_libs)
+        libs_synth.extend(macro_lib_views)
+        libs_synth = list(dict.fromkeys(libs_synth))
         extra_path = os.path.join(self.step_dir, "extra.json")
         with open(extra_path, "w") as f:
             json.dump({"blackbox_models": blackbox_models, "libs_synth": libs_synth}, f)
