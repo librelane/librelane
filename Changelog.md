@@ -31,7 +31,7 @@ Style Notes
 
 * KLayout.DRC
 
-  * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
+  * `KLAYOUT_DRC_OPTIONS`: change type to `Dict[str, str]` as evaluation is otherwise ambiguous.
 
   * `run_gf180mcu`: renamed `thr` to `threads` to match DRC deck.
 
