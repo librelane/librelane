@@ -39,20 +39,21 @@ Style Notes
 
   * `run_sky130`: added `thr` to match DRC deck.
 
-* KLayout.Render
+* `KLayout.Render`
 
-  * Allow to run with only GDS as input format.
+  * Now accepts either a DEF or GDS as optional inputs, acting as a no-op if
+    both are missing.
 
-* Magic.DRC
+* `Magic.DRC`
 
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
-* Odb.SetPowerConnections
+* `Odb.SetPowerConnections`
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
-* OpenROAD.PadRing
+* `OpenROAD.PadRing`
 
   * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
 
@@ -60,7 +61,7 @@ Style Notes
 
   * Added `PAD_TRIM_ROWS` to allow for pad rings with fewer than four rows.
 
-* OpenROAD.GeneratePDN
+* `OpenROAD.GeneratePDN`
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
 
