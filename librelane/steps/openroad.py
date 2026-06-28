@@ -291,6 +291,11 @@ class OpenROADStep(TclStep):
             "Cull duplicate IPVT corners during PNR, i.e. corners that share the same set of lib files and values for LAYERS_RC and VIAS_R as another corner are not considered outside of STA.",
             default=False,
         ),
+        Variable(
+            "OPENROAD_THREADS",
+            Optional[int],
+            "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
+        ),
     ]
 
     @classmethod
@@ -332,6 +337,8 @@ class OpenROADStep(TclStep):
         excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
         excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
         env["_PNR_EXCLUDED_CELLS"] = TclUtils.join(excluded_cells)
+
+        env["OPENROAD_THREADS"] = env.get("OPENROAD_THREADS", str(_get_process_limit()))
 
         return env
 
@@ -447,6 +454,12 @@ class OpenROADStep(TclStep):
             )
             count += 1
 
+        # this is necessary to propagate this variable into the self.get_command() routine; mypy will not let
+        # us override that method to take **kwargs
+        os.environ["OPENROAD_THREADS"] = os.environ.get(
+            "OPENROAD_THREADS", env["OPENROAD_THREADS"]
+        )
+
         command = self.get_command()
 
         subprocess_result = self.run_subprocess(
@@ -509,9 +522,13 @@ class OpenROADStep(TclStep):
 
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+        threads = str(os.environ["OPENROAD_THREADS"])
+        info(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
             ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
+            "-threads",
+            threads,
             "-no_splash",
             "-metrics",
             metrics_path,
