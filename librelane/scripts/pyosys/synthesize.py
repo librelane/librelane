@@ -278,8 +278,6 @@ def synthesize(
 
     d.add_blackbox_models(blackbox_models, includes=includes, defines=defines)
 
-    clock_period = config["CLOCK_PERIOD"] * 1000  # ns -> ps
-
     # ABC only supports these two:
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
@@ -467,8 +465,6 @@ def synthesize(
             "abc",
             "-script",
             abc_script,
-            "-D",
-            f"{clock_period}",
             "-constr",
             sdc_path,
             "-showtmp",
