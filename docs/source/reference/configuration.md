@@ -226,6 +226,34 @@ You can also simply reference another number using this prefix:
 
 > In this example, B will simply hold the value of A.
 
+### Including *.f files (F-lists)
+Various industry IP blocks, academic IPs, and projects such as [Bender](https://github.com/pulp-platform/bender)
+output a `*.f` file. This is more or less an ad-hoc standard of "files that make up a design", and can also
+specify things such as include directories and Verilog defines. These files are structured in a way that are
+typically past directly to command-line tools such as Verilator, so they need additional processing to work in
+LibreLane.
+
+LibreLane supports parsing these `*.f` files (we call them "F-lists") through the preprocessor. This is
+accomplished by using the `VERILOG_FLIST_FILES` attribute in the config. This attribute must be a list. Each
+path in the list may include all the preprocessor directives described above. For example:
+
+```yaml
+DESIGN_NAME: cool_core
+VERILOG_FLIST_FILES:
+  - dir::rtl/ip/super_core_64/supercore.f
+  - refg::$SECRET_VENDOR_DIR/vendor/gigabyteSRAM.f
+```
+
+Currently, the following directives are supported:
+- `+incdir+(DIRNAME)`
+- `+define+(DEFNAME)`
+
+Internally, the `*.f` file is processed by the preprocessor, read, and appended to `VERILOG_INCLUDE_DIRS`,
+`VERILOG_FILES` and `VERILOG_DEFINES` as required. The preprocessor then removes the `VERILOG_FLIST_FILES`
+attribute from the config.
+
+Only (System)Verilog is supported for the time being. VHDL support can be added upon request.
+
 ## Tcl
 
 These configuration files are simple Tcl scripts with environment variables that
