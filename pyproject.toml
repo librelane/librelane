@@ -23,7 +23,8 @@ dependencies = [
   "klayout>=0.29.0,<0.32.0",
   "rapidfuzz>=3.9.0,<4",
   "yamlcore>=0.0.2,<0.1.0",
-  "semver>=3.0.2,<4"
+  "semver>=3.0.2,<4",
+  "gdsfill @ git+https://github.com/aesc-silicon/gdsfill@135d482"
 ]
 
 [project.urls]
