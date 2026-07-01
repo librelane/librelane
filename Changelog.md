@@ -86,6 +86,19 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
+* `librelane.config`
+
+  * Inline variable references are now possible using `{VAR_NAME}` at `meta.version >= 3`
+
+    * Strings with curly braces in them will be parsed as variable substitutions.
+
+    * Curly braces can be escaped using double curly braces, i.e. `{{LIKE_THIS}}` will produce `{LIKE_THIS}`
+
+  * Added `InstanceArray`
+
+  * Added the `array` attribute to a macro instance, to declare it should be expanded to
+    an array of instances; and updated the preprocessor to support this behaviour
+
 * Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
 
 * CI: added sky130 full-chip design.
