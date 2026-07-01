@@ -44,6 +44,11 @@ def json_header(
             "__pnr__",
         ]
         + (
+            [f"PAD_{config['PAD_CELL_LIBRARY']}"]
+            if "PAD_CELL_LIBRARY" in config
+            else []
+        )
+        + (
             []
             if config.get("VERILOG_POWER_DEFINE") is None
             else [config.get("VERILOG_POWER_DEFINE")]

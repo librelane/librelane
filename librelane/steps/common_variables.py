@@ -264,6 +264,12 @@ pdn_variables = [
         pdk=True,
     ),
     Variable(
+        "PDN_CORE_RING_CONNECT_TO_PAD_LAYERS",
+        Optional[List[str]],
+        "Restrict the pad pins layers to this list.",
+        pdk=True,
+    ),
+    Variable(
         "PDN_CORE_RING_ALLOW_OUT_OF_DIE",
         bool,
         "If specified, the ring shapes are allowed to be outside the die boundary.",
@@ -280,7 +286,7 @@ pdn_variables = [
     Variable(
         "PDN_RAIL_WIDTH",
         Decimal,
-        "Defines the width of PDN rails on the `FP_PDN_RAILS_LAYER` layer.",
+        "Defines the width of PDN rails on the `PDN_RAIL_LAYER` layer.",
         units="µm",
         pdk=True,
         deprecated_names=["FP_PDN_RAIL_WIDTH"],

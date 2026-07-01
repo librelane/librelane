@@ -52,8 +52,15 @@ class Design(object):
             netname_by_bit = {}
 
             for netname, info in yosys_design_object["netnames"].items():
-                for bit in info["bits"]:
-                    netname_by_bit[bit] = netname
+                assert len(info["bits"]) > 0
+                # Single bit net, return name directly
+                if len(info["bits"]) == 1:
+                    netname_by_bit[info["bits"][0]] = netname
+                # Append bit index to signal name
+                else:
+                    offset = info.get("offset", 0)
+                    for index, bit in enumerate(info["bits"]):
+                        netname_by_bit[bit] = f"{netname}[{offset + index}]"
 
             self.verilog_net_names_by_bit_by_module[top_module] = netname_by_bit
         return self.verilog_net_names_by_bit_by_module[top_module][target_bit]

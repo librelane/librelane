@@ -317,7 +317,8 @@ class OpenROADStep(TclStep):
     def prepare_env(self, env: dict, state: State) -> dict:
         env = super().prepare_env(env, state)
 
-        lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
+        lib_list = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        lib_list += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
@@ -1265,6 +1266,19 @@ class PadRing(OpenROADStep):
             "PAD_WEST",
             Optional[List[str]],
             "The pad instance names for the west pad row.",
+        ),
+        Variable(
+            "PAD_SPACING_MULTIPLE",
+            Decimal,
+            "The spacing between the pad cells will be a multiple of this value. Please ensure that the remaining space on the sides is divisible by the minimum site width.",
+            default=1,
+            units="µm",
+        ),
+        Variable(
+            "PAD_TRIM_ROWS",
+            bool,
+            "If any of `PAD_[SOUTH|EAST|NORTH|WEST]` is empty, skip io fill for those rows and delete the corners with two neighbouring empty rows.",
+            default=False,
         ),
     ]
 
@@ -2239,7 +2253,8 @@ class IRDropReport(OpenROADStep):
         elif len(spefs_in) < 1:
             raise StepException("No SPEF file found for the default corner.")
 
-        libs_in = self.toolbox.filter_views(self.config, self.config["LIB"])
+        libs_in = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        libs_in += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
 
         if self.config["VSRC_LOC_FILES"] is None:
             self.warn(

@@ -29,31 +29,113 @@ Style Notes
 
 ## Steps
 
-* Magic.DRC
+* KLayout.DRC
+
+  * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
+
+  * `run_gf180mcu`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_ihp_sg13g2`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_sky130`: added `thr` to match DRC deck.
+
+* `KLayout.Render`
+
+  * Now accepts either a DEF or GDS as optional inputs, acting as a no-op if
+    both are missing.
+
+* `Magic.DRC`
 
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
-## Misc Enhancements/Bugfixes
+* `Odb.SetPowerConnections`
+
+  * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
+
+* `OpenROAD.PadRing`
+
+  * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
+
+  * Added `PAD_SPACING_MULTIPLE` to make the pad spacing configurable.
+
+  * Added `PAD_TRIM_ROWS` to allow for pad rings with fewer than four rows.
+
+* `OpenROAD.GeneratePDN`
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+* OpenROAD.RepairDesign
+
+  * Use `SYNTH_BUFFER_CELL` for port buffering.
+
+## Tool Updates
+
+* Updated nix-eda to 6.24.0
+  * Updated Magic to `8.3.660`
+  * Updated Netgen to `1.5.320`
+  * Updated Yosys to `0.66`
+    * Updated yosys-eqy `0.66`
+    * Updated yosys-sby `0.66`
+    * Updated yosys-slang to `35de0406`
+    * Removed yosys-lighter (no longer required by LibreLane)
+  * Updated Verilator to `5.046`
+  * Updated Iverilog to `13.0`
+  * Updated KLayout to `0.30.9`
+* Updated Ciel to 2.5.0
+
+## Misc. Enhancements/Bugfixes
 
 * `librelane.config`
 
   * Inline variable references are now possible using `{VAR_NAME}` at `meta.version >= 3`
+
+    * Strings with curly braces in them will be parsed as variable substitutions.
+
+    * Curly braces can be escaped using double curly braces, i.e. `{{LIKE_THIS}}` will produce `{LIKE_THIS}`
 
   * Added `InstanceArray`
 
   * Added the `array` attribute to a macro instance, to declare it should be expanded to
     an array of instances; and updated the preprocessor to support this behaviour
 
-## API Breaks
+* Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
 
-* `librelane.config`
+* CI: added sky130 full-chip design.
 
-  * Default meta version for YAML files is now `3`. This enables inline variable substitution.
+* CI: added test cases for `gf180mcu_fd_sc_mcu9t5v0` and `gf180mcu_as_sc_mcu7t3v3`.
 
-      * Strings with curly braces in them will be parsed as variable substitutions.
+* Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
-      * Curly braces can be escaped using double curly braces, i.e. `{{LIKE_THIS}}` will produce `{LIKE_THIS}`
+# 3.0.4
+
+## Steps
+
+* `Magic.*`
+
+  * Added `locking disable` to scripts to prevent exceeding max open file descriptor limit.
+
+# 3.0.3
+
+## Steps
+
+* `OpenROAD.STA*`
+
+  * Steps now support versions 3.0 and higher of OpenSTA, which require a
+    slightly different invocation for `write_timing_model`.
+
+* `Verilator.Lint`
+
+  * Upgraded warnings on multiply-driven nets to an error that can be disabled
+    by setting `LINTER_ERROR_ON_MULTIDRIVEN` to `false`.
+
+## Misc. Enhancements/Bugfixes
+
+* `openlane.config`
+
+  * Applied hack/band-aid for an issue where the default standard cell library's
+    variables may clobber those of the current standard cell library because of
+    `STD_CELL_LIBRARY_OPT`, a legacy OpenLane variable.
 
 # 3.0.2
 
@@ -557,7 +639,7 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
-- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
+* Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
 

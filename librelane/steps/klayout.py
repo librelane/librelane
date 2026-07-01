@@ -171,7 +171,7 @@ class Render(KLayoutStep):
     id = "KLayout.Render"
     name = "Render Image (w/ KLayout)"
 
-    inputs = [DesignFormat.DEF]
+    inputs = [DesignFormat.DEF.mkOptional(), DesignFormat.GDS.mkOptional()]
     outputs = []
 
     config_vars = KLayoutStep.config_vars + [
@@ -216,9 +216,14 @@ class Render(KLayoutStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         views_updates: ViewsUpdate = {}
 
-        input_view = state_in[DesignFormat.DEF]
+        input_view = state_in.get(DesignFormat.DEF)
+
         if gds := state_in.get(DesignFormat.GDS):
             input_view = gds
+
+        if input_view is None:
+            self.warn(f"{id} called without either optional input. Doing nothing.")
+            return {}, {}
 
         assert isinstance(input_view, Path)
 
@@ -434,7 +439,7 @@ class DRC(KLayoutStep):
     Unlike most steps, the KLayout scripts vary quite wildly by PDK. If a PDK
     is not supported by this step, it will simply be skipped.
 
-    Currently, only sky130A and sky130B are supported.
+    Currently, sky130, gf180mcu and ihp-sg13 are supported.
     """
 
     id = "KLayout.DRC"
@@ -455,7 +460,7 @@ class DRC(KLayoutStep):
         ),
         Variable(
             "KLAYOUT_DRC_OPTIONS",
-            Optional[Dict[str, Union[bool, int, str]]],
+            Optional[Dict[str, Union[int, bool, str]]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
         ),
@@ -513,9 +518,6 @@ class DRC(KLayoutStep):
         if threads != "1":
             opts.extend(
                 [
-                    "-rd",
-                    f"thr={threads}",
-                    # Use "threads" if possible
                     "-rd",
                     f"threads={threads}",
                 ]
@@ -602,6 +604,8 @@ class DRC(KLayoutStep):
                 "-rd",
                 f"seal={seal}",
                 "-rd",
+                f"thr={threads}",
+                "-rd",
                 f"threads={threads}",
             ],
             env=env,
@@ -658,7 +662,7 @@ class DRC(KLayoutStep):
             opts.extend(
                 [
                     "-rd",
-                    f"thr={threads}",
+                    f"threads={threads}",
                 ]
             )
 
@@ -727,7 +731,7 @@ class DRC(KLayoutStep):
             opts.extend(
                 [
                     "-rd",
-                    f"thr={threads}",
+                    f"threads={threads}",
                 ]
             )
 
