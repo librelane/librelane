@@ -33,6 +33,14 @@ Style Notes
 
   * Added `locking disable` to scripts to prevent exceeding max open file descriptor limit.
 
+* `OpenROAD.DetailedRouting`
+
+  * Added `DRT_DISABLE_AUTO_TAPER` to disable detailed-routing auto-taper on
+    nets matching a list of regular expressions, so wide non-default-rule
+    (e.g. analog/pad) nets keep their full width all the way to the pin.
+    Requires an OpenROAD build providing the `set_routing_disable_auto_taper`
+    command.
+
 # 3.0.3
 
 ## Steps
