@@ -5,8 +5,9 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/6.24.0";
-    ciel.url = "github:fossi-foundation/ciel/2.5.0";
+    # DO NOT MERGE; TEMPORARY BRANCH FOR TESTING
+    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos-26.05";
+    ciel.url = "github:fossi-foundation/ciel/2.5.1";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
@@ -43,16 +44,7 @@
               colab-env = callPackage ./nix/colab-env.nix { };
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
-              openroad = callPackage ./nix/openroad.nix {
-                llvmPackages = pkgs'.llvmPackages_18;
-              };
-              lemon-graph = pkgs.lemon-graph.overrideAttrs (
-                finalAttrs: previousAttrs: {
-                  patches = previousAttrs.patches ++ [
-                    ./nix/patches/lemon-graph/update_cxx20.patch
-                  ];
-                }
-              );
+              openroad = callPackage ./nix/openroad.nix {};
             }
           )
           (nix-eda.composePythonOverlay (
@@ -62,20 +54,8 @@
             in
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
-
-              # warning with every single click invocation
-              cloup = pypkgs.cloup.overridePythonAttrs {
-                postPatch = ''
-                  substituteInPlace cloup/_util.py \
-                    --replace-fail \
-                      "tuple(click.__version__.split('.'))" \
-                      "tuple('${pypkgs'.click.version}'.split('.'))"
-                '';
-              };
-
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
-              yamlcore = callPythonPackage ./nix/yamlcore.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };
 
               # ---
@@ -175,7 +155,6 @@
                 types-pyyaml
                 types-psutil
                 types-lxml
-                pipx
               ];
             include-librelane = false;
           });
