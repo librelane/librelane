@@ -1993,7 +1993,7 @@ class DetailedRouting(OpenROADStep):
             Variable(
                 "DRT_DISABLE_AUTO_TAPER",
                 Optional[List[str]],
-                "A list of net-name regular expressions. Detailed routing normally tapers non-default-rule (wide) nets down to the minimum width near pin connections so they fit the pin access geometry. For nets matching any of these expressions, auto-taper is disabled so the net keeps its full NDR width all the way to the pin (useful for wide analog/pad nets). Use '^name$' to match an exact name. Requires an OpenROAD build that provides the 'set_routing_disable_auto_taper' command.",
+                "A list of net-name regular expressions. Detailed routing normally tapers non-default-rule (wide) nets down to the minimum width near pin connections so they fit the pin access geometry. For nets matching any of these expressions, auto-taper is disabled so the net keeps its full NDR width all the way to the pin (useful for wide analog/pad nets). Use '^name$' to match an exact name. Requires an OpenROAD build that provides the 'set_routing_auto_taper' command.",
             ),
         ]
     )

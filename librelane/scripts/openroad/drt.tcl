@@ -80,7 +80,7 @@ if { [info exists ::env(DRT_DISABLE_AUTO_TAPER)] } {
                 set net_name [odb::dbNet_getName $net]
                 if { [regexp "$net_regex" $net_name full] } {
                     puts "\[INFO\] Net '$net_name' matched '$net_regex', disabling auto-taper…"
-                    set_routing_disable_auto_taper -net $net_name -disable
+                    set_routing_auto_taper -net $net_name -disable
                 }
             }
         }
