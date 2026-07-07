@@ -44,7 +44,7 @@
               colab-env = callPackage ./nix/colab-env.nix { };
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
-              openroad = callPackage ./nix/openroad.nix {};
+              openroad = callPackage ./nix/openroad.nix { };
             }
           )
           (nix-eda.composePythonOverlay (

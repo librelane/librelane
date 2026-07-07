@@ -131,7 +131,8 @@ stdenv.mkDerivation (finalAttrs: {
     yaml-cpp
 
     or-tools_9_14
-  ] ++ finalAttrs.qt5Libs;
+  ]
+  ++ finalAttrs.qt5Libs;
 
   nativeBuildInputs = [
     swig
