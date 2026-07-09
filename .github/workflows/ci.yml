@@ -236,19 +236,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
-      - name: Cache sky130 PDK
-        uses: actions/cache@v5
-        with:
-          path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
-          enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: ${{ matrix.os.nix }}
           shell: "zsh {0}"
           run_tests: "true"
-          pdk_root: ${{ github.workspace }}/.ciel-sky130
       - name: Cache to S3
         uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
         with:
