@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.0.4"
+version = "3.0.5"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "donn@fossi-foundation.org"},
@@ -13,7 +13,7 @@ dependencies = [
   "click>=8,<8.3",
   "cloup>=3.0.5,<4",
   "pyyaml>=5,<7",
-  "rich>=12,<15",
+  "rich>=12,<16",
   "ciel>=2.3.1,<3",
   "lxml>=4.9.0",
   "deprecated>=1.2.10,<2",
