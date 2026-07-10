@@ -49,9 +49,10 @@ runs:
       if: inputs.run_tests == 'true'
       run: |
         echo "#################################################################"
+        PDK_ROOT_ABS="$(python3 -c "import os; print(os.path.abspath('${{ inputs.pdk_root }}'))")"
         nix develop\
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
           .#devShells.${{ inputs.nix_system }}.dev --command\
-          pytest -m all --pdk-root="${{ inputs.pdk_root }}" -n auto
+          pytest -m all --pdk-root=$PDK_ROOT_ABS -n auto
