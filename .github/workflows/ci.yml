@@ -76,6 +76,9 @@ jobs:
       - name: Enable sky130 PDK
         run: |
           ciel enable --github-token ${{ secrets.GITHUB_TOKEN }} --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
+          ls
+          ls ./.ciel-sky130
+          ls ~/.ciel
       - name: Cache gf180mcu PDK
         uses: actions/cache@v6
         with:
