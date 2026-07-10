@@ -20,7 +20,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - id: Build
+    - id: set-pdk-root-env
+      name: Set PDK_ROOT Environment Variables
+      run: |
+        echo "PDK_ROOT=$(python3 -c "import os; print(os.path.abspath('${{ inputs.pdk_root }}'))")" >> $GITHUB_ENV
+    - id: build
       name: Build
       shell: ${{ inputs.shell }}
       run: |
@@ -49,7 +53,6 @@ runs:
       if: inputs.run_tests == 'true'
       run: |
         echo "#################################################################"
-        PDK_ROOT_ABS="$(python3 -c "import os; print(os.path.abspath('${{ inputs.pdk_root }}'))")"
         nix develop\
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
