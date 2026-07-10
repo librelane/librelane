@@ -171,7 +171,7 @@ class Render(KLayoutStep):
     id = "KLayout.Render"
     name = "Render Image (w/ KLayout)"
 
-    inputs = []
+    inputs = [DesignFormat.DEF.mkOptional(), DesignFormat.GDS.mkOptional()]
     outputs = []
 
     config_vars = KLayoutStep.config_vars + [
@@ -222,7 +222,8 @@ class Render(KLayoutStep):
             input_view = gds
 
         if input_view is None:
-            raise StepError(f"{id} requires at least one of LEF or GDS as input.")
+            self.warn(f"{id} called without either optional input. Doing nothing.")
+            return {}, {}
 
         assert isinstance(input_view, Path)
 
