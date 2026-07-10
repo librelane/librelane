@@ -22,6 +22,7 @@ runs:
   steps:
     - id: set-pdk-root-env
       name: Set PDK_ROOT Environment Variables
+      shell: ${{ inputs.shell }}
       run: |
         echo "PDK_ROOT=$(python3 -c "import os; print(os.path.abspath('${{ inputs.pdk_root }}'))")" >> $GITHUB_ENV
     - id: build
