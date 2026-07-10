@@ -76,9 +76,7 @@ jobs:
       - name: Enable sky130 PDK
         run: |
           ciel enable --github-token ${{ secrets.GITHUB_TOKEN }} --pdk sky130 --pdk-root ./.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
-          ls
-          ls ./.ciel-sky130
-          ls ~/.ciel
+          find ./.ciel-sky130 -maxdepth 4
       - name: Cache gf180mcu PDK
         uses: actions/cache@v6
         with:
@@ -88,6 +86,7 @@ jobs:
       - name: Enable gf180mcu PDK
         run: |
           ciel enable --github-token ${{ secrets.GITHUB_TOKEN }} --pdk gf180mcu --pdk-root ./.ciel-gf180mcu ${{ steps.set-rev.outputs.gf180mcu_hash }} --include-libraries all
+          find ./.ciel-gf180mcu -maxdepth 4
       - name: Cache ihp-sg13g2 PDK
         uses: actions/cache@v6
         with:
@@ -97,10 +96,7 @@ jobs:
       - name: Enable ihp-sg13g2 PDK
         run: |
           ciel enable --github-token ${{ secrets.GITHUB_TOKEN }} --pdk ihp-sg13g2 --pdk-root ./.ciel-ihp-sg13g2 ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
-      - name: Checkout submodules
-        uses: actions/checkout@v6
-        with:
-          submodules: true
+          find ./.ciel-ihp-sg13g2 -maxdepth 4
   lint:
     name: Lint
     runs-on: ubuntu-22.04
