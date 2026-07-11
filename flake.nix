@@ -5,11 +5,13 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    # DO NOT MERGE; TEMPORARY BRANCH FOR TESTING
-    nix-eda.url = "github:fossi-foundation/nix-eda/donn/nixos-26.05";
+    nix-eda.url = "github:fossi-foundation/nix-eda/7.0.0";
     ciel.url = "github:fossi-foundation/ciel/2.5.1";
     devshell.url = "github:numtide/devshell";
-    flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+    flake-compat = {
+      url = "github:NixOS/flake-compat";
+      flake = false;
+    };
   };
 
   inputs.ciel.inputs.nix-eda.follows = "nix-eda";
