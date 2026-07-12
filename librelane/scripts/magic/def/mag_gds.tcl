@@ -18,6 +18,7 @@
 source $::env(SCRIPTS_DIR)/magic/common/read.tcl
 drc off
 crashbackups disable
+locking disable
 
 gds noduplicates true
 gds readonly true

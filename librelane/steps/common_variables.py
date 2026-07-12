@@ -286,7 +286,7 @@ pdn_variables = [
     Variable(
         "PDN_RAIL_WIDTH",
         Decimal,
-        "Defines the width of PDN rails on the `FP_PDN_RAILS_LAYER` layer.",
+        "Defines the width of PDN rails on the `PDN_RAIL_LAYER` layer.",
         units="µm",
         pdk=True,
         deprecated_names=["FP_PDN_RAIL_WIDTH"],

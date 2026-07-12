@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+drc off
+crashbackups disable
+locking disable
+
 tech unlock *
 
 gds read $::env(CURRENT_GDS)

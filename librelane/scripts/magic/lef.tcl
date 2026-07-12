@@ -16,6 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 drc off
+crashbackups disable
+locking disable
+
 if { $::env(MAGIC_LEF_WRITE_USE_GDS) } {
     gds read $::env(CURRENT_GDS)
 } else {
