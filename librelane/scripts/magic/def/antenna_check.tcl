@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/magic/def/read.tcl
+drc off
+crashbackups disable
+locking disable
 
 load $::env(DESIGN_NAME) -dereference
 

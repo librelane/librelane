@@ -13,6 +13,9 @@
 # limitations under the License.
 
 source $::env(SCRIPTS_DIR)/magic/def/read.tcl
+drc off
+crashbackups disable
+locking disable
 
 save $::env(SAVE_MAG)
 

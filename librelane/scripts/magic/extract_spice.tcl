@@ -20,6 +20,9 @@ puts $f [expr {((round([magic::cif scale output] * 10000)) / 10000.0) * 1}]
 close $f
 
 source $::env(SCRIPTS_DIR)/magic/common/read.tcl
+drc off
+crashbackups disable
+locking disable
 
 if { $::env(MAGIC_EXT_USE_GDS) } {
     gds read $::env(CURRENT_GDS)

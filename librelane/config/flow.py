@@ -40,6 +40,12 @@ pdk_variables = [
         pdk=True,
     ),
     Variable(
+        "PAD_CELL_LIBRARY",
+        Optional[str],
+        "Specifies the default pad cell library to be used under the specified PDK. Must be a valid C identifier, i.e., matches the regular expression `[_a-zA-Z][_a-zA-Z0-9]+`.",
+        pdk=True,
+    ),
+    Variable(
         "VDD_PIN",
         str,
         "The power pin for the cells.",

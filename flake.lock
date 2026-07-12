@@ -7,15 +7,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1764091696,
-        "narHash": "sha256-AWbkHL0zO3tD0mE3dZIcj8mVND7o3imTxOpEfOtlRDI=",
+        "lastModified": 1780932696,
+        "narHash": "sha256-EDXsR2cBU8+Z4h/Pkac5An9/TVI9LkZqLB3xAjrQq78=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "afcb23d368614ffa1e7e96584ed33f839c71c576",
+        "rev": "64348a98fa8d07a20ad1f3c1183cf30d7d310055",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
+        "ref": "2.5.0",
         "repo": "ciel",
         "type": "github"
       }
@@ -60,16 +61,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1773918136,
-        "narHash": "sha256-nSKBMGP8/ZC7qB3Lzd+FwM8REqOxlh8wpYDf2hlK6Gg=",
+        "lastModified": 1780909493,
+        "narHash": "sha256-DI5j5e387Otx7KQFjaGR4iXOl4+h0s5aR/HXo28cbhU=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "8f990fb77529c09e540e453cd836af9930ec58db",
+        "rev": "ebee72ea782641c04291dfa4cdcb560d22047bab",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "6.11.0",
+        "ref": "6.24.0",
         "repo": "nix-eda",
         "type": "github"
       }
