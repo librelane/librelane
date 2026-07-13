@@ -48,7 +48,7 @@ runs:
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
-          .#packages.${{ inputs.nix_system }}.librelane -- --pdk-root ${{ inputs.pdk_root }} --smoke-test
+          .#packages.${{ inputs.nix_system }}.librelane -- --smoke-test
     - name: Unit/Step Tests
       shell: ${{ inputs.shell }}
       if: inputs.run_tests == 'true'
@@ -59,4 +59,4 @@ runs:
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
           .#devShells.${{ inputs.nix_system }}.dev --command\
-          pytest -m all --pdk-root=$PDK_ROOT_ABS -n auto
+          pytest -m all --pdk-root=$PDK_ROOT -n auto
