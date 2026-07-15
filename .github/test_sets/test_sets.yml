@@ -116,6 +116,9 @@
       script: harden.py
     - name: hold_violations_3
       script: harden.py
+    # Full chip design
+    - name: full_chip_gf180mcu
+      config_file: config.yaml
 - scl: gf180mcuD/gf180mcu_fd_sc_mcu7t5v0
   name: extended_test_set
   designs:
