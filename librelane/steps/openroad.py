@@ -295,7 +295,7 @@ class OpenROADStep(TclStep):
             "OPENROAD_THREADS",
             Optional[int],
             "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
-            default=_get_process_limit()
+            default=_get_process_limit(),
         ),
     ]
 
