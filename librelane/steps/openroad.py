@@ -295,7 +295,7 @@ class OpenROADStep(TclStep):
             "OPENROAD_THREADS",
             Optional[int],
             "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
-            default=_get_process_limit(),
+            default=None,
         ),
     ]
 
@@ -515,8 +515,8 @@ class OpenROADStep(TclStep):
 
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-        threads = str(self.config["OPENROAD_THREADS"])
-        info(f"OpenROAD will use {threads} threads")
+        threads = str(self.config["OPENROAD_THREADS"]) or _get_process_limit()
+        verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
             ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
