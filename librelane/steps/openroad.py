@@ -2017,8 +2017,6 @@ class DetailedRouting(OpenROADStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
-        env["DRT_THREADS"] = env.get("DRT_THREADS", str(_get_process_limit()))
-        info(f"Running TritonRoute with {env['DRT_THREADS']} threads…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         drc_paths = list(pathlib.Path(self.step_dir).rglob("*.drc*"))
