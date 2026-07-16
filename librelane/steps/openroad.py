@@ -1578,6 +1578,14 @@ class _GlobalPlacement(OpenROADStep):
         ]
     )
 
+    def get_command(self) -> List[str]:
+        return [
+            "openroad",
+            "-no_splash",
+            "-gui",
+            self.get_script_path(),
+        ]
+
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")
 
