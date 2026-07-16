@@ -4,3 +4,6 @@ openroad.detailedrouting/004-fail-range-max
 openroad.globalplacement/005-fail-util
 openroad.globalplacement/002-fail-density
 openroad.detailedrouting/003-fail-range-min
+# DRT_THREADS recently deprecated
+openroad.detailedrouting/006-success-threads-single
+openroad.detailedrouting/007-success-threads-multiple

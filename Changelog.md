@@ -69,6 +69,13 @@ Style Notes
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
 
+* OpenROAD
+
+  * Added `OPENROAD_THREADS` to control OpenROAD thread count on all tasks; by default equal to the number of
+    CPU cores on your machine
+
+  * Deprecated `DRT_THREADS`, use the above (`OPENROAD_THREADS`) instead
+
 ## Tool Updates
 
 * Updated nix-eda to 7.0.0
