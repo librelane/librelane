@@ -515,7 +515,7 @@ class OpenROADStep(TclStep):
 
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-        threads = str(self.config["OPENROAD_THREADS"]) or _get_process_limit()
+        threads = str(self.config["OPENROAD_THREADS"]) or str(_get_process_limit())
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
