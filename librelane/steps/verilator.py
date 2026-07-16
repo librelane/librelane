@@ -108,8 +108,8 @@ class Lint(Step):
         ),
         Variable(
             "LINTER_VLT",
-            Optional[Path],
-            "Path to a Verilator Configuration format file (`.vlt`) that is passed to the linter.",
+            Optional[List[Path]],
+            "List of paths to Verilator Configuration format files (`.vlt`) that are passed to the linter.",
         ),
     ]
 
@@ -218,7 +218,7 @@ class Lint(Step):
             extra_args.append(f"+define+{define}")
 
         if linter_vlt := self.config["LINTER_VLT"]:
-            extra_args.append(linter_vlt)
+            extra_args.extend(linter_vlt)
 
         result = self.run_subprocess(
             [
