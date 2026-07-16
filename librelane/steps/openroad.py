@@ -296,6 +296,7 @@ class OpenROADStep(TclStep):
             Optional[int],
             "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
             default=None,
+            deprecated_names=["DRT_THREADS", "ROUTING_CORES"],
         ),
     ]
 
@@ -1955,12 +1956,6 @@ class DetailedRouting(OpenROADStep):
         OpenROADStep.config_vars
         + grt_variables
         + [
-            Variable(
-                "DRT_THREADS",
-                Optional[int],
-                "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
-                deprecated_names=["ROUTING_CORES"],
-            ),
             Variable(
                 "DRT_OPT_ITERS",
                 int,
