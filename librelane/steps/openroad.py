@@ -1578,7 +1578,7 @@ class _GlobalPlacement(OpenROADStep):
             Variable(
                 "PL_GENERATE_GIF",
                 bool,
-                "Cell padding value (in sites) for global placement. The number will be integer divided by 2 and placed on both sides.",
+                "Launch OpenROAD in GUI mode and run global placement with debug enabled and capture the floorplan's evolution at each placement iteration. After capture all images will be combined together to generate a gif placed in the `render` folder of the step.",
                 default=False,
             )
         ]
