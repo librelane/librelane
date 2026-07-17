@@ -107,9 +107,10 @@ class Lint(Step):
             default=["UNDRIVEN", "UNUSEDSIGNAL"],
         ),
         Variable(
-            "LINTER_VLT",
-            Optional[Path],
-            "Path to a Verilator Configuration format file (`.vlt`) that is passed to the linter.",
+            "LINTER_VLTS",
+            Optional[List[Path]],
+            "List of paths to Verilator Configuration format files (`.vlt`) that are passed to the linter.",
+            deprecated_names=[("LINTER_VLT", lambda x: [x])],
         ),
     ]
 
@@ -217,8 +218,8 @@ class Lint(Step):
         for define in defines:
             extra_args.append(f"+define+{define}")
 
-        if linter_vlt := self.config["LINTER_VLT"]:
-            extra_args.append(linter_vlt)
+        if linter_vlts := self.config["LINTER_VLTS"]:
+            extra_args.extend(linter_vlts)
 
         result = self.run_subprocess(
             [

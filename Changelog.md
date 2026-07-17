@@ -29,7 +29,7 @@ Style Notes
 
 ## Steps
 
-* KLayout.DRC
+* `KLayout.DRC`
 
   * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
 
@@ -65,7 +65,7 @@ Style Notes
 
   * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
 
-* OpenROAD.RepairDesign
+* `OpenROAD.RepairDesign`
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
 
@@ -75,6 +75,12 @@ Style Notes
     CPU cores on your machine
 
   * Deprecated `DRT_THREADS`, use the above (`OPENROAD_THREADS`) instead
+
+* `Verilator.Lint`
+
+  * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.
+
+  * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
 
 ## Tool Updates
 
