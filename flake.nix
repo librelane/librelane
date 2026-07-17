@@ -5,7 +5,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/7.0.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/7.1.0";
     ciel.url = "github:fossi-foundation/ciel/2.5.1";
     devshell.url = "github:numtide/devshell";
     flake-compat = {
