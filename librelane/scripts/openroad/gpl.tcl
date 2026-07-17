@@ -79,8 +79,6 @@ lappend arg_list -pad_left $cell_pad_side
 lappend arg_list -init_wirelength_coef $::env(PL_WIRE_LENGTH_COEF)
 append_if_exists_argument arg_list PL_KEEP_RESIZE_BELOW_OVERFLOW -keep_resize_below_overflow
 
-set ::env(PL_GENERATE_GIF) true 
-
 if { $::env(PL_GENERATE_GIF) } {
 	set render_dir "$::env(STEP_DIR)/renders"
 	puts "\[INFO\] Running global placement in debug mode for generating a gif animation, renders written to: ${render_dir}" 
