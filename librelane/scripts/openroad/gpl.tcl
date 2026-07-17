@@ -84,7 +84,7 @@ set ::env(PL_GENERATE_GIF) true
 if { $::env(PL_GENERATE_GIF) } {
 	set render_dir "$::env(STEP_DIR)/renders"
 	puts "\[INFO\] Running global placement in debug mode for generating a gif animation, renders written to: ${render_dir}" 
-	log_cmd global_placement_debug -pause 0 -update 1 -images_path $render_dir
+	log_cmd global_placement_debug -pause $::env(PL_GENERATE_GIF_PAUSE) -update 1 -generate_images -images_path $render_dir
 }
 
 log_cmd global_placement {*}$arg_list
@@ -98,3 +98,6 @@ write_views
 
 report_design_area_metrics
 
+if { $::env(PL_GENERATE_GIF) } {
+	puts "\[INFO\] Please close the OpenROAD GUI so that the flow can proceed." 
+}

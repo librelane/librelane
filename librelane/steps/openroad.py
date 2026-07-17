@@ -1580,6 +1580,13 @@ class _GlobalPlacement(OpenROADStep):
                 bool,
                 "Launch OpenROAD in GUI mode and run global placement with debug enabled and capture the floorplan's evolution at each placement iteration. After capture all images will be combined together to generate a gif placed in the `render` folder of the step.",
                 default=False,
+            ),
+            Variable(
+                "PL_GENERATE_GIF_PAUSE",
+                int,
+                "Number of global placement iterations to run before pausing. This is used to inspect placement progress. By default is set to a large enough value such that no pausing will occur.",
+                units="gpl_iter",
+                default=100000,
             )
         ]
     )
