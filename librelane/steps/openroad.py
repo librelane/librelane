@@ -507,11 +507,11 @@ class OpenROADStep(TclStep):
 
         return views_updates, metric_updates_with_aggregates
 
-    def get_command(self) -> List[str]:
-        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+    def get_command(self, force_gui: bool = False) -> List[str]:
+        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json") 
         return [
             self.get_openroad_path(),
-            ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
+            ("-gui" if ( os.getenv("_OPENROAD_GUI", "0") == "1" ) or (force_gui == True) else "-exit"),
             "-no_splash",
             "-metrics",
             metrics_path,
@@ -1575,17 +1575,18 @@ class _GlobalPlacement(OpenROADStep):
                 Optional[Decimal],
                 "Only applicable when PL_TIMING_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
             ),
+            Variable(
+                "PL_GENERATE_GIF",
+                bool,
+                "Cell padding value (in sites) for global placement. The number will be integer divided by 2 and placed on both sides.",
+                default=False,
+            )
         ]
     )
-
+    
     def get_command(self) -> List[str]:
-        return [
-            "openroad",
-            "-no_splash",
-            "-gui",
-            self.get_script_path(),
-        ]
-
+        return super.get_command(force_gui = self.config["PL_GENERATE_GIF"]) 
+ 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")
 
