@@ -78,7 +78,9 @@ Style Notes
 
 * `Verilator.Lint`
 
-  * `LINTER_VLT` is now a list of paths instead of a single path.
+  * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.
+
+  * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
 
 ## Tool Updates
 
