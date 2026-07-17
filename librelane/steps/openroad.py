@@ -291,6 +291,13 @@ class OpenROADStep(TclStep):
             "Cull duplicate IPVT corners during PNR, i.e. corners that share the same set of lib files and values for LAYERS_RC and VIAS_R as another corner are not considered outside of STA.",
             default=False,
         ),
+        Variable(
+            "OPENROAD_THREADS",
+            Optional[int],
+            "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
+            default=None,
+            deprecated_names=["DRT_THREADS", "ROUTING_CORES"],
+        ),
     ]
 
     @classmethod
@@ -508,10 +515,14 @@ class OpenROADStep(TclStep):
         return views_updates, metric_updates_with_aggregates
 
     def get_command(self, force_gui: bool = False) -> List[str]:
-        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json") 
+        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+        threads = str(self.config["OPENROAD_THREADS"]) or str(_get_process_limit())
+        verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
             ("-gui" if ( os.getenv("_OPENROAD_GUI", "0") == "1" ) or (force_gui == True) else "-exit"),
+            "-threads",
+            threads,
             "-no_splash",
             "-metrics",
             metrics_path,
@@ -1962,12 +1973,6 @@ class DetailedRouting(OpenROADStep):
         + grt_variables
         + [
             Variable(
-                "DRT_THREADS",
-                Optional[int],
-                "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
-                deprecated_names=["ROUTING_CORES"],
-            ),
-            Variable(
                 "DRT_OPT_ITERS",
                 int,
                 "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
@@ -2028,8 +2033,6 @@ class DetailedRouting(OpenROADStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
-        env["DRT_THREADS"] = env.get("DRT_THREADS", str(_get_process_limit()))
-        info(f"Running TritonRoute with {env['DRT_THREADS']} threads…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         drc_paths = list(pathlib.Path(self.step_dir).rglob("*.drc*"))
