@@ -1585,7 +1585,7 @@ class _GlobalPlacement(OpenROADStep):
     )
     
     def get_command(self) -> List[str]:
-        return super.get_command(force_gui = self.config["PL_GENERATE_GIF"]) 
+        return super().get_command(force_gui = self.config["PL_GENERATE_GIF"]) 
  
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")

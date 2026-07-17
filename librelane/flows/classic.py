@@ -44,7 +44,7 @@ class Classic(SequentialFlow):
         Checker.LintWarnings,
         Yosys.JsonHeader,
         Yosys.Synthesis,
-       # Checker.YosysUnmappedCells,
+        Checker.YosysUnmappedCells,
         Checker.YosysSynthChecks,
         Checker.NetlistAssignStatements,
         OpenROAD.CheckSDCFiles,
