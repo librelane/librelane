@@ -514,14 +514,13 @@ class OpenROADStep(TclStep):
 
         return views_updates, metric_updates_with_aggregates
 
-    def get_command(self, force_gui: bool = False) -> List[str]:
+    def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-        enable_gui = (os.getenv("_OPENROAD_GUI", "0") == "1") or (force_gui == True)
         threads = str(self.config["OPENROAD_THREADS"]) or str(_get_process_limit())
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
-            ("-gui" if enable_gui is True else "-exit"),
+            ("-gui" if (os.getenv("_OPENROAD_GUI", "0") == "1") else "-exit"),
             "-threads",
             threads,
             "-no_splash",
@@ -1604,7 +1603,16 @@ class _GlobalPlacement(OpenROADStep):
     )
 
     def get_command(self) -> List[str]:
-        return super().get_command(force_gui=self.config["PL_GENERATE_GIF"])
+        enable_gui = self.config["PL_GENERATE_GIF"]
+        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+        return [
+            self.get_openroad_path(),
+            ("-gui" if enable_gui else "-exit"),
+            "-no_splash",
+            "-metrics",
+            metrics_path,
+            self.get_script_path(),
+        ]
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")
