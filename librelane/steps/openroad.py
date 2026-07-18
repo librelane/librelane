@@ -521,7 +521,7 @@ class OpenROADStep(TclStep):
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
-            ("-gui" if enable_gui else "-exit"),
+            ("-gui" if enable_gui is True else "-exit"),
             "-threads",
             threads,
             "-no_splash",
