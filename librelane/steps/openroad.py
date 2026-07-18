@@ -1604,13 +1604,12 @@ class _GlobalPlacement(OpenROADStep):
 
     def get_command(self) -> List[str]:
         cmd: list = super().get_command()
-        mode_options = ""
         if self.config["PL_GENERATE_GIF"]:
             if "-gui" not in cmd:
                 mode_options = "-gui"
             if "-exit" not in cmd and os.getenv("_OPENROAD_GUI", "0") == "0":
                 mode_options = mode_options + "-exit"
-        cmd.insert(cmd.index("openroad") + 1, mode_options)
+            cmd.insert(cmd.index("openroad") + 1, mode_options)
         return cmd
 
     def get_script_path(self):
