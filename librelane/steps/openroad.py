@@ -520,7 +520,7 @@ class OpenROADStep(TclStep):
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
-            ("-gui" if (os.getenv("_OPENROAD_GUI", "0") == "1") else "-exit"),
+            ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
             "-threads",
             threads,
             "-no_splash",
