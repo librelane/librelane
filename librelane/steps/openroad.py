@@ -516,15 +516,12 @@ class OpenROADStep(TclStep):
 
     def get_command(self, force_gui: bool = False) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+        enable_gui = (os.getenv("_OPENROAD_GUI", "0") == "1") or (force_gui == True)
         threads = str(self.config["OPENROAD_THREADS"]) or str(_get_process_limit())
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
-            (
-                "-gui"
-                if (os.getenv("_OPENROAD_GUI", "0") == "1") or (force_gui == True)
-                else "-exit"
-            ),
+            ("-gui" if enable_gui else "-exit"),
             "-threads",
             threads,
             "-no_splash",
