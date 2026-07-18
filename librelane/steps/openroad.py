@@ -520,7 +520,11 @@ class OpenROADStep(TclStep):
         verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
-            ("-gui" if ( os.getenv("_OPENROAD_GUI", "0") == "1" ) or (force_gui == True) else "-exit"),
+            (
+                "-gui"
+                if (os.getenv("_OPENROAD_GUI", "0") == "1") or (force_gui == True)
+                else "-exit"
+            ),
             "-threads",
             threads,
             "-no_splash",
@@ -1598,13 +1602,13 @@ class _GlobalPlacement(OpenROADStep):
                 "Number of global placement iterations to run before pausing. This is used to inspect placement progress. By default is set to a large enough value such that no pausing will occur.",
                 units="gpl_iter",
                 default=100000,
-            )
+            ),
         ]
     )
-    
+
     def get_command(self) -> List[str]:
-        return super().get_command(force_gui = self.config["PL_GENERATE_GIF"]) 
- 
+        return super().get_command(force_gui=self.config["PL_GENERATE_GIF"])
+
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")
 
