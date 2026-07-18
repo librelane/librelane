@@ -25,6 +25,12 @@ Style Notes
 
 -->
 
+# 3.0.5
+
+## Tool Updates
+
+* Relaxed version requirement for `rich` to allow rich 16.
+
 # 3.0.4
 
 ## Steps
