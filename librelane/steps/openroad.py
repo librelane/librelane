@@ -1603,16 +1603,15 @@ class _GlobalPlacement(OpenROADStep):
     )
 
     def get_command(self) -> List[str]:
-        enable_gui = self.config["PL_GENERATE_GIF"]
-        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-        return [
-            self.get_openroad_path(),
-            ("-gui" if enable_gui else "-exit"),
-            "-no_splash",
-            "-metrics",
-            metrics_path,
-            self.get_script_path(),
-        ]
+        cmd: list = super().get_command()
+        mode_options = ""
+        if self.config["PL_GENERATE_GIF"]:
+            if "-gui" not in cmd:
+                mode_options = "-gui"
+            if "-exit" not in cmd and os.getenv("_OPENROAD_GUI", "0") == "0":
+                mode_options = mode_options + "-exit"
+        cmd.insert(cmd.index("openroad") + 1, mode_options)
+        return cmd
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")

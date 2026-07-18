@@ -96,6 +96,3 @@ write_views
 
 report_design_area_metrics
 
-if { $::env(PL_GENERATE_GIF) } {
-	puts "\[INFO\] Please close the OpenROAD GUI so that the flow can proceed." 
-}
