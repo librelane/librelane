@@ -87,8 +87,6 @@ if { [info exists ::env(DRT_DISABLE_AUTO_TAPER)] } {
     }
 }
 
-set_thread_count $::env(DRT_THREADS)
-
 set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1

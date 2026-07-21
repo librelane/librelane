@@ -291,6 +291,13 @@ class OpenROADStep(TclStep):
             "Cull duplicate IPVT corners during PNR, i.e. corners that share the same set of lib files and values for LAYERS_RC and VIAS_R as another corner are not considered outside of STA.",
             default=False,
         ),
+        Variable(
+            "OPENROAD_THREADS",
+            Optional[int],
+            "The number of threads OpenROAD may use. If unset, this will be equal to the machine's thread count by default.",
+            default=None,
+            deprecated_names=["DRT_THREADS", "ROUTING_CORES"],
+        ),
     ]
 
     @classmethod
@@ -317,7 +324,8 @@ class OpenROADStep(TclStep):
     def prepare_env(self, env: dict, state: State) -> dict:
         env = super().prepare_env(env, state)
 
-        lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
+        lib_list = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        lib_list += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
@@ -508,9 +516,13 @@ class OpenROADStep(TclStep):
 
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
+        threads = str(self.config["OPENROAD_THREADS"]) or str(_get_process_limit())
+        verbose(f"OpenROAD will use {threads} threads")
         return [
             self.get_openroad_path(),
             ("-gui" if os.getenv("_OPENROAD_GUI", "0") == "1" else "-exit"),
+            "-threads",
+            threads,
             "-no_splash",
             "-metrics",
             metrics_path,
@@ -1266,6 +1278,19 @@ class PadRing(OpenROADStep):
             Optional[List[str]],
             "The pad instance names for the west pad row.",
         ),
+        Variable(
+            "PAD_SPACING_MULTIPLE",
+            Decimal,
+            "The spacing between the pad cells will be a multiple of this value. Please ensure that the remaining space on the sides is divisible by the minimum site width.",
+            default=1,
+            units="µm",
+        ),
+        Variable(
+            "PAD_TRIM_ROWS",
+            bool,
+            "If any of `PAD_[SOUTH|EAST|NORTH|WEST]` is empty, skip io fill for those rows and delete the corners with two neighbouring empty rows.",
+            default=False,
+        ),
     ]
 
     def get_script_path(self):
@@ -1932,12 +1957,6 @@ class DetailedRouting(OpenROADStep):
         + grt_variables
         + [
             Variable(
-                "DRT_THREADS",
-                Optional[int],
-                "Specifies the number of threads to be used in OpenROAD Detailed Routing. If unset, this will be equal to your machine's thread count.",
-                deprecated_names=["ROUTING_CORES"],
-            ),
-            Variable(
                 "DRT_OPT_ITERS",
                 int,
                 "Specifies the maximum number of optimization iterations during Detailed Routing in TritonRoute.",
@@ -2003,8 +2022,6 @@ class DetailedRouting(OpenROADStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
-        env["DRT_THREADS"] = env.get("DRT_THREADS", str(_get_process_limit()))
-        info(f"Running TritonRoute with {env['DRT_THREADS']} threads…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         drc_paths = list(pathlib.Path(self.step_dir).rglob("*.drc*"))
@@ -2244,7 +2261,8 @@ class IRDropReport(OpenROADStep):
         elif len(spefs_in) < 1:
             raise StepException("No SPEF file found for the default corner.")
 
-        libs_in = self.toolbox.filter_views(self.config, self.config["LIB"])
+        libs_in = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
+        libs_in += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
 
         if self.config["VSRC_LOC_FILES"] is None:
             self.warn(

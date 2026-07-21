@@ -25,6 +25,12 @@
   clp,
   cbc,
   re2,
+  # Compile-time requirements
+  cmake,
+  ninja,
+  git,
+  gtest,
+  darwin,
   swig,
   pkg-config,
   gnumake,
@@ -32,13 +38,9 @@
   bison,
   buildEnv,
   makeBinaryWrapper,
-  cmake,
   ctestCheckHook,
-  ninja,
-  git,
-  gtest,
-  darwin,
-  # environments,
+  tclint,
+  # Environments
   openroad,
   buildPythonEnvForInterpreter,
   # top
@@ -129,7 +131,8 @@ stdenv.mkDerivation (finalAttrs: {
     yaml-cpp
 
     or-tools_9_14
-  ] ++ finalAttrs.qt5Libs;
+  ]
+  ++ finalAttrs.qt5Libs;
 
   nativeBuildInputs = [
     swig
@@ -141,7 +144,7 @@ stdenv.mkDerivation (finalAttrs: {
     ninja
     libsForQt5.wrapQtAppsHook
     llvmPackages.clang-tools
-    python3.pkgs.tclint
+    tclint
     ctestCheckHook
   ]
   ++ lib.optionals stdenv.isDarwin [

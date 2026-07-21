@@ -18,7 +18,7 @@
 import os
 
 from decimal import Decimal
-from typing import List, Optional, Dict, Sequence, Union, Tuple
+from typing import List, Optional, Dict, Sequence, Union, Tuple, Literal
 
 from .variable import Variable, Macro
 from ..common import Path, get_script_dir
@@ -37,6 +37,12 @@ pdk_variables = [
         "STD_CELL_LIBRARY",
         str,
         "Specifies the default standard cell library to be used under the specified PDK. Must be a valid C identifier, i.e., matches the regular expression `[_a-zA-Z][_a-zA-Z0-9]+`.",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_CELL_LIBRARY",
+        Optional[str],
+        "Specifies the default pad cell library to be used under the specified PDK. Must be a valid C identifier, i.e., matches the regular expression `[_a-zA-Z][_a-zA-Z0-9]+`.",
         pdk=True,
     ),
     Variable(
@@ -127,9 +133,10 @@ scl_variables = [
         deprecated_names=["DECAP_CELL"],
     ),
     Variable(
-        "LIB",
+        "CELL_LIBS",
         Dict[str, List[Path]],
         "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
+        deprecated_names=["LIB"],
         pdk=True,
     ),
     Variable(
@@ -427,15 +434,22 @@ option_variables = [
 
 pad_variables = [
     Variable(
-        "PAD_GDS",
-        Optional[List[Path]],
-        "Path(s) to IO pad GDS file(s).",
+        "PAD_LIBS",
+        Optional[Dict[str, List[Path]]],
+        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
+        default={},
         pdk=True,
     ),
     Variable(
         "PAD_LEFS",
         Optional[List[Path]],
         "Path(s) to IO pad LEF file(s).",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_GDS",
+        Optional[List[Path]],
+        "Path(s) to IO pad GDS file(s).",
         pdk=True,
     ),
     Variable(
@@ -454,12 +468,6 @@ pad_variables = [
         "PAD_CDLS",
         Optional[List[Path]],
         description="A circuit-design language view of the io pad library.",
-        pdk=True,
-    ),
-    Variable(
-        "PAD_LIBS",
-        Optional[Dict[str, List[Path]]],
-        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
         pdk=True,
     ),
     Variable(
@@ -533,6 +541,27 @@ pad_variables = [
         "Distance from the padring to the die boundary. Used to account for the sealring when placing the pads.",
         default=0,
         units="µm",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_HORIZONTAL",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the horizontal sites to ensure pads are placed correctly.",
+        default="R0",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_VERTICAL",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the vertical sites to ensure pads are placed correctly.",
+        default="R0",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_ROTATION_CORNER",
+        Optional[Literal["R0", "MY", "R90", "MXR90", "R180", "MX", "R270", "MYR90"]],
+        "Rotation to apply to the corner sites to ensure pads are placed correctly.",
+        default="R0",
         pdk=True,
     ),
 ]

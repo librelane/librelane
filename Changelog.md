@@ -25,13 +25,33 @@ Style Notes
 
 -->
 
-# 3.0.4
+# 3.1.0
 
 ## Steps
 
-* `Magic.*`
+* `KLayout.DRC`
 
-  * Added `locking disable` to scripts to prevent exceeding max open file descriptor limit.
+  * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
+
+  * `run_gf180mcu`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_ihp_sg13g2`: renamed `thr` to `threads` to match DRC deck.
+
+  * `run_sky130`: added `thr` to match DRC deck.
+
+* `KLayout.Render`
+
+  * Now accepts either a DEF or GDS as optional inputs, acting as a no-op if
+    both are missing.
+
+* `Magic.DRC`
+
+  * Enabled maskhints so that DRC rules against generated layers are run
+    against the closest possible version to what's actually in the GDS.
+
+* `Odb.SetPowerConnections`
+
+  * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
 * `OpenROAD.DetailedRouting`
 
@@ -40,6 +60,89 @@ Style Notes
     (e.g. analog/pad) nets keep their full width all the way to the pin.
     Requires an OpenROAD build providing the `set_routing_auto_taper`
     command.
+
+* `OpenROAD.PadRing`
+
+  * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
+
+  * Added `PAD_SPACING_MULTIPLE` to make the pad spacing configurable.
+
+  * Added `PAD_TRIM_ROWS` to allow for pad rings with fewer than four rows.
+
+* `OpenROAD.GeneratePDN`
+
+  * Added `PDN_CORE_RING_CONNECT_TO_PAD_LAYERS` to restrict the layers for connecting to pads.
+
+* `OpenROAD.RepairDesign`
+
+  * Use `SYNTH_BUFFER_CELL` for port buffering.
+
+* OpenROAD
+
+  * Added `OPENROAD_THREADS` to control OpenROAD thread count on all tasks; by default equal to the number of
+    CPU cores on your machine
+
+  * Deprecated `DRT_THREADS`, use the above (`OPENROAD_THREADS`) instead
+
+* `Verilator.Lint`
+
+  * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.
+
+  * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
+
+## Tool Updates
+
+* Updated nix-eda to 7.0.0
+  * Updated NixOS to 26.05
+  * Updated Magic to `8.3.669`
+  * Updated Netgen to `1.5.320`
+  * Updated Yosys to `0.66`
+    * Updated yosys-eqy `0.66`
+    * Updated yosys-sby `0.66`
+    * Updated yosys-slang to `35de0406`
+    * Updated yosys-slang to `07a30ed1`
+    * Removed yosys-lighter (no longer required by LibreLane)
+  * Updated ghdl-bin to `6.0.0`
+  * Updated Verilator to `5.046`
+  * Updated IcarusVerilog to `13.0` (matching nixpkgs)
+  * Updated KLayout to `0.30.9`
+  * Updated GHDL to `6.0.0`
+    * Drops support for Intel Macs
+  * Downgraded Bitwuzla to `6e46391` to match oss-cad-suite
+* Updated Ciel to `2.5.1`
+
+## Misc. Enhancements/Bugfixes
+
+* `librelane.config`
+
+  * Inline variable references are now possible using `{VAR_NAME}` at `meta.version >= 3`
+
+    * Strings with curly braces in them will be parsed as variable substitutions.
+
+    * Curly braces can be escaped using double curly braces, i.e. `{{LIKE_THIS}}` will produce `{LIKE_THIS}`
+
+  * Added `InstanceArray`
+
+  * Added the `array` attribute to a macro instance, to declare it should be expanded to
+    an array of instances; and updated the preprocessor to support this behaviour
+
+* Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+
+* CI: added sky130 full-chip design.
+
+* CI: added gf180mcu full-chip design.
+
+* CI: added test cases for `gf180mcu_fd_sc_mcu9t5v0` and `gf180mcu_as_sc_mcu7t3v3`.
+
+* Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
+
+# 3.0.4
+
+## Steps
+
+* `Magic.*`
+
+  * Added `locking disable` to scripts to prevent exceeding max open file descriptor limit.
 
 # 3.0.3
 
@@ -571,7 +674,7 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
-- Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
+* Added `--pad` and `PAD_CELL_LIBRARY` variable to load the pad configuration
 
 * `CLI`
 

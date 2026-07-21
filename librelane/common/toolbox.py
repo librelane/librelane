@@ -232,9 +232,15 @@ class Toolbox(object):
 
         timing_corner = timing_corner or config["DEFAULT_CORNER"]
 
-        all_libs: List[Path] = self.filter_views(config, config["LIB"], timing_corner)
+        # Filter the cell libs
+        all_libs: List[Path] = self.filter_views(
+            config, config["CELL_LIBS"], timing_corner
+        )
         if len(all_libs) == 0:
             warn(f"No SCL lib files found for {timing_corner}.")
+
+        # Add optional I/O pad libs
+        all_libs += self.filter_views(config, config["PAD_LIBS"], timing_corner)
 
         all_netlists: List[Path] = []
         all_spefs: List[Tuple[str, Path]] = []

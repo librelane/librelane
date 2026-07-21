@@ -20,6 +20,11 @@ puts "\[INFO\] Generating padring…"
 set block [ord::get_db_block]
 set units [$block getDefUnits]
 
+# Round a micrometer value to nanometer
+proc round_um_nm {value} {
+    return [expr double(round($value * 1000)) / 1000]
+}
+
 # Pad Placement Algorithm
 #
 # For all sides:
@@ -74,7 +79,10 @@ make_io_sites \
     -horizontal_site $::env(PAD_SITE_NAME) \
     -vertical_site $::env(PAD_SITE_NAME) \
     -corner_site $::env(PAD_CORNER_SITE_NAME) \
-    -offset $::env(PAD_EDGE_SPACING)
+    -offset $::env(PAD_EDGE_SPACING) \
+    -rotation_horizontal $::env(PAD_ROTATION_HORIZONTAL) \
+    -rotation_vertical $::env(PAD_ROTATION_VERTICAL) \
+    -rotation_corner $::env(PAD_ROTATION_CORNER)
 
 set sides {PAD_SOUTH PAD_EAST PAD_NORTH PAD_WEST}
 set vertical_sides [list PAD_EAST PAD_WEST]
@@ -125,15 +133,15 @@ foreach side $sides {
 
     set space_between_pads [expr $space_for_fill / ([llength $::env($side)] + 1)]
     puts "space_between_pads: $space_between_pads"
-    
-    # Round to minimum site width (min. filler)
-    set space_between_pads_min_filler [expr round(floor($space_between_pads / $pad_site_width) * $pad_site_width * 1000) / 1000]
-    puts "space_between_pads_min_filler: $space_between_pads_min_filler"
+
+    # Round to PAD_SPACING_MULTIPLE
+    set space_between_pads_multiple [round_um_nm [expr floor($space_between_pads / $::env(PAD_SPACING_MULTIPLE)) * $::env(PAD_SPACING_MULTIPLE)]]
+    puts "space_between_pads_multiple: $space_between_pads_multiple"
 
     # The spacing for the pads on the side (the remaining space)
-    set space_side [expr round(($space_for_fill - $space_between_pads_min_filler * ([llength $::env($side)] - 1)) / 2 * 1000) / 1000]
+    set space_side [round_um_nm [expr ($space_for_fill - $space_between_pads_multiple * ([llength $::env($side)] - 1)) / 2]]
     
-    if { $space_side != round(floor($space_side / $pad_site_width) * $pad_site_width * 1000) / 1000 } {
+    if { $space_side != [round_um_nm [expr floor($space_side / $pad_site_width) * $pad_site_width]] } {
         puts "\[Error\] The remaining area for the pads on the side ($space_side) is not divisible by the minimum site width (minimum filler: $pad_site_width)."
         exit 1
     }
@@ -150,7 +158,7 @@ foreach side $sides {
     # For all instances
     foreach inst_name $::env($side) {
         if { [set inst [$block findInst $inst_name]] == "NULL" } {
-            puts stderr "\[ERROR\] No instance $instance_name found."
+            puts stderr "\[ERROR\] No instance $inst_name found."
             exit 1
         }
         set master_name [[$inst getMaster] getName]
@@ -163,7 +171,7 @@ foreach side $sides {
         place_pad -row [dict get $row_names $side] -location $cur_pos $inst_name -master $master_name
         
         # Increment current position
-        set cur_pos [expr $cur_pos + $space_between_pads_min_filler + $width]
+        set cur_pos [expr $cur_pos + $space_between_pads_multiple + $width]
     }
 }
 
@@ -175,10 +183,18 @@ place_corners $::env(PAD_CORNER)
 puts "\[INFO\] Placing filler cells…"
 
 # Place filler cells
-place_io_fill -row IO_NORTH {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_SOUTH {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_WEST {*}$::env(PAD_FILLERS)
-place_io_fill -row IO_EAST {*}$::env(PAD_FILLERS)
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_NORTH) ne "")} { place_io_fill -row IO_NORTH {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_SOUTH) ne "")} { place_io_fill -row IO_SOUTH {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_WEST) ne "")} { place_io_fill -row IO_WEST {*}$::env(PAD_FILLERS) }
+if {!$::env(PAD_TRIM_ROWS) || ($::env(PAD_EAST) ne "")} { place_io_fill -row IO_EAST {*}$::env(PAD_FILLERS) }
+
+puts "\[INFO\] Deleting corner cells (if required)…"
+
+# Delete corner cells if required
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_NORTH) eq "") && ($::env(PAD_WEST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_NORTH_WEST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_NORTH) eq "") && ($::env(PAD_EAST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_NORTH_EAST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_SOUTH) eq "") && ($::env(PAD_WEST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_SOUTH_WEST_INST] }
+if {$::env(PAD_TRIM_ROWS) && ($::env(PAD_SOUTH) eq "") && ($::env(PAD_EAST) eq "")} { odb::dbInst_destroy [$block findInst IO_CORNER_SOUTH_EAST_INST] }
 
 puts "\[INFO\] Connecting ring signals…"
 
@@ -243,3 +259,4 @@ if { [info exists ::env(PAD_PLACE_IO_TERMINALS)] } {
 # Remove io rows to avoid causing confusion with the other tools
 puts "\[INFO\] Removing I/O rows…"
 remove_io_rows
+

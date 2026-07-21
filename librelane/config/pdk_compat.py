@@ -203,9 +203,9 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         corner = f"*_{pvt}"
         lib_sta[corner] = lib_list
 
-    if (
-        new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu")
-    ) and "LIB" not in config:
+    if (new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu")) and (
+        "LIB" not in config and "CELL_LIBS" not in config
+    ):
         process_sta("LIB_SYNTH")
         process_sta("LIB_SLOWEST")
         process_sta("LIB_FASTEST")
