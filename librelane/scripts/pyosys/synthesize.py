@@ -192,7 +192,7 @@ def librelane_synth(
     if booth:
         d.run_pass("booth")
     d.run_pass("alumacc")  # Optimize arithmetic logic unitsb
-    d.run_pass("arith_tree") # Optimise chains of arithmetic cells
+    d.run_pass("arith_tree")  # Optimise chains of arithmetic cells
     d.run_pass("share")  # Share logic across the design
     librelane_opt(d)
 
