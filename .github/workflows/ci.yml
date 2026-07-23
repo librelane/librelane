@@ -164,7 +164,7 @@ jobs:
           run_tests: "true"
           pdk_root: ./.ciel-sky130
       - name: Cache to S3
-        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@main
+        uses: fossi-foundation/nix-eda/.github/actions/nix_sign_cache_s3@donn/better_sign_cache_s3_reporting
         with:
           flake_outputs: .#packages.x86_64-linux.librelane
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
