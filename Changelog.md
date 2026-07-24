@@ -53,6 +53,8 @@ Style Notes
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
+  * Allow to connect only some of the power/ground ports of an instance.
+
 * `OpenROAD.PadRing`
 
   * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
