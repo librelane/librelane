@@ -556,7 +556,7 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_MUL_BOOTH",
             bool,
             "Runs the booth pass as part of synthesis: See https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd/booth.html",
-            default=False,
+            default=True,
         ),
         Variable(
             "SYNTH_TIE_UNDEFINED",
