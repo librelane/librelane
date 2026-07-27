@@ -156,15 +156,20 @@ proc read_pdn_cfg {} {
     set unset_list {
         DESIGN_IS_CORE
         PDN_ENABLE_MACROS_GRID
-        PDN_RAILS_LAYER
-        PDN_UPPER_LAYER
-        PDN_LOWER_LAYER
     }
     set ::env(DESIGN_IS_CORE) $::env(PDN_MULTILAYER)
     set ::env(PDN_ENABLE_MACROS_GRID) $::env(PDN_CONNECT_MACROS_TO_GRID)
-    set ::env(PDN_RAILS_LAYER) $::env(PDN_RAIL_LAYER)
-    set ::env(PDN_UPPER_LAYER) $::env(PDN_HORIZONTAL_LAYER)
-    set ::env(PDN_LOWER_LAYER) $::env(PDN_VERTICAL_LAYER)
+    # A custom PDN_CFG may not define layers used only by the default generator.
+    foreach {deprecated current} {
+        PDN_RAILS_LAYER PDN_RAIL_LAYER
+        PDN_UPPER_LAYER PDN_HORIZONTAL_LAYER
+        PDN_LOWER_LAYER PDN_VERTICAL_LAYER
+    } {
+        if { [info exists ::env($current)] } {
+            set ::env($deprecated) $::env($current)
+            lappend unset_list $deprecated
+        }
+    }
     foreach key [array names ::env] {
         if { [string match PDN_* $key] } {
             set fp_name FP_$key

@@ -138,7 +138,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_RAIL_OFFSET",
-        Decimal,
+        Optional[Decimal],
         "The offset for the power distribution network rails for first metal layer.",
         units="µm",
         pdk=True,
@@ -146,7 +146,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_VWIDTH",
-        Decimal,
+        Optional[Decimal],
         "The strap width for the vertical layer in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -154,7 +154,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_HWIDTH",
-        Decimal,
+        Optional[Decimal],
         "The strap width for the horizontal layer in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -162,7 +162,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_VSPACING",
-        Decimal,
+        Optional[Decimal],
         "Intra-spacing (within a set) of vertical straps in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -170,7 +170,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_HSPACING",
-        Decimal,
+        Optional[Decimal],
         "Intra-spacing (within a set) of horizontal straps in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -178,7 +178,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_VPITCH",
-        Decimal,
+        Optional[Decimal],
         "Inter-distance (between sets) of vertical power straps in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -186,7 +186,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_HPITCH",
-        Decimal,
+        Optional[Decimal],
         "Inter-distance (between sets) of horizontal power straps in generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -194,7 +194,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_VOFFSET",
-        Decimal,
+        Optional[Decimal],
         "Initial offset for sets of vertical power straps.",
         units="µm",
         pdk=True,
@@ -202,7 +202,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_HOFFSET",
-        Decimal,
+        Optional[Decimal],
         "Initial offset for sets of horizontal power straps.",
         units="µm",
         pdk=True,
@@ -210,7 +210,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_VWIDTH",
-        Decimal,
+        Optional[Decimal],
         "The width for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -218,7 +218,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_HWIDTH",
-        Decimal,
+        Optional[Decimal],
         "The width for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -226,7 +226,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_VSPACING",
-        Decimal,
+        Optional[Decimal],
         "The spacing for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -234,7 +234,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_HSPACING",
-        Decimal,
+        Optional[Decimal],
         "The spacing for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -242,7 +242,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_VOFFSET",
-        Decimal,
+        Optional[Decimal],
         "The offset for the vertical layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -250,7 +250,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_HOFFSET",
-        Decimal,
+        Optional[Decimal],
         "The offset for the horizontal layer in the core ring of generated power distribution networks.",
         units="µm",
         pdk=True,
@@ -272,14 +272,14 @@ pdn_variables = [
     ),
     Variable(
         "PDN_RAIL_LAYER",
-        str,
+        Optional[str],
         "Defines the metal layer used for PDN rails.",
         deprecated_names=["FP_PDN_RAIL_LAYER", "FP_PDN_RAILS_LAYER"],
         pdk=True,
     ),
     Variable(
         "PDN_RAIL_WIDTH",
-        Decimal,
+        Optional[Decimal],
         "Defines the width of PDN rails on the `PDN_RAIL_LAYER` layer.",
         units="µm",
         pdk=True,
@@ -287,14 +287,14 @@ pdn_variables = [
     ),
     Variable(
         "PDN_HORIZONTAL_LAYER",
-        str,
+        Optional[str],
         "Defines the horizontal PDN layer.",
         deprecated_names=["FP_PDN_HORIZONTAL_LAYER", "FP_PDN_UPPER_LAYER"],
         pdk=True,
     ),
     Variable(
         "PDN_VERTICAL_LAYER",
-        str,
+        Optional[str],
         "Defines the vertical PDN layer.",
         deprecated_names=["FP_PDN_VERTICAL_LAYER", "FP_PDN_LOWER_LAYER"],
         pdk=True,
@@ -326,6 +326,31 @@ pdn_variables = [
         pdk=True,
     ),
 ]
+
+# A custom design or PDK PDN configuration does not consume these variables,
+# so configuration loading permits them to be absent. GeneratePDN requires
+# them only when using LibreLane's generic configuration.
+default_pdn_required_variables = (
+    "PDN_RAIL_OFFSET",
+    "PDN_VWIDTH",
+    "PDN_HWIDTH",
+    "PDN_VSPACING",
+    "PDN_HSPACING",
+    "PDN_VPITCH",
+    "PDN_HPITCH",
+    "PDN_VOFFSET",
+    "PDN_HOFFSET",
+    "PDN_CORE_RING_VWIDTH",
+    "PDN_CORE_RING_HWIDTH",
+    "PDN_CORE_RING_VSPACING",
+    "PDN_CORE_RING_HSPACING",
+    "PDN_CORE_RING_VOFFSET",
+    "PDN_CORE_RING_HOFFSET",
+    "PDN_RAIL_LAYER",
+    "PDN_RAIL_WIDTH",
+    "PDN_HORIZONTAL_LAYER",
+    "PDN_VERTICAL_LAYER",
+)
 
 routing_layer_variables = [
     Variable(

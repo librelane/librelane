@@ -62,6 +62,7 @@ from ..config.flow import option_variables
 from ..logging import console, debug, info, options, verbose
 from ..state import DesignFormat, State
 from .common_variables import (
+    default_pdn_required_variables,
     dpl_variables,
     grt_variables,
     io_layer_variables,
@@ -1463,8 +1464,9 @@ class GeneratePDN(OpenROADStep):
             Variable(
                 "PDN_CFG",
                 Optional[Path],
-                "A custom PDN configuration file. If not provided, the default PDN config will be used.",
+                "A custom PDN configuration file. If not provided, LibreLane's generic generator is used.",
                 deprecated_names=["FP_PDN_CFG"],
+                pdk=True,
             )
         ]
     )
@@ -1475,10 +1477,22 @@ class GeneratePDN(OpenROADStep):
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         if self.config["PDN_CFG"] is None:
+            missing = [
+                name
+                for name in default_pdn_required_variables
+                if self.config[name] is None
+            ]
+            if missing:
+                raise StepError(
+                    "The default PDN generator requires these PDK variables: "
+                    + ", ".join(missing)
+                )
             env["PDN_CFG"] = os.path.join(
                 get_script_dir(), "openroad", "common", "pdn_cfg.tcl"
             )
-            info(f"'PDN_CFG' not explicitly set, setting it to {env['PDN_CFG']}…")
+            info(
+                f"No custom PDN configuration provided; using LibreLane's generic configuration at {env['PDN_CFG']}…"
+            )
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         alerts = self.alerts or []
