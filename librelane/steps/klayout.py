@@ -58,8 +58,8 @@ class KLayoutStep(Step):
         ),
         Variable(
             "KLAYOUT_DEF_LAYER_MAP",
-            Path,
-            "A path to the KLayout LEF/DEF layer mapping (.map) file.",
+            Optional[Path],
+            "An optional path to a KLayout LEF/DEF layer mapping (.map) file. If omitted, the mapping embedded in `KLAYOUT_TECH` is used.",
             pdk=True,
         ),
     ]
@@ -93,12 +93,15 @@ class KLayoutStep(Step):
         if layer_info:
             lyp = abspath(self.config["KLAYOUT_PROPERTIES"])
             lyt = abspath(self.config["KLAYOUT_TECH"])
-            lym = abspath(self.config["KLAYOUT_DEF_LAYER_MAP"])
-            if None in [lyp, lyt, lym]:
+            lym_config = self.config["KLAYOUT_DEF_LAYER_MAP"]
+            lym = abspath(lym_config) if lym_config is not None else None
+            if None in [lyp, lyt]:
                 raise StepError(
                     "Cannot open design in KLayout as the PDK does not appear to support KLayout."
                 )
-            result += ["--lyp", lyp, "--lyt", lyt, "--lym", lym]
+            result += ["--lyp", lyp, "--lyt", lyt]
+            if lym is not None:
+                result += ["--lym", lym]
 
         if include_lefs:
             tech_lefs = self.toolbox.filter_views(self.config, self.config["TECH_LEFS"])

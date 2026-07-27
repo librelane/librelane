@@ -16,12 +16,18 @@ import os
 import sys
 import shlex
 import argparse
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pya  # Must be run inside KLayout-- the library version of pya does not include "Application"
 
 
-def open_design(input_lefs: Tuple[str, ...], lyt: str, lyp: str, lym: str, input: str):
+def open_design(
+    input_lefs: Tuple[str, ...],
+    lyt: str,
+    lyp: str,
+    lym: Optional[str],
+    input: str,
+):
     try:
         main_window = pya.Application.instance().main_window()
 
@@ -40,7 +46,8 @@ def open_design(input_lefs: Tuple[str, ...], lyt: str, lyp: str, lym: str, input
         layout_options.lefdef_config.macro_resolution_mode = 1
         layout_options.lefdef_config.read_lef_with_def = False
         layout_options.lefdef_config.lef_files = list(input_lefs)
-        layout_options.lefdef_config.map_file = lym
+        if lym is not None:
+            layout_options.lefdef_config.map_file = lym
 
         cell_view = main_window.load_layout(input, layout_options, tech.name, False)
         layout_view = cell_view.view()
@@ -62,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("-T", "--lyt", required=True, help="KLayout .lyt file")
     parser.add_argument("-P", "--lyp", required=True, help="KLayout .lyp file")
     parser.add_argument(
-        "-M", "--lym", required=True, help="KLayout .map (LEF/DEF layer map) file"
+        "-M", "--lym", required=False, help="KLayout .map (LEF/DEF layer map) file"
     )
     parser.add_argument("input", help="KLayout cell name")
 

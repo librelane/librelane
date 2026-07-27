@@ -48,7 +48,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pya
 import click
@@ -77,7 +77,7 @@ import click
 @click.option(
     "-M",
     "--lym",
-    required=True,
+    required=False,
     help="KLayout .map (LEF/DEF layer map) file",
 )
 @click.option(
@@ -122,7 +122,7 @@ def render(
     output: str,
     lyt: str,
     lyp: str,
-    lym: str,
+    lym: Optional[str],
     input: str,
     grid_visible: bool,
     grid_show_ruler: bool,
@@ -141,7 +141,8 @@ def render(
         layout_options = None
         if not gds:
             layout_options = tech.load_layout_options
-            layout_options.lefdef_config.map_file = lym
+            if lym is not None:
+                layout_options.lefdef_config.map_file = lym
             layout_options.lefdef_config.macro_resolution_mode = 1
             layout_options.lefdef_config.read_lef_with_def = False
             layout_options.lefdef_config.lef_files = list(input_lefs)
