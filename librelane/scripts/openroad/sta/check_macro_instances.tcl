@@ -13,14 +13,6 @@
 # limitations under the License.
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 
-set_cmd_units\
-    -time ns\
-    -capacitance pF\
-    -current mA\
-    -voltage V\
-    -resistance kOhm\
-    -distance um
-
 set sta_report_default_digits 6
 
 read_timing_info

@@ -68,6 +68,7 @@ puts "capacitance threshold: $::env(MAGIC_RCX_CTHRESH)"
 # > "I use ext2spice lvs as a shorthand for "set ext2spice parameters to something sane", after which I
 # > re-establish the options that I want."
 ext2spice lvs
+# MAGIC_RCX_CTHRESH and Magic's cthresh argument are both in fF.
 ext2spice cthresh $::env(MAGIC_RCX_CTHRESH)
 ext2spice extresist on
 ext2spice -f ngspice -o $netlist $::env(DESIGN_NAME).ext

@@ -23,14 +23,6 @@
 
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 
-set_cmd_units\
-    -time ns\
-    -capacitance pF\
-    -current mA\
-    -voltage V\
-    -resistance kOhm\
-    -distance um
-
 set sta_report_default_digits 6
 
 if { [namespace exists ::ord] } {
@@ -59,6 +51,10 @@ set clocks [sta::sort_by_name [sta::all_clocks]]
 if {  [info exist ::env(STA_EXTRA_CORNER_TCL_FILE)] } {
     source $::env(STA_EXTRA_CORNER_TCL_FILE)
 }
+
+# Reports and metric-producing STA queries below use command-unit values. The
+# optional user Tcl above may have changed those units.
+lln::set_sta_cmd_units
 
 puts "%OL_CREATE_REPORT min.rpt"
 puts "\n==========================================================================="

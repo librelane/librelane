@@ -53,11 +53,11 @@ append_if_exists_argument hold_args GRT_RESIZER_HOLD_REPAIR_TNS_PCT -repair_tns
 append_if_exists_argument hold_args GRT_RESIZER_HOLD_MAX_UTIL_PCT -max_utilization
 
 if { $::env(GRT_RESIZER_FIX_HOLD_FIRST) == 1 } {
-    log_cmd repair_timing {*}$hold_args
-    log_cmd repair_timing {*}$setup_args
+    sta_cmd log_cmd repair_timing {*}$hold_args
+    sta_cmd log_cmd repair_timing {*}$setup_args
 } else {
-    log_cmd repair_timing {*}$setup_args
-    log_cmd repair_timing {*}$hold_args
+    sta_cmd log_cmd repair_timing {*}$setup_args
+    sta_cmd log_cmd repair_timing {*}$hold_args
 }
 
 # Re-DPL and GRT

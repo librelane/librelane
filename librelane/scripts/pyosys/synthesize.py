@@ -276,6 +276,7 @@ def synthesize(
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
     with open(sdc_path, "w") as f:
         print(f"set_driving_cell {config['SYNTH_DRIVING_CELL']}", file=f)
+        # OUTPUT_CAP_LOAD and ABC's set_load argument are both in fF.
         print(f"set_load {config['OUTPUT_CAP_LOAD']}", file=f)
 
     ys.log(f"[INFO] Using SDC file '{sdc_path}' for ABC…")

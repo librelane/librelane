@@ -53,13 +53,14 @@ if { [info exists ::env(DESIGN_REPAIR_BUFFER_GAIN)] } {
     lappend arg_list -buffer_gain $::env(DESIGN_REPAIR_BUFFER_GAIN)
 }
 # Repair Design
-log_cmd repair_design {*}$arg_list
+sta_cmd log_cmd repair_design {*}$arg_list
 
 if { $::env(DESIGN_REPAIR_TIE_FANOUT) } {
+    # Unlike most OpenROAD distance arguments, -separation uses STA command units.
     # repair tie lo fanout
-    repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIELO_CELL)
+    sta_cmd repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIELO_CELL)
     # repair tie hi fanout
-    repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIEHI_CELL)
+    sta_cmd repair_tie_fanout -verbose -separation $::env(DESIGN_REPAIR_TIE_SEPARATION) $::env(SYNTH_TIEHI_CELL)
 }
 
 report_floating_nets -verbose
@@ -74,4 +75,3 @@ estimate_parasitics -placement
 
 
 write_views
-

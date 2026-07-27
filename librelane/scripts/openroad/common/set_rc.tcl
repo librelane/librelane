@@ -159,8 +159,13 @@ proc set_diff {setA setB} {
 # 4. If (1) doesn't override the corners at all, call set_wire_rc without -corner, to ensure the default behavior
 # 5. If (1) does override (some) corners, we must use set_wire_rc with -corner, becuase otherwise set_wire_rc will set the default techlef value for all existing corners
 
+# LAYERS_RC and VIAS_R use the command units established by the first Liberty.
+lln::set_first_liberty_units
 set corners_with_custom_layer_rc [set_layers_custom_rc]
 set corners_with_custom_via_r [set_via_custom_r]
+
+# Generated RC values are converted to LibreLane's canonical command units.
+lln::set_sta_cmd_units
 set corners_without_custom_layer_rc [set_diff [lln::get_corner_names] $corners_with_custom_layer_rc]
 set corners_without_custom_via_r [set_diff [lln::get_corner_names] $corners_with_custom_via_r]
 

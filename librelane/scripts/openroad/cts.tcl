@@ -93,7 +93,8 @@ set_propagated_clock [all_clocks]
 estimate_parasitics -placement
 puts "\[INFO\] Repairing long wires on clock nets…"
 # CTS leaves a long wire from the pad to the clock tree root.
-repair_clock_nets -max_wire_length $::env(CTS_CLK_MAX_WIRE_LENGTH)
+# Unlike most OpenROAD distance arguments, -max_wire_length uses STA command units.
+sta_cmd repair_clock_nets -max_wire_length $::env(CTS_CLK_MAX_WIRE_LENGTH)
 
 estimate_parasitics -placement
 write_views

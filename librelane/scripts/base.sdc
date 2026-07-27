@@ -58,6 +58,7 @@ set_driving_cell \
     -pin [lindex [split $::env(SYNTH_CLK_DRIVING_CELL) "/"] 1] \
     $clk_input
 
+# OUTPUT_CAP_LOAD is in fF; SDC capacitance arguments are in pF.
 set cap_load [expr $::env(OUTPUT_CAP_LOAD) / 1000.0]
 puts "\[INFO] Setting load to: $cap_load"
 set_load $cap_load [all_outputs]

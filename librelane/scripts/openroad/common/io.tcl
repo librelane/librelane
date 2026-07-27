@@ -19,6 +19,46 @@ source $::env(_TCL_ENV_IN)
 source $::env(SCRIPTS_DIR)/openroad/common/set_global_connections.tcl
 
 namespace eval lln {
+    variable first_liberty_unit_scales
+
+    proc set_sta_cmd_units {} {
+        # Bare numeric arguments to STA commands use mutable command units.
+        # In particular, OpenSTA replaces these units when it reads the first
+        # Liberty library. Restore LibreLane's convention at each STA command
+        # boundary instead of relying on earlier process state.
+        set_cmd_units \
+            -time ns \
+            -capacitance pF \
+            -current mA \
+            -voltage V \
+            -resistance kOhm \
+            -distance um
+    }
+
+    proc capture_first_liberty_units {} {
+        variable first_liberty_unit_scales
+        if {[info exists first_liberty_unit_scales]} {
+            return
+        }
+
+        # OpenSTA copies the first Liberty's units into its command-unit state.
+        # Preserve the exact scales before sta_cmd restores LibreLane's units.
+        set first_liberty_unit_scales [dict create]
+        foreach unit {time capacitance resistance voltage current power distance} {
+            dict set first_liberty_unit_scales $unit [sta::unit_scale $unit]
+        }
+    }
+
+    proc set_first_liberty_units {} {
+        variable first_liberty_unit_scales
+        if {![info exists first_liberty_unit_scales]} {
+            error "First-Liberty units were requested before reading a Liberty library."
+        }
+        dict for {unit scale} $first_liberty_unit_scales {
+            sta::set_cmd_unit_scale $unit $scale
+        }
+    }
+
     proc get_corner_names {} {
         # returns: names as a Tcl list, compatible with both OpenSTA 2 and 3
         if {[string length [namespace which sta::scenes]] != 0} {
@@ -60,6 +100,13 @@ namespace eval lln {
         }
     }
 };
+
+# Restore LibreLane's STA command units immediately before running a command
+# whose bare numeric arguments or results depend on those units.
+proc sta_cmd {cmd args} {
+    lln::set_sta_cmd_units
+    return [$cmd {*}$args]
+}
 
 proc string_in_file {file_path substring} {
     set f [open $file_path r]
@@ -111,7 +158,7 @@ proc read_current_sdc {} {
     }
 
     puts "Reading design constraints file at '$::env(_SDC_IN)'…"
-    if {[catch {read_sdc $::env(_SDC_IN)} errmsg]} {
+    if {[catch {sta_cmd read_sdc $::env(_SDC_IN)} errmsg]} {
         puts stderr $errmsg
         exit 1
     }
@@ -243,6 +290,8 @@ proc read_timing_info {args} {
         }
     }
 
+    lln::capture_first_liberty_units
+
     set blackbox_wildcard {/// sta-blackbox}
     foreach nl $::env(_CURRENT_CORNER_NETLISTS) {
         puts "Reading macro netlist at '$nl'…"
@@ -310,6 +359,7 @@ proc read_spefs {} {
             }
         }
     }
+
 }
 
 proc read_pnr_libs {args} {
@@ -351,6 +401,8 @@ proc read_pnr_libs {args} {
             }
         }
     }
+
+    lln::capture_first_liberty_units
 }
 
 proc read_tech_lef {{tlef_key "TECH_LEF"}} {
@@ -561,7 +613,7 @@ proc write_views {args} {
 
     if { [info exists ::env(SAVE_SDC)] } {
         puts "Writing timing constraints to '$::env(SAVE_SDC)'…"
-        write_sdc -no_timestamp $::env(SAVE_SDC)
+        sta_cmd write_sdc -no_timestamp $::env(SAVE_SDC)
     }
 
     if { [info exists ::env(SAVE_SPEF)] } {
@@ -577,7 +629,7 @@ proc write_views {args} {
     if { [info exists ::env(SAVE_SDF)] } {
         if { [llength [lln::get_corner_names]] <= 1 } {
             puts "Writing SDF to '$::env(SAVE_SDF)'…"
-            write_sdf -include_typ -divider . $::env(SAVE_SDF)
+            sta_cmd write_sdf -include_typ -divider . $::env(SAVE_SDF)
         }
     }
 }
@@ -587,7 +639,7 @@ proc write_sdfs {} {
         puts "Writing SDF files for all corners…"
         foreach corner_name [lln::get_corner_names] {
             set target $::env(_SDF_SAVE_DIR)/$::env(DESIGN_NAME)__$corner_name.sdf
-            write_sdf -include_typ -divider . -corner $corner_name $target
+            sta_cmd write_sdf -include_typ -divider . -corner $corner_name $target
         }
     }
 }
@@ -603,9 +655,9 @@ proc write_libs {} {
             set target $::env(_LIB_SAVE_DIR)/$::env(DESIGN_NAME)__$corner_name.lib
             puts "Writing timing models for the $corner_name corner to $target…"
             if {[string length [namespace which sta::scenes]] != 0} {
-                write_timing_model -scene $corner_name $target
+                sta_cmd write_timing_model -scene $corner_name $target
             } else {
-                write_timing_model -corner $corner_name $target
+                sta_cmd write_timing_model -corner $corner_name $target
             }
         }
     }

@@ -42,7 +42,7 @@ if { [info exists ::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)] } {
 if { [info exists ::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)] } {
     lappend arg_list -buffer_gain $::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)
 }
-log_cmd repair_design {*}$arg_list
+sta_cmd log_cmd repair_design {*}$arg_list
 
 # Re-DPL and GRT
 source $::env(SCRIPTS_DIR)/openroad/common/dpl.tcl

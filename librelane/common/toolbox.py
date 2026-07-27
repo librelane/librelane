@@ -513,6 +513,8 @@ class Toolbox(object):
     ) -> Optional[Decimal]:
         """
         Extract the voltage from the default operating conditions of a liberty file.
+        Liberty files with an explicit voltage unit other than one volt are
+        rejected because the returned value is passed to tools that expect volts.
 
         Returns ``None`` if and only if the ``default_operating_conditions`` key
         does not exist and the number of operating conditions enumerated is not
@@ -529,6 +531,13 @@ class Toolbox(object):
         for child in ast.children:
             if child.id == "default_operating_conditions":
                 default_operating_conditions_id = child.value
+            if child.id == "voltage_unit":
+                voltage_unit = str(child.value).strip().strip('"')
+                if re.fullmatch(r"1(?:\.0+)?[vV]", voltage_unit) is None:
+                    raise ValueError(
+                        f"Unsupported Liberty voltage unit '{voltage_unit}' in "
+                        f"'{input_lib}': expected 1V"
+                    )
             if child.id == "operating_conditions":
                 operating_conditions_raw[child.args[0]] = child
 
