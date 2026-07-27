@@ -102,20 +102,24 @@ def old_to_new_tracks(old_tracks: str) -> str:
     >>> old_to_new_tracks(EXAMPLE_INPUT)
     'make_tracks li1 -x_offset 0.23 -x_pitch 0.46 -y_offset 0.17 -y_pitch 0.34\\nmake_tracks met1 -x_offset 0.17 -x_pitch 0.34 -y_offset 0.17 -y_pitch 0.34\\nmake_tracks met2 -x_offset 0.23 -x_pitch 0.46 -y_offset 0.23 -y_pitch 0.46\\nmake_tracks met3 -x_offset 0.34 -x_pitch 0.68 -y_offset 0.34 -y_pitch 0.68\\nmake_tracks met4 -x_offset 0.46 -x_pitch 0.92 -y_offset 0.46 -y_pitch 0.92\\nmake_tracks met5 -x_offset 1.70 -x_pitch 3.40 -y_offset 1.70 -y_pitch 3.40\\n'
     """
-    layers: Dict[str, Dict[str, Tuple[str, str]]] = {}
+    layers: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
 
     for line in old_tracks.splitlines():
-        if line.strip() == "":
+        if line.strip() == "" or line.lstrip().startswith("#"):
             continue
         layer, cardinal, offset, pitch = line.split()
         layers[layer] = layers.get(layer) or {}
-        layers[layer][cardinal] = (offset, pitch)
+        layers[layer][cardinal] = layers[layer].get(cardinal) or []
+        layers[layer][cardinal].append((offset, pitch))
 
     final_str = ""
     for layer, data in layers.items():
-        x_offset, x_pitch = data["X"]
-        y_offset, y_pitch = data["Y"]
-        final_str += f"make_tracks {layer} -x_offset {x_offset} -x_pitch {x_pitch} -y_offset {y_offset} -y_pitch {y_pitch}\n"
+        x_tracks = data["X"]
+        y_tracks = data["Y"]
+        for i in range(max(len(x_tracks), len(y_tracks))):
+            x_offset, x_pitch = x_tracks[i % len(x_tracks)]
+            y_offset, y_pitch = y_tracks[i % len(y_tracks)]
+            final_str += f"make_tracks {layer} -x_offset {x_offset} -x_pitch {x_pitch} -y_offset {y_offset} -y_pitch {y_pitch}\n"
 
     return final_str
 
