@@ -735,14 +735,11 @@ def test_remove_cell_list_from_lib(lib_trim_result):
     excluded_cells = process_list_file("/cwd/bad_cell_list.txt")
 
     result = toolbox.remove_cells_from_lib(
-        frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
+        ("/cwd/example_lib.lib", "/cwd/example_lib2.lib"),
         excluded_cells=frozenset(excluded_cells),
     )
-    for file in result:
-        contents = open(file, encoding="utf8").read()
-        assert (
-            contents.strip() in lib_trim_result
-        ), "remove_cells_from_lib produced unexpected result"
+    contents = [open(file, encoding="utf8").read().strip() for file in result]
+    assert contents == lib_trim_result, "remove_cells_from_lib changed Liberty order"
 
 
 @pytest.mark.usefixtures("_lib_mock_fs")
@@ -756,14 +753,11 @@ def test_remove_cells_from_lib(lib_trim_result):
     )
 
     result = toolbox.remove_cells_from_lib(
-        frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
+        ("/cwd/example_lib.lib", "/cwd/example_lib2.lib"),
         excluded_cells=frozenset(excluded_cells),
     )
-    for file in result:
-        contents = open(file, encoding="utf8").read()
-        assert (
-            contents.strip() in lib_trim_result
-        ), "remove_cells_from_lib produced unexpected result"
+    contents = [open(file, encoding="utf8").read().strip() for file in result]
+    assert contents == lib_trim_result, "remove_cells_from_lib changed Liberty order"
 
 
 @mock.patch.dict(os.environ, {"PATH": "/bin"})

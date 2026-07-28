@@ -340,7 +340,7 @@ class VerilogStep(PyosysStep):
         excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
 
         libs_synth = self.toolbox.remove_cells_from_lib(
-            frozenset([str(lib) for lib in scl_lib_list]),
+            tuple(str(lib) for lib in scl_lib_list),
             excluded_cells=frozenset(excluded_cells),
         )
         extra_path = os.path.join(self.step_dir, "extra.json")

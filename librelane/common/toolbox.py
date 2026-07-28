@@ -363,7 +363,7 @@ class Toolbox(object):
 
     def remove_cells_from_lib(
         self,
-        input_lib_files: FrozenSet[str],
+        input_lib_files: Tuple[str, ...],
         excluded_cells: FrozenSet[str],
     ) -> List[str]:
         """
@@ -372,10 +372,11 @@ class Toolbox(object):
         This function is memoized, i.e., results are cached for a specific set
         of inputs.
 
-        :param input_lib_files: A `frozenset` of input lib files.
+        :param input_lib_files: An ordered tuple of input lib files.
         :param excluded_cells: A `frozenset` of wildcards of cells to remove
             from the files.
-        :returns: A path to the lib file with the removed cells.
+        :returns: Paths to the Liberty files with the cells removed, in the same
+            order as ``input_lib_files``.
         """
         mkdirp(self.tmp_dir)
 

@@ -106,7 +106,7 @@ def _generate_read_deps(
     excluded_cells.update(process_list_file(config["PNR_EXCLUDED_CELL_FILE"]))
 
     lib_synth = toolbox.remove_cells_from_lib(
-        frozenset([str(lib) for lib in scl_lib_list]),
+        tuple(str(lib) for lib in scl_lib_list),
         excluded_cells=frozenset(excluded_cells),
     )
     if tcl:
