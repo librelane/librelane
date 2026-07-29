@@ -350,17 +350,12 @@ class VerilogStep(PyosysStep):
         if models := self.config.get("EXTRA_VERILOG_MODELS"):
             blackbox_models.extend(str(f) for f in models)
 
-        # combine multiple excluded cell lists into one
-        excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
-        excluded_cells.update(self.config["SYNTH_EXCLUDED_CELLS"])
-        excluded_cells.update(self.config["PNR_EXCLUDED_CELLS"])
-
         # combine SCL and PAD Liberty files and convert paths to simple strings
         lib_list = [str(lib) for lib in scl_lib_list + pad_lib_list]
 
         extra_path = os.path.join(self.step_dir, "extra.json")
         with open(extra_path, "w") as f:
-            json.dump({"blackbox_models": blackbox_models, "libs_synth": lib_list, "EXCLUDED_CELLS": list(excluded_cells)}, f)
+            json.dump({"blackbox_models": blackbox_models, "libs_synth": lib_list}, f)
         cmd.extend(["--extra-in", extra_path])
         return cmd
 

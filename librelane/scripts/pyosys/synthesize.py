@@ -342,9 +342,14 @@ def synthesize(
     for lib in extra["libs_synth"]:
         liberty_arguments.extend(["-liberty", lib])
 
+    # combine excluded cells lists
+    excluded_cells  = config["EXTRA_EXCLUDED_CELLS"] or []
+    excluded_cells += config["SYNTH_EXCLUDED_CELLS"]
+    excluded_cells += config["PNR_EXCLUDED_CELLS"]
+
     # create a list of CLI arguments for excluded cells
     dont_use_arguments = []
-    for cell in extra["EXCLUDED_CELLS"]:
+    for cell in excluded_cells:
         dont_use_arguments.extend(["-dont_use", cell])
 
     if config["SYNTH_ELABORATE_ONLY"]:
