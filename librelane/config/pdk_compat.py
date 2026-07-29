@@ -17,8 +17,6 @@ from glob import glob
 from typing import Any, Dict, List, Mapping
 from ..common import process_list_file
 
-import pprint
-
 
 def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
     new = dict(config)
