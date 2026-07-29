@@ -24,7 +24,7 @@ import fnmatch
 import shutil
 from decimal import Decimal
 from abc import abstractmethod
-from typing import List, Literal, Optional, Set, Tuple
+from typing import List, Literal, Optional, Tuple
 
 from .step import ViewsUpdate, MetricsUpdate, Step
 
