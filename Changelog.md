@@ -90,6 +90,11 @@ Style Notes
 
   * Made `SYNTH_MUL_BOOTH` the default
 
+  * Deprecated SCL variables `SYNTH_EXCLUDED_CELL_FILE` and `PNR_EXCLUDED_CELL_FILE`
+    which expect a file containing a list.
+    Instead string variables containing a space separated list are expected
+    `SYNTH_EXCLUDED_CELLS` and `PNR_EXCLUDED_CELLS`.
+
 ## Tool Updates
 
 * Updated nix-eda to 7.0.0

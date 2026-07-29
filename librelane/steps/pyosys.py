@@ -31,7 +31,7 @@ from .step import ViewsUpdate, MetricsUpdate, Step
 from ..config import Variable
 from ..state import State, DesignFormat
 from ..logging import debug, verbose
-from ..common import Path, get_script_dir, process_list_file
+from ..common import Path, get_script_dir
 
 starts_with_whitespace = re.compile(r"^\s+.+$")
 
@@ -351,10 +351,8 @@ class VerilogStep(PyosysStep):
             blackbox_models.extend(str(f) for f in models)
 
         excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
-        excluded_cells.update(
-            process_list_file(self.config["SYNTH_EXCLUDED_CELL_FILE"])
-        )
-        excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
+        excluded_cells.update(self.config["SYNTH_EXCLUDED_CELLS"])
+        excluded_cells.update(self.config["PNR_EXCLUDED_CELLS"])
 
         libs_synth = self.toolbox.remove_cells_from_lib(
             frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
