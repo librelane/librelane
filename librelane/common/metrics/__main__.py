@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,41 +24,15 @@ import tarfile
 import tempfile
 from io import BytesIO
 from decimal import Decimal
-from typing import Optional, Set, Tuple
+from typing import Optional, Tuple
 
 import cloup
 import httpx
 
 from .util import MetricDiff, TableVerbosity
+from .compare import compare_metric_directories, default_filter_set
 from ..misc import Filter, get_httpx_session, mkdirp
 from ..cli import formatter_settings, IntEnumChoice
-
-default_filter_set = [
-    "design__*__area",
-    "design__max_*",
-    "design__lvs_error__count",
-    "antenna__violating*",
-    "clock__*",
-    "ir__*",
-    "power__*",
-    "timing__*_vio__*",
-    "timing*wns*",
-    "timing*tns*",
-    "*error*",
-    "!*__iter:*",
-]
-
-# passing_filter_set = [
-#     "design__*__area",
-#     "route__wirelength__max",
-#     "design__instance__utilization",
-#     "antenna__violating*",
-#     "timing__*__ws",
-#     "clock__skew__*",
-#     "ir__*",
-#     "power__*",
-#     "!*__iter:*",
-# ]
 
 
 @cloup.group(
@@ -141,130 +119,25 @@ def compare(
 cli.add_command(compare)
 
 
-def _compare_metric_folders(
-    filter_wildcards: Tuple[str, ...],
-    table_verbosity: TableVerbosity,
-    path_a: str,
-    path_b: str,
-    significant_figures: int,
-) -> Tuple[str, str]:  # (summary, table)
-    a: Set[Tuple[str, str, str]] = set()
-    b: Set[Tuple[str, str, str]] = set()
-
-    def add_designs(in_dir: str, to_set: Set[Tuple[str, str, str]]):
-        for file in os.listdir(in_dir):
-            basename = os.path.basename(file)
-            if not basename.endswith(".metrics.json"):
-                continue
-            basename = basename[: -len(".metrics.json")]
-
-            # We have to rsplit, since ihp-sg13g2 contains a "-"
-            parts = basename.rsplit("-", maxsplit=2)
-            if len(parts) != 3:
-                raise ValueError(
-                    f"Invalid filename {basename}: not in the format {{pdk}}-{{scl}}-{{design_name}}"
-                )
-            pdk, scl, design = parts
-            to_set.add((pdk, scl, design))
-
-    add_designs(path_a, a)
-    add_designs(path_b, b)
-
-    not_in_a = b - a
-    not_in_b = a - b
-    common = a.intersection(b)
-    difference_report = ""
-    for tup in not_in_a:
-        pdk, scl, design = tup
-        difference_report += f"* Results for a new test, `{'/'.join(tup)}`, detected.\n"
-    for tup in not_in_b:
-        pdk, scl, design = tup
-        difference_report += (
-            f"* ‼️ Results for `{'/'.join(tup)}` appear to be missing!\n"
-        )
-
-    final_filters = []
-    for wildcard in filter_wildcards:
-        if wildcard == "DEFAULT":
-            final_filters += default_filter_set
-        else:
-            final_filters.append(wildcard)
-
-    filter = Filter(final_filters)
-    critical_change_report = ""
-    tables = ""
-    total_critical = 0
-    for pdk, scl, design in sorted(common):
-        metrics_a = json.load(
-            open(
-                os.path.join(path_a, f"{pdk}-{scl}-{design}.metrics.json"),
-                encoding="utf8",
-            ),
-            parse_float=Decimal,
-        )
-
-        metrics_b = json.load(
-            open(
-                os.path.join(path_b, f"{pdk}-{scl}-{design}.metrics.json"),
-                encoding="utf8",
-            ),
-            parse_float=Decimal,
-        )
-
-        diff = MetricDiff.from_metrics(
-            metrics_a,
-            metrics_b,
-            significant_figures,
-            filter=filter,
-        )
-
-        stats = diff.stats()
-
-        total_critical += stats.critical
-        if stats.critical > 0:
-            critical_change_report += f"  * `{pdk}/{scl}/{design}` \n"
-        if table_verbosity != "NONE":
-            rendered = diff.render_md(("corner", ""), table_verbosity)
-            if rendered.strip() != "":
-                tables += f"<details><summary><code>{pdk}/{scl}/{design}</code></summary>\n{rendered}\n</details>\n\n"
-
-    if total_critical == 0:
-        critical_change_report = (
-            "* No changes to critical metrics were detected in analyzed designs.\n"
-            + critical_change_report
-        )
-    else:
-        critical_change_report = (
-            "* **Changes to critical metrics were detected in the following designs:**\n"
-            + critical_change_report
-        )
-
-    report = ""
-    report += difference_report
-    report += critical_change_report
-
-    return report, tables.strip()
-
-
 @cloup.command(no_args_is_help=True)
 @common_opts
-@cloup.argument("metric_folders", nargs=2)
+@cloup.argument("metric_directories", nargs=2)
 def compare_multiple(
     filter_wildcards: Tuple[str, ...],
     table_verbosity: TableVerbosity,
-    metric_folders: Tuple[str, str],
+    metric_directories: Tuple[str, str],
     table_out: Optional[str],
     significant_figures: int,
 ):
     """
-    Creates a small summary/report of the differences between two folders with
+    Creates a small summary/report of the differences between two directories with
     metrics files.
 
     The metrics files must be named in the format ``{pdk}-{scl}-{design}.metrics.json``.
     All other files are ignored.
     """
-    path_a, path_b = metric_folders
-    summary, tables = _compare_metric_folders(
+    path_a, path_b = metric_directories
+    summary, tables = compare_metric_directories(
         filter_wildcards, table_verbosity, path_a, path_b, significant_figures
     )
     print(summary)
@@ -309,7 +182,7 @@ cli.add_command(compare_multiple)
     help="A GitHub token to use to query the API and fetch the metrics. Not strictly required, but helps avoid rate-limiting.",
 )
 @common_opts
-@cloup.argument("metric_folder", nargs=1)
+@cloup.argument("metric_directory", nargs=1)
 def compare_remote(
     filter_wildcards: Tuple[str, ...],
     table_verbosity: TableVerbosity,
@@ -317,13 +190,13 @@ def compare_remote(
     metric_repo: str,
     commit: Optional[str],
     token: str,
-    metric_folder: str,
+    metric_directory: str,
     table_out: Optional[str],
     significant_figures: int,
     branch: str,
 ):
     """
-    Creates a small summary/report of the differences between a folder and
+    Creates a small summary/report of the differences between a directory and
     a set of metrics stored in --metric-repo. Requires Internet access and
     access to GitHub.
 
@@ -379,11 +252,11 @@ def compare_remote(
                         with open(final_path, "wb") as f:
                             f.write(io.read())
 
-            summary, tables = _compare_metric_folders(
+            summary, tables = compare_metric_directories(
                 filter_wildcards,
                 table_verbosity,
                 d,
-                metric_folder,
+                metric_directory,
                 significant_figures,
             )
             print(summary)

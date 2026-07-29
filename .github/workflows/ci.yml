@@ -620,17 +620,14 @@ jobs:
         with:
           name: metrics
           pattern: "*.metrics.json"
+          delete-merged: true
   upload_metrics:
     name: Upload Metrics
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
     # if there isn't at least one metric this exercise is pointless
-    if: needs.merge_metrics.result == 'success'
+    if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && secrets.BOT_GITHUB_TOKEN
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - name: Setup
         run: |
           sudo apt-get install -y python3-tk
@@ -641,27 +638,7 @@ jobs:
         with:
           name: metrics
           path: current
-      - name: "[PRs] Compare to target branch and comment result (if the workflow has secrets access)"
-        uses: actions/github-script@v6
-        env:
-          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
-        if: github.event_name == 'pull_request' && env.bot_github_token != ''
-        with:
-          github-token: ${{ env.bot_github_token }}
-          script: |
-            require("./.github/scripts/compare_metrics.js")({
-              github: github,
-              context: context,
-              botUsername: "${{ vars.BOT_USERNAME }}",
-              botToken: "${{ secrets.BOT_GITHUB_TOKEN }}",
-              comparingDirectory: "current",
-              againstBranch: "${{ github.base_ref }}",
-              metricsRepo: "${{ vars.METRICS_REPO }}",
-            }).then(()=>{console.log("Done.");});
-      - name: "[Push] Upload Metrics"
-        env:
-          bot_github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
-        if: github.event_name == 'push' && env.bot_github_token != ''
+      - name: "Upload Metrics"
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
           REPO=${{ vars.METRICS_REPO }}
