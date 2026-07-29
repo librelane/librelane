@@ -182,14 +182,22 @@ scl_variables = [
         "SYNTH_EXCLUDED_CELLS",
         List[str],
         "A space separated list of cells (wildcards matching) to be excluded from the lib file in synthesis alone.",
-        deprecated_names=["NO_SYNTH_CELL_LIST", "SYNTH_EXCLUSION_CELL_LIST", "SYNTH_EXCLUDED_CELL_FILE"],
+        deprecated_names=[
+            "NO_SYNTH_CELL_LIST",
+            "SYNTH_EXCLUSION_CELL_LIST",
+            "SYNTH_EXCLUDED_CELL_FILE",
+        ],
         pdk=True,
     ),
     Variable(
         "PNR_EXCLUDED_CELLS",
         List[str],
         "A space separated list of cells (wildcards matching) to be excluded from synthesis AND PnR. Undesirable or bad cells (DRC-failed or complex pinout).",
-        deprecated_names=["DRC_EXCLUDE_CELL_LIST", "PNR_EXCLUSION_CELL_LIST", "PNR_EXCLUDED_CELL_FILE"],
+        deprecated_names=[
+            "DRC_EXCLUDE_CELL_LIST",
+            "PNR_EXCLUSION_CELL_LIST",
+            "PNR_EXCLUDED_CELL_FILE",
+        ],
         pdk=True,
     ),
     # Constraints

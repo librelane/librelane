@@ -343,7 +343,7 @@ def synthesize(
         liberty_arguments.extend(["-liberty", lib])
 
     # combine excluded cells lists
-    excluded_cells  = config["EXTRA_EXCLUDED_CELLS"] or []
+    excluded_cells = config["EXTRA_EXCLUDED_CELLS"] or []
     excluded_cells += config["SYNTH_EXCLUDED_CELLS"]
     excluded_cells += config["PNR_EXCLUDED_CELLS"]
 
@@ -360,7 +360,9 @@ def synthesize(
         d.run_pass("splitnets")
         d.run_pass("opt_clean", "-purge")
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json"))
+        d.tee(
+            "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json")
+        )
         d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         noattr_flag = []
@@ -417,7 +419,10 @@ def synthesize(
     d.run_pass("opt_clean", "-purge")
 
     d.tee(
-        "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "pre_techmap.json")
+        "stat",
+        "-json",
+        *liberty_arguments,
+        o=os.path.join(report_dir, "pre_techmap.json"),
     )
     d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "pre_techmap.rpt"))
 
@@ -461,7 +466,9 @@ def synthesize(
 
     d.run_pass("dfflibmap", *liberty_arguments, *dont_use_arguments)
 
-    d.tee("stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "post_dff.json"))
+    d.tee(
+        "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "post_dff.json")
+    )
     d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
 
     script_creator = ABCScriptCreator(config)
@@ -509,7 +516,9 @@ def synthesize(
             d.run_pass("insbuf", "-buf", *config["SYNTH_BUFFER_CELL"].split("/"))
 
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json"))
+        d.tee(
+            "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json")
+        )
         d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         if config["SYNTH_AUTONAME"]:
