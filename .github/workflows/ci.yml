@@ -639,7 +639,6 @@ jobs:
           name: metrics
           path: current
       - name: "Upload Metrics"
-        if: ${{ vars.BOT_USERNAME && secrets.BOT_GITHUB_TOKEN != '' }}
         env:
           GH_USER: '${{ vars.BOT_USERNAME }}'
           GH_TOKEN: '${{ secrets.BOT_GITHUB_TOKEN }}'
@@ -647,6 +646,9 @@ jobs:
           BOT_EMAIL: '${{ vars.BOT_EMAIL }}'
           REPO: '${{ vars.METRICS_REPO }}'
         run: |
+          if [ "$GH_TOKEN" == "" ]; then
+            exit 0
+          fi
           CURRENT_SHA=$(git rev-parse HEAD)
           BRANCH_NAME="commit-$CURRENT_SHA"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
