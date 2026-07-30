@@ -151,6 +151,7 @@ def librelane_synth(
     booth=False,
     abc_dff=False,
     undriven=True,
+    arith_tree=True,
     keep_hierarchy_min_cost: Optional[int],
     keep_hierarchy_instances: List[str],
     keep_hierarchy_modules: List[str],
@@ -192,6 +193,8 @@ def librelane_synth(
     if booth:
         d.run_pass("booth")
     d.run_pass("alumacc")  # Optimize arithmetic logic unitsb
+    if arith_tree:
+        d.run_pass("arith_tree")  # Optimise chains of arithmetic cells
     d.run_pass("share")  # Share logic across the design
     librelane_opt(d)
 
@@ -385,6 +388,7 @@ def synthesize(
         keep_hierarchy_min_cost=config["SYNTH_KEEP_HIERARCHY_MIN_COST"],
         keep_hierarchy_instances=config["SYNTH_KEEP_HIERARCHY_INSTANCES"],
         keep_hierarchy_modules=config["SYNTH_KEEP_HIERARCHY_MODULES"],
+        arith_tree=config["SYNTH_ARITH_TREE"],
     )
 
     d.run_pass("delete", "t:$print")

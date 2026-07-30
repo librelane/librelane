@@ -84,6 +84,12 @@ Style Notes
 
   * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
 
+* `Yosys.Synthesis`
+
+  * Added `SYNTH_ARITH_TREE` to run the `arith_tree` techmapping optimisation; enabled by default
+
+  * Made `SYNTH_MUL_BOOTH` the default
+
 ## Tool Updates
 
 * Updated nix-eda to 7.0.0
