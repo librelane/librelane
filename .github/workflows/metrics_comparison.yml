@@ -1,3 +1,5 @@
+name: Comment-activated Metrics Comparison
+
 on:
   issue_comment:
     types: [created]
@@ -8,7 +10,7 @@ jobs:
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '!metrics')}}
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,7 +33,7 @@ jobs:
           NUMBER: ${{ github.event.issue.number }}
           METRICS_REPO: ${{ vars.METRICS_REPO }}
       - name: Add comment
-        run: gh issue comment "$NUMBER" --body-file metrics_comparison_result.md
+        run: gh pr comment "$NUMBER" --body-file metrics_comparison_result.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
