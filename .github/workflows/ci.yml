@@ -54,8 +54,7 @@ jobs:
           pip3 install -r requirements_tmp.txt
       - name: Determine If Running Extended Test Set
         run: |
-          export EVENT_NAME=${{ github.event_name }};
-          python3 ./.github/scripts/determine_test_set.py
+          python3 ./.github/scripts/determine_test_set.py ${{ github.event_name }}
       - name: Set Matrix
         id: set-matrix
         run: |
