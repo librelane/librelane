@@ -8,7 +8,7 @@ from pathlib import Path
 __file_dir__ = Path(__file__).parent.resolve()
 __librelane_root__ = __file_dir__.parents[1]
 
-sys.path.insert(0, __file_dir__)  # make LibreLane importable
+sys.path.insert(0, str(__librelane_root__))  # make LibreLane importable
 
 try:
     from githubkit import GitHub
@@ -53,6 +53,7 @@ except ImportError as e:
     os.execl(venv_python3, venv_python3, *sys.argv)
 
 import tempfile
+from zipfile import ZipFile
 from typing import Callable, Literal
 
 from librelane.common.metrics.util import TableVerbosity
