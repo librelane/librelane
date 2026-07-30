@@ -571,6 +571,12 @@ class SynthesisCommon(VerilogStep):
             "If true, vectors with the shape [0:0] are converted to normal wires in the netlist. If disabled, even one-width pins will be suffixed [0] in the layout when imported by most PnR tools.",
             default=True,
         ),
+        Variable(
+            "SYNTH_ARITH_TREE",
+            bool,
+            "Runs the arith_tree pass as part of synthesis: See https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd/index_passes_techmap.html#cmd-arith_tree",
+            default=True,
+        ),
         # Variable(
         #     "SYNTH_SDC_FILE",
         #     Optional[Path],
