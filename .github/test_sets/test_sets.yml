@@ -3,7 +3,7 @@
   designs:
     - inverter
     - wbqspiflash
-    - APU
+    # - APU
     - s44
     - zipdiv
     - blink
