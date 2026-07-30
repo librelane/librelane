@@ -626,7 +626,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
     # if there isn't at least one metric this exercise is pointless
-    if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && secrets.BOT_GITHUB_TOKEN
+    if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && secrets.BOT_GITHUB_TOKEN && vars.METRICS_REPO
     steps:
       - name: Setup
         run: |

@@ -1,12 +1,62 @@
-import tempfile
+# Copyright (c) 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+# flake8: noqa: E402
+import os
+import sys
 from pathlib import Path
-from typing import Literal
-from zipfile import ZipFile
 
-import click
+__file_dir__ = Path(__file__).parent.resolve()
+__librelane_root__ = __file_dir__.parents[1]
+
+sys.path.insert(0, __file_dir__)  # make LibreLane importable
+
+try:
+    from githubkit import GitHub
+    from githubkit.exception import RequestFailed
+    import click
+except ImportError as e:
+    if sys.platform == "win32":
+        raise e from None
+
+    print(f"* {e}: Activating LibreLane venv and relaunching…", file=sys.stderr)
+
+    import subprocess
+
+    venv_python3 = __librelane_root__ / "venv" / "bin" / "python3"
+
+    if not os.path.exists(venv_python3):
+        subprocess.check_call(
+            [
+                "make",
+                "venv",
+            ],
+            cwd=__librelane_root__,
+        )
+    subprocess.check_output(
+        [
+            venv_python3,
+            "-m",
+            "pip",
+            "install",
+            "click",
+        ]
+    )
+    subprocess.check_output(
+        [
+            venv_python3,
+            "-m",
+            "pip",
+            "install",
+            "githubkit",
+        ]
+    )
+    os.execl(venv_python3, venv_python3, *sys.argv)
+
+import tempfile
+from typing import Callable, Literal
+
 from librelane.common.metrics.util import TableVerbosity
 from librelane.common.metrics.compare import compare_metric_directories
-from githubkit import GitHub
 
 
 class NoCompletedRuns(RuntimeError):
@@ -56,39 +106,20 @@ def get_metrics_artifact(
 
     return artifact.id
 
-    # old approach involving searching through artifacts
-    page = 1
-    total_count = 1
-    count = 0
-    while count < total_count:
-        artifact_list_res = github.rest.actions.list_artifacts_for_repo(
-            owner,
-            repo,
-            per_page=100,
-            page=page,
-            name="metrics",
-        )
-        artifact_list = artifact_list_res.parsed_data
-        total_count = artifact_list.total_count
-        for artifact in artifact_list.artifacts:
-            if artifact.workflow_run.head_sha == for_sha:
-                if artifact.expired:
-                    return None  # artifact exists, but is expired
-                else:
-                    return artifact.id  # valid artifact
-            if artifact.created_at < min_date:
-                return None  # no matching artifact found at reasonable date
-            count += 1
-        page += 1
-    return None  # no matching artifact even at unreasonable date
-
 
 @click.command()
 @click.option("--github-token", envvar=["GITHUB_TOKEN", "GH_TOKEN"], required=True)
+@click.option("--metrics-cache-repo", "metrics_repo_full_name", default=None)
 @click.option("--repo", "repo_full_name", required=True)
 @click.option("--override-temp", "override_temp", required=False, hidden=True)
 @click.argument("pull_request_number", type=int)
-def main(github_token, repo_full_name, override_temp, pull_request_number):
+def main(
+    github_token,
+    repo_full_name,
+    metrics_repo_full_name,
+    override_temp,
+    pull_request_number,
+):
     github = GitHub(github_token)
     owner, repo = repo_full_name.split("/", maxsplit=1)
     res = github.rest.pulls.get(owner, repo, pull_request_number)
@@ -103,14 +134,40 @@ def main(github_token, repo_full_name, override_temp, pull_request_number):
         print(f"{e}")
         exit(0)
 
-    try:
-        base_metrics = get_metrics_artifact(
-            github, owner, repo, "push", "base commit", pull.base.sha
-        )
-    except (NoCompletedRuns, NoMetrics) as e:
-        print("Could not perform metrics comparison:\n")
-        print(f"{e}")
-        exit(0)
+    download_base_metrics: Callable | None = None
+
+    if metrics_repo_full_name is not None:
+        metrics_owner, metrics_repo = metrics_repo_full_name.split("/", maxsplit=1)
+        try:
+            ref = f"commit-{pull.base.sha}"
+            downloaded = github.rest.repos.download_zipball_archive(
+                metrics_owner,
+                metrics_repo,
+                ref,
+            )
+            print(
+                f"Found metrics cached in {metrics_repo_full_name} at {ref}…",
+                file=sys.stderr,
+            )
+            download_base_metrics = lambda: downloaded
+        except RequestFailed:
+            pass
+
+    if download_base_metrics is None:
+        try:
+            base_metrics = get_metrics_artifact(
+                github, owner, repo, "push", "base commit", pull.base.sha
+            )
+            download_base_metrics = lambda: github.rest.actions.download_artifact(
+                owner,
+                repo,
+                base_metrics,
+                archive_format="zip",
+            )
+        except (NoCompletedRuns, NoMetrics) as e:
+            print("Could not perform metrics comparison:\n")
+            print(f"{e}")
+            exit(0)
 
     delete_temp = True
     if override_temp:
@@ -125,23 +182,37 @@ def main(github_token, repo_full_name, override_temp, pull_request_number):
             f.write(head_download.content)
 
         base_zip = d / "base.zip"
-        base_download = github.rest.actions.download_artifact(
-            owner, repo, base_metrics, archive_format="zip"
-        )
+        base_download = download_base_metrics()
         with open(base_zip, "wb") as f:
             f.write(base_download.content)
 
         head_path = d / "head"
-        with ZipFile(head_zip) as f:
-            f.extractall(head_path)
+        with ZipFile(head_zip) as zf:
+            zf.extractall(head_path)
         base_path = d / "base"
-        with ZipFile(base_zip) as f:
-            f.extractall(base_path)
+        with ZipFile(base_zip) as zf:
+            # cached metrics may have an extra path component in the beginning
+            base_path.mkdir(parents=True, exist_ok=True)
+            for member in zf.infolist():
+                if member.is_dir():
+                    continue
+                components = member.filename.split("/")
+                name = components[-1]
+                with zf.open(member) as f_in, open(base_path / name, "wb") as f_out:
+                    f_out.write(f_in.read())
 
         summary, tables = compare_metric_directories(
             ("DEFAULT",), TableVerbosity.CHANGED, base_path, head_path, 4
         )
 
+        print("Automatically generated using `compare_pr_metrics.py`.\n")
+        print(
+            "To run it on your own: "
+            + f"`python3 .github/scripts/compare_pr_metrics.py {pull_request_number} "
+            + f"--repo {repo_full_name} "
+            + "--github-token <A GITHUB PERSONAL ACCESS TOKEN>`"
+        )
+        print("\n---\n")
         print(summary, end="")
         if len(tables):
             print("\n\n<details>")

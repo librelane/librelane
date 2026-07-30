@@ -1,0 +1,37 @@
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  pr_commented:
+    name: Metrics Comparison
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '!metrics')}}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - run: actions/checkout@v7
+      - name: Perform Metrics Comparison
+        run: |
+          make venv
+          ./venv/bin/python3 -m pip install --upgrade githubkit
+          args=()
+          if [ "$METRICS_REPO" != "" ]; then
+            args+=( "--metrics-cache-repo" "$METRICS_REPO" )
+          fi
+          ./venv/bin/python3 .github/scripts/compare_pr_metrics.py "$NUMBER" \
+            --repo "$GH_REPO" \
+            --github-token "$GH_TOKEN" > metrics_comparison_result.md \
+            "${args[@]}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          METRICS_REPO: ${{ vars.METRICS_REPO }}
+      - name: Add comment
+        run: gh issue comment "$NUMBER" --body-file metrics_comparison_result.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+
