@@ -33,14 +33,13 @@ host-docs:
 	
 .PHONY: watch-docs
 watch-docs:
-	pymon\
-		-d\
-		-w '*.md'\
-		-w '*.css'\
-		-i "*docs/build/*"\
-		-i "*docs/source/reference/*_vars.md"\
-		-i "*docs/source/reference/flows.md"\
-		-x "$(MAKE) docs && python3 -m http.server --directory docs/build/html"
+	watchexec \
+		-r \
+		-e md,css,py \
+		--ignore "*docs/build/*" \
+		--ignore "*docs/source/reference/*_vars.md" \
+		--ignore "*docs/source/reference/flows.md" \
+		-- $(MAKE) docs '&&' python3 -m http.server --directory docs/build/html
 
 .PHONY: lint
 lint:

@@ -1,18 +1,18 @@
-# macOS 14+
+# macOS 15+
 
 ```{note}
-macOS 12 and 13 may work, but they are not officially supported.
+Earlier versions of macOS may work, but they are not officially supported.
 ```
 
 * **Minimum Requirements**
-    * macOS 14 (Sonoma)
+    * macOS 15 (Sequoia)
     * 6th Gen Intel® Core CPU or later
     * 16 GiB of RAM
-    
+
 * **Recommended**
-    * macOS 14 (Sonoma)
+    * macOS 15 (Sequoia)
     * Apple Silicon CPU
-    * 32 GiB of RAM
+    * 16 GiB of RAM
 
 ## Installing Dependencies
 

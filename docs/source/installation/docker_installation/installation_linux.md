@@ -10,8 +10,14 @@ For LibreLane you need a couple of tools installed:
 * Python 3.10+ with pip and tkinter
 
 Please install all of these dependencies using your package manager. Please note
-that while alternative container services such as podman do work, they are not
-officially supported and are best-effort.
+that while alternative container services do work, they may not be officially
+supported and are best-effort.
+
+```{note}
+We do test Podman in our CI, albeit, only for Ubuntu 24.04/26.04.
+
+We welcome issues for other distributions.
+```
 
 ### Installing Docker
 

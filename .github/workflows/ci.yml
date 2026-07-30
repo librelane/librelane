@@ -46,7 +46,7 @@ jobs:
       gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
       ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
@@ -98,10 +98,10 @@ jobs:
           find ./.ciel-ihp-sg13g2 -maxdepth 4
   lint:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set Up Python
         uses: actions/setup-python@v6
         with:
@@ -112,7 +112,7 @@ jobs:
         run: |
           PATH=$PWD/venv/bin:$PATH make lint
   build-py:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [lint, prepare-test-matrices]
     strategy:
       matrix:
@@ -121,7 +121,7 @@ jobs:
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set Up Python
         uses: actions/setup-python@v6
         with:
@@ -135,10 +135,10 @@ jobs:
           ./venv/bin/coverage html
   build-linux-x86_64:
     needs: [lint, prepare-test-matrices]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -174,10 +174,10 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   build-linux-aarch64:
     needs: [lint, prepare-test-matrices]
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-24.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -235,7 +235,7 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
     name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -275,16 +275,16 @@ jobs:
         os:
           [
             {
-              name: "Ubuntu 22.04",
+              name: "Ubuntu 24.04",
               family: "linux",
-              runner: "ubuntu-22.04",
+              runner: "ubuntu-24.04",
               arch: "x86_64",
               nix: "x86_64-linux",
             },
             {
-              name: "Ubuntu 22.04",
+              name: "Ubuntu 24.04",
               family: "linux",
-              runner: "ubuntu-22.04-arm",
+              runner: "ubuntu-24.04-arm",
               arch: "aarch64",
               nix: "aarch64-linux",
             },
@@ -302,7 +302,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Lix
         run: |
           curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
@@ -336,16 +336,16 @@ jobs:
         os:
           [
             {
-              name: "Ubuntu 22.04",
+              name: "Ubuntu 24.04",
               family: "linux",
-              runner: "ubuntu-22.04",
+              runner: "ubuntu-24.04",
               arch: "x86_64",
               nix: "x86_64-linux",
             },
             {
-              name: "Ubuntu 22.04",
+              name: "Ubuntu 24.04",
               family: "linux",
-              runner: "ubuntu-22.04-arm",
+              runner: "ubuntu-24.04-arm",
               arch: "aarch64",
               nix: "aarch64-linux",
             },
@@ -363,7 +363,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Lix # CppNix crashes on Docker build
         run: |
           curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
@@ -396,7 +396,7 @@ jobs:
   test-containers:
     strategy:
       matrix:
-        runner: [ubuntu-22.04, ubuntu-24.04]
+        runner: [ubuntu-24.04, ubuntu-26.04]
         engine: [podman, docker]
       fail-fast: false
     runs-on: ${{ matrix.runner }}
@@ -412,7 +412,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set Up Python
         uses: actions/setup-python@v6
         with:
@@ -453,7 +453,7 @@ jobs:
             $lln_containerized\
             --smoke-test
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [build-linux-x86_64, prepare-test-matrices]
     name: Test Design ${{ matrix.design.test_name }} (${{ matrix.design.pdk }}/${{matrix.design.scl}})
     strategy:
@@ -468,7 +468,7 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Check if Git
@@ -555,7 +555,7 @@ jobs:
         run: exit -1
 
   smoke:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [build-linux-x86_64, build-linux-aarch64]
     name: Smoke Test on ${{ matrix.os }}
     strategy:
@@ -571,7 +571,7 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Check if Git
@@ -609,7 +609,7 @@ jobs:
 
   merge_metrics:
     name: Merge Metrics
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: test
     if: always()
     steps:
@@ -622,7 +622,7 @@ jobs:
           delete-merged: true
   upload_metrics:
     name: Cache Metrics to Repo
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test, merge_metrics]
     # if there isn't at least one metric this exercise is pointless
     if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && vars.METRICS_REPO
@@ -660,7 +660,7 @@ jobs:
           git remote add origin "https://$GH_USER:$GH_TOKEN@github.com/$REPO.git"
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test-containers, build-py, build-appimages]
     environment: pypi
     permissions:
@@ -677,7 +677,7 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       - name: Check out repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup Environment

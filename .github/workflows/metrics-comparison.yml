@@ -1,3 +1,5 @@
+name: Comment-activated Metrics Comparison
+
 on:
   issue_comment:
     types: [created]
@@ -8,9 +10,11 @@ jobs:
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '!metrics')}}
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      pull-requests: write
     steps:
-      - run: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          ref: donn/ci-overhaul
       - name: Perform Metrics Comparison
         run: |
           make venv
@@ -20,16 +24,16 @@ jobs:
             args+=( "--metrics-cache-repo" "$METRICS_REPO" )
           fi
           ./venv/bin/python3 .github/scripts/compare_pr_metrics.py "$NUMBER" \
+            "${args[@]}" \
             --repo "$GH_REPO" \
-            --github-token "$GH_TOKEN" > metrics_comparison_result.md \
-            "${args[@]}"
+            --github-token "$GH_TOKEN" > metrics_comparison_result.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           METRICS_REPO: ${{ vars.METRICS_REPO }}
       - name: Add comment
-        run: gh issue comment "$NUMBER" --body-file metrics_comparison_result.md
+        run: gh pr comment "$NUMBER" --body-file metrics_comparison_result.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
