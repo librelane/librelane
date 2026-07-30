@@ -10,7 +10,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - run: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: donn/ci-overhaul
       - name: Perform Metrics Comparison
