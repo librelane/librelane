@@ -477,6 +477,11 @@ class SynthesisCommon(VerilogStep):
             default=False,
         ),
         Variable(
+            "SYNTH_ABC_STRATEGY_SCRIPT",
+            Optional[Path],
+            "Custom ABC strategy script. Runs instead of the default script for the selected 'SYNTH_STRATEGY'. All other 'SYNTH_ABC_*' variables except 'SYNTH_ABC_DFF' will have no effect.",
+        ),
+        Variable(
             "SYNTH_DIRECT_WIRE_BUFFERING",
             bool,
             "Enables inserting buffer cells for directly connected wires.",
@@ -551,7 +556,7 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_MUL_BOOTH",
             bool,
             "Runs the booth pass as part of synthesis: See https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd/booth.html",
-            default=False,
+            default=True,
         ),
         Variable(
             "SYNTH_TIE_UNDEFINED",

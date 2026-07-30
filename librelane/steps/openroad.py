@@ -1586,8 +1586,31 @@ class _GlobalPlacement(OpenROADStep):
                 Optional[Decimal],
                 "Only applicable when PL_TIMING_DRIVEN is enabled. When the overflow is below the set value, timing-driven iterations will retain the resizer changes instead of reverting them. Allowed values are 0 to 1. If not set, a nonzero default value from OpenROAD will be used",
             ),
+            Variable(
+                "PL_GENERATE_GIF",
+                bool,
+                "Launch OpenROAD in GUI mode and run global placement with debug enabled and capture the floorplan's evolution at each placement iteration. After capture all images will be combined together to generate a gif placed in the `render` folder of the step.",
+                default=False,
+            ),
+            Variable(
+                "PL_GENERATE_GIF_PAUSE",
+                int,
+                "Number of global placement iterations to run before pausing. This is used to inspect placement progress. By default is set to a large enough value such that no pausing will occur.",
+                units="gpl_iter",
+                default=100000,
+            ),
         ]
     )
+
+    def get_command(self) -> List[str]:
+        cmd: list = super().get_command()
+        if self.config["PL_GENERATE_GIF"]:
+            if "-gui" not in cmd:
+                mode_options = "-gui"
+            if "-exit" not in cmd and os.getenv("_OPENROAD_GUI", "0") == "0":
+                mode_options = mode_options + "-exit"
+            cmd.insert(cmd.index("openroad") + 1, mode_options)
+        return cmd
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "gpl.tcl")

@@ -53,6 +53,8 @@ Style Notes
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
+  * Allow to connect only some of the power/ground ports of an instance.
+
 * `OpenROAD.PadRing`
 
   * Added `PAD_ROTATION_[HORIZONTAL|VERTICAL|CORNER]` for pad cells that require it (e.g. sky130).
@@ -562,6 +564,9 @@ Style Notes
     identify appropriate ICG
 
     * Removed `LIGHTER_DFF_MAP`: tangentially related to above
+
+  * Added `SYNTH_ABC_STRATEGY_SCRIPT`: custom ABC strategy script that runs
+    instead of the default script of the selected `SYNTH_STRATEGY`.
 
 * `Yosys.Synthesis`
 

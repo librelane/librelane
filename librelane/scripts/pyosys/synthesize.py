@@ -281,8 +281,6 @@ def synthesize(
 
     d.add_blackbox_models(blackbox_models, includes=includes, defines=defines)
 
-    clock_period = config["CLOCK_PERIOD"] * 1000  # ns -> ps
-
     # ABC only supports these two:
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
@@ -462,17 +460,20 @@ def synthesize(
     script_creator = ABCScriptCreator(config)
 
     def run_strategy(d):
-        abc_script = script_creator.generate_abc_script(
-            step_dir,
-            config["SYNTH_STRATEGY"],
-        )
-        ys.log(f"[INFO] Using generated ABC script '{abc_script}'…")
+        abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
+        if abc_script:
+            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…")
+        else:
+            abc_script = script_creator.generate_abc_script(
+                step_dir,
+                config["SYNTH_STRATEGY"],
+            )
+            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…")
+
         d.run_pass(
             "abc",
             "-script",
             abc_script,
-            "-D",
-            f"{clock_period}",
             "-constr",
             sdc_path,
             "-showtmp",
