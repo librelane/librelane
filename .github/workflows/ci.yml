@@ -622,11 +622,11 @@ jobs:
           pattern: "*.metrics.json"
           delete-merged: true
   upload_metrics:
-    name: Upload Metrics
+    name: Cache Metrics to Repo
     runs-on: ubuntu-22.04
     needs: [test, merge_metrics]
     # if there isn't at least one metric this exercise is pointless
-    if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && secrets.BOT_GITHUB_TOKEN && vars.METRICS_REPO
+    if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && vars.METRICS_REPO
     steps:
       - name: Setup
         run: |
@@ -639,18 +639,24 @@ jobs:
           name: metrics
           path: current
       - name: "Upload Metrics"
+        if: ${{ vars.BOT_USERNAME && secrets.BOT_GITHUB_TOKEN != '' }}
+        env:
+          GH_USER: '${{ vars.BOT_USERNAME }}'
+          GH_TOKEN: '${{ secrets.BOT_GITHUB_TOKEN }}'
+          BOT_NAME: '${{ vars.BOT_NAME }}'
+          BOT_EMAIL: '${{ vars.BOT_EMAIL }}'
+          REPO: '${{ vars.METRICS_REPO }}'
         run: |
           CURRENT_SHA=$(git rev-parse HEAD)
-          REPO=${{ vars.METRICS_REPO }}
           BRANCH_NAME="commit-$CURRENT_SHA"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
           cd current
           git init -b $BRANCH_NAME
           git add .
-          git config user.name "${{ vars.BOT_NAME }}"
-          git config user.email "${{ vars.BOT_EMAIL }}"
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
           git commit -m "Upload"
-          git remote add origin "https://${{ vars.BOT_USERNAME }}:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/$REPO.git"
+          git remote add origin "https://$GH_USER:$GH_TOKEN@github.com/$REPO.git"
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-22.04
