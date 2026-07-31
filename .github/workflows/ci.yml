@@ -483,6 +483,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+      - name: Prepare the Nix Store
+        run: |
+          mkdir -p /nix
       - name: Restore Nix Store
         id: restore-nix-store
         uses: actions/cache@v6
@@ -531,7 +534,7 @@ jobs:
           if test ${{ matrix.design.script }} = "None"
           then
             $DEVSHELL_BIN -- \
-              python3 -m librelane
+              python3 -m librelane\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
