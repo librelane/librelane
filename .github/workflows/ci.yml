@@ -294,9 +294,11 @@ jobs:
               nix: "x86_64-linux",
             },
             {
-              name: "Ubuntu 24.04",
+              # 24.04 has more "security" i.e. cannot write uid_map: Operation not permitted
+              # Ubuntu was a mistake
+              name: "Ubuntu 22.04",
               family: "linux",
-              runner: "ubuntu-24.04-arm",
+              runner: "ubuntu-22.04-arm",
               arch: "aarch64",
               nix: "aarch64-linux",
             },
@@ -548,6 +550,7 @@ jobs:
               --condensed\
               ${{ matrix.design.config }}
           else
+            export PYTHONPATH="$PWD"
             $DEVSHELL_BIN -- \
               python3 ${{ matrix.design.script }}\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
