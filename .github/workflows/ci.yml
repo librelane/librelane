@@ -150,7 +150,7 @@ jobs:
       - name: Cache x86-64 Nix Store
         uses: actions/cache@v6
         with:
-          path: /nix
+          path: /nix/store
           key: nix-store-x86_64-linux-${{ github.run_id }}
       - uses: ./.github/actions/setup_nix
         with:
@@ -487,7 +487,7 @@ jobs:
         id: restore-nix-store
         uses: actions/cache@v6
         with:
-          path: /nix
+          path: /nix/store
           key: nix-store-x86_64-linux-${{ github.run_id }}
       - if: steps.restore-nix-store.outputs.cache-hit != 'true'
         uses: ./.github/actions/setup_nix
@@ -500,6 +500,10 @@ jobs:
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
+      - if: steps.restore-nix-store.outputs.cache-hit != 'true'
+        name: Avail the Devshell
+        run: |
+          nix build .#devShells.x86_64-linux.dev --no-link --print-out-paths
       - name: Get PDK hash
         run: |
           echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
