@@ -285,17 +285,17 @@ jobs:
     strategy:
       matrix:
         os:
+          # 24.04 has more "security" i.e. cannot write uid_map: Operation not permitted
+          # Ubuntu was a mistake
           [
             {
-              name: "Ubuntu 24.04",
+              name: "Ubuntu 22.04",
               family: "linux",
-              runner: "ubuntu-24.04",
+              runner: "ubuntu-22.04",
               arch: "x86_64",
               nix: "x86_64-linux",
             },
             {
-              # 24.04 has more "security" i.e. cannot write uid_map: Operation not permitted
-              # Ubuntu was a mistake
               name: "Ubuntu 22.04",
               family: "linux",
               runner: "ubuntu-22.04-arm",
