@@ -485,13 +485,17 @@ jobs:
           submodules: recursive
       - name: Prepare the Nix Store
         run: |
-          mkdir -p /nix
+          sudo mkdir -p /nix
+          sudo chown -R $(id -u):$(id -g) /nix 
       - name: Restore Nix Store
         id: restore-nix-store
         uses: actions/cache@v6
         with:
           path: /nix/store
           key: nix-store-x86_64-linux-${{ github.run_id }}
+      - if: steps.restore-nix-store.outputs.cache-hit != 'true'
+        run: |
+          sudo rm -rf /nix
       - if: steps.restore-nix-store.outputs.cache-hit != 'true'
         uses: ./.github/actions/setup_nix
         with:
