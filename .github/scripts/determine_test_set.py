@@ -21,10 +21,12 @@ import argparse
 import json
 import os
 
+
 def export_env(key: str, value: str):
     env_file = os.getenv("GITHUB_ENV", ".test_sets.env")
     with open(env_file, "w", encoding="utf8") as f:
         f.write(f"{key}={value}")
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

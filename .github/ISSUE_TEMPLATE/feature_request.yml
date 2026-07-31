@@ -13,3 +13,15 @@ body:
     attributes:
       label: Proposal
       description: Do you have any thoughts on how to address this?
+  - type: checkboxes
+    id: llm-policy-confirmation
+    attributes:
+      label: LLM Policy Confirmation
+      description: >
+        Confirming that bug reports abide by the
+        [LLM Contribution Policy](https://librelane.readthedocs.io/en/stable/contributors/llm-policy.html)
+      options:
+        - label: >
+            The text in this feature request is majority human-written or
+            originally human-written before translation.
+          required: true

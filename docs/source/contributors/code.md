@@ -1,9 +1,22 @@
 # Contributing Code
 
-*Parts adapted from the [Mesa Contributor Policy](https://gitlab.freedesktop.org/mesa/mesa/-/blob/f6f2a73bbcd02540da39fe5718ce7d0b7f866216/docs/submittingpatches.rst).*
+We'd love to accept your patches and contributions to this project. This page
+contains a number of instructions and guidelines that you may want to follow
+so your PR can get merged in a timely manner.
 
-We'd love to accept your patches and contributions to this project. There are
-just a few small guidelines you need to follow.
+## Setup
+
+While for using LibreLane, we recommend any of the installation methods, for
+development we _really_ recommend
+{doc}`docs/source/installation/nix_installation/index`. Nix allows you to demo
+changes with LibreLane and/or tools quite easily.
+
+This guide will assume you have LibreLane installed via Nix.
+
+When developing LibreLane, you want to run `nix develop .#dev`. This will allow
+you to run YOUR current edits to LibreLane using `python3 -m librelane <args>`,
+except it will not attempt to build LibreLane itself as part of the Nix
+environment.
 
 ## Branching
 
@@ -21,8 +34,43 @@ Feature contributions should be directed towards the `dev` branch.
 ## Testing
 
 Before you submit your changes, it's prudent to perform some kind of smoke test.
-`python3 -m librelane ./designs/spm/config.json` tests a simple spm design to
-ensure nothing has gone horribly wrong.
+`python3 -m librelane --smoke-test` tests a simple spm design to ensure nothing
+has gone horribly wrong.
+
+LibreLane also runs two sets of tests per PR, namely, a set of **design tests**
+and a set of **unit tests**. Unit tests are further broken down into
+**infrastructure tests** and **step implementation tests**.
+
+You do not have to run the design tests yourself, but we do require you to run
+the unit tests. To do so, in the `nix develop .#dev` environment, run:
+
+```bash
+git submodule update --init ./test/steps/all
+# To run all tests:
+pytest -n auto -m all
+# To run just the infrastructure tests:
+#   * We don't bother passing (-n auto) to this test because the time taken to
+#     allocate workers exceeds the time taken to run the tests.
+pytest
+# To run just step implementation tests:
+pytest -n auto -m step_impl_test
+```
+
+### Dealing with failures
+
+Infrastructure unit tests must be fixed. Collaborate with maintainers if you're
+not sure why something is failing.
+
+Step implementations unit tests, as you may have surmised, are not stored in
+this repo (to save on clone times), and are stored in a submodule. This
+complicates pull requests, as you have to open two pull requests across two
+repos.
+
+If the issue is simple (an error code needs to be updated or similar), you may
+elect to exclude the test from running by adding it to `test/steps/xfails`.
+
+The same goes for design tests: if the failure is simple enough to fix, you may
+simply comment out the relevant design in `.github/test_sets/test_sets.yml`.
 
 ## Language Standards
 
@@ -58,7 +106,7 @@ chosen tools (and one optional tool):
   - [Linter](https://en.wikipedia.org/wiki/Lint_(software)>)
   - `ruff check .`
   - Our `pyproject.toml` uses ruff as a simple parsing checker, i.e., makes sure
-    your code can still parse under Python 3.8 as it is entirely too easy to
+    your code can still parse under Python 3.10 as it is entirely too easy to
     write code that by accident only works on later versions of Python. We
     presently do not use other features of ruff.
 ```
@@ -102,9 +150,9 @@ Consult [GitHub Help](https://help.github.com/articles/about-pull-requests/) for
 more information on using pull requests.
 
 You need to understand what code you are changing, what the change does, and
-justify that change in the commit messages and PR. Using coding assistants or
-"Generative AI" software or similar tools does not grant additional concessions
-and low-quality code typical thereof will be rejected outright.
+justify that change in the commit messages and PR.
+
+All code contributions must follow the {doc}`/contributors/llm-policy`.
 
 ### The Approval Process
 
@@ -124,7 +172,6 @@ you:
 1. Wrote it yourself and are willing to release your changes under said license.
 2. Acquired it from other libre software with compatible license terms (and of
    course the requisite copyright notices.)
-3. Created using coding assistants, "Generative AI" software, or similar tools.
 
 For significant changes, please add your (or your employer's) name to the
 Authors.md file at the root of the repository.
