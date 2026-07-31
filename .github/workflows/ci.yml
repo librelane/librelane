@@ -136,6 +136,8 @@ jobs:
   build-linux-x86_64:
     needs: [lint, prepare-test-matrices]
     runs-on: ubuntu-24.04
+    outputs:
+      devshell_bin: ${{ steps.set-devshell-bin.outputs.devshell_bin }}
     name: Build (Nix/x86_64-linux)
     steps:
       - uses: actions/checkout@v7
@@ -145,6 +147,11 @@ jobs:
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      - name: Cache x86-64 Nix Store
+        uses: actions/cache@v6
+        with:
+          path: /nix
+          key: nix-store-x86_64-linux-${{ github.run_id }}
       - uses: ./.github/actions/setup_nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -172,6 +179,11 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Write Devshell as Output
+        id: set-devshell-bin
+        run: |
+          DEVSHELL_STORE_PATH=$(nix build .#devShells.x86_64-linux.dev --no-link --print-out-paths)
+          echo "devshell_bin=$DEVSHELL_STORE_PATH/bin/devshell" >> $GITHUB_OUTPUT
   build-linux-aarch64:
     needs: [lint, prepare-test-matrices]
     runs-on: ubuntu-24.04-arm
@@ -471,23 +483,23 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
-      - name: Check if Git
-        run: |
-          git status || true
-          tree .git || true
-      - uses: ./.github/actions/setup_nix
+      - name: Restore Nix Store
+        id: restore-nix-store
+        uses: actions/cache@v6
+        with:
+          path: /nix
+          key: nix-store-x86_64-linux-${{ github.run_id }}
+      - if: steps.restore-nix-store.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup_nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
-      - name: Build with Nix
+      - if: steps.restore-nix-store.outputs.cache-hit != 'true'
+        name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-      - name: Check Nix
-        run: |
-          sudo du -hs /nix/store/* | sort -h | tail -n 10
-          sudo tree /nix/store/*-librelane || true
       - name: Get PDK hash
         run: |
           echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./librelane/pdk_hashes.yaml --pdk-family ${{ matrix.design.pdk_family }})" >> $GITHUB_ENV
@@ -509,13 +521,13 @@ jobs:
       - name: Run Test
         id: test_run
         continue-on-error: true
+        env:
+          DEVSHELL_BIN: ${{ needs.build-linux-x86_64.outputs.devshell_bin }}
         run: |
-          if test ${{matrix.design.script}} = "None"
+          if test ${{ matrix.design.script }} = "None"
           then
-            mkdir -p ${{ github.workspace }}/run
-            sudo du -hs /nix/store/* | sort -h | tail -n 10
-            sudo du -hs /nix/store/* | sort -h | tail -n 10 > before.txt
-            nix run . --\
+            $DEVSHELL_BIN -- \
+              python3 -m librelane
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
               --scl ${{ matrix.design.scl }}\
@@ -523,7 +535,7 @@ jobs:
               --condensed\
               ${{ matrix.design.config }}
           else
-            nix develop --command\
+            $DEVSHELL_BIN -- \
               python3 ${{ matrix.design.script }}\
               --run-tag ${{ matrix.design.pdk }}-${{ matrix.design.scl }}\
               --pdk ${{ matrix.design.pdk }}\
@@ -539,8 +551,10 @@ jobs:
           path: ${{ matrix.design.run_dir }}
 
       - name: Fetch Metrics
+        env:
+          DEVSHELL_BIN: ${{ needs.build-linux-x86_64.outputs.devshell_bin }}
         run: |
-          nix develop --command librelane.state latest\
+          $DEVSHELL_BIN -- python3 -m librelane.state latest\
               ${{ matrix.design.run_dir }}\
               --extract-metrics-to ${{ matrix.design.pdk }}-${{ matrix.design.scl }}-${{ matrix.design.test_name }}.metrics.json
 
