@@ -336,6 +336,8 @@ jobs:
             --bundler github:ralismark/nix-appimage\
             .#devShells.${{ matrix.os.nix }}.default
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
+      - name: Smoke-Test AppImage
+        run: |
           $IMAGE_PATH librelane --smoke-test
       - name: Upload AppImage Artifact
         uses: actions/upload-artifact@v7
