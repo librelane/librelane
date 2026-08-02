@@ -656,11 +656,6 @@ jobs:
     # if there isn't at least one metric this exercise is pointless
     if: needs.merge_metrics.result == 'success' && github.event_name == 'push' && vars.METRICS_REPO
     steps:
-      - name: Setup
-        run: |
-          sudo apt-get install -y python3-tk
-          python3 -m pip install -e .
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Download Metrics
         uses: actions/download-artifact@v8
         with:
