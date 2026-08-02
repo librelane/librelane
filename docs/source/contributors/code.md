@@ -41,8 +41,8 @@ LibreLane also runs two sets of tests per PR, namely, a set of **design tests**
 and a set of **unit tests**. Unit tests are further broken down into
 **infrastructure tests** and **step implementation tests**.
 
-You do not have to run the design tests yourself, but we do require you to run
-the unit tests. To do so, in the `nix develop .#dev` environment, run:
+We do require a successful run of the unit tests to merge contributions. To do
+so, in the `nix develop .#dev` environment, run:
 
 ```bash
 git submodule update --init ./test/steps/all
@@ -55,6 +55,39 @@ pytest
 # To run just step implementation tests:
 pytest -n auto -m step_impl_test
 ```
+
+### Designs
+
+As stated, designs are automatically run by the CI. We really don't recommend
+you run them yourself and there's no script to really do that[^1].
+
+Designs aren't supposed to simply just pass or fail: LibreLane compares a number
+of performance and area metrics as well. We don't want to get metrics to get
+noticeably worse; it could indicate bad methodology changes or a regression in
+the relevant tools.
+
+The CI harvests a set of said metrics and uploads it as GitHub Actions
+"artifact". You can then use the metrics comparison script to compare your PR
+with the base commit it is targeting. You have to wait for the "Merge Metrics"
+job for your Pull Request's CI to conclude, but, there are two ways to do this:
+
+1. (Recommended) Write a comment starting with `!metrics`. GitHub Actions will run the
+   comparison and comment the result.
+2. Run it manually in the `nix develop .#dev` as follows:
+
+   ```bash
+   python3 .github/scripts/compare_pr_metrics.py <PR NUMBER> \
+     --github-token <A GITHUB PERSONAL ACCESS TOKEN> \
+     --metrics-cache-repo librelane/librelane-metrics \
+     --repo librelane/librelane > comparison.md
+   ```
+
+   ```{tip}
+   If you have the `gh` CLI installed and authenticated, you may choose to
+   authenticate by simply passing `--github-token $(gh auth token)`.
+   ```
+
+[^1]: You may use this at your own risk. https://gist.github.com/donn/f2bc2fdb0058486c9cdf2e46168ae204
 
 ### Dealing with failures
 

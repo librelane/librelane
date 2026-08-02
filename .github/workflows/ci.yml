@@ -649,7 +649,6 @@ jobs:
         with:
           name: metrics
           pattern: "*.metrics.json"
-          delete-merged: true
   upload_metrics:
     name: Cache Metrics to Repo
     runs-on: ubuntu-24.04

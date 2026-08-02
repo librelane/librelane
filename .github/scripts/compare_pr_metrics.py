@@ -3,6 +3,7 @@
 # flake8: noqa: E402
 import os
 import sys
+import shlex
 from pathlib import Path
 
 __file_dir__ = Path(__file__).parent.resolve()
@@ -38,7 +39,9 @@ except ImportError as e:
             "-m",
             "pip",
             "install",
-            "click",
+            "--quiet",
+            "--editable",
+            ".",
         ]
     )
     subprocess.check_output(
@@ -47,10 +50,13 @@ except ImportError as e:
             "-m",
             "pip",
             "install",
+            "--quiet",
             "githubkit",
         ]
     )
-    os.execl(venv_python3, venv_python3, *sys.argv)
+    cmd = [str(venv_python3), *sys.argv]
+    print(f"$ {shlex.join(cmd)}", file=sys.stderr)
+    os.execl(venv_python3, *cmd)
 
 import tempfile
 from zipfile import ZipFile
@@ -210,6 +216,8 @@ def main(
         print(
             "To run it on your own: "
             + f"`python3 .github/scripts/compare_pr_metrics.py {pull_request_number} "
+            + f"--metrics-cache-repo {metrics_repo_full_name} "
+            * (metrics_repo_full_name is not None)
             + f"--repo {repo_full_name} "
             + "--github-token <A GITHUB PERSONAL ACCESS TOKEN>`"
         )
