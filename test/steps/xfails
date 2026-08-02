@@ -1,5 +1,12 @@
+# This file can be used to disable one or more tests without having to update
+# the submodule, which is a considerably more time-consuming process.
+#
+# In theory, the idea is that fixing the relevant tests can be done in batches
+# instead of having to deal with the complicated submodule PR flow.
+
 odb.applydeftemplate/002-bad_def # fails randomly on Nix/aarch64-darwin
-# errors need updating
+
+# error codes need updating:
 openroad.detailedrouting/004-fail-range-max
 openroad.globalplacement/005-fail-util
 openroad.globalplacement/002-fail-density

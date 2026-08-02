@@ -13,8 +13,6 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: donn/ci-overhaul
       - name: Perform Metrics Comparison
         run: |
           make venv

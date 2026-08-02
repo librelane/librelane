@@ -94,7 +94,7 @@ def run(
                         )
                         ctx.exit(1)
                 elif isinstance(meta.flow, list):
-                    TargetFlow = SequentialFlow.make(meta.flow)
+                    TargetFlow = SequentialFlow.Make(meta.flow)
                 if meta.substituting_steps is not None:
                     if meta.flow is None:
                         err("config_file has substituting_steps set with no flow.")

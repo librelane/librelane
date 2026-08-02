@@ -10,6 +10,12 @@
 
 Only Ubuntu 22.04 and above are supported.
 
+```{note}
+We also test an alternative container engine, Podman, in our CI for Ubuntu
+24.04/26.04. We explicitly do not support 22.04 because of a number of bugs
+we've encountered in the very out-of-date version of Podman.
+```
+
 ```{include} ../_ubuntu_packages.md
 :heading-offset: 1
 
