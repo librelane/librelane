@@ -672,8 +672,7 @@ jobs:
           if [ "$GH_TOKEN" == "" ]; then
             exit 0
           fi
-          CURRENT_SHA=$(git rev-parse HEAD)
-          BRANCH_NAME="commit-$CURRENT_SHA"
+          BRANCH_NAME="commit-${{ github.sha }}"
           echo "Uploading to 'github.com/$REPO@$BRANCH_NAME'…"
           cd current
           git init -b $BRANCH_NAME
