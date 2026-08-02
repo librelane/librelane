@@ -18,7 +18,7 @@ powerful EDA (Electronic Design Automation) tools that facilitate the
 implementation of the design. The following are examples of steps needed to
 realize an ASIC.
 
-* Design Entry: The design is described is described using a
+* Design Entry: The design is described using a
   {term}`hardware description language <HDL>` such as {term}`Verilog`.
   For digital design, modeling is typically done at the
   {term}`register transfer level <RTL>`, 
