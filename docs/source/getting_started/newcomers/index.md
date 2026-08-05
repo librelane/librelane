@@ -56,7 +56,7 @@ LibreLane is a powerful and versatile infrastructure library that enables the
 construction of digital ASIC physical implementation flows based on open-source
 and commercial EDA tools. It includes a reference flow ({flow}`Classic`) that is
 constructed entirely using open-source EDA tools — abstracting their behavior
-and allowing the user to configure them using a single file (See Figure 1).
+and allowing the user to configure them using a single file (See {ref}`Figure 1 <fig-configurable-flow>`).
 LibreLane also supports extending or modifying flows using Python scripts and
 utilities. Here are some of the key benefits of using LibreLane:
 

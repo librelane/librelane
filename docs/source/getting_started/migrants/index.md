@@ -27,6 +27,7 @@ entirely backwards compatible, with some conveniences:
   design at certain parts of flows, without worrying about surprises related
   to state variables missing.
 
+(fig-configurable-flow)=
 ```{figure} ./configurable_flow.webp
 Writing custom flows and steps using LibreLane
 ```
