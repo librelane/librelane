@@ -15,6 +15,7 @@ import os
 import re
 from glob import glob
 from typing import Any, Dict, List, Mapping
+from ..common import process_list_file
 
 
 def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
@@ -349,5 +350,26 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
     elif new["PDK"].startswith("gf180mcu"):
         if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
             new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
+
+    # 9.a Synthesis cell exclusion list
+    for var in [
+        "NO_SYNTH_CELL_LIST",
+        "SYNTH_EXCLUSION_CELL_LIST",
+        "SYNTH_EXCLUDED_CELL_FILE",
+    ]:
+        #        print(var, new[var])
+        if var in new:
+            new["SYNTH_EXCLUDED_CELLS"] = process_list_file(new[var])
+            del new[var]
+
+    # 9.b P&R cell exclusion list
+    for var in [
+        "DRC_EXCLUDE_CELL_LIST",
+        "PNR_EXCLUSION_CELL_LIST",
+        "PNR_EXCLUDED_CELL_FILE",
+    ]:
+        if var in new:
+            new["PNR_EXCLUDED_CELLS"] = process_list_file(new[var])
+            del new[var]
 
     return new

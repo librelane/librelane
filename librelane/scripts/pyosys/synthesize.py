@@ -271,7 +271,6 @@ def synthesize(
     )
 
     blackbox_models = extra["blackbox_models"]
-    libs = extra["libs_synth"]
 
     d = ys.Design()
 
@@ -338,9 +337,20 @@ def synthesize(
         d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
 
-    lib_arguments = []
-    for lib in libs:
-        lib_arguments.extend(["-liberty", lib])
+    # create a list of CLI arguments for loading Liberty files
+    liberty_arguments = []
+    for lib in extra["libs_synth"]:
+        liberty_arguments.extend(["-liberty", lib])
+
+    # combine excluded cells lists
+    excluded_cells = config["EXTRA_EXCLUDED_CELLS"] or []
+    excluded_cells += config["SYNTH_EXCLUDED_CELLS"]
+    excluded_cells += config["PNR_EXCLUDED_CELLS"]
+
+    # create a list of CLI arguments for excluded cells
+    dont_use_arguments = []
+    for cell in excluded_cells:
+        dont_use_arguments.extend(["-dont_use", cell])
 
     if config["SYNTH_ELABORATE_ONLY"]:
         librelane_proc(d, report_dir)
@@ -350,8 +360,10 @@ def synthesize(
         d.run_pass("splitnets")
         d.run_pass("opt_clean", "-purge")
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "stat.json"))
-        d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
+        d.tee(
+            "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json")
+        )
+        d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         noattr_flag = []
         if config["SYNTH_WRITE_NOATTR"]:
@@ -407,9 +419,12 @@ def synthesize(
     d.run_pass("opt_clean", "-purge")
 
     d.tee(
-        "stat", "-json", *lib_arguments, o=os.path.join(report_dir, "pre_techmap.json")
+        "stat",
+        "-json",
+        *liberty_arguments,
+        o=os.path.join(report_dir, "pre_techmap.json"),
     )
-    d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "pre_techmap.rpt"))
+    d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "pre_techmap.rpt"))
 
     if tristate_mapping := config["SYNTH_TRISTATE_MAP"]:
         ys.log(f"[INFO] Applying tri-state buffer mapping from '{tristate_mapping}'…")
@@ -449,13 +464,13 @@ def synthesize(
             *negedge,
         )
 
-    dfflibmap_args = []
-    for lib in libs:
-        dfflibmap_args.extend(["-liberty", lib])
-    d.run_pass("dfflibmap", *dfflibmap_args)
+    d.run_pass("dfflibmap", *liberty_arguments, *dont_use_arguments)
+    d.run_pass("opt")
 
-    d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "post_dff.json"))
-    d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
+    d.tee(
+        "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "post_dff.json")
+    )
+    d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
 
     script_creator = ABCScriptCreator(config)
 
@@ -477,7 +492,8 @@ def synthesize(
             "-constr",
             sdc_path,
             "-showtmp",
-            *lib_arguments,
+            *liberty_arguments,
+            *dont_use_arguments,
             *(["-dff"] if config["SYNTH_ABC_DFF"] else []),
         )
 
@@ -501,8 +517,10 @@ def synthesize(
             d.run_pass("insbuf", "-buf", *config["SYNTH_BUFFER_CELL"].split("/"))
 
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "stat.json"))
-        d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
+        d.tee(
+            "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "stat.json")
+        )
+        d.tee("stat", *liberty_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         if config["SYNTH_AUTONAME"]:
             # Generate public names for the various nets, resulting in very long

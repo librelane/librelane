@@ -12,6 +12,7 @@ on:
       - "dev"
       - "version-*"
       - "stable"
+      - "jeras*"
     tags-ignore:
       - "**"
   # Runs on all PRs
