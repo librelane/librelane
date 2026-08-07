@@ -465,6 +465,7 @@ def synthesize(
         )
 
     d.run_pass("dfflibmap", *liberty_arguments, *dont_use_arguments)
+    d.run_pass("opt")
 
     d.tee(
         "stat", "-json", *liberty_arguments, o=os.path.join(report_dir, "post_dff.json")
