@@ -594,9 +594,7 @@ class SynthesisCommon(VerilogStep):
         ]
         metric_updates["design__instance_unmapped__count"] = sum(unmapped_cells)
 
-        check_error_count_file = os.path.join(
-            self.step_dir, "reports", "pre_synth_chk.rpt"
-        )
+        check_error_count_file = os.path.join(self.step_dir, "reports", "chk.rpt")
         metric_updates["synthesis__check_error__count"] = 0
         if os.path.exists(check_error_count_file):
             metric_updates["synthesis__check_error__count"] = _parse_yosys_check(
