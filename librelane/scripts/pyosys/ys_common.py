@@ -16,8 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import re
 import sys
-from typing import Iterable, List, Union
+from typing import Iterable, List, Tuple, Union
+
+_YOSYS_VERSION_RX = re.compile(r"^\s*Yosys (\d+)\.(\d+)")
 
 try:
     from pyosys import libyosys as ys
@@ -34,6 +37,17 @@ except ImportError:
             file=sys.stderr,
         )
         exit(-1)
+
+
+def yosys_version() -> Tuple[int, int]:
+    raw = ys.yosys_maybe_version()
+    if match := _YOSYS_VERSION_RX.search(raw):
+        return (int(match.group(1)), int(match.group(2)))
+    ys.log(
+        "* Warning: Could not identify Yosys version. "
+        "Defaulting to the latest on all gated behavior.\n"
+    )
+    return (999, 999)
 
 
 def _Design_run_pass(self, *command):

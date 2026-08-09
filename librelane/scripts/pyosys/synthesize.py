@@ -38,7 +38,7 @@ from typing import List, Optional
 
 import click
 
-from ys_common import ys
+from ys_common import ys, yosys_version
 from construct_abc_script import ABCScriptCreator
 
 
@@ -225,7 +225,12 @@ def librelane_synth(
     librelane_opt(d, fast=True)
     librelane_opt(d, fast=True)
 
-    d.run_pass("abc", *(["-dff"] if abc_dff else []))
+    abc_pass = ["abc"]
+    if yosys_version() < (0, 68):
+        abc_pass.append("-fast")
+    if abc_dff:
+        abc_pass.append("-dff")
+    d.run_pass(*abc_pass)
     d.run_pass("opt", "-fast")  # MORE fast optimization
 
     # Checks and Stats
