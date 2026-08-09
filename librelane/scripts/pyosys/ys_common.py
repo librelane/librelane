@@ -43,8 +43,8 @@ def yosys_version() -> Tuple[int, int]:
     raw = ys.yosys_maybe_version()
     if match := _YOSYS_VERSION_RX.search(raw):
         return (int(match.group(1)), int(match.group(2)))
-    ys.log(
-        "* Warning: Could not identify Yosys version. "
+    ys.log_warning(
+        "Could not identify Yosys version. "
         "Defaulting to the latest on all gated behavior.\n"
     )
     return (999, 999)
