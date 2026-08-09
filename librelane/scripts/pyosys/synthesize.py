@@ -225,9 +225,7 @@ def librelane_synth(
     librelane_opt(d, fast=True)
     librelane_opt(d, fast=True)
 
-    d.run_pass(
-        "abc", "-fast", *(["-dff"] if abc_dff else [])
-    )  # Run ABC with fast settings
+    d.run_pass("abc", *(["-dff"] if abc_dff else []))
     d.run_pass("opt", "-fast")  # MORE fast optimization
 
     # Checks and Stats
