@@ -95,8 +95,8 @@ proc read_current_sdc {} {
 
     # Compatibility Layer for Deprecated Variables That May Still Be Used By
     # User Files
-    set ::env(IO_PCT) [expr $::env(IO_DELAY_CONSTRAINT) / 100]
-    set ::env(SYNTH_TIMING_DERATE) [expr $::env(TIME_DERATING_CONSTRAINT) / 100]
+    set ::env(IO_PCT) [expr $::env(IO_DELAY_CONSTRAINT) / 100.0]
+    set ::env(SYNTH_TIMING_DERATE) [expr $::env(TIME_DERATING_CONSTRAINT) / 100.0]
     set ::env(SYNTH_MAX_FANOUT) $::env(MAX_FANOUT_CONSTRAINT)
     set ::env(SYNTH_CLOCK_UNCERTAINTY) $::env(CLOCK_UNCERTAINTY_CONSTRAINT)
     set ::env(SYNTH_CLOCK_TRANSITION) $::env(CLOCK_TRANSITION_CONSTRAINT)

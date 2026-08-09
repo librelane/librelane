@@ -325,9 +325,9 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         if "CLOCK_TRANSITION_CONSTRAINT" not in config:
             new["CLOCK_TRANSITION_CONSTRAINT"] = 0.15
         if "TIME_DERATING_CONSTRAINT" not in config:
-            new["TIME_DERATING_CONSTRAINT"] = 5
+            new["TIME_DERATING_CONSTRAINT"] = 5.0
         if "IO_DELAY_CONSTRAINT" not in config:
-            new["IO_DELAY_CONSTRAINT"] = 20
+            new["IO_DELAY_CONSTRAINT"] = 20.0
 
         # Unspecififed is fine
         # if "FP_IO_MIN_DISTANCE" not in config:
