@@ -54,7 +54,7 @@ def yosys_version_at_least(*target: Tuple[int, ...]) -> Tuple[int, int]:
         _yosys_version_extracted = (999, 999)
         try:
             match = yosys_version_rx.search(ys.Globals.yosys_version_str)
-            _yosys_version_extracted = (int(match.group(1)), int(match.group(3)))
+            _yosys_version_extracted = (int(match.group(1)), int(match.group(2)))
         except Exception:
             ys.log_warning(
                 "Could not identify Yosys version. "
