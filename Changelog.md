@@ -25,6 +25,15 @@ Style Notes
 
 -->
 
+# 3.0.8
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Added compatibility with Yosys 0.67 and higher (non-bundled versions, thus
+    best-effort) by gating relevant commands.
+
 # 3.0.7
 
 ## Steps
