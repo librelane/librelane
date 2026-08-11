@@ -45,7 +45,7 @@ _yosys_version_extracted: Optional[Tuple[int, int]] = None
 def yosys_version_at_least(*target: Tuple[int, ...]) -> Tuple[int, int]:
     """
     check if version is >= the target components, i.e.
-    
+
     yosys_version_at_least(0, 68) checks if the verison >= 0.68
     """
     global _yosys_version_extracted
