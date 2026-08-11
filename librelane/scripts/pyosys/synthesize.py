@@ -151,6 +151,7 @@ def librelane_synth(
     booth=False,
     abc_dff=False,
     undriven=True,
+    arith_tree=True,
     keep_hierarchy_min_cost: Optional[int],
     keep_hierarchy_instances: List[str],
     keep_hierarchy_modules: List[str],
@@ -192,6 +193,8 @@ def librelane_synth(
     if booth:
         d.run_pass("booth")
     d.run_pass("alumacc")  # Optimize arithmetic logic unitsb
+    if arith_tree:
+        d.run_pass("arith_tree")  # Optimise chains of arithmetic cells
     d.run_pass("share")  # Share logic across the design
     librelane_opt(d)
 
@@ -277,8 +280,6 @@ def synthesize(
     os.makedirs(report_dir, exist_ok=True)
 
     d.add_blackbox_models(blackbox_models, includes=includes, defines=defines)
-
-    clock_period = config["CLOCK_PERIOD"] * 1000  # ns -> ps
 
     # ABC only supports these two:
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
@@ -387,6 +388,7 @@ def synthesize(
         keep_hierarchy_min_cost=config["SYNTH_KEEP_HIERARCHY_MIN_COST"],
         keep_hierarchy_instances=config["SYNTH_KEEP_HIERARCHY_INSTANCES"],
         keep_hierarchy_modules=config["SYNTH_KEEP_HIERARCHY_MODULES"],
+        arith_tree=config["SYNTH_ARITH_TREE"],
     )
 
     d.run_pass("delete", "t:$print")
@@ -458,17 +460,20 @@ def synthesize(
     script_creator = ABCScriptCreator(config)
 
     def run_strategy(d):
-        abc_script = script_creator.generate_abc_script(
-            step_dir,
-            config["SYNTH_STRATEGY"],
-        )
-        ys.log(f"[INFO] Using generated ABC script '{abc_script}'…")
+        abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
+        if abc_script:
+            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…")
+        else:
+            abc_script = script_creator.generate_abc_script(
+                step_dir,
+                config["SYNTH_STRATEGY"],
+            )
+            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…")
+
         d.run_pass(
             "abc",
             "-script",
             abc_script,
-            "-D",
-            f"{clock_period}",
             "-constr",
             sdc_path,
             "-showtmp",

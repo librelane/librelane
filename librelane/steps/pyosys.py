@@ -465,6 +465,11 @@ class SynthesisCommon(VerilogStep):
             default=False,
         ),
         Variable(
+            "SYNTH_ABC_STRATEGY_SCRIPT",
+            Optional[Path],
+            "Custom ABC strategy script. Runs instead of the default script for the selected 'SYNTH_STRATEGY'. All other 'SYNTH_ABC_*' variables except 'SYNTH_ABC_DFF' will have no effect.",
+        ),
+        Variable(
             "SYNTH_DIRECT_WIRE_BUFFERING",
             bool,
             "Enables inserting buffer cells for directly connected wires.",
@@ -539,7 +544,7 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_MUL_BOOTH",
             bool,
             "Runs the booth pass as part of synthesis: See https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd/booth.html",
-            default=False,
+            default=True,
         ),
         Variable(
             "SYNTH_TIE_UNDEFINED",
@@ -557,6 +562,12 @@ class SynthesisCommon(VerilogStep):
             "SYNTH_NORMALIZE_SINGLE_BIT_VECTORS",
             bool,
             "If true, vectors with the shape [0:0] are converted to normal wires in the netlist. If disabled, even one-width pins will be suffixed [0] in the layout when imported by most PnR tools.",
+            default=True,
+        ),
+        Variable(
+            "SYNTH_ARITH_TREE",
+            bool,
+            "Runs the arith_tree pass as part of synthesis: See https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd/index_passes_techmap.html#cmd-arith_tree",
             default=True,
         ),
         # Variable(

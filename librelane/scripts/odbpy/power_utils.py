@@ -121,19 +121,20 @@ class Design(object):
                 # Bad Verilog view-- error would break backcompat
                 continue
             connection_bits = connections[pin_name]
-            if len(connection_bits) != 1:
+            if len(connection_bits) > 1:
                 print(
                     f"[ERROR] Unexpectedly found more than one bit connected to {sigtype} pin {module_name}/{pin_name}."
                 )
                 exit(-1)
-            connection_bit = connection_bits[0]
-            connected_to_v = self.get_verilog_net_name_by_bit(
-                top_module,
-                connection_bit,
-            )
-            (power_pins if sigtype == "POWER" else ground_pins)[
-                pin_name
-            ] = connected_to_v
+            if len(connection_bits) == 1:
+                connection_bit = connection_bits[0]
+                connected_to_v = self.get_verilog_net_name_by_bit(
+                    top_module,
+                    connection_bit,
+                )
+                (power_pins if sigtype == "POWER" else ground_pins)[
+                    pin_name
+                ] = connected_to_v
 
         return power_pins, ground_pins
 

@@ -60,6 +60,7 @@ Style Notes
     (e.g. analog/pad) nets keep their full width all the way to the pin.
     Requires an OpenROAD build providing the `set_routing_auto_taper`
     command.
+  * Allow to connect only some of the power/ground ports of an instance.
 
 * `OpenROAD.PadRing`
 
@@ -89,6 +90,12 @@ Style Notes
   * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.
 
   * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
+
+* `Yosys.Synthesis`
+
+  * Added `SYNTH_ARITH_TREE` to run the `arith_tree` techmapping optimisation; enabled by default
+
+  * Made `SYNTH_MUL_BOOTH` the default
 
 ## Tool Updates
 
@@ -570,6 +577,9 @@ Style Notes
     identify appropriate ICG
 
     * Removed `LIGHTER_DFF_MAP`: tangentially related to above
+
+  * Added `SYNTH_ABC_STRATEGY_SCRIPT`: custom ABC strategy script that runs
+    instead of the default script of the selected `SYNTH_STRATEGY`.
 
 * `Yosys.Synthesis`
 
