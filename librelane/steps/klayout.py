@@ -1041,7 +1041,10 @@ class Filler(KLayoutStep):
             "Options passed directly to the KLayout filler runset. They vary from one PDK to another.",
             pdk=True,
             deprecated_names=[
-                ("KLAYOUT_FILLER_OPTIONS", lambda x: {k: str(v) for k, v in x.items()})
+                (
+                    "KLAYOUT_FILLER_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
             ],
         ),
     ]
@@ -1179,7 +1182,10 @@ class Density(KLayoutStep):
             "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
             pdk=True,
             deprecated_names=[
-                ("KLAYOUT_DENSITY_OPTIONS", lambda x: {k: str(v) for k, v in x.items()})
+                (
+                    "KLAYOUT_DENSITY_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
             ],
         ),
         Variable(
@@ -1295,10 +1301,16 @@ class Antenna(KLayoutStep):
             pdk=True,
         ),
         Variable(
-            "KLAYOUT_ANTENNA_OPTIONS",
-            Optional[Dict[str, Union[bool, int, str]]],
-            "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
+            "KLAYOUT_ANTENNA_DEFINES",
+            Optional[Dict[str, str]],
+            "Options passed directly to the KLayout antenna runset. They vary from one PDK to another.",
             pdk=True,
+            deprecated_names=[
+                (
+                    "KLAYOUT_ANTENNA_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
+            ],
         ),
     ]
 
@@ -1330,8 +1342,8 @@ class Antenna(KLayoutStep):
         json_report = os.path.join(reports_dir, "antenna.klayout.json")
 
         opts = []
-        if self.config["KLAYOUT_ANTENNA_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_ANTENNA_OPTIONS"].items():
+        if self.config["KLAYOUT_ANTENNA_DEFINES"]:
+            for k, v in self.config["KLAYOUT_ANTENNA_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
