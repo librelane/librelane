@@ -195,18 +195,6 @@ class PyosysStep(Step):
             pdk=True,
         ),
         Variable(
-            "SYNTH_MUX_MAP",
-            Optional[Path],
-            "A path to a file containing the mux mapping for Yosys.",
-            pdk=True,
-        ),
-        Variable(
-            "SYNTH_MUX4_MAP",
-            Optional[Path],
-            "A path to a file containing the mux4 mapping for Yosys.",
-            pdk=True,
-        ),
-        Variable(
             "SYNTH_CLOCKGATE_MIN_WIDTH",
             Optional[int],
             "If set to a value, a group of flip-flops with size >= SYNTH_CLOCKGATE_MIN_WIDTH and an enable signal are clock-gated instead.",

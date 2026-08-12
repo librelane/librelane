@@ -70,6 +70,23 @@ if { [info exists ::env(DRT_ASSIGN_NDR)] } {
     }
 }
 
+# Disable auto-taper on selected nets (keep full NDR width all the way to the pins)
+if { [info exists ::env(DRT_DISABLE_AUTO_TAPER)] } {
+    foreach net_regex $::env(DRT_DISABLE_AUTO_TAPER) {
+        puts "\[INFO\] Disabling detailed-routing auto-taper on nets matching '$net_regex'"
+        if { $net_regex != {^$} } {
+            set odb_nets [$::block getNets]
+            foreach net $odb_nets {
+                set net_name [odb::dbNet_getName $net]
+                if { [regexp "$net_regex" $net_name full] } {
+                    puts "\[INFO\] Net '$net_name' matched '$net_regex', disabling auto-taper…"
+                    set_routing_auto_taper -net $net_name -disable
+                }
+            }
+        }
+    }
+}
+
 set drc_report_iter_step_arg ""
 if { $::env(DRT_SAVE_SNAPSHOTS) } {
     set_debug_level DRT snapshot 1

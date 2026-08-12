@@ -53,6 +53,13 @@ Style Notes
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
+* `OpenROAD.DetailedRouting`
+
+  * Added `DRT_DISABLE_AUTO_TAPER` to disable detailed-routing auto-taper on
+    nets matching a list of regular expressions, so wide non-default-rule
+    (e.g. analog/pad) nets keep their full width all the way to the pin.
+    Requires an OpenROAD build providing the `set_routing_auto_taper`
+    command.
   * Allow to connect only some of the power/ground ports of an instance.
 
 * `OpenROAD.PadRing`
@@ -157,6 +164,12 @@ Style Notes
 
   * Upgraded warnings on multiply-driven nets to an error that can be disabled
     by setting `LINTER_ERROR_ON_MULTIDRIVEN` to `false`.
+
+* `Yosys.*Synthesis`
+
+  * Removed unused variables `SYNTH_MUX_MAP`/`SYNTH_MUX4_MAP`.
+    As a note, Yosys and ABC are able to map multiplexers to SCL cells
+    without explicit technology mapping.
 
 ## Misc. Enhancements/Bugfixes
 
