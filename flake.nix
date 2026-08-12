@@ -142,7 +142,6 @@
             ];
             extra-python-packages =
               ps: with ps; [
-                githubkit
                 pyfakefs
                 pytest
                 pytest-xdist
