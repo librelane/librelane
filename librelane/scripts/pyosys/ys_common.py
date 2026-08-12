@@ -16,8 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import re
 import sys
-from typing import Iterable, List, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 try:
     from pyosys import libyosys as ys
@@ -26,14 +27,40 @@ except ImportError:
         # flake8: noqa F401
         import libyosys
 
-        ys.log_error("Current versions of LibreLane require Yosys 0.59.1 or higher.")
+        print(
+            "Current versions of LibreLane require Yosys 0.59.1 or higher.",
+            file=sys.stderr,
+        )
         exit(-1)
     except ImportError:
-        ys.log_error(
+        print(
             "Failed to import pyosys -- make sure Yosys is compiled with ENABLE_PYTHON set to 1.",
             file=sys.stderr,
         )
         exit(-1)
+
+_yosys_version_extracted: Optional[Tuple[int, int]] = None
+
+
+def yosys_version_at_least(*target: Tuple[int, ...]) -> Tuple[int, int]:
+    """
+    check if version is >= the target components, i.e.
+
+    yosys_version_at_least(0, 68) checks if the verison >= 0.68
+    """
+    global _yosys_version_extracted
+    yosys_version_rx = re.compile(r"^\s*Yosys (\d+)\.(\d+)")
+    if _yosys_version_extracted is None:
+        _yosys_version_extracted = (999, 999)
+        try:
+            match = yosys_version_rx.search(ys.Globals.yosys_version_str)
+            _yosys_version_extracted = (int(match.group(1)), int(match.group(2)))
+        except Exception:
+            ys.log_warning(
+                "Could not identify Yosys version. "
+                "Defaulting to the latest version's behavior on all code.\n"
+            )
+    return _yosys_version_extracted >= target
 
 
 def _Design_run_pass(self, *command):
@@ -71,9 +98,9 @@ def _Design_read_verilog_files(
         chparams[param] = value
         slang_chparam_args.append(f"-G{param}={value}")
 
-    ys.log("use_slang" if use_slang else "wtaf")
     if use_slang:
-        self.run_pass("plugin", "-i", "slang")
+        if not yosys_version_at_least(0, 67):
+            self.run_pass("plugin", "-i", "slang")
         self.run_pass(
             "read_slang",
             "--top",

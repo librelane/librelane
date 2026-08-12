@@ -62,10 +62,10 @@ class TclStep(Step):
         """
         Converts an arbitrary Python value to Tcl as follows:
 
-        * If the value is an instance of a dataclass, it is serialized as a JSON object.
+        * If the value is a dict, the keys and values are escaped recursively
+            using: :meth:`TclUtils.join`.
+        * If the value is an instance of a dataclass, it is treated as a dict.
         * If the value is a list, it is joined using :meth:`TclUtils.join`.
-        * If the value is a dict, the keys and values are escaped recursively using:
-            joined using :meth:`TclUtils.join`.
         * If the value is an Enum, its name is returned.
         * If the value is Boolean, "1" is returned for True and "0" for False.
         * If the value is numeric, it is converted to a string.
@@ -89,7 +89,9 @@ class TclStep(Step):
         elif isinstance(value, bool):
             return "1" if value else "0"
         elif isinstance(value, Decimal):
-            return str(value)  # f"{value:e}"
+            if value.to_integral_value() == value:
+                return f"{value:.1f}"
+            return str(value)
         elif isinstance(value, int):
             return str(value)
         else:

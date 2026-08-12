@@ -71,3 +71,15 @@ body:
       render: sh
     validations:
       required: true
+  - type: checkboxes
+    id: llm-policy-confirmation
+    attributes:
+      label: LLM Policy Confirmation
+      description: >
+        Confirming that bug reports abide by the
+        [LLM Contribution Policy](https://librelane.readthedocs.io/en/stable/contributors/llm-policy.html)
+      options:
+        - label: >
+            Regardless of how this issue was found, bug report text was written
+            and verified by a human.
+          required: true

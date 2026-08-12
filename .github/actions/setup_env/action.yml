@@ -26,9 +26,14 @@ runs:
       if: ${{ github.event_name == 'push' && env.PUBLISHING_BRANCH == '1' }}
       shell: bash
       run: |
-        python3 ./.github/scripts/generate_tag.py
+        VERSION="$(perl -ne 'print $1 if /^version = \"(.+?)\"/' pyproject.toml)"
+        if ! gh release view $VERSION 2>&1 > /dev/null; then
+          echo "NEW_TAG=$VERSION" >> $GITHUB_ENV
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
 
-    - name: Publish
+    - name: Determine if publishing
       if: ${{ github.event_name == 'push' && env.PUBLISHING_BRANCH == '1' && env.NEW_TAG != 'NO_NEW_TAG' }}
       shell: bash
       run: |

@@ -143,6 +143,51 @@ Style Notes
 
 * Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
+# 3.0.8
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Added compatibility with Yosys 0.67 and higher (non-bundled versions, thus
+    best-effort) by gating relevant commands.
+
+# 3.0.7
+
+## Steps
+
+* `OpenROAD.*`
+
+  * Fixed issue reported by [@Nexlab-One](https://github.com/Nexlab-One) where
+    `TIME_DERATING_CONSTRAINT` was integer-divided instead of float-divided, and
+    additionally `IO_DELAY_CONSTRAINT` if specified using old syntax (`IO_PCT`).
+
+## Misc. Enhancements/Bugfixes
+
+* `librelane.steps.TclStep.value_to_tcl`
+  * Fixed long-incorrect docstring.
+  * `Decimal` values that are integers are now always output with a `.0` to
+    pre-empt any further integer division issues (as well as backport the fix to
+    any user-written SDC files).
+
+* `librelane.config.pdk_compat`
+  * For extra resilience, `TIME_DERATING_CONSTRAINT`, `IO_DELAY_CONSTRAINTS` are
+    now both set as floats.
+
+# 3.0.6
+
+## Misc. Enhancements/Bugfixes
+
+* Slight internal rework of `librelane.common.metrics` that should not affect
+  its API, also fixing "folders" to "directories" in documentation where
+  appropriate.
+
+# 3.0.5
+
+## Tool Updates
+
+* Relaxed version requirement for `rich` to allow rich 16.
+
 # 3.0.4
 
 ## Steps

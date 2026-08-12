@@ -142,6 +142,7 @@
             ];
             extra-python-packages =
               ps: with ps; [
+                githubkit
                 pyfakefs
                 pytest
                 pytest-xdist
@@ -164,6 +165,7 @@
             extra-packages = with pkgs; [
               alejandra
               imagemagick
+              watchexec
             ];
             extra-python-packages =
               ps: with ps; [
@@ -185,7 +187,6 @@
                 sphinxcontrib-bibtex
                 sphinx-tippy
                 sphinx-subfigure
-                py-mon
               ];
             include-librelane = false;
           });
