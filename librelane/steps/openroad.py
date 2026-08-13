@@ -269,6 +269,18 @@ class OpenROADStep(TclStep):
             deprecated_names=[("FP_PDN_MACRO_HOOKS", pdn_macro_migrator)],
         ),
         Variable(
+            "PDN_CONNECT_PADS_TO_GRID",
+            bool,
+            "Enables the connection of padframe cells (PDN_PAD_CONNECTIONS) to the power grid. Should only be enabled for top-level (chip) flows that contain a padframe.",
+            default=False,
+        ),
+        Variable(
+            "PDN_PAD_CONNECTIONS",
+            Optional[List[str]],
+            "Specifies explicit power connections of padframe cells to the power grid, in the same format as PDN_MACRO_CONNECTIONS: `<instance_name_rx> <vdd_net> <gnd_net> <vdd_pin> <gnd_pin>`. Intended to be set at the PDK level so the padframe supply nets are always connected; only applied when PDN_CONNECT_PADS_TO_GRID is enabled.",
+            pdk=True,
+        ),
+        Variable(
             "PDN_ENABLE_GLOBAL_CONNECTIONS",
             bool,
             "Enables the creation of global connections in PDN generation.",
