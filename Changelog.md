@@ -25,6 +25,31 @@ Style Notes
 
 -->
 
+# 3.0.9
+
+## Steps
+
+* `KLayout.DRC`
+
+  * Added `KLAYOUT_DRC_DEFINES`, which replaces `KLAYOUT_DRC_OPTIONS`.
+
+* `KLayout.Filler`
+
+  * Added `KLAYOUT_FILLER_DEFINES`, which replaces `KLAYOUT_FILLER_OPTIONS`.
+
+* `KLayout.Density`
+
+  * Added `KLAYOUT_DENSITY_DEFINES`, which replaces `KLAYOUT_DENSITY_OPTIONS`.
+
+# 3.0.8
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Added compatibility with Yosys 0.67 and higher (non-bundled versions, thus
+    best-effort) by gating relevant commands.
+
 # 3.0.7
 
 ## Steps
