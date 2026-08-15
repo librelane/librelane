@@ -25,6 +25,15 @@ Style Notes
 
 -->
 
+# 3.0.10
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Fixed the `synthesis__check_error__count` error metric only counting
+    pre-synthesis check errors.
+
 # 3.0.9
 
 ## Steps
