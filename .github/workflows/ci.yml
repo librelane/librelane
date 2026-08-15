@@ -37,16 +37,33 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' || !(startsWith(github.ref_name, 'version-') || github.ref_name == 'main' || github.ref_name == 'dev') }}
 
 jobs:
-  prepare-test-matrices:
-    name: Prepare Test Matrices and Cache PDKs
+  prepare:
+    name: Prepare Variables
     runs-on: ubuntu-24.04
     outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
       design_matrix: ${{ steps.set-matrix.outputs.design_matrix }}
       sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
       gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
       ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check for new version
+        id: version
+        if: ${{ github.event_name == 'push' && (
+              github.ref_name == 'main' ||
+              github.ref_name == 'dev' ||
+              startsWith(github.ref_name, 'version-')
+            ) }}
+        run: |
+          VERSION="$(perl -ne 'print $1 if /^version\s*=\s*\"(.+?)\"/' pyproject.toml)"
+          if ! gh release view $VERSION 2>&1 > /dev/null; then
+            echo "new_version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Python Dependencies
         run: |
           pip3 install poetry poetry-plugin-export
@@ -113,7 +130,7 @@ jobs:
           PATH=$PWD/venv/bin:$PATH make lint
   build-py:
     runs-on: ubuntu-24.04
-    needs: [lint, prepare-test-matrices]
+    needs: [lint, prepare]
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"] # , "3.14"] # lxml, klayout still not built
@@ -134,7 +151,7 @@ jobs:
           ./venv/bin/coverage report
           ./venv/bin/coverage html
   build-linux-x86_64:
-    needs: [lint, prepare-test-matrices]
+    needs: [lint, prepare]
     runs-on: ubuntu-24.04
     outputs:
       devshell_bin: ${{ steps.set-devshell-bin.outputs.devshell_bin }}
@@ -161,7 +178,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ needs.prepare-test-matrices.outputs.sky130_hash }}
+          key: cache-sky130-pdk-${{ needs.prepare.outputs.sky130_hash }}
           enableCrossOsArchive: true
       - name: Build with Nix
         uses: ./.github/actions/build_nix
@@ -185,7 +202,7 @@ jobs:
           DEVSHELL_STORE_PATH=$(nix build .#devShells.x86_64-linux.dev --no-link --print-out-paths)
           echo "devshell_bin=$DEVSHELL_STORE_PATH/bin/devshell" >> $GITHUB_OUTPUT
   build-linux-aarch64:
-    needs: [lint, prepare-test-matrices]
+    needs: [lint, prepare]
     runs-on: ubuntu-24.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
@@ -205,7 +222,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ needs.prepare-test-matrices.outputs.sky130_hash }}
+          key: cache-sky130-pdk-${{ needs.prepare.outputs.sky130_hash }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -243,7 +260,7 @@ jobs:
             },
           ]
       fail-fast: false
-    needs: [lint, prepare-test-matrices]
+    needs: [lint, prepare]
     runs-on: ${{ matrix.os.runner }}
     name: Build (Nix/${{ matrix.os.nix }})
     steps:
@@ -263,7 +280,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ./.ciel-sky130
-          key: cache-sky130-pdk-${{ needs.prepare-test-matrices.outputs.sky130_hash }}
+          key: cache-sky130-pdk-${{ needs.prepare.outputs.sky130_hash }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -470,11 +487,11 @@ jobs:
             --smoke-test
   test:
     runs-on: ubuntu-24.04
-    needs: [build-linux-x86_64, prepare-test-matrices]
+    needs: [build-linux-x86_64, prepare]
     name: Test Design ${{ matrix.design.test_name }} (${{ matrix.design.pdk }}/${{matrix.design.scl}})
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare-test-matrices.outputs.design_matrix) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.design_matrix) }}
     steps:
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -684,12 +701,18 @@ jobs:
           git push -fu origin $BRANCH_NAME # Force for if we have to re-run the CI for some reason
   publish:
     runs-on: ubuntu-24.04
-    needs: [test-containers, build-py, build-appimages]
+    needs: [prepare, test-containers, build-py, build-appimages]
+    if: ${{ needs.prepare.outputs.new_version != '' }}
     environment: pypi
     permissions:
-      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      # Enable Trusted Publishing
       id-token: write
-    name: Publish (If Applicable)
+      # Enable Tagging & Releasing
+      contents: write
+      # Enable Uploading Containers
+      # ref: https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#upgrading-a-workflow-that-accesses-a-registry-using-a-personal-access-token
+      packages: write
+    name: Publish
     steps:
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -701,42 +724,39 @@ jobs:
           remove-docker-images: "true"
       - name: Check out repo
         uses: actions/checkout@v7
+      - name: Set Up Python
+        uses: actions/setup-python@v7
         with:
-          fetch-depth: 0
-      - name: Setup Environment
-        uses: ./.github/actions/setup_env
-      - name: Auth (Docker)
-        if: ${{ env.PUBLISH == '1' }}
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.BOT_GITHUB_TOKEN }}
+          python-version: "3.10"
+      - name: Build Distribution
+        run: |
+          make dist
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       # Splitting load to help with disk space issue
-      - name: Download Image (Docker/x86_64)
+      - name: Download Container Image (x86_64)
         uses: actions/download-artifact@v8
         with:
           name: docker-image-x86_64
           path: /tmp/docker
-      - name: Load Image (Docker/x86_64)
+      - name: Load Container Image (x86_64)
         run: |
           for file in /tmp/docker/*; do
             cat $file | docker load
             rm $file
           done
-      - name: Download Image (Docker/aarch64)
+      - name: Download Container Image (aarch64)
         uses: actions/download-artifact@v8
         with:
           name: docker-image-aarch64
           path: /tmp/docker
-      - name: Load Image (Docker/aarch64)
+      - name: Load Container Image (aarch64)
         run: |
           for file in /tmp/docker/*; do
             cat $file | docker load
             rm $file
           done
-      - name: Push (Docker)
-        if: ${{ env.PUBLISH == '1' }}
+      - name: Push Container Images and Multi-Arch Manifest to GHCR
         run: |
           docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
           docker push ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
@@ -752,49 +772,34 @@ jobs:
           docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
 
           yes | docker system prune -a --volumes
-      - name: Download Image (AppImage/x86_64)
+      - name: Download AppImage (x86_64)
         uses: actions/download-artifact@v8
         with:
           name: appimage-x86_64
           path: /tmp/appimage
-      - name: Download Image (AppImage/aarch64)
+      - name: Download AppImage (aarch64)
         uses: actions/download-artifact@v8
         with:
           name: appimage-aarch64
           path: /tmp/appimage
-      - name: Set Up Python
-        if: ${{ env.PUBLISH == '1' }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.10"
-      - name: Build Distribution
-        if: ${{ env.PUBLISH == '1' }}
-        run: |
-          make dist
       - name: Publish
-        if: ${{ env.PUBLISH == '1' }}
         uses: pypa/gh-action-pypi-publish@release/v1
-      - name: Tag Commit
-        if: ${{ env.PUBLISH == '1' }}
-        uses: tvdias/github-tagger@v0.0.1
-        with:
-          tag: "${{ env.NEW_TAG }}"
-          repo-token: "${{ secrets.BOT_GITHUB_TOKEN }}"
-      - name: Upload Release Asset
-        if: ${{ env.PUBLISH == '1' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          token: "${{ secrets.BOT_GITHUB_TOKEN }}"
-          tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ contains(env.NEW_TAG, 'dev') || contains(env.NEW_TAG, 'b') || contains(env.NEW_TAG, 'a') || contains(env.NEW_TAG, 'rc') }}
-          generate_release_notes: true
-          body: |+
-            📖 Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html
-            🧾 Changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md
+      - name: Create release
+        run: |
+          prerelease_arg=()
+          version="${{ needs.prepare.outputs.new_version }}"
+          if [[ "$version" = *b* ]] || [[ "$version" = *a* ]] || [[ "$version" = *.dev* ]] || [[ "$version" = *rc* ]]; then
+            prerelease_arg += ( "--prerelease" )
+          fi
 
-            ---
+          echo "Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html" > ../release_notes.md
+          echo "Changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md" >> ../release_notes.md
 
-
-          files: |
-            /tmp/appimage/librelane-devshell-x86_64.AppImage
-            /tmp/appimage/librelane-devshell-aarch64.AppImage
+          gh release create $version \
+            --generate-notes \
+            --notes-file ../release_notes.md \
+            --target "${{ github.ref_name }}" \
+            "${prerelease_arg[@]}" \
+            /tmp/appimage/*.AppImage
+        env:
+          GH_TOKEN: ${{ github.token }}
