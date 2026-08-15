@@ -55,7 +55,6 @@ from ..common import (
     aggregate_metrics,
     get_script_dir,
     mkdirp,
-    process_list_file,
 )
 from ..config import Macro, Variable
 from ..config.flow import option_variables
@@ -337,7 +336,7 @@ class OpenROADStep(TclStep):
             env["_EXTRA_CORNER_TCL_FILE"] = self.config["STA_EXTRA_CORNER_TCL_FILE"]
 
         excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
-        excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
+        excluded_cells.update(self.config["PNR_EXCLUDED_CELLS"])
         env["_PNR_EXCLUDED_CELLS"] = TclUtils.join(excluded_cells)
 
         return env
