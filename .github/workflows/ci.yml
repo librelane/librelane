@@ -60,6 +60,7 @@ jobs:
         run: |
           VERSION="$(perl -ne 'print $1 if /^version\s*=\s*\"(.+?)\"/' pyproject.toml)"
           if ! gh release view $VERSION 2>&1 > /dev/null; then
+            echo "Uploading new version $VERSION if CI passes."
             echo "new_version=$VERSION" >> $GITHUB_OUTPUT
           fi
         env:
@@ -758,18 +759,19 @@ jobs:
           done
       - name: Push Container Images and Multi-Arch Manifest to GHCR
         run: |
-          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
-          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64
+          version="${{ needs.prepare.outputs.new_version }}"
+          docker tag librelane:tmp-x86_64-linux ghcr.io/${{ github.repository }}:$version-x86_64
+          docker push ghcr.io/${{ github.repository }}:$version-x86_64
 
-          docker tag librelane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
-          docker push ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
+          docker tag librelane:tmp-aarch64-linux ghcr.io/${{ github.repository }}:$version-aarch64
+          docker push ghcr.io/${{ github.repository }}:$version-aarch64
 
           docker manifest create\
-            ghcr.io/${{ github.repository }}:$NEW_TAG\
-            ghcr.io/${{ github.repository }}:$NEW_TAG-x86_64\
-            ghcr.io/${{ github.repository }}:$NEW_TAG-aarch64
+            ghcr.io/${{ github.repository }}:$version\
+            ghcr.io/${{ github.repository }}:$version-x86_64\
+            ghcr.io/${{ github.repository }}:$version-aarch64
 
-          docker manifest push ghcr.io/${{ github.repository }}:$NEW_TAG
+          docker manifest push ghcr.io/${{ github.repository }}:$version
 
           yes | docker system prune -a --volumes
       - name: Download AppImage (x86_64)
@@ -793,7 +795,7 @@ jobs:
           fi
 
           echo "Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html" > ../release_notes.md
-          echo "Changelog: ${{ github.server_url }}/${{ github.repository }}/blob/${{ env.NEW_TAG }}/Changelog.md" >> ../release_notes.md
+          echo "Changelog: ${{ github.server_url }}/${{ github.repository }}/blob/$version/Changelog.md" >> ../release_notes.md
 
           gh release create $version \
             --generate-notes \
