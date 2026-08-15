@@ -55,7 +55,7 @@ jobs:
         if: ${{ github.event_name == 'push' && (
               github.ref_name == 'main' ||
               github.ref_name == 'dev' ||
-              startsWith(github.ref_name, "version-")
+              startsWith(github.ref_name, 'version-')
             ) }}
         run: |
           VERSION="$(perl -ne 'print $1 if /^version\s*=\s*\"(.+?)\"/' pyproject.toml)"
