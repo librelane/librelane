@@ -784,14 +784,14 @@ jobs:
         with:
           name: appimage-aarch64
           path: /tmp/appimage
-      - name: Publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+      # 2nd to last because it is immutable but likely to fail, so if it fails
+      # I don't want PyPI publishing
       - name: Create release
         run: |
           prerelease_arg=()
           version="${{ needs.prepare.outputs.new_version }}"
           if [[ "$version" = *b* ]] || [[ "$version" = *a* ]] || [[ "$version" = *.dev* ]] || [[ "$version" = *rc* ]]; then
-            prerelease_arg += ( "--prerelease" )
+            prerelease_arg+=( "--prerelease" )
           fi
 
           echo "Installation instructions: https://librelane.readthedocs.io/en/latest/installation/index.html" > ../release_notes.md
@@ -805,3 +805,6 @@ jobs:
             /tmp/appimage/*.AppImage
         env:
           GH_TOKEN: ${{ github.token }}
+      # last step because it is immutable and least likely to fail
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
