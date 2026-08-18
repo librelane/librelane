@@ -8,6 +8,7 @@
   fetchFromGitHub,
   nix-gitignore,
   # Tools
+  gdsfill,
   klayout-app,
   libparse,
   magic-vlsi,
@@ -79,6 +80,7 @@ let
     ];
 
     includedTools = lib.map lib.getBin [
+      gdsfill
       opensta
       yosys-env
       openroad-env
