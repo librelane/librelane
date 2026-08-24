@@ -22,12 +22,10 @@
   yosys,
   yosys-sby,
   yosys-eqy,
-  yosys-slang,
   yosys-ghdl,
   yosys-plugin-set ? [
     yosys-sby
     yosys-eqy
-    yosys-slang
   ]
   ++ lib.optionals (lib.meta.availableOn clangStdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ],
   extra-yosys-plugins ? [ ],

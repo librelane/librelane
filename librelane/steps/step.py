@@ -313,7 +313,7 @@ class ProcessStatsThread(Thread):
                     time.sleep(self.interval)
                     status = self.process.status()
         except psutil.Error as e:
-            message = e.msg
+            message = str(e)
             for normal in ["process no longer exists", "but it's a zombie"]:
                 if normal in message:
                     return
