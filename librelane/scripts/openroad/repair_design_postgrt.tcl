@@ -39,6 +39,7 @@ lappend arg_list -cap_margin $::env(GRT_DESIGN_REPAIR_MAX_CAP_PCT)
 if { [info exists ::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)] } {
     lappend arg_list -max_utilization $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)
 }
+
 if { [info exists ::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)] } {
     lappend arg_list -buffer_gain $::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)
 }
