@@ -40,9 +40,7 @@ if { [info exists $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)] } {
     lappend arg_list -max_utilization $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)
 }
 
-if { $::env(GRT_DESIGN_REPAIR_PRE_PLACEMENT) } {
-    lappend arg_list -pre_placement
-}
+
 log_cmd repair_design {*}$arg_list
 
 # Re-DPL and GRT
