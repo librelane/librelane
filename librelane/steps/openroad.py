@@ -2642,13 +2642,13 @@ class RepairDesignPostGPL(ResizerStep):
             "Defines the percentage of core area used.",
             units="%",
             default=0,
-        ), 
+        ),
         Variable(
             "DESIGN_REPAIR_PRE_PLACEMENT",
             bool,
             "Enables performing an initial pre-placement sizing and buffering round.",
             default=False,
-        ),        
+        ),
     ]
 
     def get_script_path(self):
@@ -2711,7 +2711,7 @@ class RepairDesignPostGRT(ResizerStep):
             "Defines the percentage of core area used during post-grt repair.",
             units="%",
             default=0,
-        ),    
+        ),
     ]
 
     def get_script_path(self):
