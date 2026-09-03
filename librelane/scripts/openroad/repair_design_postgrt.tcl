@@ -39,8 +39,6 @@ lappend arg_list -cap_margin $::env(GRT_DESIGN_REPAIR_MAX_CAP_PCT)
 if { $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION) > 0 } {
     lappend arg_list -max_utilization $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)
 }
-
-
 log_cmd repair_design {*}$arg_list
 
 # Re-DPL and GRT
