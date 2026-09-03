@@ -49,11 +49,11 @@ lappend arg_list -verbose
 lappend arg_list -max_wire_length $::env(DESIGN_REPAIR_MAX_WIRE_LENGTH)
 lappend arg_list -slew_margin $::env(DESIGN_REPAIR_MAX_SLEW_PCT)
 lappend arg_list -cap_margin $::env(DESIGN_REPAIR_MAX_CAP_PCT)
-if { [info exists ::env(DESIGN_REPAIR_MAX_UTILIZATION)] } {
+if { [info exists $::env(DESIGN_REPAIR_MAX_UTILIZATION)] } {
     lappend arg_list -max_utilization $::env(DESIGN_REPAIR_MAX_UTILIZATION)
 }
-if { [info exists ::env(DESIGN_REPAIR_BUFFER_GAIN)] } {
-    lappend arg_list -buffer_gain $::env(DESIGN_REPAIR_BUFFER_GAIN)
+if { $::env(DESIGN_REPAIR_PRE_PLACEMENT) } {
+    lappend arg_list -pre_placement
 }
 # Repair Design
 log_cmd repair_design {*}$arg_list
