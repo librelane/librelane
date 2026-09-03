@@ -65,7 +65,7 @@ def check_cells(odb_cells):
         }
         report.append(entry)
 
-        return report
+    return report
 
 
 def get_top_level_cell(input_lefs, design_lef, cell_name):
