@@ -2692,6 +2692,18 @@ class RepairDesignPostGRT(ResizerStep):
             units="%",
             deprecated_names=["GLB_RESIZER_MAX_CAP_MARGIN"],
         ),
+        Variable(
+            "GRT_DESIGN_REPAIR_MAX_UTILIZATION",
+            Decimal,
+            "Defines the percentage of core area used during post-grt repair.",
+            units="%",
+        ),    
+        Variable(
+            "GRT_DESIGN_REPAIR_PRE_PLACEMENT",
+            bool,
+            "Enables performing an initial pre-placement sizing and buffering round.",
+            default=False,
+        ),       
     ]
 
     def get_script_path(self):
