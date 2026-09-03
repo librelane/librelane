@@ -2641,6 +2641,7 @@ class RepairDesignPostGPL(ResizerStep):
             Decimal,
             "Defines the percentage of core area used.",
             units="%",
+            default=0,
         ), 
         Variable(
             "DESIGN_REPAIR_PRE_PLACEMENT",
@@ -2709,6 +2710,7 @@ class RepairDesignPostGRT(ResizerStep):
             Decimal,
             "Defines the percentage of core area used during post-grt repair.",
             units="%",
+            default=0,
         ),    
     ]
 

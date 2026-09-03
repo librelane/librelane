@@ -49,7 +49,7 @@ lappend arg_list -verbose
 lappend arg_list -max_wire_length $::env(DESIGN_REPAIR_MAX_WIRE_LENGTH)
 lappend arg_list -slew_margin $::env(DESIGN_REPAIR_MAX_SLEW_PCT)
 lappend arg_list -cap_margin $::env(DESIGN_REPAIR_MAX_CAP_PCT)
-if { [info exists $::env(DESIGN_REPAIR_MAX_UTILIZATION)] } {
+if { $::env(DESIGN_REPAIR_MAX_UTILIZATION) > 0 } {
     lappend arg_list -max_utilization $::env(DESIGN_REPAIR_MAX_UTILIZATION)
 }
 if { $::env(DESIGN_REPAIR_PRE_PLACEMENT) } {
