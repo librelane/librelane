@@ -25,6 +25,14 @@ Style Notes
 
 -->
 
+# 3.0.12
+
+## Steps
+
+* `Odb.CheckMacroAntennaProperties`
+
+  * Fixed an issue where the report would always return once the first macro had been checked.
+
 # 3.0.11
 
 ## Tool Updates
