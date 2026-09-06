@@ -427,15 +427,21 @@ option_variables = [
 
 pad_variables = [
     Variable(
-        "PAD_GDS",
-        Optional[List[Path]],
-        "Path(s) to IO pad GDS file(s).",
+        "PAD_LIBS",
+        Optional[Dict[str, List[Path]]],
+        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
         pdk=True,
     ),
     Variable(
         "PAD_LEFS",
         Optional[List[Path]],
         "Path(s) to IO pad LEF file(s).",
+        pdk=True,
+    ),
+    Variable(
+        "PAD_GDS",
+        Optional[List[Path]],
+        "Path(s) to IO pad GDS file(s).",
         pdk=True,
     ),
     Variable(
@@ -454,12 +460,6 @@ pad_variables = [
         "PAD_CDLS",
         Optional[List[Path]],
         description="A circuit-design language view of the io pad library.",
-        pdk=True,
-    ),
-    Variable(
-        "PAD_LIBS",
-        Optional[Dict[str, List[Path]]],
-        "A map from corner patterns to a list of associated liberty files. Exactly one entry must match the `DEFAULT_CORNER`.",
         pdk=True,
     ),
     Variable(

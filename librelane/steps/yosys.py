@@ -70,6 +70,9 @@ def _generate_read_deps(
             )
 
     scl_lib_list = toolbox.filter_views(config, config["LIB"])
+    pad_lib_list = []
+    if pad_libs := config.get("PAD_LIBS"):
+        pad_lib_list = toolbox.filter_views(config, pad_libs)
 
     if power_defines:
         if power_define := config.get(
@@ -94,8 +97,8 @@ def _generate_read_deps(
             )
             commands += f"read_verilog -sv -lib {pad_blackbox_models}\n"
     else:
-        # Fall back to scl_lib_list if you cant
-        for lib in scl_lib_list:
+        # Fall back to scl_lib_list and pad_lib_list if you cant
+        for lib in scl_lib_list + pad_lib_list:
             lib_str = TclUtils.escape(str(lib))
             commands += (
                 f"read_liberty -lib -ignore_miss_dir -setattr blackbox {lib_str}\n"
@@ -106,7 +109,7 @@ def _generate_read_deps(
     excluded_cells.update(process_list_file(config["PNR_EXCLUDED_CELL_FILE"]))
 
     lib_synth = toolbox.remove_cells_from_lib(
-        frozenset([str(lib) for lib in scl_lib_list]),
+        frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
         excluded_cells=frozenset(excluded_cells),
     )
     if tcl:
