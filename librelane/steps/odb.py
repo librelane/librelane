@@ -973,6 +973,8 @@ class CellFrequencyTables(OdbpyStep):
 
         env_copy = env.copy()
         lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
+        if pad_libs := self.config.get("PAD_LIBS"):
+            lib_list += self.toolbox.filter_views(self.config, pad_libs)
         env_copy["_PNR_LIBS"] = TclStep.value_to_tcl(lib_list)
         super().run_subprocess(
             [

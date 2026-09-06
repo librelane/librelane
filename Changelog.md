@@ -25,6 +25,25 @@ Style Notes
 
 -->
 
+# 3.0.14
+
+## Steps
+
+* `Odb.*`
+  * Fixed steps not loading `PAD_LIBS`.
+
+* `OpenROAD.*`
+  * Fixed a crash when `PAD_LIBS` is set to a non-None value.
+
+* `Yosys.*`
+  * Fixed steps not loading `PAD_LIBS`.
+  
+## Misc. Enhancements/Bugfixes
+
+* `openlane.common`
+  * `Toolbox.get_timing_files_categorized` now includes any corner-appropriate
+    `PAD_LIBS`.
+
 # 3.0.13
 
 ## Steps

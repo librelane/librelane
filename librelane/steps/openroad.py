@@ -318,6 +318,8 @@ class OpenROADStep(TclStep):
         env = super().prepare_env(env, state)
 
         lib_list = self.toolbox.filter_views(self.config, self.config["LIB"])
+        if pad_libs := self.config.get("PAD_LIBS"):
+            lib_list += self.toolbox.filter_views(self.config, pad_libs)
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
@@ -2240,6 +2242,8 @@ class IRDropReport(OpenROADStep):
             raise StepException("No SPEF file found for the default corner.")
 
         libs_in = self.toolbox.filter_views(self.config, self.config["LIB"])
+        if pad_libs := self.config.get("PAD_LIBS"):
+            libs_in += self.toolbox.filter_views(self.config, pad_libs)
 
         if self.config["VSRC_LOC_FILES"] is None:
             self.warn(
