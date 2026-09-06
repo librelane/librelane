@@ -25,6 +25,15 @@ Style Notes
 
 -->
 
+# 3.0.12
+
+## Steps
+
+* `OpenROAD.*`
+
+  * Added support for OpenSTA 3.1 in a backwards-compatible manner (Thanks,
+    [@jalcim](https://github.com/jalcim)!)
+
 # 3.0.11
 
 ## Tool Updates
