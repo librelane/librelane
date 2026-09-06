@@ -25,7 +25,7 @@ Style Notes
 
 -->
 
-# 3.0.12
+# 3.0.13
 
 ## Steps
 
@@ -33,6 +33,14 @@ Style Notes
 
   * Added support for OpenSTA 3.1 in a backwards-compatible manner (Thanks,
     [@jalcim](https://github.com/jalcim)!)
+
+# 3.0.12
+
+## Steps
+
+* `Odb.CheckMacroAntennaProperties`
+
+  * Fixed an issue where the report would always return once the first macro had been checked.
 
 # 3.0.11
 
