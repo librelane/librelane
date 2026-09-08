@@ -43,16 +43,7 @@
               colab-env = callPackage ./nix/colab-env.nix { };
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
-              openroad = callPackage ./nix/openroad.nix {
-                llvmPackages = pkgs'.llvmPackages_18;
-              };
-              lemon-graph = pkgs.lemon-graph.overrideAttrs (
-                finalAttrs: previousAttrs: {
-                  patches = previousAttrs.patches ++ [
-                    ./nix/patches/lemon-graph/update_cxx20.patch
-                  ];
-                }
-              );
+              openroad = callPackage ./nix/openroad.nix { };
             }
           )
           (nix-eda.composePythonOverlay (
@@ -63,19 +54,8 @@
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
 
-              # warning with every single click invocation
-              cloup = pypkgs.cloup.overridePythonAttrs {
-                postPatch = ''
-                  substituteInPlace cloup/_util.py \
-                    --replace-fail \
-                      "tuple(click.__version__.split('.'))" \
-                      "tuple('${pypkgs'.click.version}'.split('.'))"
-                '';
-              };
-
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
-              yamlcore = callPythonPackage ./nix/yamlcore.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };
 
               # ---
