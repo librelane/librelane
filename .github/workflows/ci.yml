@@ -52,6 +52,7 @@ jobs:
           pip3 install poetry poetry-plugin-export
           poetry export --all-groups --without-hashes --format=requirements.txt --output=requirements_tmp.txt
           pip3 install -r requirements_tmp.txt
+          pip3 install "git+https://github.com/fossi-foundation/ciel@donn/ihp-sg13cmos5l"
       - name: Determine If Running Extended Test Set
         run: |
           python3 ./.github/scripts/determine_test_set.py ${{ github.event_name }}
