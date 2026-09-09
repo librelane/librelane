@@ -54,6 +54,25 @@
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
 
+              # githubkit 0.14.4 uses Hishel's pre-1.0 API. Keep that dependency
+              # local to githubkit, and allow the pinned uv-build 0.10 backend.
+              githubkit =
+                (pypkgs.githubkit.override {
+                  hishel = callPythonPackage ./nix/hishel-legacy.nix { };
+                }).overridePythonAttrs
+                  (previousAttrs: {
+                    pythonRelaxDeps = [ ];
+                    postPatch = (previousAttrs.postPatch or "") + ''
+                      substituteInPlace pyproject.toml \
+                        --replace-fail 'uv_build >=0.8.3, <0.10.0' 'uv_build >=0.8.3, <0.11.0'
+                    '';
+                  });
+
+              # packaging 26 includes a space before @ in direct references.
+              pipx = pypkgs.pipx.overridePythonAttrs (previousAttrs: {
+                patches = (previousAttrs.patches or [ ]) ++ [ ./nix/pipx-packaging-26.patch ];
+              });
+
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };
