@@ -529,7 +529,7 @@ jobs:
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
-          pipx run ciel==$(perl -ne 'print /version\s*=\s*"([\d\.]+)"/ if $c; $c = /name\s*=\s*"ciel"/' ./poetry.lock )\
+          pipx run git+https://github.com/fossi-foundation/ciel@donn/ihp-sg13cmos5l\
             -- enable --pdk ${{ matrix.design.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.design.pdk_family }} \
             ${{ env.PDK_HASH }}
