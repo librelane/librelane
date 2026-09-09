@@ -190,3 +190,16 @@
     - PPU
     - y_huff
     - aes
+- scl: ihp-sg13cmos5l/sg13cmos5l_stdcell
+  name: fastest_test_set
+  designs:
+    - inverter
+    - wbqspiflash
+    - APU
+    - s44
+    - zipdiv
+    - blink
+    - usb
+    - usb_cdc_core
+    - cell_inverter
+    - spm

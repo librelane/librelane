@@ -111,6 +111,11 @@ let
       rapidfuzz
       semver
     ];
+    
+    postPatch = ''
+      substituteInPlace pyproject.toml \
+        --replace-fail "  \"ciel>=2.3.1,<3\"," "" \
+    '';
 
     doCheck = true;
     checkInputs = [

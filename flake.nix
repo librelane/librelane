@@ -6,7 +6,7 @@
 
   inputs = {
     nix-eda.url = "github:fossi-foundation/nix-eda/7.0.0";
-    ciel.url = "github:fossi-foundation/ciel/2.5.1";
+    ciel.url = "github:fossi-foundation/ciel/donn/ihp-sg13cmos5l";
     devshell.url = "github:numtide/devshell";
     flake-compat = {
       url = "github:NixOS/flake-compat";
