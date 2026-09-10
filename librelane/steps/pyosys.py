@@ -425,7 +425,7 @@ class SynthesisCommon(VerilogStep):
                 "DELAY 4",
             ],
             "Strategies for abc logic synthesis and technology mapping. AREA strategies usually result in a more compact design, while DELAY strategies usually result in a design that runs at a higher frequency. Please note that there is no way to know which strategy is the best before trying them.",
-            default="AREA 0",
+            default="DELAY 4",
         ),
         Variable(
             "SYNTH_ABC_BUFFERING",

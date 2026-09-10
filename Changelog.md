@@ -93,29 +93,33 @@ Style Notes
 
 * `Yosys.Synthesis`
 
-  * Added `SYNTH_ARITH_TREE` to run the `arith_tree` techmapping optimisation; enabled by default
+  * Added `SYNTH_ARITH_TREE` to run the `arith_tree` techmapping optimisation;
+    enabled by default
+
+  * Changed default `SYNTH_STRATEGY` to `DELAY 4`, which from testing provides
+    the best area/delay balance.
+
+    * Designs that performed better on the old strategy may explicitly specify
+      `AREA 1` to retain the old ABC synthesis strategy.
 
   * Made `SYNTH_MUL_BOOTH` the default
 
 ## Tool Updates
 
-* Updated nix-eda to 7.0.0
+* Updated nix-eda to 7.8.0
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.669`
-  * Updated Netgen to `1.5.320`
-  * Updated Yosys to `0.66`
-    * Updated yosys-eqy `0.66`
-    * Updated yosys-sby `0.66`
-    * Updated yosys-slang to `35de0406`
-    * Updated yosys-slang to `07a30ed1`
+  * Updated Magic to `8.3.677`
+  * Updated Netgen to `1.5.323`
+  * Updated Yosys to `0.68`
+    * Updated yosys-eqy `0.68`
+    * Updated yosys-sby `0.68`
+    * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated ghdl-bin to `6.0.0`
   * Updated Verilator to `5.046`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
-  * Updated KLayout to `0.30.9`
+  * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
-  * Downgraded Bitwuzla to `6e46391` to match oss-cad-suite
 * Updated Ciel to `2.5.1`
 
 ## Misc. Enhancements/Bugfixes
