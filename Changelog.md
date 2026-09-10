@@ -106,22 +106,20 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.0.0
+* Updated nix-eda to 7.8.0
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.669`
-  * Updated Netgen to `1.5.320`
+  * Updated Magic to `8.3.677`
+  * Updated Netgen to `1.5.323`
   * Updated Yosys to `0.68`
     * Updated yosys-eqy `0.68`
     * Updated yosys-sby `0.68`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated ghdl-bin to `6.0.0`
   * Updated Verilator to `5.046`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
-  * Updated KLayout to `0.30.11`
+  * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
-  * Downgraded Bitwuzla to `6e46391` to match oss-cad-suite
 * Updated Ciel to `2.5.1`
 
 ## Misc. Enhancements/Bugfixes
