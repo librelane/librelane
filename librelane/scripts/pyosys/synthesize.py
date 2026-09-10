@@ -288,7 +288,7 @@ def synthesize(
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
     with open(sdc_path, "w") as f:
-        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL']}", file=f)
+        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL'].split("/")[0]}", file=f)
         print(f"set_load {config['OUTPUT_CAP_LOAD']}", file=f)
 
     ys.log(f"[INFO] Using SDC file '{sdc_path}' for ABC…")
@@ -465,24 +465,36 @@ def synthesize(
     def run_strategy(d):
         abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
         if abc_script:
-            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…")
-        else:
+            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…\n")
+        elif not config["SYNTH_ABC_NEW"]:
             abc_script = script_creator.generate_abc_script(
                 step_dir,
                 config["SYNTH_STRATEGY"],
             )
-            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…")
+            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…\n")
+        ys.log_flush()
 
-        d.run_pass(
-            "abc",
-            "-script",
-            abc_script,
+        old_abc_args = []
+        if not config["SYNTH_ABC_NEW"]:
+            old_abc_args = ["-showtmp"]
+            if abc_script is not None:
+                old_abc_args.extend(("-script", abc_script))
+            if config["SYNTH_ABC_DFF"]:
+                old_abc_args.append("-dff")
+
+        dont_use_args = []
+        for excluded_cell in extra["excluded_cell_patterns"]:
+            dont_use_args.extend(("-dont_use", excluded_cell))
+
+        abc_pass = [
+            "abc_new" if config["SYNTH_ABC_NEW"] else "abc",
             "-constr",
             sdc_path,
-            "-showtmp",
             *lib_arguments,
-            *(["-dff"] if config["SYNTH_ABC_DFF"] else []),
-        )
+            *old_abc_args,
+            *dont_use_args,
+        ]
+        d.run_pass(*abc_pass)
 
         if value := config.get("SYNTH_TIE_UNDEFINED"):
             flag = "-zero" if value == "low" else "-one"

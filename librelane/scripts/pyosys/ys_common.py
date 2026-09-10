@@ -151,6 +151,8 @@ def _Design_add_blackbox_models(
                 "-sv",
                 "-setattr",
                 "keep_hierarchy",
+                "-setattr",
+                "blackbox",
                 "-lib",
                 *include_args,
                 *define_args,
@@ -165,6 +167,7 @@ def _Design_add_blackbox_models(
                 "blackbox",
                 "-setattr",
                 "keep_hierarchy",
+                "-unit_delay",
                 model,
             )
         else:
