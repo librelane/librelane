@@ -288,7 +288,7 @@ def synthesize(
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
     with open(sdc_path, "w") as f:
-        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL'].split("/")[0]}", file=f)
+        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL'].split('/')[0]}", file=f)
         print(f"set_load {config['OUTPUT_CAP_LOAD']}", file=f)
 
     ys.log(f"[INFO] Using SDC file '{sdc_path}' for ABC…")
