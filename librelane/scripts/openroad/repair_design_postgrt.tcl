@@ -36,11 +36,8 @@ lappend arg_list -verbose
 lappend arg_list -max_wire_length $::env(GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH)
 lappend arg_list -slew_margin $::env(GRT_DESIGN_REPAIR_MAX_SLEW_PCT)
 lappend arg_list -cap_margin $::env(GRT_DESIGN_REPAIR_MAX_CAP_PCT)
-if { [info exists ::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)] } {
+if { $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION) > 0 } {
     lappend arg_list -max_utilization $::env(GRT_DESIGN_REPAIR_MAX_UTILIZATION)
-}
-if { [info exists ::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)] } {
-    lappend arg_list -buffer_gain $::env(GRT_DESIGN_REPAIR_BUFFER_GAIN)
 }
 log_cmd repair_design {*}$arg_list
 
