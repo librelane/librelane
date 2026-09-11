@@ -268,7 +268,7 @@ class PyosysStep(Step):
         env["PYTHONPATH"] = ":".join(
             (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "pyosys"))
         )
-        subprocess_result = super().run_subprocess(cmd, env=env, **kwargs)
+        subprocess_result = self.run_subprocess(cmd, env=env, **kwargs)
         return {}, subprocess_result["generated_metrics"]
 
 
@@ -338,19 +338,27 @@ class VerilogStep(PyosysStep):
         if models := self.config.get("EXTRA_VERILOG_MODELS"):
             blackbox_models.extend(str(f) for f in models)
 
-        excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
-        excluded_cells.update(
+        excluded_cell_patterns: Set[str] = set(
+            self.config["EXTRA_EXCLUDED_CELLS"] or []
+        )
+        excluded_cell_patterns.update(
             process_list_file(self.config["SYNTH_EXCLUDED_CELL_FILE"])
         )
-        excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
-
-        libs_synth = self.toolbox.remove_cells_from_lib(
-            frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
-            excluded_cells=frozenset(excluded_cells),
+        excluded_cell_patterns.update(
+            process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"])
         )
+
+        libs_synth = [str(p) for p in scl_lib_list + pad_lib_list]
         extra_path = os.path.join(self.step_dir, "extra.json")
         with open(extra_path, "w") as f:
-            json.dump({"blackbox_models": blackbox_models, "libs_synth": libs_synth}, f)
+            json.dump(
+                {
+                    "blackbox_models": blackbox_models,
+                    "libs_synth": libs_synth,
+                    "excluded_cell_patterns": list(excluded_cell_patterns),
+                },
+                f,
+            )
         cmd.extend(["--extra-in", extra_path])
         return cmd
 
@@ -412,6 +420,23 @@ class SynthesisCommon(VerilogStep):
             default=False,
         ),
         Variable(
+            "SYNTH_ABC_NEW",
+            bool,
+            "Experimental: Use the abc_new pass instead of abc, with the default synthesis strategy from Yosys.",
+            default=False,
+        ),
+        Variable(
+            "SYNTH_ABC_DFF",
+            bool,
+            "Passes D-flipflop cells through ABC for optimization (which can for example, eliminate identical flip-flops). Has no effect if SYNTH_ABC_NEW is true.",
+            default=False,
+        ),
+        Variable(
+            "SYNTH_ABC_STRATEGY_SCRIPT",
+            Optional[Path],
+            "Custom ABC strategy script, overriding either the default (if SYNTH_ABC_NEW is true) or the SYNTH_STRATEGY (if SYNTH_ABC_NEW is false). Has no effect if SYNTH_ABC_NEW is true.",
+        ),
+        Variable(
             "SYNTH_STRATEGY",
             Literal[
                 "AREA 0",
@@ -424,50 +449,39 @@ class SynthesisCommon(VerilogStep):
                 "DELAY 3",
                 "DELAY 4",
             ],
-            "Strategies for abc logic synthesis and technology mapping. AREA strategies usually result in a more compact design, while DELAY strategies usually result in a design that runs at a higher frequency. Please note that there is no way to know which strategy is the best before trying them.",
+            "Strategies for abc logic synthesis and technology mapping. AREA strategies usually result in a more compact design, while DELAY strategies usually result in a design that runs at a higher frequency. Please note that there is no way to know which strategy is the best before trying them. Has no effect if SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default="DELAY 4",
         ),
         Variable(
             "SYNTH_ABC_BUFFERING",
             bool,
-            "Enables `abc` cell buffering.",
+            "Enables `abc` cell buffering. Has no effect if either SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default=False,
             deprecated_names=["SYNTH_BUFFERING"],
         ),
         Variable(
             "SYNTH_ABC_LEGACY_REFACTOR",
             bool,
-            "Replaces the ABC command `drf -l` with `refactor` which matches older versions of LibreLane but is more unstable.",
+            "Replaces the ABC command `drf -l` with `refactor` which matches older versions of LibreLane but is more unstable. Has no effect if either SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default=False,
         ),
         Variable(
             "SYNTH_ABC_LEGACY_REWRITE",
             bool,
-            "Replaces the ABC command `drw -l` with `rewrite` which matches older versions of LibreLane but is more unstable.",
-            default=False,
-        ),
-        Variable(
-            "SYNTH_ABC_DFF",
-            bool,
-            "Passes D-flipflop cells through ABC for optimization (which can for example, eliminate identical flip-flops).",
+            "Replaces the ABC command `drw -l` with `rewrite` which matches older versions of LibreLane but is more unstable. Has no effect if either SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default=False,
         ),
         Variable(
             "SYNTH_ABC_USE_MFS3",
             bool,
-            "Experimental: attempts a SAT-based remapping in all area and delay strategies before 'retime', which may improve PPA results.",
+            "Experimental: attempts a SAT-based remapping in all area and delay strategies before 'retime', which may improve PPA results. Has no effect if either SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default=False,
         ),
         Variable(
             "SYNTH_ABC_AREA_USE_NF",
             bool,
-            "Experimental: uses the &nf delay-based mapper with a very high value instead of the amap area mapper, which may be better in some scenarios at recovering area.",
+            "Experimental: uses the &nf delay-based mapper with a very high value instead of the amap area mapper, which may be better in some scenarios at recovering area. Has no effect if  either SYNTH_ABC_NEW is true or SYNTH_ABC_STRATEGY_SCRIPT is set.",
             default=False,
-        ),
-        Variable(
-            "SYNTH_ABC_STRATEGY_SCRIPT",
-            Optional[Path],
-            "Custom ABC strategy script. Runs instead of the default script for the selected 'SYNTH_STRATEGY'. All other 'SYNTH_ABC_*' variables except 'SYNTH_ABC_DFF' will have no effect.",
         ),
         Variable(
             "SYNTH_DIRECT_WIRE_BUFFERING",
