@@ -147,6 +147,10 @@ Style Notes
 
 * Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
+* Renamed PDK hash from `ihp-sg13g2` to `ihp-sg13`
+
+* CI: added test cases for `ihp-sg13cmos5l`
+
 # 3.0.8
 
 ## Steps

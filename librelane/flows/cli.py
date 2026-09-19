@@ -518,7 +518,7 @@ def cloup_flow_opts(
                     from ciel.source import StaticWebDataSource
 
                     opdks_rev = volare_pdk_override or get_pdk_hash(pdk)
-                    ciel_home = ciel.get_ciel_home(pdk_root)
+                    ciel_home = str(ciel.get_ciel_home(pdk_root))
 
                     include_libraries = ["default"]
                     if scl is not None:
@@ -552,7 +552,7 @@ def cloup_flow_opts(
                             ),
                             include_libraries=include_libraries,
                         )
-                        pdk_root = version.get_dir(ciel_home)
+                        pdk_root = str(version.get_dir(ciel_home))
                     except ValueError as e:
                         err(f"Failed to download PDK: {e}")
                         exit(1)
