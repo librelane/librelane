@@ -33,6 +33,7 @@ from .misc import (
     get_librelane_root,
     get_script_dir,
     get_pdk_hash,
+    get_ciel_pdk_hash,
     slugify,
     protected,
     final,

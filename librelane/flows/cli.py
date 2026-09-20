@@ -43,7 +43,7 @@ from cloup.constraints import (
 from cloup.typing import Decorator
 
 from .flow import Flow
-from ..common import set_tpe, cli, get_pdk_hash, _get_process_limit
+from ..common import set_tpe, cli, get_ciel_pdk_hash, _get_process_limit
 from ..logging import set_log_level, verbose, err, options, LogLevels
 from ..state import State, InvalidState
 
@@ -517,7 +517,6 @@ def cloup_flow_opts(
                     import ciel
                     from ciel.source import StaticWebDataSource
 
-                    opdks_rev = volare_pdk_override or get_pdk_hash(pdk)
                     ciel_home = str(ciel.get_ciel_home(pdk_root))
 
                     include_libraries = ["default"]
@@ -527,25 +526,28 @@ def cloup_flow_opts(
                     if pad is not None:
                         include_libraries.append(pad)
 
-                    pdk_family = None
-                    if family := ciel.Family.by_name.get(pdk):
-                        pdk = family.default_variant
-                        pdk_family = family.name
-                        verbose(f"Resolved PDK variant {family.default_variant}.")
-                    else:
-                        for family in ciel.Family.by_name.values():
-                            if pdk in family.variants:
-                                pdk_family = family.name
-                                break
+                    selector = pdk
 
-                    if pdk_family is None:
-                        err(f"Could not resolve the PDK '{pdk}'.")
+                    try:
+                        pdk = ciel.resolve_pdk_variant(pdk)
+                        if pdk != selector:
+                            verbose(f"Resolved PDK variant {pdk}.")
+                    except ValueError as e:
+                        err(str(e))
+                        err("If you're using a non-Ciel PDK, please pass --manual-pdk.")
+                        exit(1)
+
+                    try:
+                        opdks_rev = volare_pdk_override or get_ciel_pdk_hash(pdk)
+                    except ValueError as e:
+                        err(str(e))
+                        err("Please specify a PDK manually with '--manual-pdk'.")
                         exit(1)
 
                     try:
                         version = ciel.fetch(
                             ciel_home,
-                            pdk_family,
+                            pdk,  # only pull default libraries for resolved variant since we have a message saying "Resolved variant {pdk}..."
                             opdks_rev,
                             data_source=StaticWebDataSource(
                                 "https://fossi-foundation.github.io/ciel-releases"
