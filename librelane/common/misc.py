@@ -40,6 +40,7 @@ from typing import (
 )
 
 import httpx
+from deprecated.sphinx import deprecated
 
 from ..__version__ import __version__
 from .types import AnyPath, Path
@@ -75,6 +76,11 @@ def get_script_dir() -> str:
     )
 
 
+@deprecated(
+    version="3.1.0",
+    reason="Use get_ciel_pdk_hash, this method can force an exit in some codepaths",
+    action="once",
+)
 def get_pdk_hash(pdk_variant) -> str:
     """
     Gets the PDK version hash confirmed compatible with this version of LibreLane.
@@ -90,6 +96,27 @@ def get_pdk_hash(pdk_variant) -> str:
         f"Could not find a PDK family for '{pdk_variant}'. Please specify a PDK manually with '--manual-pdk'."
     )
     exit(1)
+
+
+def get_ciel_pdk_hash(pdk_variant: str) -> str:
+    """
+    Gets the PDK version hash confirmed compatible with this version of LibreLane.
+
+    Requires ciel
+    """
+    import ciel
+
+    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml"), "r") as file:
+        pdk_hashes = yaml.safe_load(file)
+
+    pdk_family = ciel.resolve_pdk_family(pdk_variant)
+
+    if pdk_family not in pdk_hashes:
+        raise ValueError(
+            f"LibreLane does not have a validated version for Ciel PDK family {pdk_family}."
+        )
+
+    return pdk_hashes[pdk_family]
 
 
 # The following code snippet has been adapted under the following license:

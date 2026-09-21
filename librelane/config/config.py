@@ -815,7 +815,7 @@ class Config(GenericImmutableDict[str, Any]):
             try:
                 import ciel
 
-                pdk_root = ciel.get_ciel_home(pdk_root)
+                pdk_root = str(ciel.get_ciel_home(pdk_root))
             except ImportError:
                 raise ValueError(
                     "The pdk_root argument is required as Ciel is not installed."
