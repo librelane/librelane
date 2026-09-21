@@ -215,6 +215,12 @@ class PyosysStep(Step):
             validator=_validate_icg,
         ),
         Variable(
+            "SYNTH_CLOCKGATE_TIE_LO",
+            Optional[str],
+            "Port of the integrated clock gate cell to be tied to zero. Intended for DFT scan-enable pins.",
+            pdk=True,
+        ),
+        Variable(
             "YOSYS_LOG_LEVEL",
             Literal["ALL", "WARNING", "ERROR"],
             "Which log level for Yosys. At WARNING or higher, the initialization splash is also disabled.",

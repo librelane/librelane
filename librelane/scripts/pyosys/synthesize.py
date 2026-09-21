@@ -434,6 +434,7 @@ def synthesize(
         cg_min_width = config["SYNTH_CLOCKGATE_MIN_WIDTH"]
         posedge = ()
         negedge = ()
+        tie_lo = ()
         if posedge_raw := config["SYNTH_CLOCKGATE_POSEDGE_ICG"]:
             cell, ce, clk, gclk = posedge_raw.rsplit("/", maxsplit=4)
             posedge = ("-pos", cell, f"{ce}:{clk}:{gclk}")
@@ -444,12 +445,15 @@ def synthesize(
             ys.log(
                 "[WARNING] A minimum width for clock gating is set; but no ICGs are configured."
             )
+        if tie_lo_raw := config["SYNTH_CLOCKGATE_TIE_LO"]:
+            tie_lo = ("-tie_lo", tie_lo_raw)
         d.run_pass(
             "clockgate",
             "-min_net_size",
             str(cg_min_width),
             *posedge,
             *negedge,
+            *tie_lo,
         )
 
     dfflibmap_args = []
