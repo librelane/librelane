@@ -24,14 +24,14 @@ import fnmatch
 import shutil
 from decimal import Decimal
 from abc import abstractmethod
-from typing import List, Literal, Optional, Set, Tuple
+from typing import List, Literal, Optional, Tuple
 
 from .step import ViewsUpdate, MetricsUpdate, Step
 
 from ..config import Variable
 from ..state import State, DesignFormat
 from ..logging import debug, verbose
-from ..common import Path, get_script_dir, process_list_file
+from ..common import Path, get_script_dir
 
 starts_with_whitespace = re.compile(r"^\s+.+$")
 
@@ -338,19 +338,12 @@ class VerilogStep(PyosysStep):
         if models := self.config.get("EXTRA_VERILOG_MODELS"):
             blackbox_models.extend(str(f) for f in models)
 
-        excluded_cells: Set[str] = set(self.config["EXTRA_EXCLUDED_CELLS"] or [])
-        excluded_cells.update(
-            process_list_file(self.config["SYNTH_EXCLUDED_CELL_FILE"])
-        )
-        excluded_cells.update(process_list_file(self.config["PNR_EXCLUDED_CELL_FILE"]))
+        # combine SCL and PAD Liberty files and convert paths to simple strings
+        lib_list = [str(lib) for lib in scl_lib_list + pad_lib_list]
 
-        libs_synth = self.toolbox.remove_cells_from_lib(
-            frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
-            excluded_cells=frozenset(excluded_cells),
-        )
         extra_path = os.path.join(self.step_dir, "extra.json")
         with open(extra_path, "w") as f:
-            json.dump({"blackbox_models": blackbox_models, "libs_synth": libs_synth}, f)
+            json.dump({"blackbox_models": blackbox_models, "libs_synth": lib_list}, f)
         cmd.extend(["--extra-in", extra_path])
         return cmd
 

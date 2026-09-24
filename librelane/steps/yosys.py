@@ -34,7 +34,7 @@ from .pyosys import (
 from ..config import Variable, Config
 from ..state import State, DesignFormat
 from ..logging import info
-from ..common import Path, Toolbox, TclUtils, process_list_file
+from ..common import Path, Toolbox, TclUtils
 
 # Re-export for back-compat
 JsonHeader
@@ -103,8 +103,8 @@ def _generate_read_deps(
             )
 
     excluded_cells: Set[str] = set(config["EXTRA_EXCLUDED_CELLS"] or [])
-    excluded_cells.update(process_list_file(config["SYNTH_EXCLUDED_CELL_FILE"]))
-    excluded_cells.update(process_list_file(config["PNR_EXCLUDED_CELL_FILE"]))
+    excluded_cells.update(config["SYNTH_EXCLUDED_CELLS"])
+    excluded_cells.update(config["PNR_EXCLUDED_CELLS"])
 
     lib_synth = toolbox.remove_cells_from_lib(
         frozenset([str(lib) for lib in scl_lib_list + pad_lib_list]),
