@@ -104,6 +104,8 @@ Style Notes
 
   * Made `SYNTH_MUL_BOOTH` the default
 
+  * Added `SYNTH_CLOCKGATE_TIE_LO` to specify a pin of the clock gate cell to tie to zero.
+
 ## Tool Updates
 
 * Updated nix-eda to 7.8.0
