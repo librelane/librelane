@@ -55,6 +55,7 @@ from ..common import (
     aggregate_metrics,
     get_script_dir,
     mkdirp,
+    parse_metric_modifiers,
     process_list_file,
 )
 from ..config import Macro, Variable
@@ -550,6 +551,10 @@ class STAMidPNR(OpenROADStep):
     Performs `Static Timing Analysis <https://en.wikipedia.org/wiki/Static_timing_analysis>`_
     using OpenROAD on an OpenROAD database, mid-PnR, with estimated values for
     parasitics.
+
+    Only one timing corner is analyzed. Per-corner metrics for the other corners
+    are cleared (set to ``None``), as the values from any earlier STA step no
+    longer describe the design.
     """
 
     id = "OpenROAD.STAMidPNR"
@@ -561,6 +566,28 @@ class STAMidPNR(OpenROADStep):
 
     def get_script_path(self):
         return os.path.join(get_script_dir(), "openroad", "sta", "corner.tcl")
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        views_updates, metrics_updates = super().run(state_in, **kwargs)
+
+        # Only one corner is analyzed mid-PnR. Values for the other corners
+        # were computed at an earlier stage of the design and no longer apply,
+        # so they are cleared rather than carried forward as if current.
+        analyzed_corners: Dict[str, Set[str]] = {}
+        for key in metrics_updates:
+            metric_name, modifiers = parse_metric_modifiers(key)
+            if corner := modifiers.get("corner"):
+                analyzed_corners.setdefault(metric_name, set()).add(corner)
+
+        for key in state_in.metrics:
+            metric_name, modifiers = parse_metric_modifiers(key)
+            corner = modifiers.get("corner")
+            if corner is None or metric_name not in analyzed_corners:
+                continue
+            if corner not in analyzed_corners[metric_name]:
+                metrics_updates[key] = None
+
+        return views_updates, metrics_updates
 
 
 class OpenSTAStep(OpenROADStep):

@@ -268,6 +268,9 @@ class MetricDiff(object):
                     continue
                 base_metric, modifiers = parse_metric_modifiers(metric)
                 lhs_value, rhs_value = g[metric], n[metric]
+                if lhs_value is None or rhs_value is None:
+                    # Cleared metrics carry no value, same as a missing one
+                    continue
                 if type(lhs_value) != type(rhs_value):
                     lhs_value = type(rhs_value)(lhs_value)
 

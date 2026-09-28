@@ -131,3 +131,31 @@ def test_metric_exceed_deferred(mock_config):
 
     with pytest.raises(DeferredStepError):
         potatoes_burnt_step.start(step_dir="/cwd", toolbox=Toolbox(tmp_dir="/cwd"))
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_timing_violations_skip_cleared_corners(
+    mock_config,
+    caplog: pytest.LogCaptureFixture,
+):
+    from librelane.state import State
+    from librelane.steps.checker import SetupViolations
+    from librelane.common import Toolbox
+
+    setup_violations_step = SetupViolations(
+        config=mock_config.copy(TIMING_VIOLATION_CORNERS=["*"]),
+        _no_filter_conf=True,
+        state_in=State(
+            {},
+            metrics={
+                "timing__setup_vio__count__corner:nom_tt": 0,
+                "timing__setup_vio__count__corner:nom_ss": None,
+            },
+        ),
+    )
+    setup_violations_step.start(step_dir="/cwd", toolbox=Toolbox(tmp_dir="/cwd"))
+
+    assert "No up-to-date setup timing data" in caplog.text
+    assert "* nom_ss" in caplog.text
+    assert "No setup violations found" in caplog.text
