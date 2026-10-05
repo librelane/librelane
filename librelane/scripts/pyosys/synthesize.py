@@ -257,6 +257,10 @@ def synthesize(
     config = json.load(open(config_in))
     extra = json.load(open(extra_in))
 
+    lib_dont_use_args = []
+    for excluded_cell in extra["excluded_cell_patterns"]:
+        lib_dont_use_args.extend(("-dont_use", excluded_cell))
+
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
     defines = (
         (config.get("VERILOG_DEFINES") or [])
@@ -455,7 +459,7 @@ def synthesize(
     dfflibmap_args = []
     for lib in libs:
         dfflibmap_args.extend(["-liberty", lib])
-    d.run_pass("dfflibmap", *dfflibmap_args)
+    d.run_pass("dfflibmap", *dfflibmap_args, *lib_dont_use_args)
 
     d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "post_dff.json"))
     d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
@@ -466,7 +470,7 @@ def synthesize(
         abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
         if abc_script:
             ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…\n")
-        elif not config["SYNTH_ABC_NEW"]:
+        elif config["SYNTH_STRATEGY"] != "DEFAULT" and not config["SYNTH_ABC_NEW"]:
             abc_script = script_creator.generate_abc_script(
                 step_dir,
                 config["SYNTH_STRATEGY"],
@@ -474,25 +478,19 @@ def synthesize(
             ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…\n")
         ys.log_flush()
 
-        old_abc_args = []
+        extra_args = ["-script", abc_script] * bool(abc_script)
         if not config["SYNTH_ABC_NEW"]:
-            old_abc_args = ["-showtmp"]
-            if abc_script is not None:
-                old_abc_args.extend(("-script", abc_script))
+            extra_args += ["-showtmp"]
             if config["SYNTH_ABC_DFF"]:
-                old_abc_args.append("-dff")
-
-        dont_use_args = []
-        for excluded_cell in extra["excluded_cell_patterns"]:
-            dont_use_args.extend(("-dont_use", excluded_cell))
+                extra_args += ["-dff"]
 
         abc_pass = [
             "abc_new" if config["SYNTH_ABC_NEW"] else "abc",
             "-constr",
             sdc_path,
             *lib_arguments,
-            *old_abc_args,
-            *dont_use_args,
+            *extra_args,
+            *lib_dont_use_args,
         ]
         d.run_pass(*abc_pass)
 

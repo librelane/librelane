@@ -18,6 +18,7 @@
 import os
 import re
 import sys
+import shlex
 from typing import Iterable, List, Optional, Tuple, Union
 
 try:
@@ -64,6 +65,9 @@ def yosys_version_at_least(*target: Tuple[int, ...]) -> Tuple[int, int]:
 
 
 def _Design_run_pass(self, *command):
+    if pass_dump := os.getenv("_LIBRELANE_YOSYS_DUMP_PASSES_TO"):
+        with open(pass_dump, "a+", encoding="utf8") as f:
+            print(shlex.join(command), file=f)
     ys.Pass.call(self, command)
 
 
