@@ -278,7 +278,12 @@ def synthesize(
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
     with open(sdc_path, "w") as f:
-        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL']}", file=f)
+        # SYNTH_DRIVING_CELL is documented as "{cell}/{port}", but ABC's
+        # set_driving_cell looks the value up as a bare library cell name
+        # (Abc_SclCellFind); passing "cell/port" makes ABC print "Cannot find
+        # the default PI driving cell" and silently ignore input drive.
+        driving_cell = config["SYNTH_DRIVING_CELL"].rsplit("/", 1)[0]
+        print(f"set_driving_cell {driving_cell}", file=f)
         print(f"set_load {config['OUTPUT_CAP_LOAD']}", file=f)
 
     ys.log(f"[INFO] Using SDC file '{sdc_path}' for ABC…")
