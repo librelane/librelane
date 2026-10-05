@@ -367,6 +367,11 @@ class Toolbox(object):
             warn(f"Failed to generate preview: {e}.")
             return None
 
+    @deprecated(
+        version="3.1.0",
+        reason="No longer needed by internal LibreLane steps and will be removed in LibreLane 4.0.",
+        action="once",
+    )
     def remove_cells_from_lib(
         self,
         input_lib_files: FrozenSet[str],

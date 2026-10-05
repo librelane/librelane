@@ -470,12 +470,17 @@ def synthesize(
         abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
         if abc_script:
             ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…\n")
-        elif config["SYNTH_STRATEGY"] != "DEFAULT" and not config["SYNTH_ABC_NEW"]:
-            abc_script = script_creator.generate_abc_script(
-                step_dir,
-                config["SYNTH_STRATEGY"],
-            )
-            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…\n")
+        elif config["SYNTH_STRATEGY"] != "DEFAULT":
+            if config["SYNTH_ABC_NEW"]:
+                ys.log(
+                    "[WARN] Using Yosys-provided synthesis strategy for experimental abc_new pass: use SYNTH_ABC_STRATEGY_SCRIPT to provide your own synthesis scripts."
+                )
+            else:
+                abc_script = script_creator.generate_abc_script(
+                    step_dir,
+                    config["SYNTH_STRATEGY"],
+                )
+                ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…\n")
         ys.log_flush()
 
         extra_args = ["-script", abc_script] * bool(abc_script)
