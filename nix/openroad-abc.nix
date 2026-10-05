@@ -34,7 +34,7 @@ abc-verifier.overrideAttrs (
 
     cmakeFlags = [
       "-DREADLINE_FOUND=FALSE"
-      "-DUSE_SYSTEM_ZLIB:BOOL=ON"
+      "-DABC_USE_SYSTEM_ZLIB:BOOL=ON"
       "-DABC_USE_NAMESPACE=${abc-namespace-name}"
       "-DABC_SKIP_TESTS:BOOL=ON"
       "-DABC_USE_STDINT_H:BOOL=ON"
