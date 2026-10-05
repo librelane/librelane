@@ -164,7 +164,7 @@ class Lint(Step):
                     model_set.add(str_model)
                     model_list.append(str_model)
         defines = [
-            f"PDK_{self.config['PDK']}",
+            f"PDK_{self.config['PDK']}.replace('-','_')",
             f"SCL_{self.config['STD_CELL_LIBRARY']}",
             "__librelane__",
             "__pnr__",

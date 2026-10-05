@@ -25,6 +25,13 @@ Style Notes
 
 -->
 
+# 3.0.15
+
+## Steps
+
+* `Verilator.Lint`
+  * Replace `-` with `_` in PDK define (required for `ihp-sg13*`).
+
 # 3.0.14
 
 ## Steps
