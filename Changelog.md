@@ -29,6 +29,15 @@ Style Notes
 
 ## Steps
 
+* `KeplerFormal.SEC`
+
+  * Created. Checks the current netlist against the RTL with Kepler Formal's
+    sequential equivalence checker. The flow stops on a counterexample; a proof
+    that does not cover every output is reported as a warning.
+
+  * Added `KEPLER_FORMAL_ENGINE`, `KEPLER_FORMAL_ENCODING` and
+    `KEPLER_FORMAL_MAX_K`.
+
 * `KLayout.DRC`
 
   * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
@@ -119,6 +128,8 @@ Style Notes
 
 ## Tool Updates
 
+* Updated nix-eda to 7.10.0
+  * Added Kepler Formal (`2026-10-05` snapshot)
 * Updated nix-eda to 7.8.0
   * Updated NixOS to 26.05
   * Updated Magic to `8.3.677`
