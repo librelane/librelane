@@ -257,6 +257,10 @@ def synthesize(
     config = json.load(open(config_in))
     extra = json.load(open(extra_in))
 
+    lib_dont_use_args = []
+    for excluded_cell in extra["excluded_cell_patterns"]:
+        lib_dont_use_args.extend(("-dont_use", excluded_cell))
+
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
     defines = (
         (config.get("VERILOG_DEFINES") or [])
@@ -288,7 +292,7 @@ def synthesize(
     # https://github.com/YosysHQ/abc/blob/28d955ca97a1c4be3aed4062aec0241a734fac5d/src/map/scl/sclUtil.c#L257
     sdc_path = os.path.join(step_dir, "synthesis.abc.sdc")
     with open(sdc_path, "w") as f:
-        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL']}", file=f)
+        print(f"set_driving_cell {config['SYNTH_DRIVING_CELL'].split('/')[0]}", file=f)
         print(f"set_load {config['OUTPUT_CAP_LOAD']}", file=f)
 
     ys.log(f"[INFO] Using SDC file '{sdc_path}' for ABC…")
@@ -459,7 +463,7 @@ def synthesize(
     dfflibmap_args = []
     for lib in libs:
         dfflibmap_args.extend(["-liberty", lib])
-    d.run_pass("dfflibmap", *dfflibmap_args)
+    d.run_pass("dfflibmap", *dfflibmap_args, *lib_dont_use_args)
 
     d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "post_dff.json"))
     d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
@@ -469,24 +473,35 @@ def synthesize(
     def run_strategy(d):
         abc_script = config["SYNTH_ABC_STRATEGY_SCRIPT"]
         if abc_script:
-            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…")
-        else:
-            abc_script = script_creator.generate_abc_script(
-                step_dir,
-                config["SYNTH_STRATEGY"],
-            )
-            ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…")
+            ys.log(f"[INFO] Using custom ABC strategy script '{abc_script}'…\n")
+        elif config["SYNTH_STRATEGY"] != "DEFAULT":
+            if config["SYNTH_ABC_NEW"]:
+                ys.log(
+                    "[WARN] Using Yosys-provided synthesis strategy for experimental abc_new pass: use SYNTH_ABC_STRATEGY_SCRIPT to provide your own synthesis scripts."
+                )
+            else:
+                abc_script = script_creator.generate_abc_script(
+                    step_dir,
+                    config["SYNTH_STRATEGY"],
+                )
+                ys.log(f"[INFO] Using generated ABC strategy script '{abc_script}'…\n")
+        ys.log_flush()
 
-        d.run_pass(
-            "abc",
-            "-script",
-            abc_script,
+        extra_args = ["-script", abc_script] * bool(abc_script)
+        if not config["SYNTH_ABC_NEW"]:
+            extra_args += ["-showtmp"]
+            if config["SYNTH_ABC_DFF"]:
+                extra_args += ["-dff"]
+
+        abc_pass = [
+            "abc_new" if config["SYNTH_ABC_NEW"] else "abc",
             "-constr",
             sdc_path,
-            "-showtmp",
             *lib_arguments,
-            *(["-dff"] if config["SYNTH_ABC_DFF"] else []),
-        )
+            *extra_args,
+            *lib_dont_use_args,
+        ]
+        d.run_pass(*abc_pass)
 
         if value := config.get("SYNTH_TIE_UNDEFINED"):
             flag = "-zero" if value == "low" else "-one"

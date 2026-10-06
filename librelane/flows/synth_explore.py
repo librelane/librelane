@@ -79,6 +79,7 @@ class SynthesisExploration(Flow):
         options.set_condensed_mode(True)
 
         for strategy in [
+            "DEFAULT",
             "AREA 0",
             "AREA 1",
             "AREA 2",
