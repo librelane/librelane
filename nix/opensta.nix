@@ -39,6 +39,7 @@ clangStdenv.mkDerivation (finalAttrs: {
 
   patches = [
     ./patches/opensta/fix_cell_delays.patch
+    ./patches/opensta/fix_power_pins.patch
   ];
 
   postPatch = ''

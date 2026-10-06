@@ -1,0 +1,42 @@
+diff --git a/verilog/VerilogWriter.cc b/verilog/VerilogWriter.cc
+index dd856d7b..681363bc 100644
+--- a/verilog/VerilogWriter.cc
++++ b/verilog/VerilogWriter.cc
+@@ -440,6 +440,7 @@ VerilogWriter::writeInstBusPinBit(const Instance *inst,
+ void
+ VerilogWriter::writeAssigns(const Instance *inst)
+ {
++  // Handle signals
+   InstancePinIterator *pin_iter = network_->pinIterator(inst);
+   while (pin_iter->hasNext()) {
+     Pin *pin = pin_iter->next();
+@@ -463,6 +464,29 @@ VerilogWriter::writeAssigns(const Instance *inst)
+     }
+   }
+   delete pin_iter;
++
++  // Handle power pins
++  if (include_pwr_gnd_) {
++    Cell *cell = network_->cell(inst);
++    CellPortIterator *port_iter = network_->portIterator(cell);
++    while (port_iter->hasNext()) {
++      Port *port = port_iter->next();
++      if (!network_->direction(port)->isPowerGround())
++        continue;
++      Pin *pin = network_->findPin(inst, port);
++      Term *term = pin ? network_->term(pin) : nullptr;
++      Net *net = term ? network_->net(term) : nullptr;
++      if (net && !stringEqual(network_->name(port), network_->name(net))) {
++        // Port name is different from net name.
++        string port_vname = netVerilogName(network_->name(port));
++        string net_vname = netVerilogName(network_->name(net));
++        fprintf(stream_, " assign %s = %s;\n",
++                port_vname.c_str(),
++                net_vname.c_str());
++      }
++    }
++    delete port_iter;
++  }
+ }
+ 
+ ////////////////////////////////////////////////////////////////

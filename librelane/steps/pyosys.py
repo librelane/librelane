@@ -293,6 +293,11 @@ class VerilogStep(PyosysStep):
         pad_lib_list = self.toolbox.filter_views(
             self.config, self.config["PAD_LIBS"], self.config.get("SYNTH_CORNER")
         )
+        pad_lib_list = []
+        if pad_libs := self.config.get("PAD_LIBS"):
+            pad_lib_list = self.toolbox.filter_views(
+                self.config, pad_libs, self.config.get("SYNTH_CORNER")
+            )
 
         # Try your best to use powered blackbox models if power_defines is true
         if self.power_defines:
@@ -631,17 +636,19 @@ class SynthesisCommon(VerilogStep):
         ]
         metric_updates["design__instance_unmapped__count"] = sum(unmapped_cells)
 
-        check_error_count_file = os.path.join(
-            self.step_dir, "reports", "pre_synth_chk.rpt"
-        )
+        check_report_files = [
+            os.path.join(self.step_dir, "reports", "pre_synth_chk.rpt"),
+            os.path.join(self.step_dir, "reports", "chk.rpt"),
+        ]
         metric_updates["synthesis__check_error__count"] = 0
-        if os.path.exists(check_error_count_file):
-            metric_updates["synthesis__check_error__count"] = _parse_yosys_check(
-                open(check_error_count_file),
-                self.config["TRISTATE_CELLS"],
-                self.config["SYNTH_CHECKS_ALLOW_TRISTATE"],
-                self.config["SYNTH_ELABORATE_ONLY"],
-            )
+        for check_error_count_file in check_report_files:
+            if os.path.exists(check_error_count_file):
+                metric_updates["synthesis__check_error__count"] += _parse_yosys_check(
+                    open(check_error_count_file),
+                    self.config["TRISTATE_CELLS"],
+                    self.config["SYNTH_CHECKS_ALLOW_TRISTATE"],
+                    self.config["SYNTH_ELABORATE_ONLY"],
+                )
 
         view_updates[DesignFormat.NETLIST] = Path(out_file)
 

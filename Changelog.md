@@ -164,6 +164,93 @@ Style Notes
 
 * CI: added test cases for `ihp-sg13cmos5l`
 
+# 3.0.16
+
+## Steps
+
+* `Yosys.Synthesis`
+
+  * Fixed use of `SYNTH_DRIVING_CELL` in the ad-hoc SDC file provided to ABC.
+
+# 3.0.15
+
+## Steps
+
+* `Verilator.Lint`
+
+  * Replace `-` with `_` in PDK define (required for `ihp-sg13*`).
+
+# 3.0.14
+
+## Steps
+
+* `Odb.*`
+
+  * Fixed steps not loading `PAD_LIBS`.
+
+* `OpenROAD.*`
+
+  * Fixed a crash when `PAD_LIBS` is set to a non-None value.
+
+* `Yosys.*`
+
+  * Fixed steps not loading `PAD_LIBS`.
+  
+## Misc. Enhancements/Bugfixes
+
+* `openlane.common`
+  * `Toolbox.get_timing_files_categorized` now includes any corner-appropriate
+    `PAD_LIBS`.
+
+# 3.0.13
+
+## Steps
+
+* `OpenROAD.*`
+
+  * Added support for OpenSTA 3.1 in a backwards-compatible manner (Thanks,
+    [@jalcim](https://github.com/jalcim)!)
+
+# 3.0.12
+
+## Steps
+
+* `Odb.CheckMacroAntennaProperties`
+
+  * Fixed an issue where the report would always return once the first macro had been checked.
+
+# 3.0.11
+
+## Tool Updates
+
+* Added OpenSTA patch by [@smunaut](https://github.com/smunaut) to fix writing
+  power pins in Verilog netlists.
+
+# 3.0.10
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Fixed the `synthesis__check_error__count` error metric only counting
+    pre-synthesis check errors.
+
+# 3.0.9
+
+## Steps
+
+* `KLayout.DRC`
+
+  * Added `KLAYOUT_DRC_DEFINES`, which replaces `KLAYOUT_DRC_OPTIONS`.
+
+* `KLayout.Filler`
+
+  * Added `KLAYOUT_FILLER_DEFINES`, which replaces `KLAYOUT_FILLER_OPTIONS`.
+
+* `KLayout.Density`
+
+  * Added `KLAYOUT_DENSITY_DEFINES`, which replaces `KLAYOUT_DENSITY_OPTIONS`.
+
 # 3.0.8
 
 ## Steps

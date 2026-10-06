@@ -459,10 +459,13 @@ class DRC(KLayoutStep):
             deprecated_names=["KLAYOUT_DRC_TECH_SCRIPT"],
         ),
         Variable(
-            "KLAYOUT_DRC_OPTIONS",
-            Optional[Dict[str, Union[int, bool, str]]],
+            "KLAYOUT_DRC_DEFINES",
+            Optional[Dict[str, str]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
+            deprecated_names=[
+                ("KLAYOUT_DRC_OPTIONS", lambda x: {k: str(v) for k, v in x.items()})
+            ],
         ),
         Variable(
             "KLAYOUT_DRC_THREADS",
@@ -505,8 +508,8 @@ class DRC(KLayoutStep):
         assert isinstance(input_view, Path)
 
         opts = []
-        if self.config["KLAYOUT_DRC_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+        if self.config["KLAYOUT_DRC_DEFINES"]:
+            for k, v in self.config["KLAYOUT_DRC_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
@@ -566,13 +569,13 @@ class DRC(KLayoutStep):
         drc_script_path = self.config["KLAYOUT_DRC_RUNSET"]
         lyrdb_report = os.path.join(reports_dir, "drc.klayout.lyrdb")
         json_report = os.path.join(reports_dir, "drc.klayout.json")
-        feol = str(self.config["KLAYOUT_DRC_OPTIONS"]["feol"]).lower()
-        beol = str(self.config["KLAYOUT_DRC_OPTIONS"]["beol"]).lower()
+        feol = str(self.config["KLAYOUT_DRC_DEFINES"]["feol"]).lower()
+        beol = str(self.config["KLAYOUT_DRC_DEFINES"]["beol"]).lower()
         floating_metal = str(
-            self.config["KLAYOUT_DRC_OPTIONS"]["floating_metal"]
+            self.config["KLAYOUT_DRC_DEFINES"]["floating_metal"]
         ).lower()
-        offgrid = str(self.config["KLAYOUT_DRC_OPTIONS"]["offgrid"]).lower()
-        seal = str(self.config["KLAYOUT_DRC_OPTIONS"]["seal"]).lower()
+        offgrid = str(self.config["KLAYOUT_DRC_DEFINES"]["offgrid"]).lower()
+        seal = str(self.config["KLAYOUT_DRC_DEFINES"]["seal"]).lower()
         threads = self.config["KLAYOUT_DRC_THREADS"] or _get_process_limit()
         info(f"Running KLayout DRC with {threads} threads…")
 
@@ -648,8 +651,8 @@ class DRC(KLayoutStep):
         assert isinstance(input_view, Path)
 
         opts = []
-        if self.config["KLAYOUT_DRC_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+        if self.config["KLAYOUT_DRC_DEFINES"]:
+            for k, v in self.config["KLAYOUT_DRC_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
@@ -717,8 +720,8 @@ class DRC(KLayoutStep):
         assert isinstance(input_view, Path)
 
         opts = []
-        if self.config["KLAYOUT_DRC_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_DRC_OPTIONS"].items():
+        if self.config["KLAYOUT_DRC_DEFINES"]:
+            for k, v in self.config["KLAYOUT_DRC_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
@@ -1037,10 +1040,16 @@ class Filler(KLayoutStep):
             pdk=True,
         ),
         Variable(
-            "KLAYOUT_FILLER_OPTIONS",
-            Optional[Dict[str, Union[bool, int, str]]],
-            "Options passed directly to the KLayout filler script. They vary from one PDK to another.",
+            "KLAYOUT_FILLER_DEFINES",
+            Optional[Dict[str, str]],
+            "Options passed directly to the KLayout filler runset. They vary from one PDK to another.",
             pdk=True,
+            deprecated_names=[
+                (
+                    "KLAYOUT_FILLER_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
+            ],
         ),
     ]
 
@@ -1076,8 +1085,8 @@ class Filler(KLayoutStep):
         script = self.config["KLAYOUT_FILLER_SCRIPT"]
 
         opts = []
-        if self.config["KLAYOUT_FILLER_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_FILLER_OPTIONS"].items():
+        if self.config["KLAYOUT_FILLER_DEFINES"]:
+            for k, v in self.config["KLAYOUT_FILLER_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
@@ -1119,6 +1128,16 @@ class Filler(KLayoutStep):
 
         script = self.config["KLAYOUT_FILLER_SCRIPT"]
 
+        opts = []
+        if self.config["KLAYOUT_FILLER_DEFINES"]:
+            for k, v in self.config["KLAYOUT_FILLER_DEFINES"].items():
+                opts.extend(
+                    [
+                        "-rd",
+                        f"{k}={v}",
+                    ]
+                )
+
         env["PDK_ROOT"] = self.config["PDK_ROOT"]
         env["PDK"] = self.config["PDK"]
 
@@ -1132,6 +1151,7 @@ class Filler(KLayoutStep):
                 "-rd",
                 f"output_file={abspath(output_gds)}",
                 abspath(input_gds),
+                *opts,
             ],
             env=env,
         )
@@ -1161,10 +1181,16 @@ class Density(KLayoutStep):
             pdk=True,
         ),
         Variable(
-            "KLAYOUT_DENSITY_OPTIONS",
-            Optional[Dict[str, Union[bool, int, str]]],
+            "KLAYOUT_DENSITY_DEFINES",
+            Optional[Dict[str, str]],
             "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
             pdk=True,
+            deprecated_names=[
+                (
+                    "KLAYOUT_DENSITY_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
+            ],
         ),
         Variable(
             "KLAYOUT_DENSITY_THREADS",
@@ -1202,8 +1228,8 @@ class Density(KLayoutStep):
         json_report = os.path.join(reports_dir, "density.klayout.json")
 
         opts = []
-        if self.config["KLAYOUT_DENSITY_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_DENSITY_OPTIONS"].items():
+        if self.config["KLAYOUT_DENSITY_DEFINES"]:
+            for k, v in self.config["KLAYOUT_DENSITY_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",
@@ -1279,10 +1305,16 @@ class Antenna(KLayoutStep):
             pdk=True,
         ),
         Variable(
-            "KLAYOUT_ANTENNA_OPTIONS",
-            Optional[Dict[str, Union[bool, int, str]]],
-            "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
+            "KLAYOUT_ANTENNA_DEFINES",
+            Optional[Dict[str, str]],
+            "Options passed directly to the KLayout antenna runset. They vary from one PDK to another.",
             pdk=True,
+            deprecated_names=[
+                (
+                    "KLAYOUT_ANTENNA_OPTIONS",
+                    lambda x: {k: str(v) for k, v in (x or {}).items()},
+                )
+            ],
         ),
     ]
 
@@ -1314,8 +1346,8 @@ class Antenna(KLayoutStep):
         json_report = os.path.join(reports_dir, "antenna.klayout.json")
 
         opts = []
-        if self.config["KLAYOUT_ANTENNA_OPTIONS"]:
-            for k, v in self.config["KLAYOUT_ANTENNA_OPTIONS"].items():
+        if self.config["KLAYOUT_ANTENNA_DEFINES"]:
+            for k, v in self.config["KLAYOUT_ANTENNA_DEFINES"].items():
                 opts.extend(
                     [
                         "-rd",

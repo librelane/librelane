@@ -1,6 +1,6 @@
 # Copyright 2025 LibreLane Contributors
 #
-# Adapted from OpenLane
+# Adapted from OpenLane 2
 #
 # Copyright 2023 Efabless Corporation
 #
