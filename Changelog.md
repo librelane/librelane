@@ -25,11 +25,18 @@ Style Notes
 
 -->
 
+# 3.0.16
+
+* `Yosys.Synthesis`
+
+  * Fixed use of `SYNTH_DRIVING_CELL` in the ad-hoc SDC file provided to ABC.
+
 # 3.0.15
 
 ## Steps
 
 * `Verilator.Lint`
+
   * Replace `-` with `_` in PDK define (required for `ihp-sg13*`).
 
 # 3.0.14
@@ -37,12 +44,15 @@ Style Notes
 ## Steps
 
 * `Odb.*`
+
   * Fixed steps not loading `PAD_LIBS`.
 
 * `OpenROAD.*`
+
   * Fixed a crash when `PAD_LIBS` is set to a non-None value.
 
 * `Yosys.*`
+
   * Fixed steps not loading `PAD_LIBS`.
   
 ## Misc. Enhancements/Bugfixes
