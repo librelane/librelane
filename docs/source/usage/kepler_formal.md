@@ -1,25 +1,15 @@
-# Sequential Equivalence with Kepler Formal
+# Sequential Equivalence Checking with Kepler Formal
 
-`KeplerFormal.SEC` compares the original Verilog/SystemVerilog RTL with the
-current gate-level netlist. It passes both inputs directly to Kepler Formal
-without rewriting them. It can run after filler insertion in the Classic flow.
-A complete equivalence proof lets the flow continue; a counterexample,
-inconclusive result, frontend failure, unsupported model, or incomplete output
-coverage stops it.
+`KeplerFormal.SEC` checks that a gate-level netlist produced by the flow is
+sequentially equivalent to the design's RTL, using
+[Kepler Formal](https://github.com/keplertech/kepler-formal). Kepler Formal is
+part of the LibreLane Nix environment, so no further installation is needed.
 
-## Run the `spm` Example
+## Enabling the Step
 
-After [setting up Nix](../installation/index.md), clone this fork and enter its
-tool environment:
-
-```bash
-git clone --branch main --recurse-submodules https://github.com/nanocoh/librelane.git
-cd librelane
-nix-shell
-```
-
-Add the following top-level entries to `librelane/examples/spm/config.yaml`,
-keeping its existing design settings:
+The step is not part of the Classic flow. Insert it after any step that
+produces a netlist, for example right after fill insertion so that the final
+netlist is checked:
 
 ```yaml
 meta:
@@ -27,62 +17,73 @@ meta:
   flow: Classic
   substituting_steps:
     "+OpenROAD.FillInsertion": KeplerFormal.SEC
-
-KEPLER_FORMAL_ENGINE: pdr
-KEPLER_FORMAL_ENCODING: dual_rail_steady
-KEPLER_FORMAL_MAX_K: 32
 ```
 
-The `+` inserts the check immediately after `OpenROAD.FillInsertion`. It keeps
-filler insertion and the remaining Classic steps in place. Run the configuration
-from the repository root:
+Three variables control the proof:
 
-```bash
-python3 -m librelane librelane/examples/spm/config.yaml
-```
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `KEPLER_FORMAL_ENGINE` | `pdr` | Proof engine: `pdr`, `k_induction` or `imc`. |
+| `KEPLER_FORMAL_ENCODING` | `dual_rail_steady` | How unknown state is modelled, see below. |
+| `KEPLER_FORMAL_MAX_K` | `32` | Bound for the proof or counterexample search. |
 
-The pinned Kepler frontend currently rejects the unmodified `spm` RTL with an
-unsupported `InstanceArray` error. This stops the run at `KeplerFormal.SEC`;
-the step does not transform the RTL to bypass the frontend limitation.
+## What Is Compared
 
-`KEPLER_FORMAL_ENGINE` defaults to `pdr`; `k_induction` and `imc` are also
-available. `KEPLER_FORMAL_ENCODING` defaults to `dual_rail_steady`; `binary`
-is also available. `KEPLER_FORMAL_MAX_K` defaults to `32` and must be non-negative.
-Reaching this bound without a proof stops the flow. After updating the checkout
-or its Nix dependencies, exit and re-enter `nix-shell` to refresh the environment.
+The RTL in `VERILOG_FILES` is read by Kepler Formal's own SystemVerilog
+frontend with the view synthesis had of it: the `PDK_*`, `SCL_*`, `PAD_*`,
+`__librelane__`, `__pnr__` and `SYNTHESIS` defines, `VERILOG_DEFINES`,
+`VERILOG_INCLUDE_DIRS`, `SYNTH_PARAMETERS` and `SLANG_ARGUMENTS`. The gate
+side is the current `NETLIST`, with cells taken from the `CELL_LIBS` and
+`PAD_LIBS` Liberty files of `DEFAULT_CORNER` and from `EXTRA_LIBS`. Macros
+contribute their netlist when they have one and their Liberty file otherwise;
+a macro with neither cannot be part of the proof and stops the step.
+`EXTRA_VERILOG_MODELS` are read on both sides. No input is rewritten.
 
-## Inputs and Results
+Fill, decap, tap and endcap cells (`FILL_CELLS`, `DECAP_CELLS`,
+`WELLTAP_CELL`, `ENDCAP_CELL`) carry no logic, and some PDKs ship them as LEF
+only. When the netlist instantiates such a cell that none of the Liberty files
+defines, the step writes an empty Verilog module for it to
+`physical_cells.v` and reads that file with the netlist.
 
-The RTL frontend uses `DESIGN_NAME`, `VERILOG_FILES`, `VERILOG_INCLUDE_DIRS`,
-`VERILOG_DEFINES`, `SYNTH_PARAMETERS`, and `SLANG_ARGUMENTS`. It includes the
-standard synthesis defines used by LibreLane. These options are passed to
-Kepler's native frontend alongside the original RTL files. The gate input is
-the unchanged current `NETLIST` state. The step does not generate an elaborated
-RTL netlist or strip cells from the gate netlist.
-Its tool configuration selects `format: sv2v`, with RTL as design 1 and the
-gate-level netlist as design 2.
+## Results
 
-Cell and optional pad Liberty files are selected for `DEFAULT_CORNER` from
-`LIB` and `PAD_LIBS`. `EXTRA_LIBS`, functional macro netlists or Liberty models,
-and `EXTRA_VERILOG_MODELS` supply additional models. Every instantiated cell
-needs a suitable definition, including physical cells retained in the netlist.
-Black-box headers do not establish equivalence.
+The flow stops in two cases: Kepler Formal finds a counterexample, i.e. an
+input sequence on which the two designs produce different outputs, or Kepler
+Formal cannot run on the design, for example because the netlist uses a cell
+that none of the Liberty files define or the RTL uses an unsupported
+construct. The error names the cause; the step's log has the details.
 
-The `KeplerFormal.SEC` step directory contains the generated `rtl.f` frontend
-options, `kepler_formal.yml` tool configuration, captured
-`keplerformal-sec.log`, and `boundary_terms.txt`. Kepler may also write
-`skipped_*_pos.txt` reports. Use the captured `keplerformal-sec.log` to inspect
-the verdict or counterexample; the tool's separate `kepler_formal.proof.log`
-may omit the final verdict.
+Everything short of a complete proof lets the flow continue with a warning:
+outputs the tool could not check, a proof that ran out of bound on some
+outputs, an inconclusive result, and proofs that treat internal terms as
+boundaries instead of checking through them. The reasons are in the step
+directory: `kepler_formal.log` is the tool's log, `boundary_terms.txt` lists
+the boundary terms and `skipped_*_pos.txt` the outputs that were skipped and
+why. `rtl.f` and `kepler_formal.yml` are the inputs the step generated for the
+tool and can be used to rerun it by hand.
 
-Successful checks add these metrics to `state_out.json`:
+The step adds these metrics:
 
 | Metric | Meaning |
 | --- | --- |
-| `design__equivalence__proven` | `1` when a complete proof was accepted. |
-| `design__equivalence__checked_outputs` | Number of checked output bits. |
-| `design__equivalence__proof_bound` | Bound reported by the successful proof. |
+| `design__equivalence__proven` | `1` when every output was proven equivalent, `0` otherwise. |
+| `design__equivalence__checked_outputs` | Outputs proven equivalent. |
+| `design__equivalence__unchecked_outputs` | Outputs skipped or left inconclusive. |
+| `design__equivalence__proof_bound` | The bound at which the proof (or partial proof) completed. |
 
-The step checks the reported verdict, output coverage, and boundary reports.
-The pinned Kepler version returns exit status zero for both a proof and a
-counterexample, so exit status alone does not indicate equivalence.
+## Encodings
+
+Kepler Formal does not assume that registers in the RTL and in the netlist
+correspond by name, so an output whose value depends on a register that no
+reset ever defines cannot be compared bit for bit.
+
+In the default `dual_rail_steady` encoding such outputs stay in the proof: the
+tool tracks whether each value is known and proves that the two designs never
+produce opposite *defined* values. It does not prove that an output ever
+becomes defined.
+
+The `binary` encoding is an exact 0/1 comparison. It gives a stronger result
+for the outputs it checks, but skips outputs that depend on reset-unanchored
+state, which then shows up as unchecked outputs. Kepler Formal can keep those
+outputs in a binary proof when told which ports reset the design; the step
+does not expose this yet.

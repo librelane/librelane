@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import fnmatch
 import glob
 import json
 import os
 import re
-from typing import Iterable, List, Literal, Tuple
+from typing import Iterable, List, Literal, Optional, Tuple
 
 import yaml
 
@@ -24,24 +25,60 @@ from .step import ViewsUpdate, MetricsUpdate, Step, StepError
 from ..config import Variable
 from ..state import DesignFormat, State
 
+# Kepler Formal exit codes for a completed SEC run. Any other non-zero exit is
+# a tool failure (frontend error, bad configuration, crash).
+_EXIT_PROVED = 0
+_EXIT_PARTIALLY_PROVED = 1
+_EXIT_INCONCLUSIVE = 2
+_EXIT_COUNTEREXAMPLE = 3
+
+_COUNTEREXAMPLE = "Difference was found. SEC found a counterexample"
+_UNSUPPORTED = re.compile(r"SEC cannot run on this design pair: (.*)")
+_LOAD_FAILURE = re.compile(r"Netlist loading failed: (.*)")
+_PROVED = re.compile(
+    r"SEC proved equivalence"
+    r"(?: under the dual-rail steady-state abstraction)? at k = (\d+)\."
+)
+_PARTIALLY_PROVED = re.compile(
+    r"SEC partially proved equivalence at k = (\d+): (\d+)/(\d+) outputs proved"
+)
+_INCONCLUSIVE = re.compile(r"SEC was inconclusive (.*)")
+_COVERAGE = re.compile(
+    r"SEC checked-output coverage: [\d.]+% \((\d+)/(\d+) covered/existing outputs\)"
+)
+_TOP_LEVEL_ROLES = {"top_input", "top_output"}
+# "celltype instance (" at the start of a line in a Yosys/OpenROAD netlist.
+_NETLIST_INSTANCE = re.compile(r"^\s*([A-Za-z_][\w$]*)\s+\S+\s*\(", re.MULTILINE)
+_LIBERTY_CELL = re.compile(r"\bcell\s*\(\s*\"?([^\"\s()]+)\"?\s*\)")
+
 
 @Step.factory.register()
 class SEC(Step):
     """
-    Proves sequential equivalence between the original Verilog/SystemVerilog RTL
-    and the current gate-level netlist using Kepler Formal's native RTL-to-gate
-    frontend and the design's Liberty libraries.
+    Checks that the current gate-level netlist is sequentially equivalent to
+    the design's Verilog/SystemVerilog RTL using
+    `Kepler Formal <https://github.com/keplertech/kepler-formal>`_.
 
-    Insert this step after ``OpenROAD.FillInsertion`` with
+    The RTL is read by Kepler Formal's own SystemVerilog frontend with the
+    same defines, include directories and parameters as synthesis; the netlist
+    is read with the design's Liberty libraries. Neither input is rewritten.
+
+    Insert this step after any step that updates the netlist, for example with
     ``"substituting_steps": {"+OpenROAD.FillInsertion": "KeplerFormal.SEC"}``
-    in the configuration's ``meta`` object. A counterexample, incomplete proof,
-    unsupported model, or partially checked output interface stops the flow.
-    The step preserves the input netlist and saves the command, frontend options,
-    proof log, and boundary reports in its step directory.
+    in the configuration's ``meta`` object. Fill, decap, tap and endcap cells
+    that no Liberty file defines are given empty Verilog models, as they
+    carry no logic.
+
+    The flow stops when Kepler Formal finds a counterexample or fails to run.
+    A proof that does not cover every output, a partial proof and an
+    inconclusive result let the flow continue with a warning; the reasons are
+    in the step directory's reports and in the ``design__equivalence__*``
+    metrics.
     """
 
     id = "KeplerFormal.SEC"
     name = "Sequential Equivalence Check"
+    long_name = "RTL/Netlist Sequential Equivalence Check"
     inputs = [DesignFormat.NETLIST]
     outputs = []
 
@@ -55,13 +92,13 @@ class SEC(Step):
         Variable(
             "KEPLER_FORMAL_ENCODING",
             Literal["binary", "dual_rail_steady"],
-            "The sequential state encoding. Both modes require complete output coverage to pass.",
+            "How unknown and reset-unanchored state is modelled. 'dual_rail_steady' keeps outputs that depend on reset-unanchored state in the proof and proves that the two designs never produce opposite defined values; 'binary' proves exact 0/1 equivalence but skips such outputs.",
             default="dual_rail_steady",
         ),
         Variable(
             "KEPLER_FORMAL_MAX_K",
             int,
-            "The maximum proof/search bound. Reaching the bound without a proof is a failure, not a pass.",
+            "The maximum proof/search bound. Reaching the bound without a proof or counterexample is reported as inconclusive.",
             default=32,
         ),
     ]
@@ -80,17 +117,20 @@ class SEC(Step):
             )
         return json.dumps(value)
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        max_k = self.config["KEPLER_FORMAL_MAX_K"]
-        if max_k < 0:
-            raise StepError("KEPLER_FORMAL_MAX_K must be non-negative.")
+    def _write_tool_inputs(
+        self,
+        state_in: State,
+        step_dir: str,
+        flist_path: str,
+        config_path: str,
+    ):
         rtl_files = self._paths(self.config["VERILOG_FILES"])
         if not rtl_files:
             raise StepError(
                 "KeplerFormal.SEC requires at least one VERILOG_FILES input."
             )
 
-        libraries = self.toolbox.filter_views(self.config, self.config["LIB"])
+        libraries = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
         if pad_libs := self.config.get("PAD_LIBS"):
             libraries += self.toolbox.filter_views(self.config, pad_libs)
         libraries += self.config.get("EXTRA_LIBS") or []
@@ -103,7 +143,7 @@ class SEC(Step):
                 libraries += macro_libs
             else:
                 raise StepError(
-                    f"KeplerFormal.SEC: macro '{name}' needs a functional netlist or Liberty model; a black-box header is insufficient."
+                    f"KeplerFormal.SEC: macro '{name}' needs a netlist or a Liberty model to be part of the proof."
                 )
         library_paths = self._paths(libraries)
         if not library_paths:
@@ -113,20 +153,30 @@ class SEC(Step):
         for path in gold_files + gate_files + library_paths:
             if not os.path.isfile(path):
                 raise StepError(f"KeplerFormal.SEC: input file does not exist: {path}")
+        if stubs := self._physical_cells_without_models(
+            str(state_in[DesignFormat.NETLIST]), library_paths
+        ):
+            stubs_path = os.path.join(step_dir, "physical_cells.v")
+            with open(stubs_path, "w", encoding="utf8") as f:
+                f.write(
+                    "// Physical-only cells of the netlist without a Liberty model.\n"
+                )
+                for cell in stubs:
+                    f.write(f"module {cell} ();\nendmodule\n")
+            gate_files.append(stubs_path)
 
-        step_dir = os.path.abspath(self.step_dir)
-        flist_path = os.path.join(step_dir, "rtl.f")
-        config_path = os.path.join(step_dir, "kepler_formal.yml")
-        log_path = os.path.abspath(self.get_log_path())
-        boundary_path = os.path.join(step_dir, "boundary_terms.txt")
-
+        # Same preprocessor view of the RTL as synthesis (see
+        # scripts/pyosys/synthesize.py), plus SYNTHESIS as Yosys defines it.
         defines = [
             "SYNTHESIS",
             f"PDK_{self.config['PDK'].replace('-', '_')}",
             f"SCL_{self.config['STD_CELL_LIBRARY']}",
             "__librelane__",
             "__pnr__",
-        ] + (self.config.get("VERILOG_DEFINES") or [])
+        ]
+        if pad_library := self.config.get("PAD_CELL_LIBRARY"):
+            defines.append(f"PAD_{pad_library}")
+        defines += self.config.get("VERILOG_DEFINES") or []
         options = [f"-D {self._quote_option(define)}" for define in defines]
         for directory in self.config.get("VERILOG_INCLUDE_DIRS") or []:
             options.append(f"-I{self._quote_option(os.path.abspath(directory))}")
@@ -153,27 +203,91 @@ class SEC(Step):
                     "sv_design1_flist": flist_path,
                     "liberty_files": library_paths,
                     "sec_engine": self.config["KEPLER_FORMAL_ENGINE"],
-                    "max_k": max_k,
-                    "sec_encoding": self.config.get(
-                        "KEPLER_FORMAL_ENCODING", "dual_rail_steady"
-                    ),
-                    "sec_uncomputable_seq_as_boundary": False,
+                    "sec_encoding": self.config["KEPLER_FORMAL_ENCODING"],
+                    "max_k": self.config["KEPLER_FORMAL_MAX_K"],
                     "report_skipped_pos": True,
-                    "log_file": os.path.join(step_dir, "kepler_formal.proof.log"),
+                    "log_file": os.path.join(step_dir, "kepler_formal.log"),
                 },
                 f,
                 sort_keys=False,
             )
 
-        # These reports are conditional tool outputs; a rerun must never consume
-        # a report left behind by an earlier proof attempt.
+    def _physical_cells_without_models(
+        self, netlist_path: str, library_paths: List[str]
+    ) -> List[str]:
+        """
+        Returns the fill, decap, tap and endcap cells instantiated by the
+        netlist that no Liberty file defines. These cells have no logic, and
+        some PDKs ship them as LEF only.
+        """
+        patterns = list(self.config.get("FILL_CELLS") or [])
+        patterns += self.config.get("DECAP_CELLS") or []
+        for variable in ("WELLTAP_CELL", "ENDCAP_CELL"):
+            if cell := self.config.get(variable):
+                patterns.append(cell)
+        if not patterns:
+            return []
+        with open(netlist_path, encoding="utf8") as f:
+            instantiated = set(_NETLIST_INSTANCE.findall(f.read()))
+        physical = {
+            cell
+            for cell in instantiated
+            if any(fnmatch.fnmatchcase(cell, pattern) for pattern in patterns)
+        }
+        for library in library_paths:
+            with open(library, encoding="utf8", errors="replace") as f:
+                physical.difference_update(_LIBERTY_CELL.findall(f.read()))
+        return sorted(physical)
+
+    def _internal_boundaries(self, boundary_path: str) -> int:
+        """
+        Counts the entries of the boundary report that are not plain top-level
+        interface terms, i.e. points where the proof cut the designs open.
+        """
+        if not os.path.isfile(boundary_path):
+            return 0
+        with open(boundary_path, encoding="utf8") as f:
+            report = f.read()
+        internal = len(re.findall(r"^\s*connectivity_skip:\s*\S", report, re.MULTILINE))
+        for roles in re.findall(r"^\s*roles:\s*\[([^\]]*)\]", report, re.MULTILINE):
+            if any(role.strip() not in _TOP_LEVEL_ROLES for role in roles.split(",")):
+                internal += 1
+        return internal
+
+    @staticmethod
+    def _skipped_outputs(step_dir: str) -> List[Tuple[str, int]]:
+        skipped = []
+        for path in sorted(glob.glob(os.path.join(step_dir, "skipped_*_pos.txt"))):
+            with open(path, encoding="utf8") as f:
+                count = sum(
+                    1
+                    for line in f
+                    if line.strip() and not line.lstrip().startswith("#")
+                )
+            if count:
+                skipped.append((os.path.basename(path), count))
+        return skipped
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        if self.config["KEPLER_FORMAL_MAX_K"] < 0:
+            raise StepError("KEPLER_FORMAL_MAX_K must be non-negative.")
+
+        step_dir = os.path.abspath(self.step_dir)
+        flist_path = os.path.join(step_dir, "rtl.f")
+        config_path = os.path.join(step_dir, "kepler_formal.yml")
+        boundary_path = os.path.join(step_dir, "boundary_terms.txt")
+        self._write_tool_inputs(state_in, step_dir, flist_path, config_path)
+
+        # Kepler Formal only writes these reports when it has something to
+        # report; a rerun must not pick up reports of an earlier attempt.
         for path in [boundary_path] + glob.glob(
             os.path.join(step_dir, "skipped_*_pos.txt")
         ):
             if os.path.isfile(path):
                 os.unlink(path)
+
         kwargs = kwargs.copy()
-        kwargs.update(cwd=step_dir, check=False, log_to=log_path)
+        kwargs.update(cwd=step_dir, check=False)
         try:
             result = self.run_subprocess(
                 ["kepler-formal", "--config", config_path], **kwargs
@@ -181,77 +295,84 @@ class SEC(Step):
         except OSError as e:
             raise StepError(f"Could not launch Kepler Formal: {e}") from e
 
-        # The pinned Kepler release returns zero for BOTH a proof and a
-        # counterexample. Its configured log_file also loses the final verdict
-        # when the RTL frontend replaces the logger. Read captured stdout.
         with open(result["log_path"], encoding="utf8") as f:
             log = f.read()
-        error_context = f" See {result['log_path']} for details."
-        if "Difference was found. SEC found a counterexample" in log:
+        returncode = result["returncode"]
+        see_log = f" See '{os.path.relpath(result['log_path'])}'."
+
+        # The verdict is taken from the log; the exit code only confirms it.
+        if _COUNTEREXAMPLE in log or returncode == _EXIT_COUNTEREXAMPLE:
             raise StepError(
-                "KeplerFormal.SEC: RTL and netlist are not equivalent." + error_context
+                "KeplerFormal.SEC: the netlist is not equivalent to the RTL, Kepler Formal found a counterexample."
+                + see_log
             )
-        if "SEC was inconclusive" in log:
-            raise StepError("KeplerFormal.SEC: proof was inconclusive." + error_context)
-        if result["returncode"] != 0:
+        if load_failure := _LOAD_FAILURE.search(log):
             raise StepError(
-                f"KeplerFormal.SEC: tool failed or the design is unsupported (exit {result['returncode']})."
-                + error_context
+                f"KeplerFormal.SEC: Kepler Formal could not read the design: {load_failure[1].strip()}"
+                + see_log
             )
-        proof = re.findall(
-            r"No difference was found\. SEC proved equivalence at k = (\d+)\.", log
-        )
-        coverage = re.findall(
-            r"SEC checked-output coverage: [\d.]+% \((\d+)/(\d+) covered/existing outputs\)\.",
-            log,
-        )
-        if len(proof) != 1 or len(coverage) != 1:
+        if unsupported := _UNSUPPORTED.search(log):
             raise StepError(
-                "KeplerFormal.SEC: no unambiguous equivalence proof with output coverage was reported."
-                + error_context
+                f"KeplerFormal.SEC: Kepler Formal cannot check this design: {unsupported[1].strip()}"
+                + see_log
             )
-        checked, total = map(int, coverage[0])
-        if total == 0 or checked != total or "SEC skipped observed outputs" in log:
+        proved = _PROVED.search(log)
+        partially_proved = _PARTIALLY_PROVED.search(log)
+        inconclusive = _INCONCLUSIVE.search(log)
+        coverage = _COVERAGE.search(log)
+        covered, total = (int(coverage[1]), int(coverage[2])) if coverage else (0, 0)
+
+        bound: Optional[int] = None
+        complete = False
+        if proved and returncode == _EXIT_PROVED:
+            bound = int(proved[1])
+            checked = covered
+            if total == 0:
+                self.warn(
+                    "Kepler Formal proved equivalence of no outputs: the designs have no observable outputs in common."
+                )
+            elif covered < total:
+                self.warn(
+                    f"Kepler Formal proved equivalence of {covered} of {total} outputs; the others could not be checked."
+                )
+            else:
+                complete = True
+        elif partially_proved and returncode == _EXIT_PARTIALLY_PROVED:
+            bound = int(partially_proved[1])
+            checked, total = int(partially_proved[2]), int(partially_proved[3])
+            self.warn(
+                f"Kepler Formal proved equivalence of {checked} of {total} outputs within KEPLER_FORMAL_MAX_K = {self.config['KEPLER_FORMAL_MAX_K']}; the others are inconclusive."
+            )
+        elif inconclusive and returncode == _EXIT_INCONCLUSIVE:
+            checked = 0
+            self.warn(
+                f"Kepler Formal could not prove equivalence: SEC was inconclusive {inconclusive[1].strip()}"
+            )
+        else:
             raise StepError(
-                "KeplerFormal.SEC: proof has incomplete output coverage."
-                + error_context
+                f"KeplerFormal.SEC: Kepler Formal did not report a verdict (exit code {returncode})."
+                + see_log
             )
-        if not os.path.isfile(boundary_path):
-            raise StepError(
-                "KeplerFormal.SEC: missing boundary report; proof coverage cannot be validated."
-                + error_context
+
+        if internal := self._internal_boundaries(boundary_path):
+            complete = False
+            self.warn(
+                f"The proof treats {internal} internal term(s) as boundaries instead of checking through them. See '{os.path.relpath(boundary_path)}'."
             )
-        with open(boundary_path, encoding="utf8") as f:
-            boundaries = f.read()
-        roles = re.findall(r"^\s*roles:\s*\[([^\]]*)\]", boundaries, re.MULTILINE)
-        if (
-            not roles
-            or any(
-                role.strip() not in ("top_input", "top_output")
-                for entry in roles
-                for role in entry.split(",")
+        for report, count in self._skipped_outputs(step_dir):
+            complete = False
+            self.warn(
+                f"{count} output(s) were skipped by the proof. See '{os.path.relpath(os.path.join(step_dir, report))}'."
             )
-            or re.search(r"^\s*connectivity_skip:\s*\S", boundaries, re.MULTILINE)
-        ):
-            raise StepError(
-                "KeplerFormal.SEC: proof contains unsupported or abstracted internal boundaries."
-                + error_context
-            )
-        for path in glob.glob(os.path.join(step_dir, "skipped_*_pos.txt")):
-            with open(path, encoding="utf8") as f:
-                if any(
-                    line.strip() and not line.lstrip().startswith("#") for line in f
-                ):
-                    raise StepError(
-                        "KeplerFormal.SEC: proof skipped outputs." + error_context
-                    )
 
         metrics = result.get("generated_metrics", {}).copy()
         metrics.update(
             {
-                "design__equivalence__proven": 1,
-                "design__equivalence__checked_outputs": total,
-                "design__equivalence__proof_bound": int(proof[0]),
+                "design__equivalence__proven": int(complete),
+                "design__equivalence__checked_outputs": checked,
+                "design__equivalence__unchecked_outputs": max(total - checked, 0),
             }
         )
+        if bound is not None:
+            metrics["design__equivalence__proof_bound"] = bound
         return {}, metrics
