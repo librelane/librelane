@@ -119,13 +119,14 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.8.0
+* Updated nix-eda to 7.11.0
+  * Added kepler-formal at `acb85ea` (2026-10-05)
   * Updated NixOS to 26.05
   * Updated Magic to `8.3.677`
   * Updated Netgen to `1.5.323`
-  * Updated Yosys to `0.68`
-    * Updated yosys-eqy `0.68`
-    * Updated yosys-sby `0.68`
+  * Updated Yosys to `0.69`
+    * Updated yosys-eqy `0.69`
+    * Updated yosys-sby `0.69`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
   * Updated Verilator to `5.046`
