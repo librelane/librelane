@@ -119,7 +119,7 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.8.0
+* Updated nix-eda to 7.11.0
   * Added kepler-formal at `acb85ea` (2026-10-05)
   * Updated NixOS to 26.05
   * Updated Magic to `8.3.677`
