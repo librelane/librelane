@@ -56,6 +56,7 @@ from .magic import MagicStep
 from . import netgen as Netgen
 from .netgen import NetgenStep
 
+from . import gdsfill as GdsFill
 from . import klayout as KLayout
 from . import misc as Misc
 from . import verilator as Verilator
