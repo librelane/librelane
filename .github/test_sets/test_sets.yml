@@ -146,6 +146,15 @@
     - zipdiv
     - blink
     - wbqspiflash
+- scl: gf180mcuD/gf180mcu_ocd_sc_rt12t3v3
+  name: fastest_test_set
+  designs:
+    - spm
+    - usb
+    - usb_cdc_core
+    - zipdiv
+    - blink
+    - wbqspiflash
 - scl: ihp-sg13g2/sg13g2_stdcell
   name: fastest_test_set
   designs:
