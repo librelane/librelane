@@ -104,6 +104,9 @@ Style Notes
     `SYNTH_ABC_NEW` will always use the `DEFAULT` synthesis strategy or a
     user-provided `SYNTH_ABC_STRATEGY_SCRIPT`.
 
+  * Added `opt_clean` before `setundef` to prevent tie-low cells on nets with
+    inouts when using the `abc_new` pass.
+
   * Changed default `SYNTH_STRATEGY` to `DELAY 4`, which from testing provides
     the best area/delay balance.
 

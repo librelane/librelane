@@ -503,6 +503,8 @@ def synthesize(
         ]
         d.run_pass(*abc_pass)
 
+        d.run_pass("opt_clean")  # remove $buf with 1'z
+
         if value := config.get("SYNTH_TIE_UNDEFINED"):
             flag = "-zero" if value == "low" else "-one"
             d.run_pass("setundef", flag)
