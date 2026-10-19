@@ -63,16 +63,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1791256612,
-        "narHash": "sha256-KOSQsHtzZvAVqUklgVdgKloPoTZ5gns7BMxIpnyPi8E=",
+        "lastModified": 1792278895,
+        "narHash": "sha256-Yk9yBR5arMUMWW6GMGPmDLf1Q2UJza7qCgtdl9XSGK8=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "8a8e673d5327d1ceaf039c1e647f487148c7bd85",
+        "rev": "87c8ba5abf9e1751bea0ff247167ad25986aa812",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "7.11.0",
+        "ref": "7.13.0",
         "repo": "nix-eda",
         "type": "github"
       }
