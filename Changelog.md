@@ -29,6 +29,10 @@ Style Notes
 
 ## Steps
 
+* `Checker.HoldViolations`, `Checker.MaxCapViolations`, `Checker.MaxSlewViolations`, `Checker.SetupViolations`
+
+  * Corners whose metrics were cleared are no longer checked, and are listed in a warning instead.
+
 * `KLayout.DRC`
 
   * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
@@ -77,6 +81,11 @@ Style Notes
 * `OpenROAD.RepairDesign`
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
+
+* `OpenROAD.STAMidPNR`
+
+  * Per-corner metrics for corners other than the one analyzed are now cleared (set to `null`) instead of
+    carrying forward values from an earlier STA step, which described an earlier stage of the design.
 
 * OpenROAD
 
@@ -137,6 +146,10 @@ Style Notes
 * Updated Ciel to `2.5.1`
 
 ## Misc. Enhancements/Bugfixes
+
+* `librelane.common.metrics`
+
+  * `MetricDiff` now skips metrics with a `null` value on either side, the same way it skips missing metrics.
 
 * `librelane.config`
 
