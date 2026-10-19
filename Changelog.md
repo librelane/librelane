@@ -157,7 +157,7 @@ Style Notes
 
 * CI: added gf180mcu full-chip design.
 
-* CI: added test cases for `gf180mcu_fd_sc_mcu9t5v0` and `gf180mcu_as_sc_mcu7t3v3`.
+* CI: added test cases for `gf180mcu_fd_sc_mcu9t5v0`, `gf180mcu_as_sc_mcu7t3v3` and `gf180mcu_ocd_sc_rt12t3v3`.
 
 * Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
