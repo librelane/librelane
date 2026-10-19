@@ -7,16 +7,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1789842360,
-        "narHash": "sha256-qJ14rnR9FJ4DXPIhnJfUbuZUjde6V8AOcoP16mKwXuA=",
+        "lastModified": 1792224803,
+        "narHash": "sha256-ESrLNYiXVE6iBddaUVnon7WTFxk3+zv6oRaPzpmY4dA=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "1d2526e67a062ac408166a51183222e281a7b9a3",
+        "rev": "e180507a4190462d65cdded4448eb4f7bd2f30fa",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "3.0.0",
+        "ref": "3.1.0",
         "repo": "ciel",
         "type": "github"
       }
@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788342953,
-        "narHash": "sha256-EWkNM4JzBhZ/Yn1PG6lP4/QJuFAFeHYlY5gVxXu940Y=",
+        "lastModified": 1791918082,
+        "narHash": "sha256-oN9JrhRfHa7MUTdUq+11dHn7u0Z4WfEA4mhzBq0/zoQ=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "a67c0f87b63bcbdbdcb56785bec0205a2e3d6026",
+        "rev": "9e29c63dde99a2d80c94b3d024c9768c01544558",
         "type": "github"
       },
       "original": {
