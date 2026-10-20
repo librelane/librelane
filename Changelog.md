@@ -104,6 +104,9 @@ Style Notes
     `SYNTH_ABC_NEW` will always use the `DEFAULT` synthesis strategy or a
     user-provided `SYNTH_ABC_STRATEGY_SCRIPT`.
 
+  * Added `opt_clean` before `setundef` to prevent tie-low cells on nets with
+    inouts when using the `abc_new` pass.
+
   * Changed default `SYNTH_STRATEGY` to `DELAY 4`, which from testing provides
     the best area/delay balance.
 
@@ -119,22 +122,22 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.11.0
+* Updated nix-eda to 7.13.0
   * Added kepler-formal at `acb85ea` (2026-10-05)
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.677`
-  * Updated Netgen to `1.5.323`
-  * Updated Yosys to `0.69`
-    * Updated yosys-eqy `0.69`
-    * Updated yosys-sby `0.69`
+  * Updated Magic to `8.3.685`
+  * Updated Netgen to `1.5.325`
+  * Updated Yosys to `0.70`
+    * Updated yosys-eqy `0.70`
+    * Updated yosys-sby `0.70`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated Verilator to `5.046`
+  * Updated Verilator to `5.052`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
   * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
-* Updated Ciel to `2.5.1`
+* Updated Ciel to `3.1.0`
 
 ## Misc. Enhancements/Bugfixes
 
