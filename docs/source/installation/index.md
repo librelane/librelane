@@ -29,8 +29,8 @@ Nix. Follow the installation guide here: {ref}`nix-based-installation`.
 If you're on Linux or are willing to use the Windows Subsystem for Linux (WSL),
 the easiest way to get up and running with LibreLane is by downloading an
 [AppImage](https://appimage.org) of LibreLane, which is a single-file download
-that requires no further installation, but does not work in certain environments
-such as inside Docker containers.
+that usually requires no further installation, but does not work in certain
+environments such as inside Docker containers.
 
 Follow the installation guide here: {doc}`/installation/appimage_installation/index`.
 

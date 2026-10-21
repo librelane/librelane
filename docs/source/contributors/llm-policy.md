@@ -147,7 +147,7 @@ considered exempt:
   * Use of LLMs with LibreLane to make your own downstream chips.
 
   * Use of LLMs to generate your own custom
-    {doc}`Plugins </usage/writing_plugins.md>` (not for upstreaming).
+    {doc}`Plugins </usage/writing_plugins>` (not for upstreaming).
 
 ## Enforcement
 
