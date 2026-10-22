@@ -54,6 +54,10 @@ pytest -n auto -m all
 pytest
 # To run just step implementation tests:
 pytest -n auto -m step_impl_test
+# To run all tests for a specific step
+pytest -n auto -m step_impl_test -k yosys.synthesis
+# To run a specific test for a specific step
+pytest -n auto -m step_impl_test -k yosys.synthesis/001
 ```
 
 ### Designs

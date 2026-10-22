@@ -718,7 +718,7 @@ p.*
 ````
 
 ```{tip}
-See the document {doc}`/reference/pin_placement_cfg.md` for more information
+See the document {doc}`/reference/pin_placement_cfg` for more information
 about configuring pin placements.
 ```
 

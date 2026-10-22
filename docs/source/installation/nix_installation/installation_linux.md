@@ -44,3 +44,10 @@ Make sure to close all terminals after you're done with this step.
 ```{include} _common.md
 :heading-offset: 1
 ```
+
+## Troubleshooting
+
+```{include} ../_glibc_locale_issues.md
+:heading-offset: 2
+
+```
