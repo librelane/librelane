@@ -5,7 +5,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/6.11.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/7.1.0";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -43,16 +43,7 @@
               colab-env = callPackage ./nix/colab-env.nix { };
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
-              openroad = callPackage ./nix/openroad.nix {
-                llvmPackages = pkgs'.llvmPackages_18;
-              };
-              lemon-graph = pkgs.lemon-graph.overrideAttrs (
-                finalAttrs: previousAttrs: {
-                  patches = previousAttrs.patches ++ [
-                    ./nix/patches/lemon-graph/update_cxx20.patch
-                  ];
-                }
-              );
+              openroad = callPackage ./nix/openroad.nix { };
             }
           )
           (nix-eda.composePythonOverlay (
@@ -63,19 +54,27 @@
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
 
-              # warning with every single click invocation
-              cloup = pypkgs.cloup.overridePythonAttrs {
-                postPatch = ''
-                  substituteInPlace cloup/_util.py \
-                    --replace-fail \
-                      "tuple(click.__version__.split('.'))" \
-                      "tuple('${pypkgs'.click.version}'.split('.'))"
-                '';
-              };
+              # githubkit 0.14.4 uses Hishel's pre-1.0 API. Keep that dependency
+              # local to githubkit, and allow the pinned uv-build 0.10 backend.
+              githubkit =
+                (pypkgs.githubkit.override {
+                  hishel = callPythonPackage ./nix/hishel-legacy.nix { };
+                }).overridePythonAttrs
+                  (previousAttrs: {
+                    pythonRelaxDeps = [ ];
+                    postPatch = (previousAttrs.postPatch or "") + ''
+                      substituteInPlace pyproject.toml \
+                        --replace-fail 'uv_build >=0.8.3, <0.10.0' 'uv_build >=0.8.3, <0.11.0'
+                    '';
+                  });
+
+              # packaging 26 includes a space before @ in direct references.
+              pipx = pypkgs.pipx.overridePythonAttrs (previousAttrs: {
+                patches = (previousAttrs.patches or [ ]) ++ [ ./nix/pipx-packaging-26.patch ];
+              });
 
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
-              yamlcore = callPythonPackage ./nix/yamlcore.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };
 
               # ---

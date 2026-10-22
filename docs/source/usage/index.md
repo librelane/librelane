@@ -14,6 +14,7 @@ timing_closure/index
 using_macros
 using_vhdl
 using_ecos
+kepler_formal
 writing_custom_flows
 writing_custom_steps
 writing_plugins
