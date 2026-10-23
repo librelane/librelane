@@ -1,6 +1,6 @@
 [project]
 name = "librelane"
-version = "3.1.0.dev3"
+version = "3.1.0.dev4"
 description = "An infrastructure for implementing chip design flows"
 maintainers = [
     {name = "Mohamed Gaber", email = "donn@fossi-foundation.org"},
@@ -14,7 +14,7 @@ dependencies = [
   "cloup>=3.0.5,<4",
   "pyyaml>=5,<7",
   "rich>=12,<16",
-  "ciel>=3.0.0,<4",
+  "ciel>=3.2.0,<4",
   "lxml>=4.9.0",
   "deprecated>=1.2.10,<2",
   "lln-libparse==0.56.*",
