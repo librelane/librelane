@@ -49,6 +49,10 @@ Style Notes
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
 
+* `Odb.Remove*Obstructions`
+
+  * Do not delete a system created obstruction (isSystemReserved).
+
 * `Odb.SetPowerConnections`
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
