@@ -78,8 +78,8 @@ import click
 @click.option(
     "-M",
     "--lym",
-    required=True,
-    help="KLayout .map (LEF/DEF layer map) file",
+    required=False,
+    help="KLayout .map (LEF/DEF layer map) file; defaults to the technology mapping",
 )
 @click.option("-w", "--with-gds-file", "input_gds_files", multiple=True, default=[])
 @click.option("-s", "--seal-gds-file", "seal_gds", default=None)
@@ -106,7 +106,7 @@ def stream_out(
     input_lefs: Tuple[str, ...],
     lyt: str,
     lyp: str,
-    lym: str,
+    lym: Optional[str],
     input_gds_files: Tuple[str, ...],
     seal_gds: Optional[str],
     design_name: str,
@@ -119,7 +119,8 @@ def stream_out(
         layout_options = tech.load_layout_options
         layout_options.lefdef_config.read_lef_with_def = False
         layout_options.lefdef_config.lef_files = list(input_lefs)
-        layout_options.lefdef_config.map_file = lym
+        if lym is not None:
+            layout_options.lefdef_config.map_file = lym
         # Don't produce user properties
         layout_options.lefdef_config.net_property_name = None
         layout_options.lefdef_config.instance_property_name = None
