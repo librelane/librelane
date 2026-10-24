@@ -197,6 +197,15 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Compile Tool Versions
+        run: |
+          mkdir -p /tmp/tool-versions
+          python3 .github/scripts/get_nix_versions.py | tee /tmp/tool-versions/tool_versions.txt
+      - name: Upload Tool Versions
+        uses: actions/upload-artifact@v7
+        with:
+          name: tool-versions
+          path: /tmp/tool-versions
       - name: Write Devshell as Output
         id: set-devshell-bin
         run: |
@@ -784,6 +793,11 @@ jobs:
         with:
           name: appimage-aarch64
           path: /tmp/appimage
+      - name: Download Tool Versions
+        uses: actions/download-artifact@v8
+        with:
+          name: tool-versions
+          path: /tmp/tool-versions
       # 2nd to last because it is immutable but likely to fail, so if it fails
       # I don't want PyPI publishing
       - name: Create release
@@ -802,7 +816,8 @@ jobs:
             --notes-file ../release_notes.md \
             --target "${{ github.ref_name }}" \
             "${prerelease_arg[@]}" \
-            /tmp/appimage/*.AppImage
+            /tmp/appimage/*.AppImage \
+            /tmp/tool-versions/tool_versions.txt
         env:
           GH_TOKEN: ${{ github.token }}
       # last step because it is immutable and least likely to fail

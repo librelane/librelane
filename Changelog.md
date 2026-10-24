@@ -25,6 +25,18 @@ Style Notes
 
 -->
 
+# 3.0.17
+
+This version contains no behavioral changes to LibreLane, merely documentation.
+
+## Documentation
+
+* Added various troubleshooting guides for Linux and WSL.
+
+* Added a small guide on building tools for manual installation.
+
+* GitHub Releases now includes a list of versions of tools LibreLane depends on.
+
 # 3.0.16
 
 * `Yosys.Synthesis`
