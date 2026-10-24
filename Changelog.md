@@ -138,7 +138,9 @@ Style Notes
   * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
-* Updated Ciel to `2.5.1`
+* Updated Ciel to `3.2.0`
+* Updated OpenROAD to `26Q4`
+  * Updated OpenSTA to `e913e15` (2026-09-26)
 
 ## Misc. Enhancements/Bugfixes
 

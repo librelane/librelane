@@ -4,7 +4,7 @@
 {
   lib,
   llvmPackages,
-  fetchFromGitHub,
+  fetchGitHubSnapshot,
   openroad-abc,
   libsForQt5,
   opensta,
@@ -44,9 +44,9 @@
   openroad,
   buildPythonEnvForInterpreter,
   # top
-  rev ? "dcf36133a369abc8f3c5e5738cd4d82e4903c0e0",
-  rev-date ? "2026-02-17",
-  sha256 ? "sha256-E9UVTgCfr/k5DnbJ2H2w+wFAzr1eNfooVi1jj8Vz4w4=",
+  rev ? "26Q4",
+  rev-date ? "2026-09-29",
+  sha256 ? "sha256-iVijS6EMw6tQJo57aajl4xWwtz2EM/IWYQMzkQygH6U=",
   # tests tend to time out and fail, esp on Darwin. imperatively it's easy to
   # re-run them but in Nix it starts the long compile all over again.
   enableTesting ? false,
@@ -66,36 +66,39 @@ stdenv.mkDerivation (finalAttrs: {
   __structuredAttrs = true; # better serialization; enables spaces in cmakeFlags
 
   pname = "openroad";
-  version = rev-date;
+  version = lib.lists.last (lib.sort (a: b: lib.strings.stringLength a > lib.strings.stringLength b) [
+    rev
+    rev-date
+  ]);
 
-  src = fetchFromGitHub {
+  src = fetchGitHubSnapshot {
     owner = "The-OpenROAD-Project";
     repo = "OpenROAD";
     inherit rev;
-    inherit sha256;
+    hash = sha256;
   };
 
-  patches = [
-    ./patches/openroad/grt_pin_layers.patch
-  ];
-
   cmakeFlags = (cmakeFlagsCommon false) ++ [
-    "-DENABLE_TESTS:BOOL=${if enableTesting then "ON" else "OFF"}"
-    "-DUSE_SYSTEM_ABC:BOOL=ON"
-    "-DUSE_SYSTEM_OPENSTA:BOOL=ON"
-    "-DOPENSTA_HOME=${opensta.dev}"
-    "-DABC_LIBRARY=${openroad-abc}/lib/libabc.a"
+    (lib.cmakeBool "ENABLE_TESTS" enableTesting)
+    (lib.cmakeBool "USE_SYSTEM_ABC" true)
+    (lib.cmakeBool "USE_SYSTEM_OPENSTA" true)
+    (lib.cmakeFeature "OPENSTA_INCLUDE_DIR" "${opensta.dev}/include")
+    (lib.cmakeFeature "OPENSTA_HOME" "${opensta.dev}")
+    (lib.cmakeFeature "ABC_LIBRARY" "${openroad-abc}/lib/libabc.a")
   ];
 
   postPatch = ''
-    substituteInPlace ./cmake/GetGitRevisionDescription.cmake\
+    substituteInPlace cmake/GetGitRevisionDescription.cmake \
       --replace-fail "GITDIR-NOTFOUND" "${rev}"
     patchShebangs ./etc
+    
+    substituteInPlace src/drt/CMakeLists.txt \
+      --replace-fail "find_package(VTune)" ""
 
     sed -i 's@cmake -B@cmake ${join_flags finalAttrs.cmakeFlags} -B@' ./etc/Env.sh
     echo "#!/bin/bash" > ./openroad.build_env_info
     echo "cat << EOF" >> ./openroad.build_env_info
-    bash ./etc/Env.sh >> ./openroad.build_env_info
+    bash ./etc/Env.sh | tee -a ./openroad.build_env_info > /dev/stderr
     echo "EOF" >> ./openroad.build_env_info
     chmod +x ./openroad.build_env_info
   '';

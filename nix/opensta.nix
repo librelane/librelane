@@ -17,12 +17,13 @@
   zlib,
   eigen,
   ninja,
-  rev ? "857316ff001b2a8dbbdc5996944d08a6d38c87ab",
-  rev-date ? "2026-02-14",
-  sha256 ? "sha256-4lxyNQeBTx+bIEM4RVZzG4UU/ilv9sjFFUcB5S4Evgw=",
+  gtest,
+  rev ? "e983e15b2cb346badf8f23725fd3914d25312c44",
+  rev-date ? "2026-09-26",
+  sha256 ? "sha256-QxE6ntPZJ48EXPJh7mx3k0C2aFU3YtZOLMAsY5LNUDE=",
 }:
 clangStdenv.mkDerivation (finalAttrs: {
-  name = "opensta";
+  pname = "opensta";
   version = rev-date;
 
   outputs = [
@@ -38,7 +39,6 @@ clangStdenv.mkDerivation (finalAttrs: {
   };
 
   patches = [
-    ./patches/opensta/fix_cell_delays.patch
     ./patches/opensta/fix_power_pins.patch
   ];
 
@@ -48,8 +48,8 @@ clangStdenv.mkDerivation (finalAttrs: {
   '';
 
   cmakeFlags = [
-    "-DTCL_LIBRARY=${tcl}/lib/libtcl${clangStdenv.hostPlatform.extensions.sharedLibrary}"
-    "-DTCL_HEADER=${tcl}/include/tcl.h"
+    (lib.cmakeFeature "TCL_LIBRARY" "${tcl}/lib/libtcl${clangStdenv.hostPlatform.extensions.sharedLibrary}")
+    (lib.cmakeFeature "TCL_HEADER" "${tcl}/include/tcl.h")
   ];
 
   buildInputs = [
@@ -58,6 +58,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     eigen
     tcl
     zlib
+    gtest
   ];
 
   # Files needed by OpenROAD when building with external OpenSTA

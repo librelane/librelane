@@ -5,15 +5,16 @@
   lib,
   abc-verifier,
   fetchFromGitHub,
+  bzip2,
   zlib,
   abc-namespace-name ? "abc",
-  rev ? "4c756ffb8dff7c583e80c7970d117abd3dfddb5c",
-  rev-date ? "2026-01-04",
-  sha256 ? "sha256-oJ1ZyWdZefWqitXVtFwYRChsJkwGtUEc7h8RlEeBOzQ=",
+  rev ? "d527cfab4ad731b767ea0a2be2021d920d3afece",
+  rev-date ? "2026-06-16",
+  sha256 ? "sha256-LKB+O64nXPN3sR76JzQ6oO8IS5M4AnNdgCSCLe0o7rw=",
 }:
 abc-verifier.overrideAttrs (
   finalAttrs: previousAttrs: {
-    name = "openroad-abc";
+    pname = "openroad-abc";
     version = rev-date;
 
     src = fetchFromGitHub {
@@ -23,24 +24,35 @@ abc-verifier.overrideAttrs (
       inherit sha256;
     };
 
-    patches = [
-      ./patches/openroad-abc/zlib.patch
-    ];
-
-    postPatch = ''
+    patchPhase = ''
+      runHook prePatch
+      # use system zlib/bzip2
+      substituteInPlace Makefile \
+        --replace-fail "src/misc/bzlib" "" \
+        --replace-fail "src/misc/zlib" ""
+      cat <<HD > src/misc/zlib/zlib.h
+        #include "misc/util/abc_global.h"
+        #include <zlib.h>
+      HD
+      cat <<HD > src/misc/bzlib/bzlib.h
+        #include "misc/util/abc_global.h"
+        #include <bzlib.h>
+      HD
+      sed -Ei '1i LIBS += -lz -lbz2' Makefile
       # utter bazel nonsense
       rm -f BUILD
+      runHook postPatch
     '';
 
     cmakeFlags = [
       "-DREADLINE_FOUND=FALSE"
-      "-DUSE_SYSTEM_ZLIB:BOOL=ON"
+      "-DABC_USE_SYSTEM_ZLIB:BOOL=ON"
       "-DABC_USE_NAMESPACE=${abc-namespace-name}"
       "-DABC_SKIP_TESTS:BOOL=ON"
       "-DABC_USE_STDINT_H:BOOL=ON"
     ];
 
-    buildInputs = [ zlib ];
+    buildInputs = [ bzip2 zlib ];
 
     installPhase = ''
       mkdir -p $out/bin
@@ -57,15 +69,15 @@ abc-verifier.overrideAttrs (
       cp ../src/$header $header_tgt
       done
 
-      sed -Ei "/#\s*ifdef ABC_NAMESPACE/i#define ABC_NAMESPACE abc\n" $out/include/misc/util/abc_namespaces.h
+      sed -Ei "/#\s*ifdef ABC_NAMESPACE/i#define ABC_NAMESPACE ${abc-namespace-name}\n" $out/include/misc/util/abc_namespaces.h
     '';
 
-    meta = with lib; {
+    meta = {
       description = "A tool for squential logic synthesis and formal verification (OpenROAD's Fork)";
       homepage = "https://people.eecs.berkeley.edu/~alanmi/abc";
-      license = licenses.mit;
+      license = lib.licenses.mit;
       mainProgram = "abc";
-      platforms = platforms.unix;
+      platforms = with lib.platforms; linux ++ darwin;
     };
   }
 )
