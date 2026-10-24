@@ -129,7 +129,7 @@ proc read_current_sdc {} {
     }
 
     puts "Reading design constraints file at '$::env(_SDC_IN)'…"
-    if {[catch {read_sdc $::env(_SDC_IN)} errmsg]} {
+    if {[catch {log_cmd read_sdc $::env(_SDC_IN)} errmsg]} {
         puts stderr $errmsg
         exit 1
     }
@@ -137,10 +137,10 @@ proc read_current_sdc {} {
     if { ![string_in_file $::env(_SDC_IN) "set_propagated_clock"] && ![string_in_file $::env(_SDC_IN) "unset_propagated_clock"] } {
         if { [info exists ::env(OPENLANE_SDC_IDEAL_CLOCKS)] && $::env(OPENLANE_SDC_IDEAL_CLOCKS) } {
             puts "\[INFO\] No information on clock propagation in input SDC file-- unpropagating all clocks."
-            unset_propagated_clock [all_clocks]
+            log_cmd unset_propagated_clock [all_clocks]
         } else {
             puts "\[INFO\] No information on clock propagation in input SDC file-- propagating all clocks."
-            set_propagated_clock [all_clocks]
+            log_cmd set_propagated_clock [all_clocks]
         }
     }
 
@@ -158,6 +158,12 @@ proc read_current_sdc {} {
         unset ::env(SYNTH_DRIVING_CELL_PIN)
         set ::env(SYNTH_DRIVING_CELL) $synth_driving_cell_bk
     }
+
+    # this maneuver is so it ends up in the report directory even if it's not
+    # the step directory
+    puts "%OL_CREATE_REPORT resolved.sdc"
+    write_sdc /dev/stdout
+    puts "%OL_END_REPORT"
 }
 
 proc read_pad_cfg {} {
@@ -210,20 +216,20 @@ proc read_current_netlist {args} {
 
     if { [info exists flags(-powered)] } {
         puts "Reading top-level powered netlist at '$::env(CURRENT_PNL)'…"
-        if {[catch {read_verilog $::env(CURRENT_PNL)} errmsg]} {
+        if {[catch {log_cmd read_verilog $::env(CURRENT_PNL)} errmsg]} {
             puts stderr $errmsg
             exit 1
         }
     } else {
         puts "Reading top-level netlist at '$::env(CURRENT_NL)'…"
-        if {[catch {read_verilog $::env(CURRENT_NL)} errmsg]} {
+        if {[catch {log_cmd read_verilog $::env(CURRENT_NL)} errmsg]} {
             puts stderr $errmsg
             exit 1
         }
     }
 
     puts "Linking design '$::env(DESIGN_NAME)' from netlist…"
-    link_design $::env(DESIGN_NAME)
+    log_cmd link_design $::env(DESIGN_NAME)
     set_global_vars
     read_current_sdc
 }
@@ -237,27 +243,27 @@ proc read_timing_info {args} {
         return
     }
     set corner_name $::env(_CURRENT_CORNER_NAME)
-    log_cm define_corners $corner_name
+    log_cmd define_corners $corner_name
 
     puts "Reading timing models for corner $corner_name…"
 
     foreach lib $::env(_CURRENT_CORNER_LIBS) {
         puts "Reading cell library for the '$corner_name' corner at '$lib'…"
-        read_liberty -corner $corner_name $lib
+        log_cmd read_liberty -corner $corner_name $lib
     }
 
     if { [info exists ::env(EXTRA_LIBS) ] } {
         puts "Reading explicitly-specified extra libs for $corner_name…"
         foreach extra_lib $::env(EXTRA_LIBS) {
             puts "Reading extra timing library for the '$corner_name' corner at '$extra_lib'…"
-            read_liberty -corner $corner_name $extra_lib
+            log_cmd read_liberty -corner $corner_name $extra_lib
         }
     }
 
     set blackbox_wildcard {/// sta-blackbox}
     foreach nl $::env(_CURRENT_CORNER_NETLISTS) {
         puts "Reading macro netlist at '$nl'…"
-        if { [catch {read_verilog $nl} err] } {
+        if { [catch {log_cmd read_verilog $nl} err] } {
             puts stderr "Error while reading macro netlist '$nl':"
             puts stderr $err
             puts stderr "Make sure that this a gate-level netlist and not an RTL file."
@@ -268,7 +274,7 @@ proc read_timing_info {args} {
         foreach verilog_file $::env(EXTRA_VERILOG_MODELS) {
             if { [string_in_file $verilog_file $blackbox_wildcard] } {
                 puts "Found '$blackbox_wildcard' in '$verilog_file', skipping…"
-            } elseif { [catch {puts "Reading Verilog model at '$verilog_file'…"; read_verilog $verilog_file} err] } {
+            } elseif { [catch {puts "Reading Verilog model at '$verilog_file'…"; log_cmd read_verilog $verilog_file} err] } {
                 puts stderr "Error while reading $verilog_file:"
                 puts stderr $err
                 puts stderr "Make sure that this a gate-level netlist and not an RTL file, otherwise, you can add the following comment '$blackbox_wildcard' in the file to skip it and blackbox the modules inside if needed."
@@ -295,7 +301,7 @@ proc read_spefs {} {
     if { [info exists ::env(_CURRENT_SPEF_BY_CORNER)] } {
         set corner_name $::env(_CURRENT_CORNER_NAME)
         puts "Reading top-level design parasitics for the '$corner_name' corner at '$::env(_CURRENT_SPEF_BY_CORNER)'…"
-        read_spef -corner $corner_name $::env(_CURRENT_SPEF_BY_CORNER)
+        log_cmd read_spef -corner $corner_name $::env(_CURRENT_SPEF_BY_CORNER)
     }
     if { [info exists ::env(_CURRENT_CORNER_SPEFS)] } {
         set corner_name $::env(_CURRENT_CORNER_NAME)
@@ -303,7 +309,7 @@ proc read_spefs {} {
             set instance_path [lshift spefs]
             foreach spef $spefs {
                 puts "Reading '$instance_path' parasitics for the '$corner_name' corner at '$spef'…"
-                read_spef -corner $corner_name -path $instance_path $spef
+                log_cmd read_spef -corner $corner_name -path $instance_path $spef
             }
         }
     }
@@ -316,7 +322,7 @@ proc read_spefs {} {
                 if { "[get_property $cell ref_name]" eq "$module_name"} {
                     set instance_path [get_property $cell full_name]
                     puts "Reading '$instance_path' parasitics for the '$corner_name' corner at '$spef'…"
-                    read_spef -corner $corner_name -path $instance_path $spef
+                    log_cmd read_spef -corner $corner_name -path $instance_path $spef
                 }
             }
         }
@@ -336,7 +342,7 @@ proc read_pnr_libs {args} {
         lappend corner_names $corner_name
     }
 
-    define_corners {*}[array name corner]
+    log_cmd define_corners {*}[array name corner]
 
     foreach corner_name [array name corner] {
         puts "Reading timing models for corner $corner_name…"
@@ -344,14 +350,14 @@ proc read_pnr_libs {args} {
         set corner_models $corner($corner_name)
         foreach model $corner_models {
             puts "Reading timing library for the '$corner_name' corner at '$model'…"
-            read_liberty -corner $corner_name $model
+            log_cmd read_liberty -corner $corner_name $model
         }
 
         if { [info exists ::env(EXTRA_LIBS) ] } {
             puts "Reading explicitly-specified extra libs for $corner_name…"
             foreach extra_lib $::env(EXTRA_LIBS) {
                 puts "Reading extra timing library for the '$corner_name' corner at '$extra_lib'…"
-                read_liberty -corner $corner_name $extra_lib
+                log_cmd read_liberty -corner $corner_name $extra_lib
             }
         }
     }
@@ -361,7 +367,7 @@ proc read_tech_lef {{tlef_key "TECH_LEF"}} {
     set tlef $::env($tlef_key)
 
     puts "Reading technology LEF file at '$tlef'…"
-    read_lef $tlef
+    log_cmd read_lef $tlef
 
     # Make fake I/O sites
     if { [info exists ::env(PAD_FAKE_SITES)] } {
@@ -370,7 +376,7 @@ proc read_tech_lef {{tlef_key "TECH_LEF"}} {
             set height [lindex $size 1]
 
             puts "Making fake IO site $site_name…"
-            make_fake_io_site -name $site_name -width $width -height $height
+            log_cmd make_fake_io_site -name $site_name -width $width -height $height
         }
     }
 }
@@ -378,24 +384,24 @@ proc read_tech_lef {{tlef_key "TECH_LEF"}} {
 proc read_other_lefs {} {
     foreach lef $::env(CELL_LEFS) {
         puts "Reading cell LEF file at '$lef'…"
-        read_lef $lef
+        log_cmd read_lef $lef
     }
     if { [info exist ::env(MACRO_LEFS)] } {
         foreach lef $::env(MACRO_LEFS) {
             puts "Reading macro LEF file at '$lef'…"
-            read_lef $lef
+            log_cmd read_lef $lef
         }
     }
     if { [info exist ::env(PAD_LEFS)] } {
         foreach lef $::env(PAD_LEFS) {
             puts "Reading gpio pad LEF file at '$lef'…"
-            read_lef $lef
+            log_cmd read_lef $lef
         }
     }
     if { [info exist ::env(EXTRA_LEFS)] } {
         foreach lef $::env(EXTRA_LEFS) {
             puts "Reading extra LEF file at '$lef'…"
-            read_lef $lef
+            log_cmd read_lef $lef
         }
     }
 }
@@ -416,7 +422,7 @@ proc read_current_odb {args} {
 
     read_pnr_libs
     puts "Reading OpenROAD database at '$::env(CURRENT_ODB)'…"
-    if { [ catch {read_db $::env(CURRENT_ODB)} errmsg ]} {
+    if { [ catch {log_cmd read_db $::env(CURRENT_ODB)} errmsg ]} {
         puts stderr $errmsg
         exit 1
     }
@@ -424,7 +430,7 @@ proc read_current_odb {args} {
     set_global_vars
 
     # Read supporting views (if applicable)
-    read_current_sdc
+    log_cmd read_current_sdc
     set_dont_use_cells
 }
 

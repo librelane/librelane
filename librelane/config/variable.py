@@ -245,6 +245,8 @@ class Macro:
 
         # we need to make a copy here, as we're modifying the dictionary as we iterate
         for instance_name, instance in self.instances.copy().items():
+            if not isinstance(instance, Instance):
+                instance = Instance(**instance)
             if (array := instance.array) is not None:
                 # we have a macro to expand
                 # first, check it's valid

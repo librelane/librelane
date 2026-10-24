@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -339,7 +343,7 @@ def test_step_factory(mock_run):
 
 # Do NOT use the Fake FS for this test.
 # The Configuration should NOT be re-validated.
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 @mock_variables([step])
 def test_run_subprocess(mock_run):
     import subprocess

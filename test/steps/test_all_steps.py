@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +37,7 @@ def create_reproducible_on_fail(request: SubRequest):
 def pdk_root(request):
     import ciel
     from ciel.source import StaticWebDataSource
-    from librelane.common import get_pdk_hash
+    from librelane.common import get_ciel_pdk_hash
 
     ciel_home = ciel.get_ciel_home(request.config.option.pdk_root)
 
@@ -44,7 +48,7 @@ def pdk_root(request):
     version = ciel.fetch(
         ciel_home,
         "sky130",
-        get_pdk_hash("sky130A"),
+        get_ciel_pdk_hash("sky130A"),
         data_source=data_source,
     )
 
@@ -81,8 +85,8 @@ def attribute_from_file(file: str, attribute: str):
 
 @pytest.mark.step_impl_test
 @pytest.mark.parametrize("test", pytest.tests)
-@pytest.mark.usefixtures("_chdir_tmp", "create_reproducible_on_fail")
-def test_step_folder(
+@pytest.mark.usefixtures("_chdir_test_rundir", "create_reproducible_on_fail")
+def test_step_unit(
     test: Tuple[str, bool],
     pdk_root: str,
     caplog: pytest.LogCaptureFixture,
