@@ -29,6 +29,13 @@ Style Notes
 
 This version contains no behavioral changes to LibreLane, merely documentation.
 
+## Tool Updates
+
+* Magic
+
+  * Backported commit d083bef0a1912d0e75c146de84d388d86e7b36f4 to 8.3.623 to fix
+    a memory issue.
+
 ## Documentation
 
 * Added various troubleshooting guides for Linux and WSL.
