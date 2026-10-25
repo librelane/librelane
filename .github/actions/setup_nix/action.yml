@@ -32,13 +32,15 @@ runs:
       run: |
         echo "EXTRA_SUBSTITUTER_STR=https://${{ inputs.nix_cache_domain }}" >> $GITHUB_ENV
         echo "EXTRA_TRUSTED_KEY_STR=${{ inputs.nix_public_key }}" >> $GITHUB_ENV
-    - uses: DeterminateSystems/nix-installer-action@main
-      with:
-        determinate: false
-        extra-conf: |
-          access-tokens = ${{ env.GITHUB_ACCESS_TOKEN_STR }}
-          extra-substituters = ${{ env.EXTRA_SUBSTITUTER_STR }} https://nix-cache.fossi-foundation.org
-          extra-trusted-public-keys = ${{ env.EXTRA_TRUSTED_KEY_STR }} nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+    - name: Install Lix
+      shell: ${{ inputs.shell }}
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm --extra-conf "
+          access-tokens = github.com=${{ env.GITHUB_ACCESS_TOKEN_STR }}
+          experimental-features = nix-command flakes
+        "
+        echo "extra-substituters = ${{ env.EXTRA_SUBSTITUTER_STR }} https://nix-cache.fossi-foundation.org" | sudo tee -a /etc/nix/nix.conf
+        echo "extra-trusted-public-keys = ${{ env.EXTRA_TRUSTED_KEY_STR }} nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=" | sudo tee -a /etc/nix/nix.conf
     - name: Inject GitHub Token into Environment
       if: inputs.github_token != ''
       uses: fossi-foundation/nix-eda/.github/actions/nix_daemon_inject_github_token@5.5.0

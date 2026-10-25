@@ -128,7 +128,7 @@ by LibreLane, with a couple catches:
   source on Linux. macOS includes an out-of-date version by default but it is
   trivial to install other versions via a GUI installer from the link above.
 
-- You need a fairly recent (> 3.0.0) version of Ruby for certain KLayout DR
+- You need a fairly recent (> 3.0.0) version of Ruby for certain KLayout DRC
   scripts:
 
   <https://www.ruby-lang.org/en/documentation/installation/>
@@ -227,7 +227,7 @@ $ openroad -exit -python -c 'import click; import rich; import yaml; print("Ok!"
 
 ### Magic and Netgen
 
-Magic is the primary streamout and signoff tool for most PDKs compatible with
+Magic is one of two streamout and signoff tools for most PDKs compatible with
 LibreLane. Netgen is used for both device and transistor-level LVS. LibreLane
 uses the upstream versions of both Magic and Netgen:
 
@@ -251,15 +251,60 @@ $ ./configure --with-tcl=$(brew --prefix tcl-tk@8) --with-tk=$(brew --prefix tcl
 
 ### KLayout
 
-KLayout is used as a secondary streamout and signoff tool for redundancy on most
-PDKs, and as the primary streamout and signoff tool for some.
+KLayout is one of two streamout and signoff tools on LibreLane. It is the
+primary signoff tool for some PDKs, and covers some rules Magic does not cover
+for others.
 
-The KLayout Python wheels will be automatically installed with the LibreLane
-Python package, so ideally you don't need to build it manually.
+The wheel version of KLayout is included automatically for supported steps, but
+DRC, XOR, among other processes require full KLayout binaries.
 
-However, if you intend on using the {flow}`OpenInKLayout` flow, you will need
-the KLayout application. We recommend grabbing the binaries from
-<https://klayout.de>. It is available for a wide variety of platforms.
+We recommend grabbing the binaries from <https://klayout.de>. It is available
+for a wide variety of platforms.
+
+#### macOS
+
+Do note, on macOS, you have to grab a version **without** the OS-bundled Ruby.
+The OS-bundled Ruby is, as we've mentioned, out of date and not compatible with
+some DRC scripts.
+
+You generally want the `qt6Brew` version that most closely matches your
+operating system. But you will also need to install the matching versions of
+Ruby and Python yourself: after installing KLayout, run the following:
+
+```{note}
+Builds of KLayout for Apple Silicon may be missing the qt6Brew variant. In that
+scenario, we recommend building KLayout from source.
+
+- https://github.com/KLayout/KLayout for more info.
+
+Ensure that you pass
+`-ruby <path to ruby 3.0 or later>` and `-python <path to python 3.10 or later>`
+for it to pick up valid versions.
+```
+
+```console
+$ otool -L /Applications/klayout.app/Contents/MacOS/klayout
+/Volumes/KLayout/klayout.app/Contents/MacOS/klayout:
+	/usr/local/opt/libgit2/lib/libgit2.1.9.dylib (compatibility version 1.9.0, current version 1.9.7)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.12)
+	/usr/local/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/Python (compatibility version 3.14.0, current version 3.14.0)
+	/usr/local/opt/ruby@3.4/lib/libruby.3.4.dylib (compatibility version 3.4.0, current version 3.4.10)
+```
+
+Note the versions of `python` and `ruby`, then install them using Homebrew as
+follows (alongside other dependencies):
+
+```console
+$ brew install libgit2 qt@6 python@3.14 ruby@3.4 
+```
+
+Don't forget to add KLayout to PATH - you may add this to your shell profile as
+you see fit. Please note that the order is intentional: if you place it in the
+beginning, it may clobber KLayout in other LibreLane installation environments.
+
+```console
+$ export PATH="$PATH:/Applications/klayout.app/Contents/MacOS"
+```
 
 ### Verilator
 
@@ -268,9 +313,9 @@ instructions from the documentation.
 
 - <https://verilator.org/guide/latest/install.html#git-install>
 
-### IcarusVerilog
+### Icarus Verilog
 
-Strictly speaking, IcarusVerilog is not required as it is only currently used
+Strictly speaking, Icarus Verilog is not required as it is only currently used
 by an optional step ({step}`Yosys.EQY`) that also requires additional plugins.
 
 Nonetheless, it is a useful tool to just have around.
