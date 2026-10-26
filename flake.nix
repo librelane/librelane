@@ -41,6 +41,9 @@
                 inherit (pkgs'.darwin) DarwinTools;
               };
               colab-env = callPackage ./nix/colab-env.nix { };
+              magic = pkgs.magic.overrideAttrs (attrs': attrs: {
+                patches = [ ./nix/patches/magic/instance_name_length.patch ];
+              });
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
               openroad = callPackage ./nix/openroad.nix {
