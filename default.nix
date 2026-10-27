@@ -12,6 +12,7 @@
   libparse,
   magic-vlsi,
   netgen,
+  kepler-formal,
   opensta,
   openroad,
   ruby,
@@ -29,9 +30,7 @@
     yosys-eqy
     yosys-slang
   ]
-  ++ lib.optionals (lib.lists.any (
-    el: el == clangStdenv.hostPlatform.system
-  ) yosys-ghdl.meta.platforms) [ yosys-ghdl ],
+  ++ lib.optionals (lib.meta.availableOn clangStdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ],
   extra-yosys-plugins ? [ ],
   # Python
   buildPythonPackage,
@@ -85,6 +84,7 @@ let
       yosys-env
       openroad-env
       netgen
+      kepler-formal
       magic-vlsi
       klayout-app
       iverilog

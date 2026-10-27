@@ -56,7 +56,14 @@ def librelane_proc(d: ys.Design, report_dir: str):
     d.run_pass("proc_dff")  # Analyze flip-flops within procedures
     d.run_pass("proc_memwr")  # Analyze memory writes within procedures
     d.run_pass("proc_clean")  # Clean up after procedure processing
-    d.tee("check", o=os.path.join(report_dir, "pre_synth_chk.rpt"))
+    # Slang uses $buf cells for connections, hiding tri-state drivers from check.
+    # Resolve them only for this report, preserving the synthesis design.
+    d.run_pass("design", "-push-copy")
+    try:
+        d.run_pass("simplemap", "t:$buf")
+        d.tee("check", o=os.path.join(report_dir, "pre_synth_chk.rpt"))
+    finally:
+        d.run_pass("design", "-pop")
     d.run_pass("opt_expr")  # Optimize expressions
 
 

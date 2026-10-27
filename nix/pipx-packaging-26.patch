@@ -1,0 +1,105 @@
+From 30021d719e63c72c88de64f6f3436900d660f257 Mon Sep 17 00:00:00 2001
+From: "Xuan (Sean) Hu" <i@huxuan.org>
+Date: Thu, 22 Jan 2026 19:59:51 +0800
+Subject: [PATCH] test: fix tests for package url (#1712)
+
+Backported to pipx 1.8.0. The test_run.py changes are omitted because
+that test is not present in this release.
+
+Upstream: https://github.com/pypa/pipx/commit/30021d719e63c72c88de64f6f3436900d660f257
+
+---
+ tests/test_package_specifier.py | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/tests/test_package_specifier.py b/tests/test_package_specifier.py
+index 96af1a499c..4b35c7c684 100644
+--- a/tests/test_package_specifier.py
++++ b/tests/test_package_specifier.py
+@@ -39,12 +39,12 @@ def test_valid_pypi_name(package_spec_in, package_name_out):
+         (
+             "nox@https://github.com/ambv/black/archive/18.9b0.zip",
+             "black",
+-            "black@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+         ),
+         (
+             "nox[extra]@https://github.com/ambv/black/archive/18.9b0.zip",
+             "black",
+-            "black[extra]@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black[extra] @ https://github.com/ambv/black/archive/18.9b0.zip",
+         ),
+     ],
+ )
+@@ -75,7 +75,7 @@ def test_fix_package_name(package_spec_in, package_name, package_spec_out):
+         ),
+         (
+             "nox@git+https://github.com/cs01/nox.git@5ea70723e9e6",
+-            "nox@ git+https://github.com/cs01/nox.git@5ea70723e9e6",
++            "nox @ git+https://github.com/cs01/nox.git@5ea70723e9e6",
+             True,
+         ),
+         (
+@@ -85,22 +85,22 @@ def test_fix_package_name(package_spec_in, package_name, package_spec_out):
+         ),
+         (
+             "black@https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             "black[extra] @ https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black[extra]@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black[extra] @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             'my-project[cli] @ git+ssh://git@bitbucket.org/my-company/myproject.git ; python_version<"3.8"',
+-            "my-project[cli]@ git+ssh://git@bitbucket.org/my-company/myproject.git",
++            "my-project[cli] @ git+ssh://git@bitbucket.org/my-company/myproject.git",
+             True,
+         ),
+         ("path/doesnt/exist", "non-existent-path", False),
+@@ -143,7 +143,7 @@ def test_parse_specifier_for_metadata(package_spec_in, package_or_url_correct, v
+         ),
+         (
+             "nox@git+https://github.com/cs01/nox.git@5ea70723e9e6",
+-            "nox@ git+https://github.com/cs01/nox.git@5ea70723e9e6",
++            "nox @ git+https://github.com/cs01/nox.git@5ea70723e9e6",
+             True,
+         ),
+         (
+@@ -153,22 +153,22 @@ def test_parse_specifier_for_metadata(package_spec_in, package_or_url_correct, v
+         ),
+         (
+             "black@https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             "black[extra] @ https://github.com/ambv/black/archive/18.9b0.zip",
+-            "black[extra]@ https://github.com/ambv/black/archive/18.9b0.zip",
++            "black[extra] @ https://github.com/ambv/black/archive/18.9b0.zip",
+             True,
+         ),
+         (
+             'my-project[cli] @ git+ssh://git@bitbucket.org/my-company/myproject.git ; python_version<"3.8"',
+-            "my-project[cli]@ git+ssh://git@bitbucket.org/my-company/myproject.git",
++            "my-project[cli] @ git+ssh://git@bitbucket.org/my-company/myproject.git",
+             True,
+         ),
+         ("path/doesnt/exist", "non-existent-path", False),
