@@ -14,7 +14,7 @@
 # limitations under the License.
 import random
 
-from reader import click_odb, click
+from reader import click, click_odb
 
 
 def gridify(n, f):

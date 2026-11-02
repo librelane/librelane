@@ -30,6 +30,8 @@ proc drt_run {i args} {
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 read_current_odb
 
+source $::env(SCRIPTS_DIR)/openroad/common/set_routing_layers.tcl
+
 # Create NDRs
 if { [info exists ::env(NON_DEFAULT_RULES)] } {
     dict for {ndr_name values} $::env(NON_DEFAULT_RULES) {

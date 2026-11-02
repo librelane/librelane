@@ -2049,11 +2049,20 @@ class DetailedRouting(OpenROADStep):
 
         drc_paths = list(pathlib.Path(self.step_dir).rglob("*.drc*"))
         for path in drc_paths:
-            drc, _ = DRCObject.from_openroad(
-                open(path, encoding="utf8"), self.config["DESIGN_NAME"]
-            )
+            # modern versions of OpenROAD already convert to KLayout format
+            path_xml = path.replace(path.name + ".xml")
+            if path_xml.is_file():
+                continue
 
-            drc.to_klayout_xml(open(pathlib.Path(str(path) + ".xml"), "wb"))
+            # need to also check we're not targeting one of those files:
+            if ".xml" in path.name:
+                continue
+
+            with open(path, encoding="utf8") as rpt:
+                drc, _ = DRCObject.from_openroad(rpt, self.config["DESIGN_NAME"])
+
+            with open(path_xml, "wb") as rpt_xml:
+                drc.to_klayout_xml(rpt_xml)
         #        if violation_count > 0:
         #            self.warn(
         #                f"DRC errors found after routing. View the report file at {report_path}.\nView KLayout xml file at {klayout_db_path}"

@@ -12,15 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import odb
-import utl
-
-import re
 import json
+import re
+import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from reader import OdbReader, click_odb, click
+import odb
+import utl
+
+from reader import OdbReader, click, click_odb
 
 
 @click.group()
@@ -72,7 +73,7 @@ class Design(object):
                 print(
                     f"[ERROR] No LEF view for {module_name} was found in the database even though it is declared in the Verilog."
                 )
-                exit(-1)
+                sys.exit(-1)
             pins = {pin.getName(): pin for pin in master.getMTerms()}
             self.pins_by_module_name[module_name] = pins
         return self.pins_by_module_name[module_name]
@@ -83,7 +84,7 @@ class Design(object):
             print(
                 f"[ERROR] No pin {pin_name} found in the module {module_name}'s LEF view: the LEF and Verilog views of the module may be mismatched."
             )
-            exit(-1)
+            sys.exit(-1)
 
         return module_pins[pin_name].getSigType() == "POWER"
 
@@ -93,7 +94,7 @@ class Design(object):
             print(
                 f"[ERROR] No pin {pin_name} found in the module {module_name}'s LEF view: the LEF and Verilog views of the module may be mismatched."
             )
-            exit(-1)
+            sys.exit(-1)
 
         return module_pins[pin_name].getSigType() == "GROUND"
 
@@ -106,7 +107,7 @@ class Design(object):
             print(
                 f"[ERROR] Could not find master for cell type '{module_name}' in the database."
             )
-            exit(-1)
+            sys.exit(-1)
 
         lef_pg_pins = []
         for pin in master.getMTerms():
@@ -125,7 +126,7 @@ class Design(object):
                 print(
                     f"[ERROR] Unexpectedly found more than one bit connected to {sigtype} pin {module_name}/{pin_name}."
                 )
-                exit(-1)
+                sys.exit(-1)
             if len(connection_bits) == 1:
                 connection_bit = connection_bits[0]
                 connected_to_v = self.get_verilog_net_name_by_bit(
@@ -234,7 +235,7 @@ class Design(object):
             region = design.getBlock().findRegion(region)
             if region is None:
                 utl.error(utl.PDN, 1504, f"Region {region} not defined")
-                exit(-1)
+                sys.exit(-1)
 
         inst_def_name = self.reader.escape_verilog_name(inst_name)
         pin_def_name = self.reader.escape_verilog_name(pin_name)
@@ -262,12 +263,12 @@ class Design(object):
             print(
                 f"[ERROR] add_global_connections failed to make any connections for '{inst_name}/{pin_name}' to {net_name}."
             )
-            exit(-1)
+            sys.exit(-1)
         elif connected_items > 1:
             print(
                 f"[ERROR] add_global_connections somehow made {connected_items} connections for '{inst_name}/{pin_name}' to {net_name} -- please report this as a bug"
             )
-            exit(-1)
+            sys.exit(-1)
 
 
 @click.command()

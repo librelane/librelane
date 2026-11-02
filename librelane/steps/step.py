@@ -170,7 +170,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
                 self.current_rpt.close()
             self.current_rpt = None
         elif line.startswith(METRIC_LOCUS):
-            command, name, value = line.split(" ", maxsplit=3)
+            command, name, value = line.split(" ", maxsplit=2)
             metric_type: Union[Type[str], Type[int], Type[Decimal]] = str
             if command.endswith("_I"):
                 metric_type = int

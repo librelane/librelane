@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import odb
-
 import os
 import re
 import sys
 from decimal import Decimal
+from typing import List, Tuple
 
-from reader import click_odb, click
-from typing import Tuple, List
+import odb
+
+from reader import click, click_odb
 
 
 @click.group()
@@ -238,7 +238,7 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
                 )
 
     if mismatches_found and not permissive:
-        exit(os.EX_DATAERR)
+        sys.exit(os.EX_DATAERR)
 
     if copy_def_power:
         # If asked, we copy power pins from template
@@ -339,7 +339,7 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
             "[ERROR] Some pins were grid-misaligned. Please check the log.",
             file=sys.stderr,
         )
-        exit(os.EX_DATAERR)
+        sys.exit(os.EX_DATAERR)
 
 
 @click.command("relocate_pins")
@@ -478,8 +478,8 @@ def parse_obstructions(obstructions) -> List[Tuple[str, List[int]]]:
     )
 
     obs_list = []
-    for obs in obstructions:
-        obs = obs.strip()
+    for obs_raw in obstructions:
+        obs = obs_raw.strip()
         m = re.match(RE_OBS, obs)
         if m is None:
             print(

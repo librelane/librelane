@@ -13,13 +13,13 @@
 # limitations under the License.
 import os
 import re
-
 from collections import Counter
-from reader import click, click_odb, OdbReader
 
 import rich
-from rich.table import Table
 from rich.console import Console
+from rich.table import Table
+
+from reader import OdbReader, click, click_odb
 
 
 @click.command()

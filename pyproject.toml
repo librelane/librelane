@@ -70,10 +70,21 @@ librelane = "librelane.__main__:cli"
 "librelane.env_info" = "librelane:env_info_cli"
 
 [tool.ruff]
-# syntax-only check, make sure files are parseable under py310
-# $ ruff check .
 target-version = "py310"
-lint.ignore = ["E", "F"] 
+
+[tool.ruff.lint]
+extend-select = ["I", "PL"]
+ignore = ["PLR"]
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+known-first-party = ["reader", "ys_common", "construct_abc_script", "librelane"]
+
+[tool.ruff.lint.per-file-ignores]
+"!librelane/scripts/odbpy/**/*.py" = ["I", "E", "F", "PL"]
+
+[tool.black]
+extend-exclude = "(test/designs|test/steps/all)"
 
 [tool.pytest.ini_options]
 pythonpath = "."
@@ -82,6 +93,7 @@ markers = [
     "all: all tests",
     "step_impl_test: tests for specific step implementations (requires recursive git clone + more time)",
 ]
+norecursedirs = ["test/designs"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3"]

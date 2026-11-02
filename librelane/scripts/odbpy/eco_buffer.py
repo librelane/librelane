@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-from reader import click_odb, click, odb
+
 import grt as GRT
+
+from reader import click, click_odb, odb
 
 
 def average_location(instances):
@@ -55,12 +57,12 @@ def cli(reader):
                 f"[ERROR] Buffer type '{buffer_master}' not found.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         target = reader.block.findInst(name_escaped)
         if target is None:
             print(f"[ERROR] Instance '{target_name}' not found.", file=sys.stderr)
-            exit(-1)
+            sys.exit(-1)
 
         target_iterm = target.findITerm(target_pin)
         if target_iterm is None:
@@ -68,7 +70,7 @@ def cli(reader):
                 f"[ERROR] Pin '{target_pin}' not found for instance '{target_name}'.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         net = target_iterm.getNet()
         if net is None:
@@ -76,7 +78,7 @@ def cli(reader):
                 f"[ERROR] Net not found on pin '{target_pin}' of instance '{target_name}'.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         new_buf_name = f"eco_buffer_{i}"
         new_net_name = f"eco_buffer_{i}_net"
@@ -102,7 +104,7 @@ def cli(reader):
                 f"[ERROR] Buffer {buffer_master} has no input signals.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         buffer_x = None
         for iterm in buffer_iterms:
@@ -114,7 +116,7 @@ def cli(reader):
                 f"[ERROR] Buffer {buffer_master} has no output signals.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         location_instances = [target]
         net_iterms = net.getITerms()
@@ -145,7 +147,7 @@ def cli(reader):
                 f"[ERROR] {target_name}/{target_pin} is neither an INPUT or an OUTPUT and is unsupported by this script. To buffer an INOUT port, buffer its drivers instead.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         if target_info.get("placement") is not None:
             eco_x, eco_y = target_info["placement"]

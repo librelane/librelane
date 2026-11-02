@@ -37,12 +37,6 @@ import click
 import rich
 from rich.table import Table
 
-# Re-export for subfunctions
-rich
-click
-Table
-odb
-
 write_fn: Dict[str, Callable] = {
     "def": lambda reader, file: file and reader.design.writeDef(file),
     "odb": lambda reader, file: file and reader.design.writeDb(file),
@@ -248,3 +242,28 @@ def click_odb(function):
     wrapper = click.argument("input_db")(wrapper)
 
     return wrapper
+
+
+def lln_metric(name: str, metric: str):
+    print(f"%OL_METRIC {name} {metric}")
+
+
+def lln_metric_i(name: str, metric: int):
+    print(f"%OL_METRIC_I {name} {metric}")
+
+
+def lln_metric_f(name: str, metric: float):
+    print(f"%OL_METRIC_F {name} {metric}")
+
+
+__all__ = [
+    "click",
+    "rich",
+    "Table",
+    "odb",
+    "OdbReader",
+    "click_odb",
+    "lln_metric",
+    "lln_metric_i",
+    "lln_metric_f",
+]

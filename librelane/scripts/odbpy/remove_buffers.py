@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import odb
-
 import re
+import sys
 from typing import List
 
-from reader import click_odb, click
+import odb
+
+from reader import click, click_odb
 
 
 def get_pin_name(pin: odb.dbITerm):
@@ -109,10 +110,10 @@ def remove_buffers(reader, rx_str):
 
             if len(drivers) > 1:
                 print(f"Net {net_name} is driven by multiple cells.")
-                exit(1)
+                sys.exit(1)
             elif len(drivers) == 0:
-                print(f"Net {net_name} is not driven by any cell..")
-                exit(1)
+                print(f"Net {net_name} is not driven by any cell.")
+                sys.exit(1)
 
             buffer = drivers[0]
             buffer_name = drivers[0].getName()

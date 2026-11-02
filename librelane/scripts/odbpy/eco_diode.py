@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-from reader import click_odb, click, odb
+
 import grt as GRT
+
+from reader import click, click_odb, odb
 
 
 @click.command()
@@ -49,7 +51,7 @@ def cli(reader):
                 f"[ERROR] Instance '{target_name}' not found.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         master = reader.db.findMaster(diode_master)
         if master is None:
@@ -57,7 +59,7 @@ def cli(reader):
                 f"[ERROR] Cell kind '{diode_master}' not found.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         target_iterm = target.findITerm(target_pin)
         if target_iterm is None:
@@ -65,14 +67,14 @@ def cli(reader):
                 f"[ERROR] Pin '{target_pin}' not found for instance {target_name}.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         if target_iterm.getIoType() not in ["INPUT", "INOUT"]:
             print(
                 f"[ERROR] Pin {target_info['target']} is an OUTPUT pin.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         net = target_iterm.getNet()
         if net is None:
@@ -80,7 +82,7 @@ def cli(reader):
                 f"[ERROR] Pin {target_info['target']} has no nets connected.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         eco_diode_name = f"eco_diode_{i}"
         while reader.block.findInst(eco_diode_name) is not None:
@@ -99,7 +101,7 @@ def cli(reader):
                 f"[ERROR] Pin '{diode_pin}' on ECO diode not found- invalid DIODE_CELL definition.",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
 
         sys.stdout.flush()
 
