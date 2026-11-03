@@ -176,7 +176,7 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
                 metric_type = int
             elif command.endswith("_F"):
                 metric_type = Decimal
-            self.generated_metrics[name] = metric_type(value)
+            self.generated_metrics[name] = metric_type(value.strip())
         elif self.current_rpt is not None:
             # No echo- the timing reports especially can be very large
             # and terminal emulators will slow the flow down.

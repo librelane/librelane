@@ -57,6 +57,13 @@ Style Notes
 
   * Consider busses in power/ground ports. Before, i.e., `VCCD_PAD[0]` and `VCCD_PAD[1]` would be shorted to `VCCD_PAD`.
 
+* `OpenROAD.*`
+
+  * Added `OPENROAD_THREADS` to control OpenROAD thread count on all tasks; by default equal to the number of
+    CPU cores on your machine
+
+  * Deprecated `DRT_THREADS`, use the above (`OPENROAD_THREADS`) instead
+
 * `OpenROAD.DetailedRouting`
 
   * Added `DRT_DISABLE_AUTO_TAPER` to disable detailed-routing auto-taper on
@@ -64,7 +71,11 @@ Style Notes
     (e.g. analog/pad) nets keep their full width all the way to the pin.
     Requires an OpenROAD build providing the `set_routing_auto_taper`
     command.
+
   * Allow to connect only some of the power/ground ports of an instance.
+
+  * KLayout marker database for TritonRoute DRC violations now uses the
+    extension `.lyrdb`, `.xml` remains as a symlink.
 
 * `OpenROAD.PadRing`
 
@@ -81,13 +92,6 @@ Style Notes
 * `OpenROAD.RepairDesign`
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
-
-* OpenROAD
-
-  * Added `OPENROAD_THREADS` to control OpenROAD thread count on all tasks; by default equal to the number of
-    CPU cores on your machine
-
-  * Deprecated `DRT_THREADS`, use the above (`OPENROAD_THREADS`) instead
 
 * `Verilator.Lint`
 

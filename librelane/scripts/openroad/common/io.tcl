@@ -398,7 +398,7 @@ proc read_current_odb {args} {
     set_global_vars
 
     # Read supporting views (if applicable)
-    read_current_sdc
+    log_cmd read_current_sdc
     set_dont_use_cells
 }
 
