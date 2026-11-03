@@ -34,12 +34,33 @@
 import os
 import json
 import shutil
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import click
 
 from ys_common import ys, yosys_version_at_least
 from construct_abc_script import ABCScriptCreator
+
+
+def stat_json(d: ys.Design, lib_arguments: Tuple[str, ...], report_dir: str):
+    """
+    hack: work around https://github.com/YosysHQ/yosys/issues/6442
+    """
+    raw = os.path.join(report_dir, "stat.json.raw")
+    parseable = os.path.join(report_dir, "stat.json")
+    d.tee("stat", "-json", *lib_arguments, o=raw)
+    with (
+        open(raw, encoding="utf8") as f_in,
+        open(parseable, "w", encoding="utf8") as f_out,
+    ):
+        char = " "
+        # skip until first { or EOF
+        while char != "{" and char != "":
+            char = f_in.read(1)
+        # if EOF reached, print nothing, just close
+        if char != "":
+            f_out.write("{")  # { already consumed, replace it before writing the rest
+            f_out.write(f_in.read())
 
 
 def librelane_proc(d: ys.Design, report_dir: str):
@@ -357,7 +378,7 @@ def synthesize(
         d.run_pass("splitnets")
         d.run_pass("opt_clean", "-purge")
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "stat.json"))
+        stat_json(d, lib_arguments, report_dir)
         d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         noattr_flag = []
@@ -523,7 +544,7 @@ def synthesize(
             d.run_pass("insbuf", "-buf", *config["SYNTH_BUFFER_CELL"].split("/"))
 
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "stat.json"))
+        stat_json(d, lib_arguments, report_dir)
         d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         if config["SYNTH_AUTONAME"]:
