@@ -587,8 +587,8 @@ class SynthesisCommon(VerilogStep):
         view_updates, metric_updates = super().run(state_in, **kwargs)
 
         stats_file = os.path.join(self.step_dir, "reports", "stat.json")
-        stats_str = open(stats_file).read()
-        stats = json.loads(stats_str, parse_float=Decimal)
+        with open(stats_file, encoding="utf8") as f:
+            stats = json.load(f, parse_float=Decimal)
 
         metric_updates["design__instance__count"] = stats["design"]["num_cells"]
         if chip_area := stats["design"].get("area"):  # needs nonzero area
