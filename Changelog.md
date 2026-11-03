@@ -25,9 +25,22 @@ Style Notes
 
 -->
 
-# 3.0.17
+# 3.0.18
 
-This version contains no behavioral changes to LibreLane, merely documentation.
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Fixed an internal issue that may surface when using gzipped liberty files.
+
+## Misc. Enhancements/Bugfixes
+
+* `librelane.steps.DefaultOutputProcessor`:
+  * Fixed crash when handling `%OL_METRIC` commands when a valid metric has a
+    space, also remove any leading or trailing whitespace.
+  * Clarify spec for %OL_METRIC commands.
+
+# 3.0.17
 
 ## Tool Updates
 
