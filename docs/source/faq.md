@@ -109,3 +109,15 @@ Similar to Docker, this mostly eliminates variables related to the user's
 environment, although unlike Docker, it maintains integration with the user's
 filesystem, doesn't add a virtualization penalty on macOS, and does not require
 the entire image to be re-downloaded every time an update occurs.
+
+(faq-byot)=
+
+### Can I build the tools required for LibreLane myself?
+
+Generally, we do not recommend this as LibreLane is built with certain versions
+of tools in mind, and using other versions of tools can introduce instability
+or break LibreLane's (aspired) replicability guarantees.
+
+Nonetheless, we've written {doc}`/installation/manual_installation/index` a
+small guide on tools required by LibreLane.
+

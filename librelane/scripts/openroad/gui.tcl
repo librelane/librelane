@@ -14,18 +14,18 @@
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 
 puts "Reading OpenROAD database at '$::env(CURRENT_ODB)'…"
-if { [ catch {read_db $::env(CURRENT_ODB)} errmsg ]} {
+if { [ catch {log_cmd read_db $::env(CURRENT_ODB)} errmsg ]} {
     puts stderr $errmsg
     exit 1
 }
 
 set_global_vars
 
-define_corners $::env(DEFAULT_CORNER)
+log_cmd define_corners $::env(DEFAULT_CORNER)
 
 foreach lib $::env(_PNR_LIBS) {
     puts "Reading library file at '$lib'…"
-    read_liberty $lib
+    log_cmd read_liberty $lib
 }
 
 read_current_sdc
@@ -33,5 +33,5 @@ read_current_sdc
 if { [info exists ::env(_CURRENT_SPEF_BY_CORNER)] } {
     set corner_name $::env(_CURRENT_CORNER_NAME)
     puts "Reading top-level design parasitics for the '$corner_name' corner at '$::env(_CURRENT_SPEF_BY_CORNER)'…"
-    read_spef -corner $corner_name $::env(_CURRENT_SPEF_BY_CORNER)
+    log_cmd read_spef -corner $corner_name $::env(_CURRENT_SPEF_BY_CORNER)
 }

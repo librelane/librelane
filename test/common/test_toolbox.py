@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -768,7 +772,7 @@ def test_remove_cells_from_lib(lib_trim_result):
 
 
 @mock.patch.dict(os.environ, {"PATH": "/bin"})
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_blackbox_creation_no_yosys(model_blackboxing):
     from librelane.common import Toolbox
 
@@ -789,7 +793,7 @@ def test_blackbox_creation_no_yosys(model_blackboxing):
     (shutil.which("yosys") or shutil.which("yowasp-yosys")) is None,
     reason="requires yosys or yowasp-yosys",
 )
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_blackbox_creation_w_yosys(model_blackboxing):
     from librelane.common import Toolbox
 
@@ -827,7 +831,7 @@ def test_blackbox_creation_w_yosys(model_blackboxing):
     ), "Creating black-box file of SCL models did not return the expected result"
 
 
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_voltage_lib_get(sample_lib_files, caplog: pytest.LogCaptureFixture):
     from librelane.common import Toolbox
 

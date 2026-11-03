@@ -562,7 +562,10 @@ def remove_obstructions(reader, input_lefs, obstructions):
             if (odb_layer, odb_bbox) == (layer, bbox):
                 print(f"Removing obstruction on {layer} at {bbox} (DBU)…")
                 found = True
-                odb.dbObstruction_destroy(odb_obj)
+                if not odb_obj.isSystemReserved():
+                    odb.dbObstruction_destroy(odb_obj)
+                else:
+                    print("[WARNING] Obstruction is system-reserved.")
             if found:
                 break
         if not found:

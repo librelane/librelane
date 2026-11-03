@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +18,7 @@
 import os
 import textwrap
 from typing import Tuple
+from decimal import Decimal
 
 import pytest
 
@@ -339,7 +344,7 @@ def test_step_factory(mock_run):
 
 # Do NOT use the Fake FS for this test.
 # The Configuration should NOT be re-validated.
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 @mock_variables([step])
 def test_run_subprocess(mock_run):
     import subprocess
@@ -385,7 +390,11 @@ def test_run_subprocess(mock_run):
     report_file = "test.rpt"
     report_data = "Hello World"
     extra_data = "Bye World"
-    new_metric = {"new_metric": 1, "new_float_metric": 2.0}
+    new_metric = {
+        "new_metric": 1,
+        "new_float_metric": Decimal("3.14159"),
+        "new_string_metric": "la li lu le lo",
+    }
     subprocess_log_file = "test.log"
     subprocess_result = {
         "returncode": 0,
@@ -396,6 +405,7 @@ def test_run_subprocess(mock_run):
         f"""
         %OL_CREATE_REPORT {report_file}
         {report_data}
+        %OL_METRIC new_string_metric {new_metric['new_string_metric']}
         %OL_END_REPORT
         {extra_data}
         %OL_METRIC_I new_metric {new_metric['new_metric']}

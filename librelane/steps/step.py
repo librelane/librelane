@@ -135,10 +135,13 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
 
     * ``%OL_CREATE_REPORT <file>``\\: Starts redirecting all output from
       standard output to a report file inside the step directory, with the
-      name <file>.
-    * ``%OL_END_REPORT``: Stops redirection behavior.
+      name <file>. Note that %OL_ commands take priority: a repeated call of
+      %OL_CREATE_REPORT will open a new report, closing the previous one, and
+      all metric calls will not be forwarded to the report.
+    * ``%OL_END_REPORT``: Stops redirection behavior, closing the report.
     * ``%OL_METRIC <name> <value>``\\: Adds a string metric with the name <name>
-      and the value <value> to this function's returned object.
+      and the value <value> to this function's returned object, with leading
+      and trailing whitespace stripped.
     * ``%OL_METRIC_F <name> <value>``\\: Adds a floating-point metric with the
       name <name> and the value <value> to this function's returned object.
     * ``%OL_METRIC_I <name> <value>``\\: Adds an integer metric with the name
@@ -170,13 +173,13 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
                 self.current_rpt.close()
             self.current_rpt = None
         elif line.startswith(METRIC_LOCUS):
-            command, name, value = line.split(" ", maxsplit=3)
+            command, name, value = line.split(" ", maxsplit=2)
             metric_type: Union[Type[str], Type[int], Type[Decimal]] = str
             if command.endswith("_I"):
                 metric_type = int
             elif command.endswith("_F"):
                 metric_type = Decimal
-            self.generated_metrics[name] = metric_type(value)
+            self.generated_metrics[name] = metric_type(value.strip())
         elif self.current_rpt is not None:
             # No echo- the timing reports especially can be very large
             # and terminal emulators will slow the flow down.

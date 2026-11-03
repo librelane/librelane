@@ -29,8 +29,8 @@ Nix. Follow the installation guide here: {ref}`nix-based-installation`.
 If you're on Linux or are willing to use the Windows Subsystem for Linux (WSL),
 the easiest way to get up and running with LibreLane is by downloading an
 [AppImage](https://appimage.org) of LibreLane, which is a single-file download
-that requires no further installation, but does not work in certain environments
-such as inside Docker containers.
+that usually requires no further installation, but does not work in certain
+environments such as inside Docker containers.
 
 Follow the installation guide here: {doc}`/installation/appimage_installation/index`.
 
@@ -49,18 +49,12 @@ want to try Docker. Follow the installation guide here:
 
 ## Other Options
 
-You may elect to somehow provide the tools yourself. Here is a non-exhaustive
-list:
+You may elect to somehow provide the tools yourself. However, some
+incompatibilities may arise, and we will likely not be able to support them.
 
-* [Python 3.10 or higher](https://www.python.org/)
-* [Yosys](https://yosyshq.net/)
-* [OpenROAD](https://github.com/The-OpenROAD-Project/OpenROAD)
-* [KLayout](https://klayout.de)
-* [Magic](http://opencircuitdesign.com/magic/)
-* [Netgen](http://opencircuitdesign.com/netgen/)
+See the installation guide here: {doc}`/installation/docker_installation/index`
+for a list of tools and some notes.
 
-However, as the versions will likely not match those packaged with LibreLane,
-some incompatibilities may arise, and we will not be able to support them.
 
 ```{toctree}
 :hidden:
@@ -70,4 +64,5 @@ some incompatibilities may arise, and we will not be able to support them.
 nix_installation/index
 appimage_installation/index
 docker_installation/index
+manual_installation/index
 ```

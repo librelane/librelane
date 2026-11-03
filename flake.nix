@@ -5,8 +5,8 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/7.13.0";
-    ciel.url = "github:fossi-foundation/ciel/3.1.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/7.15.0";
+    ciel.url = "github:fossi-foundation/ciel/3.2.0";
     devshell.url = "github:numtide/devshell";
     flake-compat = {
       url = "github:NixOS/flake-compat";
@@ -44,6 +44,9 @@
                 inherit (pkgs'.darwin) DarwinTools;
               };
               colab-env = callPackage ./nix/colab-env.nix { };
+              magic = pkgs.magic.overrideAttrs (attrs': attrs: {
+                patches = [ ./nix/patches/magic/instance_name_length.patch ];
+              });
               opensta = callPackage ./nix/opensta.nix { };
               openroad-abc = callPackage ./nix/openroad-abc.nix { };
               openroad = callPackage ./nix/openroad.nix { };

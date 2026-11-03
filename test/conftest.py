@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,10 +15,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
 import os
-import tempfile
-from shutil import rmtree
+import re
+import pathlib
+import shutil
 from unittest import mock
 from decimal import Decimal
 from typing import Any, Literal, Optional, Iterable, Callable, List, Dict
@@ -105,17 +109,23 @@ class chdir(object):
             raise exc_value
 
 
+NAME_DIR_DIVIDERS = re.compile(r"[\[\/\]]")
+
+
 @pytest.fixture
-def _chdir_tmp(request: SubRequest):
-    if not request.config.option.keep_tmp:
-        with tempfile.TemporaryDirectory(prefix="librelane_test_") as dir, chdir(dir):
-            yield
-    else:
-        dir = tempfile.mkdtemp(prefix="librelane_test_")
-        with chdir(dir):
-            logging.info(f"\nTMP: {dir}")
-            yield
-            logging.info(f"\nTMP: {dir}")
+def _chdir_test_rundir(request: SubRequest):
+    runs_dir = pathlib.Path(__file__).resolve().parent / "runs"
+    name_escaped = (
+        NAME_DIR_DIVIDERS.sub("__", request.node.name).strip("_").replace(".", "-")
+    )
+    run_dir = runs_dir / name_escaped
+    try:
+        shutil.rmtree(run_dir)
+    except FileNotFoundError:
+        pass
+    run_dir.mkdir(parents=True, exist_ok=True)
+    with chdir(run_dir):
+        yield
 
 
 MOCK_PDK_VARS = [
@@ -318,7 +328,7 @@ def pytest_addoption(parser):
     parser.addoption("--pdk-root", action="store", default=None)
     parser.addoption(
         "--keep-tmp", action="store_true", default=False
-    )  # add --log-cli-level=INFO so that the tmp being kept is printed
+    )  # does nothing, kept for muscle memory/backcompat
     parser.addoption(
         "--create-reproducible-on-fail", action="store_true", default=False
     )

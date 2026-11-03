@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ def test_cli_basic():
         cli_fn([])
 
 
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_only_flag():
     import click
     from librelane.flows import cloup_flow_opts
@@ -51,7 +55,7 @@ def test_only_flag():
     ), "only flag not disposed of after translating to from and to"
 
 
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_log_level_flag(caplog: pytest.LogCaptureFixture):
     import click
 
@@ -89,7 +93,7 @@ def test_log_level_flag(caplog: pytest.LogCaptureFixture):
     caplog.clear()
 
 
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_worker_count_cb():
     import click
 
@@ -112,7 +116,7 @@ def test_worker_count_cb():
     set_tpe(tpe_backup)
 
 
-@pytest.mark.usefixtures("_chdir_tmp")
+@pytest.mark.usefixtures("_chdir_test_rundir")
 def test_initial_state(fs: FakeFilesystem, caplog: pytest.LogCaptureFixture):
     import click
     from librelane.flows import cloup_flow_opts

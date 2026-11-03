@@ -23,7 +23,7 @@
 
 source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
 
-set_cmd_units\
+log_cmd set_cmd_units\
     -time ns\
     -capacitance pF\
     -current mA\
@@ -39,9 +39,9 @@ if { [namespace exists ::ord] } {
 
     # Internal API- brittle
     if { [grt::have_routes] } {
-        estimate_parasitics -global_routing
+        log_cmd estimate_parasitics -global_routing
     } elseif { [est::check_corner_wire_cap] } {
-        estimate_parasitics -placement
+        log_cmd estimate_parasitics -placement
     }
 } else {
     read_timing_info
