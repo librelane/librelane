@@ -127,10 +127,10 @@ Style Notes
 ## Tool Updates
 
 * Updated nix-eda to 7.13.0
-  * Added kepler-formal at `acb85ea` (2026-10-05)
+  * Added kepler-formal at `1cf86ef` (2026-11-03)
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.685`
-  * Updated Netgen to `1.5.325`
+  * Updated Magic to `8.3.691`
+  * Updated Netgen to `1.5.327`
   * Updated Yosys to `0.70`
     * Updated yosys-eqy `0.70`
     * Updated yosys-sby `0.70`
