@@ -681,3 +681,48 @@ class HoldViolations(TimingViolations):
 
     metric_name = "timing__hold_vio__count"
     corner_override = ["*"]
+
+
+@Step.factory.register()
+class KeplerFormalSEC(Step):
+    """
+    Raises a deferred error if ``KeplerFormal.SEC`` did not prove every output
+    of the netlist equivalent to the RTL (metric:
+    ``design__equivalence__proven``), i.e. after a partial or inconclusive
+    proof or when outputs were skipped. Doesn't raise an error if
+    ``ERROR_ON_UNPROVEN_EQUIVALENCE`` is false.
+    """
+
+    id = "Checker.KeplerFormalSEC"
+    name = "Sequential Equivalence Proof Checker"
+    long_name = "RTL/Netlist Sequential Equivalence Proof Checker"
+
+    inputs = []
+    outputs = []
+
+    config_vars = [
+        Variable(
+            "ERROR_ON_UNPROVEN_EQUIVALENCE",
+            bool,
+            "Raises a deferred error when KeplerFormal.SEC did not prove every output of the netlist equivalent to the RTL. When false, the flow continues with a warning.",
+            default=True,
+        )
+    ]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        proven = state_in.metrics.get("design__equivalence__proven")
+        if proven is None:
+            self.warn(
+                "The design__equivalence__proven metric was not found. Are you sure KeplerFormal.SEC was run?"
+            )
+        elif proven:
+            info("Check for sequential equivalence clear.")
+        else:
+            error_msg = "Kepler Formal did not prove every output of the netlist equivalent to the RTL. See the KeplerFormal.SEC warnings."
+            if not self.config["ERROR_ON_UNPROVEN_EQUIVALENCE"]:
+                self.warn(error_msg)
+            else:
+                self.err(f"{error_msg} - deferred")
+                raise DeferredStepError(error_msg)
+
+        return {}, {}

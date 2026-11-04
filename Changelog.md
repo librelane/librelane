@@ -29,6 +29,35 @@ Style Notes
 
 ## Steps
 
+* `Checker.KeplerFormalSEC`
+
+  * Created. Raises a deferred error when `KeplerFormal.SEC` did not prove
+    every output equivalent to the RTL.
+
+  * Added `ERROR_ON_UNPROVEN_EQUIVALENCE`.
+
+* `KeplerFormal.SEC`
+
+  * Created. Checks the current netlist against the RTL with Kepler Formal's
+    sequential equivalence checker. The flow stops on a counterexample; a proof
+    that does not cover every output is reported as a warning.
+
+  * Added `KEPLER_FORMAL_ENGINE`, `KEPLER_FORMAL_ENCODING` and
+    `KEPLER_FORMAL_MAX_K`.
+
+  * Added optional pass-through variables for the remaining Kepler Formal
+    settings, written only when set: `KEPLER_FORMAL_SOLVER`,
+    `KEPLER_FORMAL_LEARN_INTERNAL_RELATIONS`,
+    `KEPLER_FORMAL_ALLOW_X_EQUALITY_IN_INTERNAL_RELATIONS`,
+    `KEPLER_FORMAL_BINARY_RELATION_ROUND`, `KEPLER_FORMAL_LATCH_ABSTRACTION`,
+    `KEPLER_FORMAL_DATA_LATCH_MODEL`, `KEPLER_FORMAL_RESET_CYCLES`,
+    `KEPLER_FORMAL_RESET_PORTS`, `KEPLER_FORMAL_SET_AS_BOUNDARY`,
+    `KEPLER_FORMAL_PY_TECH_FILES`, `KEPLER_FORMAL_SV_SINGLE_UNIT`,
+    `KEPLER_FORMAL_VERILOG_PREPROCESSING`, `KEPLER_FORMAL_NETLIST_TOP`,
+    `KEPLER_FORMAL_COMPACT_MODE`, `KEPLER_FORMAL_LOG_LEVEL`,
+    `KEPLER_FORMAL_EXPORT_BTOR2`, `KEPLER_FORMAL_EXPORT_CNF` and
+    `KEPLER_FORMAL_EXPORT_PO_CNF`.
+
 * `KLayout.DRC`
 
   * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
@@ -123,22 +152,22 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.11.0
-  * Added kepler-formal at `acb85ea` (2026-10-05)
+* Updated nix-eda to 7.15.0
+  * Added kepler-formal at `1cf86ef6` (2026-11-03)
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.677`
-  * Updated Netgen to `1.5.323`
-  * Updated Yosys to `0.69`
-    * Updated yosys-eqy `0.69`
-    * Updated yosys-sby `0.69`
+  * Updated Magic to `8.3.691`
+  * Updated Netgen to `1.5.327`
+  * Updated Yosys to `0.70`
+    * Updated yosys-eqy `0.70`
+    * Updated yosys-sby `0.70`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated Verilator to `5.046`
+  * Updated Verilator to `5.052`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
   * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
-* Updated Ciel to `2.5.1`
+* Updated Ciel to `3.2.0`
 
 ## Misc. Enhancements/Bugfixes
 

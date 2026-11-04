@@ -12,6 +12,7 @@
   libparse,
   magic-vlsi,
   netgen,
+  kepler-formal,
   opensta,
   openroad,
   ruby,
@@ -81,6 +82,7 @@ let
       yosys-env
       openroad-env
       netgen
+      kepler-formal
       magic-vlsi
       klayout-app
       iverilog
