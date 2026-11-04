@@ -45,7 +45,7 @@ LibreLane includes two reference flows (`Classic` and `Chip`) that are built
 entirely using open-source EDA tools.
 
 You can find the documentation
-[here](https://librelane.readthedocs.io/en/latest/getting_started/) to get
+[here](https://librelane.readthedocs.io/en/stable/getting_started/) to get
 started. You can discuss LibreLane in the
 [FOSSi Chat Matrix Server](https://fossi-chat.org).
 
@@ -86,7 +86,7 @@ Works for macOS and Linux (x86-64 and aarch64). Recommended, as it is more
 integrated with your filesystem and overall has less upload and download deltas.
 
 See
-[Nix-based installation](https://librelane.readthedocs.io/en/latest/installation/nix_installation/index.html)
+[Nix-based installation](https://librelane.readthedocs.io/en/stable/installation/nix_installation/index.html)
 in the docs for more info.
 
 ### Docker
@@ -94,7 +94,7 @@ in the docs for more info.
 Works for Windows, macOS and Linux (x86-64 and aarch64).
 
 See
-[Docker-based installation](https://librelane.readthedocs.io/en/latest/installation/docker_installation/index.html)
+[Docker-based installation](https://librelane.readthedocs.io/en/stable/installation/docker_installation/index.html)
 in the docs for more info.
 
 Do note you'll need to add `--dockerized` right after `librelane` in most CLI
@@ -110,7 +110,9 @@ python3 -m pip install --upgrade librelane
 ```
 
 Python-only installations are presently unsupported and entirely at your own
-risk.
+risk, but you may consult
+[Manual installation](https://librelane.readthedocs.io/en/stable/installation/manual_installation/index.html)
+in the docs for more info.
 
 ## Usage
 

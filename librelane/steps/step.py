@@ -135,10 +135,13 @@ class DefaultOutputProcessor(OutputProcessor[Dict[str, Any]]):
 
     * ``%OL_CREATE_REPORT <file>``\\: Starts redirecting all output from
       standard output to a report file inside the step directory, with the
-      name <file>.
-    * ``%OL_END_REPORT``: Stops redirection behavior.
+      name <file>. Note that %OL_ commands take priority: a repeated call of
+      %OL_CREATE_REPORT will open a new report, closing the previous one, and
+      all metric calls will not be forwarded to the report.
+    * ``%OL_END_REPORT``: Stops redirection behavior, closing the report.
     * ``%OL_METRIC <name> <value>``\\: Adds a string metric with the name <name>
-      and the value <value> to this function's returned object.
+      and the value <value> to this function's returned object, with leading
+      and trailing whitespace stripped.
     * ``%OL_METRIC_F <name> <value>``\\: Adds a floating-point metric with the
       name <name> and the value <value> to this function's returned object.
     * ``%OL_METRIC_I <name> <value>``\\: Adds an integer metric with the name

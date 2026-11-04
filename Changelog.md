@@ -112,6 +112,9 @@ Style Notes
     `SYNTH_ABC_NEW` will always use the `DEFAULT` synthesis strategy or a
     user-provided `SYNTH_ABC_STRATEGY_SCRIPT`.
 
+  * Added `opt_clean` before `setundef` to prevent tie-low cells on nets with
+    inouts when using the `abc_new` pass.
+
   * Changed default `SYNTH_STRATEGY` to `DELAY 4`, which from testing provides
     the best area/delay balance.
 
@@ -127,17 +130,17 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.11.0
-  * Added kepler-formal at `acb85ea` (2026-10-05)
+* Updated nix-eda to 7.13.0
+  * Added kepler-formal at `1cf86ef` (2026-11-03)
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.677`
-  * Updated Netgen to `1.5.323`
-  * Updated Yosys to `0.69`
-    * Updated yosys-eqy `0.69`
-    * Updated yosys-sby `0.69`
+  * Updated Magic to `8.3.691`
+  * Updated Netgen to `1.5.327`
+  * Updated Yosys to `0.70`
+    * Updated yosys-eqy `0.70`
+    * Updated yosys-sby `0.70`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated Verilator to `5.046`
+  * Updated Verilator to `5.052`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
   * Updated KLayout to `0.30.12`
   * Updated GHDL to `6.0.0`
@@ -174,6 +177,37 @@ Style Notes
 * Renamed PDK hash from `ihp-sg13g2` to `ihp-sg13`
 
 * CI: added test cases for `ihp-sg13cmos5l`
+# 3.0.18
+
+## Steps
+
+* `Yosys.*Synthesis`
+
+  * Fixed an internal issue that may surface when using gzipped liberty files.
+
+## Misc. Enhancements/Bugfixes
+
+* `librelane.steps.DefaultOutputProcessor`:
+  * Fixed crash when handling `%OL_METRIC` commands when a valid metric has a
+    space, also remove any leading or trailing whitespace.
+  * Clarify spec for %OL_METRIC commands.
+
+# 3.0.17
+
+## Tool Updates
+
+* Magic
+
+  * Backported commit d083bef0a1912d0e75c146de84d388d86e7b36f4 to 8.3.623 to fix
+    a memory issue.
+
+## Documentation
+
+* Added various troubleshooting guides for Linux and WSL.
+
+* Added a small guide on building tools for manual installation.
+
+* GitHub Releases now includes a list of versions of tools LibreLane depends on.
 
 # 3.0.16
 
