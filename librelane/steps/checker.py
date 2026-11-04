@@ -549,13 +549,23 @@ class TimingViolations(MetricChecker):
         if not threshold:
             threshold = Decimal(0)
 
-        metrics = {
-            key: value
-            for key, value in state_in.metrics.items()
-            if metric_basename in key
-        }
+        metrics = {}
+        uncomputed_corners = []
+        for key, value in state_in.metrics.items():
+            if metric_basename not in key:
+                continue
+            if value is None:
+                # Cleared by a step that did not analyze this corner
+                uncomputed_corners.append(parse_metric_modifiers(key)[1]["corner"])
+            else:
+                metrics[key] = value
         debug("Metrics ▶")
         debug(metrics)
+        if uncomputed_corners:
+            self.warn(
+                f"No up-to-date {violation_type} timing data for the following corners, which will not be checked:\n"
+                + "\n".join(f"* {corner}" for corner in sorted(uncomputed_corners))
+            )
         if not metrics:
             self.warn(f"No metrics found for {metric_basename}.")
         else:
