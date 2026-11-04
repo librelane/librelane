@@ -159,6 +159,14 @@ jobs:
     name: Build (Nix/x86_64-linux)
     steps:
       - uses: actions/checkout@v7
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -172,7 +180,7 @@ jobs:
           key: nix-store-x86_64-linux-${{ github.run_id }}
       - uses: ./.github/actions/setup_nix
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ env.GITHUB_TOKEN }}
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
@@ -217,6 +225,14 @@ jobs:
     name: Build (Nix/aarch64-linux)
     steps:
       - uses: actions/checkout@v7
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       - name: Initialize Step Unit Test Submodule
         run: |
           git submodule update --init test/steps/all
@@ -225,7 +241,7 @@ jobs:
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: ./.github/actions/setup_nix
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ env.GITHUB_TOKEN }}
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
@@ -283,7 +299,7 @@ jobs:
           echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - uses: ./.github/actions/setup_nix
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ env.GITHUB_TOKEN }}
           nix_cache_domain: ${{ vars.NIX_CACHE }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Cache sky130 PDK
