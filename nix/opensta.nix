@@ -40,6 +40,7 @@ clangStdenv.mkDerivation (finalAttrs: {
 
   patches = [
     ./patches/opensta/fix_power_pins.patch
+    ./patches/opensta/liberty_segv.patch
   ];
 
   postPatch = ''

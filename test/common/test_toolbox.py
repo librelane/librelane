@@ -739,10 +739,11 @@ def test_remove_cell_list_from_lib(lib_trim_result):
 
     excluded_cells = process_list_file("/cwd/bad_cell_list.txt")
 
-    result = toolbox.remove_cells_from_lib(
-        frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
-        excluded_cells=frozenset(excluded_cells),
-    )
+    with pytest.deprecated_call():
+        result = toolbox.remove_cells_from_lib(
+            frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
+            excluded_cells=frozenset(excluded_cells),
+        )
     for file in result:
         contents = open(file, encoding="utf8").read()
         assert (
@@ -760,10 +761,11 @@ def test_remove_cells_from_lib(lib_trim_result):
         open("/cwd/bad_cell_list.txt", encoding="utf8").read().strip().splitlines()
     )
 
-    result = toolbox.remove_cells_from_lib(
-        frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
-        excluded_cells=frozenset(excluded_cells),
-    )
+    with pytest.deprecated_call():
+        result = toolbox.remove_cells_from_lib(
+            frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
+            excluded_cells=frozenset(excluded_cells),
+        )
     for file in result:
         contents = open(file, encoding="utf8").read()
         assert (
