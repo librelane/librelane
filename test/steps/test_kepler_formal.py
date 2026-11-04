@@ -428,6 +428,95 @@ def test_uses_matching_corner_libraries_and_all_rtl_files(sec_case):
     assert settings["max_k"] == 8
 
 
+def test_optional_settings_are_written_only_when_set(sec_case):
+    run, calls, make_file, _, _ = sec_case
+    loader = make_file("primitives.py")
+
+    run()
+    assert set(calls[0][2]) == {
+        "format",
+        "verification",
+        "input_paths",
+        "sv_design1_top",
+        "sv_design1_flist",
+        "liberty_files",
+        "sec_engine",
+        "sec_encoding",
+        "max_k",
+        "report_skipped_pos",
+        "log_file",
+    }
+
+    run(
+        overrides={
+            "KEPLER_FORMAL_SOLVER": "cadical",
+            "KEPLER_FORMAL_LEARN_INTERNAL_RELATIONS": False,
+            "KEPLER_FORMAL_ALLOW_X_EQUALITY_IN_INTERNAL_RELATIONS": False,
+            "KEPLER_FORMAL_BINARY_RELATION_ROUND": False,
+            "KEPLER_FORMAL_LATCH_ABSTRACTION": False,
+            "KEPLER_FORMAL_DATA_LATCH_MODEL": False,
+            "KEPLER_FORMAL_RESET_CYCLES": 4,
+            "KEPLER_FORMAL_RESET_PORTS": {"rst_n": False, "scan_rst": True},
+            "KEPLER_FORMAL_SET_AS_BOUNDARY": [("u_core/u_mem", "u_core/u_mem_impl")],
+            "KEPLER_FORMAL_PY_TECH_FILES": [loader],
+            "KEPLER_FORMAL_SV_SINGLE_UNIT": True,
+            "KEPLER_FORMAL_VERILOG_PREPROCESSING": True,
+            "KEPLER_FORMAL_NETLIST_TOP": "counter_gate",
+            "KEPLER_FORMAL_COMPACT_MODE": True,
+            "KEPLER_FORMAL_LOG_LEVEL": "debug",
+            "KEPLER_FORMAL_EXPORT_BTOR2": True,
+            "KEPLER_FORMAL_EXPORT_CNF": True,
+            "KEPLER_FORMAL_EXPORT_PO_CNF": True,
+        }
+    )
+    settings = calls[1][2]
+    assert settings["solver"] == "cadical"
+    for key in (
+        "learn_internal_relations",
+        "allow_x_equality_in_internal_relations",
+        "binary_relation_round",
+        "latch_abstraction",
+        "data_latch_model",
+    ):
+        assert settings[key] is False, key
+    assert settings["sec_reset"] == {
+        "cycles": 4,
+        "ports": [
+            {"name": "rst_n", "active_value": False},
+            {"name": "scan_rst", "active_value": True},
+        ],
+    }
+    assert settings["set_as_boundary"] == [["u_core/u_mem", "u_core/u_mem_impl"]]
+    assert settings["py_tech_files"] == [str(loader)]
+    assert settings["sv_single_unit"] is True
+    assert settings["verilog_preprocessing"] is True
+    assert settings["verilog_design2_top"] == "counter_gate"
+    assert settings["compact_mode"] is True
+    assert settings["log_level"] == "debug"
+    assert settings["btor2_export"] is True
+    assert settings["cnf_export"] is True
+    assert settings["po_cnf_export"] is True
+    # The fixed settings are untouched.
+    assert settings["format"] == "sv2v"
+    assert settings["verification"] == "sec"
+    assert settings["report_skipped_pos"] is True
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"KEPLER_FORMAL_RESET_CYCLES": 4},
+        {"KEPLER_FORMAL_RESET_PORTS": {"rst_n": False}},
+        {"KEPLER_FORMAL_RESET_CYCLES": 4, "KEPLER_FORMAL_RESET_PORTS": {}},
+    ],
+)
+def test_reset_cycles_and_ports_must_be_set_together(sec_case, overrides):
+    run, calls, _, _, _ = sec_case
+    with pytest.raises(StepError, match="must be set together"):
+        run(overrides=overrides)
+    assert calls == []
+
+
 def test_frontend_receives_the_synthesis_view_of_the_rtl(sec_case):
     run, calls, make_file, _, _ = sec_case
     include_header = make_file("include files/constants.vh")
@@ -620,3 +709,5 @@ def test_configuration_defaults_are_available_to_custom_flows(tmp_path):
     assert config["KEPLER_FORMAL_ENGINE"] == "pdr"
     assert config["KEPLER_FORMAL_ENCODING"] == "dual_rail_steady"
     assert config["KEPLER_FORMAL_MAX_K"] == 32
+    assert config["KEPLER_FORMAL_SOLVER"] is None
+    assert config["KEPLER_FORMAL_RESET_PORTS"] is None

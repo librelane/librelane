@@ -131,3 +131,57 @@ def test_metric_exceed_deferred(mock_config):
 
     with pytest.raises(DeferredStepError):
         potatoes_burnt_step.start(step_dir="/cwd", toolbox=Toolbox(tmp_dir="/cwd"))
+
+
+@pytest.fixture
+def run_sec_checker(mock_config):
+    def impl(state_in, **overrides):
+        from librelane.common import Toolbox
+        from librelane.steps.checker import KeplerFormalSEC
+
+        checker = KeplerFormalSEC(config=mock_config, state_in=state_in, **overrides)
+        checker.start(step_dir="/cwd", toolbox=Toolbox(tmp_dir="/cwd"))
+
+    return impl
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_sec_check_pass(run_sec_checker, caplog: pytest.LogCaptureFixture):
+    from librelane.state import State
+
+    run_sec_checker(State({}, metrics={"design__equivalence__proven": 1}))
+    assert "Check for sequential equivalence clear" in caplog.text
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_sec_check_not_found(run_sec_checker, caplog: pytest.LogCaptureFixture):
+    from librelane.state import State
+
+    run_sec_checker(State({}, metrics={}))
+    assert "metric was not found" in caplog.text
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_sec_check_unproven_deferred(run_sec_checker):
+    from librelane.state import State
+    from librelane.steps import DeferredStepError
+
+    with pytest.raises(DeferredStepError, match="did not prove every output"):
+        run_sec_checker(State({}, metrics={"design__equivalence__proven": 0}))
+
+
+@pytest.mark.usefixtures("_mock_conf_fs")
+@mock_variables([step])
+def test_sec_check_unproven_warns_when_disabled(
+    run_sec_checker, caplog: pytest.LogCaptureFixture
+):
+    from librelane.state import State
+
+    run_sec_checker(
+        State({}, metrics={"design__equivalence__proven": 0}),
+        ERROR_ON_UNPROVEN_EQUIVALENCE=False,
+    )
+    assert "did not prove every output" in caplog.text

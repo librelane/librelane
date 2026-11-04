@@ -29,6 +29,13 @@ Style Notes
 
 ## Steps
 
+* `Checker.KeplerFormalSEC`
+
+  * Created. Raises a deferred error when `KeplerFormal.SEC` did not prove
+    every output equivalent to the RTL.
+
+  * Added `ERROR_ON_UNPROVEN_EQUIVALENCE`.
+
 * `KeplerFormal.SEC`
 
   * Created. Checks the current netlist against the RTL with Kepler Formal's
@@ -37,6 +44,19 @@ Style Notes
 
   * Added `KEPLER_FORMAL_ENGINE`, `KEPLER_FORMAL_ENCODING` and
     `KEPLER_FORMAL_MAX_K`.
+
+  * Added optional pass-through variables for the remaining Kepler Formal
+    settings, written only when set: `KEPLER_FORMAL_SOLVER`,
+    `KEPLER_FORMAL_LEARN_INTERNAL_RELATIONS`,
+    `KEPLER_FORMAL_ALLOW_X_EQUALITY_IN_INTERNAL_RELATIONS`,
+    `KEPLER_FORMAL_BINARY_RELATION_ROUND`, `KEPLER_FORMAL_LATCH_ABSTRACTION`,
+    `KEPLER_FORMAL_DATA_LATCH_MODEL`, `KEPLER_FORMAL_RESET_CYCLES`,
+    `KEPLER_FORMAL_RESET_PORTS`, `KEPLER_FORMAL_SET_AS_BOUNDARY`,
+    `KEPLER_FORMAL_PY_TECH_FILES`, `KEPLER_FORMAL_SV_SINGLE_UNIT`,
+    `KEPLER_FORMAL_VERILOG_PREPROCESSING`, `KEPLER_FORMAL_NETLIST_TOP`,
+    `KEPLER_FORMAL_COMPACT_MODE`, `KEPLER_FORMAL_LOG_LEVEL`,
+    `KEPLER_FORMAL_EXPORT_BTOR2`, `KEPLER_FORMAL_EXPORT_CNF` and
+    `KEPLER_FORMAL_EXPORT_PO_CNF`.
 
 * `KLayout.DRC`
 

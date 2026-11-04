@@ -16,12 +16,13 @@ import glob
 import json
 import os
 import re
-from typing import Iterable, List, Literal, Optional, Tuple
+from typing import Dict, Iterable, List, Literal, Optional, Tuple
 
 import yaml
 
 from .pyosys import verilog_rtl_cfg_vars
 from .step import ViewsUpdate, MetricsUpdate, Step, StepError
+from ..common import Path
 from ..config import Variable
 from ..state import DesignFormat, State
 
@@ -50,6 +51,28 @@ _TOP_LEVEL_ROLES = {"top_input", "top_output"}
 # "celltype instance (" at the start of a line in a Yosys/OpenROAD netlist.
 _NETLIST_INSTANCE = re.compile(r"^\s*([A-Za-z_][\w$]*)\s+\S+\s*\(", re.MULTILINE)
 _LIBERTY_CELL = re.compile(r"\bcell\s*\(\s*\"?([^\"\s()]+)\"?\s*\)")
+# Optional Kepler Formal settings and the variables that carry them. A key is
+# written only when its variable is set, so an unset variable leaves the tool's
+# own default in force.
+_OPTIONAL_SETTINGS = [
+    ("KEPLER_FORMAL_SOLVER", "solver"),
+    ("KEPLER_FORMAL_LEARN_INTERNAL_RELATIONS", "learn_internal_relations"),
+    (
+        "KEPLER_FORMAL_ALLOW_X_EQUALITY_IN_INTERNAL_RELATIONS",
+        "allow_x_equality_in_internal_relations",
+    ),
+    ("KEPLER_FORMAL_BINARY_RELATION_ROUND", "binary_relation_round"),
+    ("KEPLER_FORMAL_LATCH_ABSTRACTION", "latch_abstraction"),
+    ("KEPLER_FORMAL_DATA_LATCH_MODEL", "data_latch_model"),
+    ("KEPLER_FORMAL_SV_SINGLE_UNIT", "sv_single_unit"),
+    ("KEPLER_FORMAL_VERILOG_PREPROCESSING", "verilog_preprocessing"),
+    ("KEPLER_FORMAL_NETLIST_TOP", "verilog_design2_top"),
+    ("KEPLER_FORMAL_COMPACT_MODE", "compact_mode"),
+    ("KEPLER_FORMAL_LOG_LEVEL", "log_level"),
+    ("KEPLER_FORMAL_EXPORT_BTOR2", "btor2_export"),
+    ("KEPLER_FORMAL_EXPORT_CNF", "cnf_export"),
+    ("KEPLER_FORMAL_EXPORT_PO_CNF", "po_cnf_export"),
+]
 
 
 @Step.factory.register()
@@ -100,6 +123,98 @@ class SEC(Step):
             int,
             "The maximum proof/search bound. Reaching the bound without a proof or counterexample is reported as inconclusive.",
             default=32,
+        ),
+        # Everything below is optional and passed through to Kepler Formal only
+        # when set; unset, the tool's own default applies.
+        Variable(
+            "KEPLER_FORMAL_SOLVER",
+            Optional[Literal["kissat", "glucose", "cadical"]],
+            "The SAT solver used by the proof engine. Kepler Formal's default is 'kissat'.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_LEARN_INTERNAL_RELATIONS",
+            Optional[bool],
+            "Discover and prove internal register equalities before the output proof. Kepler Formal's default is true.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_ALLOW_X_EQUALITY_IN_INTERNAL_RELATIONS",
+            Optional[bool],
+            "Allow X/X equality in the proved internal relations only; never relaxes output equality. Kepler Formal's default is true.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_BINARY_RELATION_ROUND",
+            Optional[bool],
+            "Retry unproved internal relations in binary semantics and share the proved transitions. Kepler Formal's default is true.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_LATCH_ABSTRACTION",
+            Optional[bool],
+            "Phase-abstract clock-driven latches; false makes every latch output opaque. Kepler Formal's default is true.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_DATA_LATCH_MODEL",
+            Optional[bool],
+            "Model latches whose enable is not a clock phase as step-transparent state; false leaves them opaque. Kepler Formal's default is true.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_RESET_CYCLES",
+            Optional[int],
+            "Hold the ports in KEPLER_FORMAL_RESET_PORTS at their active value for this many cycles at the start of the proof, which anchors reset-defined state in the 'binary' encoding. Must be set together with KEPLER_FORMAL_RESET_PORTS.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_RESET_PORTS",
+            Optional[Dict[str, bool]],
+            "The top-level reset inputs and their active values, e.g. {'rst_n': false}. Must be set together with KEPLER_FORMAL_RESET_CYCLES.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_SET_AS_BOUNDARY",
+            Optional[List[Tuple[str, str]]],
+            "Pairs of top-relative leaf instance paths, RTL first, netlist second, to treat as proof boundaries instead of checking through them, e.g. [['u_core/u_mem', 'u_core/u_mem_impl']].",
+        ),
+        Variable(
+            "KEPLER_FORMAL_PY_TECH_FILES",
+            Optional[List[Path]],
+            "Python primitive loaders read in addition to the Liberty files.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_SV_SINGLE_UNIT",
+            Optional[bool],
+            "Compile the RTL as one SystemVerilog compilation unit so macros carry over between files. Kepler Formal's default is false.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_VERILOG_PREPROCESSING",
+            Optional[bool],
+            "Run the preprocessor on the Verilog netlist inputs.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_NETLIST_TOP",
+            Optional[str],
+            "The top module of the netlist side when it is not the one Kepler Formal finds on its own.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_COMPACT_MODE",
+            Optional[bool],
+            "Extract and release the RTL model before the netlist is loaded, lowering peak memory. Kepler Formal's default is false.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_LOG_LEVEL",
+            Optional[Literal["debug", "info"]],
+            "The verbosity of kepler_formal.log. Kepler Formal's default is 'info'.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_EXPORT_BTOR2",
+            Optional[bool],
+            "Write the prepared equivalence obligation as 'miter.btor2' in the step directory before solving.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_EXPORT_CNF",
+            Optional[bool],
+            "Write the CNF of the miter as 'miter.cnf' in the step directory.",
+        ),
+        Variable(
+            "KEPLER_FORMAL_EXPORT_PO_CNF",
+            Optional[bool],
+            "Write one CNF per compared output under 'po_cnfs' in the step directory.",
         ),
     ]
 
@@ -193,24 +308,47 @@ class SEC(Step):
         with open(flist_path, "w", encoding="utf8") as f:
             f.write("\n".join(options) + "\n")
 
+        settings = {
+            "format": "sv2v",
+            "verification": "sec",
+            "input_paths": [gold_files, gate_files],
+            "sv_design1_top": self.config["DESIGN_NAME"],
+            "sv_design1_flist": flist_path,
+            "liberty_files": library_paths,
+            "sec_engine": self.config["KEPLER_FORMAL_ENGINE"],
+            "sec_encoding": self.config["KEPLER_FORMAL_ENCODING"],
+            "max_k": self.config["KEPLER_FORMAL_MAX_K"],
+            "report_skipped_pos": True,
+            "log_file": os.path.join(step_dir, "kepler_formal.log"),
+        }
+        settings.update(self._optional_settings())
         with open(config_path, "w", encoding="utf8") as f:
-            yaml.safe_dump(
-                {
-                    "format": "sv2v",
-                    "verification": "sec",
-                    "input_paths": [gold_files, gate_files],
-                    "sv_design1_top": self.config["DESIGN_NAME"],
-                    "sv_design1_flist": flist_path,
-                    "liberty_files": library_paths,
-                    "sec_engine": self.config["KEPLER_FORMAL_ENGINE"],
-                    "sec_encoding": self.config["KEPLER_FORMAL_ENCODING"],
-                    "max_k": self.config["KEPLER_FORMAL_MAX_K"],
-                    "report_skipped_pos": True,
-                    "log_file": os.path.join(step_dir, "kepler_formal.log"),
-                },
-                f,
-                sort_keys=False,
+            yaml.safe_dump(settings, f, sort_keys=False)
+
+    def _optional_settings(self) -> dict:
+        settings = {}
+        for variable, key in _OPTIONAL_SETTINGS:
+            if (value := self.config.get(variable)) is not None:
+                settings[key] = value
+        if tech_files := self.config.get("KEPLER_FORMAL_PY_TECH_FILES"):
+            settings["py_tech_files"] = self._paths(tech_files)
+        if boundaries := self.config.get("KEPLER_FORMAL_SET_AS_BOUNDARY"):
+            settings["set_as_boundary"] = [list(pair) for pair in boundaries]
+        cycles = self.config.get("KEPLER_FORMAL_RESET_CYCLES")
+        ports = self.config.get("KEPLER_FORMAL_RESET_PORTS")
+        if (cycles is None) != (not ports):
+            raise StepError(
+                "KeplerFormal.SEC: KEPLER_FORMAL_RESET_CYCLES and KEPLER_FORMAL_RESET_PORTS must be set together."
             )
+        if cycles is not None:
+            settings["sec_reset"] = {
+                "cycles": cycles,
+                "ports": [
+                    {"name": name, "active_value": active}
+                    for name, active in (ports or {}).items()
+                ],
+            }
+        return settings
 
     def _physical_cells_without_models(
         self, netlist_path: str, library_paths: List[str]
