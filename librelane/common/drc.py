@@ -289,6 +289,8 @@ class DRC:
 
         with ET.xmlfile(out, encoding="utf8", buffered=False) as xf:
             xf.write_declaration()
+            xf.write(ET.Comment(" KLayout Marker Database "))
+            xf.write(ET.Comment(" Created using LibreLane DRC Rosetta "))
             with xf.element("report-database"):
                 # 1. Cells
                 with xf.element("cells"):

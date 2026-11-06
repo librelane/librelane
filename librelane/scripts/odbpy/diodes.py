@@ -14,14 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import random
+import sys
+from decimal import Decimal
+from typing import List, Optional
+
+import click
 import odb
 
-import sys
-import click
-import random
-from decimal import Decimal
-from typing import Optional, List
-from reader import click_odb, OdbReader
+from reader import OdbReader, click_odb
 
 
 @click.group()

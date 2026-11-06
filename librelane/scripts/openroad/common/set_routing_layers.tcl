@@ -24,7 +24,4 @@ if { [info exists ::env(RT_CLOCK_MAX_LAYER)]} {
     set clock_max_layer $::env(RT_CLOCK_MAX_LAYER)
 }
 
-puts "\[INFO\] Setting signal min routing layer to: $signal_min_layer and clock min routing layer to $clock_min_layer. "
-puts "\[INFO\] Setting signal max routing layer to: $signal_max_layer and clock max routing layer to $clock_max_layer. "
-
-set_routing_layers -signal [subst $signal_min_layer]-[subst $signal_max_layer] -clock [subst $clock_min_layer]-[subst $clock_max_layer]
+log_cmd set_routing_layers -signal [subst $signal_min_layer]-[subst $signal_max_layer] -clock [subst $clock_min_layer]-[subst $clock_max_layer]

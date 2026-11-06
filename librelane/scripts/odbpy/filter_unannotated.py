@@ -12,14 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 import pprint
+import re
 from collections import namedtuple
 
-from reader import click_odb, click
-
 import odb
-import utl
+
+from reader import click, click_odb, lln_metric_i
 
 
 def filter_net(net: odb.dbNet) -> bool:
@@ -86,10 +85,11 @@ def main(reader, corner, checks_report):
     ]
     print("Filtered nets:")
     pprint.pprint(connected_nets)
-    utl.metric_integer(
-        f"timing__unannotated_net__count__corner:{corner}", len(reported_nets)
+    lln_metric_i(
+        f"timing__unannotated_net__count__corner:{corner}",
+        len(reported_nets),
     )
-    utl.metric_integer(
+    lln_metric_i(
         f"timing__unannotated_net_filtered__count__corner:{corner}",
         len(connected_nets),
     )

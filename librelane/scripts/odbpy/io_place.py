@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from functools import partial
-import odb
-
+import math
 import os
+import random
 import re
 import sys
-import math
-import click
-import random
 from decimal import Decimal
+from functools import partial
+
+import click
+import ioplace_parser
+import odb
 
 from reader import click_odb
-import ioplace_parser
 
 
 def grid_to_tracks(origin, count, step):
@@ -246,16 +246,14 @@ def io_place(
     #S|#N|#E|#W
     """
     config_file_name = config
-    micron_in_units = reader.dbunits
+    dbus_per_micron = reader.dbunits
 
-    H_EXTENSION = int(micron_in_units * hor_extension)
-    V_EXTENSION = int(micron_in_units * ver_extension)
+    H_EXTENSION = int(dbus_per_micron * hor_extension)
+    V_EXTENSION = int(dbus_per_micron * ver_extension)
 
-    if H_EXTENSION < 0:
-        H_EXTENSION = 0
+    H_EXTENSION = max(H_EXTENSION, 0)
 
-    if V_EXTENSION < 0:
-        V_EXTENSION = 0
+    V_EXTENSION = max(V_EXTENSION, 0)
 
     H_LAYER = reader.tech.findLayer(hor_layer)
     V_LAYER = reader.tech.findLayer(ver_layer)
@@ -264,26 +262,18 @@ def io_place(
     V_WIDTH = int(Decimal(ver_width_mult) * V_LAYER.getWidth())
 
     if hor_length is not None:
-        H_LENGTH = int(micron_in_units * hor_length)
+        H_LENGTH = int(dbus_per_micron * hor_length)
     else:
         H_LENGTH = max(
-            int(
-                math.ceil(
-                    H_LAYER.getArea() * micron_in_units * micron_in_units / H_WIDTH
-                )
-            ),
+            int(math.ceil(H_LAYER.getArea() / H_WIDTH)),
             H_WIDTH,
         )
 
     if ver_length is not None:
-        V_LENGTH = int(micron_in_units * ver_length)
+        V_LENGTH = int(dbus_per_micron * ver_length)
     else:
         V_LENGTH = max(
-            int(
-                math.ceil(
-                    V_LAYER.getArea() * micron_in_units * micron_in_units / V_WIDTH
-                )
-            ),
+            int(math.ceil(V_LAYER.getArea() / V_WIDTH)),
             V_WIDTH,
         )
 
@@ -294,7 +284,7 @@ def io_place(
         info_by_side = ioplace_parser.parse(config_file_str)
     except ValueError as e:
         print(f"An exception occurred: {e}")
-        exit(os.EX_DATAERR)
+        sys.exit(os.EX_DATAERR)
 
     print("Top-level design name:", reader.name)
 
@@ -309,7 +299,7 @@ def io_place(
             (V_WIDTH + V_LAYER.getSpacing())
             if side in ["N", "S"]
             else (H_WIDTH + H_LAYER.getSpacing())
-        ) / reader.dbunits
+        ) / dbus_per_micron
         if side_info.min_distance is None:
             side_info.min_distance = min
         if side_info.min_distance < min:
@@ -381,7 +371,7 @@ def io_place(
 
     if mismatches_found:
         print("Critical mismatches found.")
-        exit(os.EX_DATAERR)
+        sys.exit(os.EX_DATAERR)
 
     if len(not_in_config) > 0:
         print("Assigning random sides to unmatched pins…")
@@ -409,7 +399,7 @@ def io_place(
     pin_tracks = {}
     for side in pin_placement:
         if side in ["N", "S"]:
-            min_distance = info_by_side[side].min_distance * micron_in_units
+            min_distance = info_by_side[side].min_distance * dbus_per_micron
             pin_tracks[side] = [
                 v_tracks[i]
                 for i in range(len(v_tracks))
@@ -423,7 +413,7 @@ def io_place(
                     i
                     % (
                         math.ceil(
-                            info_by_side[side].min_distance * micron_in_units / h_step
+                            info_by_side[side].min_distance * dbus_per_micron / h_step
                         )
                     )
                 )
@@ -436,9 +426,9 @@ def io_place(
             pin_placement[side].reverse()
 
     # create the pins
-    for side in pin_placement:
+    for side, side_pin_placement in pin_placement.items():
         slots, pin_placement[side] = equally_spaced_sequence(
-            side, pin_placement[side], pin_tracks[side]
+            side, side_pin_placement, pin_tracks[side]
         )
 
         assert len(slots) == len(pin_placement[side])

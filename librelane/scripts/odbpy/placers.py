@@ -15,7 +15,7 @@
 import sys
 from decimal import Decimal
 
-from reader import click_odb, click
+from reader import click, click_odb
 
 
 @click.group
@@ -72,10 +72,10 @@ def manual_macro_placement(reader, config, fixed):
     with open(config, "r") as config_file:
         for line in config_file:
             # Discard comments and empty lines
-            line = line.split("#")[0].strip()
+            line = line.split("#")[0].strip()  # noqa: PLW2901
             if not line:
                 continue
-            line = line.split()
+            line = line.split()  # noqa: PLW2901
             name, x, y, orientation = line
             macro_data = [
                 name,
@@ -111,11 +111,11 @@ def manual_macro_placement(reader, config, fixed):
                 inst.setPlacementStatus("PLACED")
             del macros[inst_name]
 
-    if len(macros):
+    if macros:
         print("Declared macros not instantiated in design:", file=sys.stderr)
         for macro in macros.values():
             print(f"* {macro[0]}", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     print(f"Successfully placed {macros_cnt} instances.")
 
@@ -147,13 +147,13 @@ def manual_global_placement(reader):
         if not found:
             not_found.append(instance)
 
-    if len(not_found):
+    if not_found:
         print(
             "[ERROR] One or more instances not found. Make sure you use their Verilog and not their LEF names."
         )
         for instance in not_found:
             print(f"* {instance}")
-        exit(1)
+        sys.exit(1)
 
 
 cli.add_command(manual_global_placement)

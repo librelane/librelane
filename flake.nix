@@ -148,6 +148,7 @@
                 pytest-cov
                 pillow
                 mdformat
+                ruff
                 black
                 ipython
                 tokenize-rt

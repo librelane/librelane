@@ -18,7 +18,7 @@ librelane_ipynb/
 requirements_tmp.txt
 
 # Nix
-result
+/result*
 .direnv/
 
 # Flow artefacts

@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import yaml
-
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
-from reader import click_odb, click, odb
+
+import yaml
+
+from reader import click, click_odb, odb
 
 
 def check_cells(odb_cells):

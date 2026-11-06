@@ -28,9 +28,9 @@ index dd856d7b..681363bc 100644
 +      Net *net = term ? network_->net(term) : nullptr;
 +      if (net && !stringEqual(network_->name(port), network_->name(net))) {
 +        // Port name is different from net name.
-+        string port_vname = netVerilogName(network_->name(port));
-+        string net_vname = netVerilogName(network_->name(net));
-+        fprintf(stream_, " assign %s = %s;\n",
++        std::string port_vname = netVerilogName(network_->name(port));
++        std::string net_vname = netVerilogName(network_->name(net));
++        sta::print(stream_, " assign {} = {};\n",
 +                port_vname.c_str(),
 +                net_vname.c_str());
 +      }

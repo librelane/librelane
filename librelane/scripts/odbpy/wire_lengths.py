@@ -13,9 +13,7 @@
 # limitations under the License.
 from decimal import Decimal
 
-import utl
-
-from reader import click, click_odb, OdbReader
+from reader import OdbReader, click, click_odb, lln_metric_f
 
 
 def to_si(microns: Decimal) -> str:
@@ -86,7 +84,7 @@ def main(
             f"Net {net.getName()} is above the length threshold ({length_microns}/{threshold} µm)."
         )
 
-    utl.metric_float("route__wirelength__max", float(max_wire_length))
+    lln_metric_f("route__wirelength__max", float(max_wire_length))
 
 
 if __name__ == "__main__":

@@ -20,62 +20,30 @@ source $::env(SCRIPTS_DIR)/openroad/common/set_global_connections.tcl
 
 namespace eval lln {
     proc scene_name {scene} {
-        # OpenSTA >= 3.1 (commit 998806cb, 2026-06-30) bridges scenes as SWIG
-        # objects instead of strings. Older OpenSTA 3 bridges them as strings,
-        # in which case the value already is the name.
         if { [sta::is_object $scene] } {
             return [sta::get_property $scene name]
         }
         return $scene
     }
     proc get_corner_names {} {
-        # returns: names as a Tcl list, compatible with both OpenSTA 2 and 3
-        if {[string length [namespace which sta::scenes]] != 0} {
-            set result [list]
-            foreach scene [sta::scenes] {
-                lappend result [scene_name $scene]
-            }
-            return $result
-        } else {
-            # corners are not bridged as strings
-            set result [list]
-            foreach corner [sta::corners] {
-                lappend result [$corner name]
-            }
-            return $result
+        set result [list]
+        foreach scene [sta::scenes] {
+            lappend result [scene_name $scene]
         }
+        return $result
     }
+
     proc get_corner_dict {} {
-        # returns: Tcl dictionary from corner names to whatever object is
-        # interpreted as a corner for internal commands that expect corners:
-        # - in OpenSTA 3, that's whatever sta::find_scene returns (a name in
-        #   OpenSTA 3.0, a Scene object since 3.1)
-        # - in OpenSTA 2, that's an opaque Tcl pointer
         set result [dict create]
-        if {[string length [namespace which sta::scenes]] != 0} {
-            foreach scene [sta::scenes] {
-                set name [scene_name $scene]
-                dict set result $name [sta::find_scene $name]
-            }
-        } else {
-            foreach corner [sta::corners] {
-                dict set result [$corner name] $corner
-            }
+        foreach scene [sta::scenes] {
+            set name [scene_name $scene]
+            dict set result $name $scene
         }
         return $result
     }
 
     proc set_sta_cmd_corner {corner_name} {
-        # sta::set_scene takes a name in every OpenSTA 3; sta::set_cmd_scene
-        # takes a name before 998806cb and a Scene object after.
-        if {[string length [namespace which sta::set_scene]] != 0} {
-            sta::set_scene $corner_name
-        } elseif {[string length [namespace which sta::set_cmd_scene]] != 0} {
-            sta::set_cmd_scene $corner_name
-        } else {
-            set corner_object [sta::find_corner $corner_name]
-            sta::set_cmd_corner $corner_object
-        }
+        sta::set_scene $corner_name
     }
 };
 
@@ -430,7 +398,7 @@ proc read_current_odb {args} {
     set_global_vars
 
     # Read supporting views (if applicable)
-    read_current_sdc
+    log_cmd read_current_sdc
     set_dont_use_cells
 }
 

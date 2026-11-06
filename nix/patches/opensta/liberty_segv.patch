@@ -1,0 +1,143 @@
+From 1ba9872aa04e60b7bef68f5b0e97cea49f9b4872 Mon Sep 17 00:00:00 2001
+From: James Cherry <34749589+jjcherry56@users.noreply.github.com>
+Date: Wed, 14 Oct 2026 17:05:25 -0700
+Subject: [PATCH] Liberty function/three_state unknown port refs resolves #373
+
+Signed-off-by: James Cherry <34749589+jjcherry56@users.noreply.github.com>
+---
+ liberty/LibertyReader.cc         | 42 ++++++++++++++++++--------------
+ test/liberty_malformed_ports.lib | 22 +++++++++++++++++
+ test/liberty_malformed_ports.ok  |  3 +++
+ test/liberty_malformed_ports.tcl |  2 ++
+ test/regression_vars.tcl         |  1 +
+ 5 files changed, 52 insertions(+), 18 deletions(-)
+ create mode 100644 test/liberty_malformed_ports.lib
+ create mode 100644 test/liberty_malformed_ports.ok
+ create mode 100644 test/liberty_malformed_ports.tcl
+
+diff --git a/liberty/LibertyReader.cc b/liberty/LibertyReader.cc
+index 289379324..f7a0abf4d 100644
+--- a/liberty/LibertyReader.cc
++++ b/liberty/LibertyReader.cc
+@@ -1159,20 +1159,24 @@ LibertyReader::makeBundlePort(LibertyCell *cell,
+     debugPrint(debug_, "liberty", 1, " bundle {}", bundle_name);
+     
+     const LibertyComplexAttr *member_attr = bundle_group->findComplexAttr("members");
+-    ConcretePortSeq *members = new ConcretePortSeq;
+-    for (const LibertyAttrValue *member_value : member_attr->values()) {
+-      if (member_value->isString()) {
+-        const std::string &member_name = member_value->stringValue();
+-        LibertyPort *member = cell->findLibertyPort(member_name);
+-        if (member == nullptr)
+-          member = makePort(cell, member_name);
+-        members->push_back(member);
++    if (member_attr) {
++      ConcretePortSeq *members = new ConcretePortSeq;
++      for (const LibertyAttrValue *member_value : member_attr->values()) {
++        if (member_value->isString()) {
++          const std::string &member_name = member_value->stringValue();
++          LibertyPort *member = cell->findLibertyPort(member_name);
++          if (member == nullptr)
++            member = makePort(cell, member_name);
++          members->push_back(member);
++        }
+       }
++      LibertyPort *bundle_port = builder_.makeBundlePort(cell, bundle_name, members);
++      port_group_map[bundle_group].push_back(bundle_port);
++      // Make ports for pin groups inside the bundle group.
++      makeBundlePinPorts(cell, bundle_group, port_group_map);
+     }
+-    LibertyPort *bundle_port = builder_.makeBundlePort(cell, bundle_name, members);
+-    port_group_map[bundle_group].push_back(bundle_port);
+-    // Make ports for pin groups inside the bundle group.
+-    makeBundlePinPorts(cell, bundle_group, port_group_map);
++    else
++      warn(1315, bundle_group, "bundle {} missing members.", bundle_name);
+   }
+   else
+     warn(1313, bundle_group, "bundle missing name.");
+@@ -1628,7 +1632,7 @@ LibertyReader::makePortFuncs(LibertyCell *cell,
+       FuncExpr *func_expr = parseFunc(func, "function", cell, func_attr->line());
+       for (LibertyPort *port : ports) {
+         port->setFunction(func_expr);
+-        if (func_expr->checkSize(port)) {
++        if (func_expr && func_expr->checkSize(port)) {
+           warn(1195, func_attr->line(),
+                   "port {} function size does not match port size.",
+                   port->name());
+@@ -1644,11 +1648,13 @@ LibertyReader::makePortFuncs(LibertyCell *cell,
+       FuncExpr *tri_disable_expr = parseFunc(tri_disable,
+                                              "three_state", cell,
+                                              tri_attr->line());
+-      FuncExpr *tri_enable_expr = tri_disable_expr->invert();
+-      for (LibertyPort *port : ports) {
+-        port->setTristateEnable(tri_enable_expr);
+-        if (port->direction() == PortDirection::output())
+-          port->setDirection(PortDirection::tristate());
++      if (tri_disable_expr) {
++        FuncExpr *tri_enable_expr = tri_disable_expr->invert();
++        for (LibertyPort *port : ports) {
++          port->setTristateEnable(tri_enable_expr);
++          if (port->direction() == PortDirection::output())
++            port->setDirection(PortDirection::tristate());
++        }
+       }
+     }
+   }
+diff --git a/test/liberty_malformed_ports.lib b/test/liberty_malformed_ports.lib
+new file mode 100644
+index 000000000..f734cb76d
+--- /dev/null
++++ b/test/liberty_malformed_ports.lib
+@@ -0,0 +1,22 @@
++library (malformed_ports) {
++  delay_model : table_lookup;
++
++  /* "function" references an undeclared pin, so parseFunc() returns null. */
++  cell (BAD_FUNC) {
++    pin (A) { direction : input; }
++    pin (Z) { direction : output; function : "A & NOPIN"; }
++  }
++
++  /* "three_state" references an undeclared pin, so parseFunc() returns null. */
++  cell (BAD_TRI) {
++    pin (A) { direction : input; }
++    pin (EN) { direction : input; }
++    pin (Z) { direction : output; three_state : "BADPIN"; function : "A"; }
++  }
++
++  /* "bundle" group with no "members" attribute. */
++  cell (BAD_BUNDLE) {
++    pin (A) { direction : input; }
++    bundle (B) { direction : output; }
++  }
++}
+diff --git a/test/liberty_malformed_ports.ok b/test/liberty_malformed_ports.ok
+new file mode 100644
+index 000000000..7bf7a84c7
+--- /dev/null
++++ b/test/liberty_malformed_ports.ok
+@@ -0,0 +1,3 @@
++Warning 1130: liberty_malformed_ports.lib line 7, function references unknown port NOPIN.
++Warning 1130: liberty_malformed_ports.lib line 14, three_state references unknown port BADPIN.
++Warning 1315: liberty_malformed_ports.lib line 20, bundle B missing members.
+diff --git a/test/liberty_malformed_ports.tcl b/test/liberty_malformed_ports.tcl
+new file mode 100644
+index 000000000..32350fe88
+--- /dev/null
++++ b/test/liberty_malformed_ports.tcl
+@@ -0,0 +1,2 @@
++# liberty function, three_state ref undeclared pin, empty bundle
++read_liberty liberty_malformed_ports.lib
+diff --git a/test/regression_vars.tcl b/test/regression_vars.tcl
+index 7e70947d1..a61f12b2a 100644
+--- a/test/regression_vars.tcl
++++ b/test/regression_vars.tcl
+@@ -167,6 +167,7 @@ record_public_tests {
+   liberty_ccsn
+   liberty_float_as_str
+   liberty_latch3
++  liberty_malformed_ports
+   liberty_retain
+   make_concrete_parasitics_leak
+   max_power_area
