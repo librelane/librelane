@@ -80,6 +80,10 @@ stdenv.mkDerivation (finalAttrs: {
     hash = sha256;
   };
 
+  patches = [
+    ./patches/openroad/fix_pad_connections.patch
+  ];
+
   cmakeFlags = (cmakeFlagsCommon false) ++ [
     (lib.cmakeBool "ENABLE_TESTS" enableTesting)
     (lib.cmakeBool "USE_SYSTEM_ABC" true)
