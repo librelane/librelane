@@ -130,19 +130,19 @@ Style Notes
 
 ## Tool Updates
 
-* Updated nix-eda to 7.13.0
+* Updated nix-eda to 7.19.0
   * Added kepler-formal at `1cf86ef` (2026-11-03)
   * Updated NixOS to 26.05
-  * Updated Magic to `8.3.691`
-  * Updated Netgen to `1.5.327`
+  * Updated Magic to `8.3.693`
+  * Updated Netgen to `1.5.328`
   * Updated Yosys to `0.70`
     * Updated yosys-eqy `0.70`
     * Updated yosys-sby `0.70`
     * Removed yosys-slang (now vendored by Yosys)
     * Removed yosys-lighter (no longer required by LibreLane)
-  * Updated Verilator to `5.052`
+  * Updated Verilator to `5.054`
   * Updated IcarusVerilog to `13.0` (matching nixpkgs)
-  * Updated KLayout to `0.30.12`
+  * Updated KLayout to `0.30.13`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
 * Updated Ciel to `3.2.0`
