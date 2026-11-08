@@ -1473,11 +1473,27 @@ class GeneratePDN(OpenROADStep):
         + pdn_variables
         + [
             Variable(
+                "FP_MACRO_HORIZONTAL_HALO",
+                Decimal,
+                "Specify the horizontal halo size around macros.",
+                default=10,
+                units="µm",
+                deprecated_names=["FP_TAP_HORIZONTAL_HALO"],
+            ),
+            Variable(
+                "FP_MACRO_VERTICAL_HALO",
+                Decimal,
+                "Specify the vertical halo size around macros.",
+                default=10,
+                units="µm",
+                deprecated_names=["FP_TAP_VERTICAL_HALO"],
+            ),
+            Variable(
                 "PDN_CFG",
                 Optional[Path],
                 "A custom PDN configuration file. If not provided, the default PDN config will be used.",
                 deprecated_names=["FP_PDN_CFG"],
-            )
+            ),
         ]
     )
 
@@ -1486,6 +1502,14 @@ class GeneratePDN(OpenROADStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
+        if self.config["PDN_HORIZONTAL_HALO"] > self.config["FP_MACRO_HORIZONTAL_HALO"]:
+            self.warn(
+                f"PDN_HORIZONTAL_HALO ({self.config['PDN_HORIZONTAL_HALO']}) is set higher than FP_MACRO_HORIZONTAL_HALO ({self.config['FP_MACRO_HORIZONTAL_HALO']}). This may cause PDN generation to fail."
+            )
+        if self.config["PDN_VERTICAL_HALO"] > self.config["FP_MACRO_VERTICAL_HALO"]:
+            self.warn(
+                f"PDN_VERTICAL_HALO ({self.config['PDN_VERTICAL_HALO']}) is set higher than FP_MACRO_VERTICAL_HALO ({self.config['FP_MACRO_VERTICAL_HALO']}). This may cause PDN generation to fail."
+            )
         if self.config["PDN_CFG"] is None:
             env["PDN_CFG"] = os.path.join(
                 get_script_dir(),
