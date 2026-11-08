@@ -19,9 +19,8 @@ import io
 import os
 import re
 import json
-import subprocess
-import textwrap
 import pathlib
+import subprocess
 from abc import abstractmethod
 from base64 import b64encode
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -44,7 +43,6 @@ from typing import (
 
 import rich
 import rich.table
-import yaml
 
 from ..common import (
     Path,
@@ -1453,22 +1451,11 @@ class UnplaceAll(OpenROADStep):
 
 
 def get_psm_error_count(rpt: io.TextIOWrapper) -> int:
-    sio = io.StringIO()
-
-    # Turn almost-YAML into YAML
-    VIO_TYPE_PFX = "violation type: "
+    error_count = 0
     for line in rpt:
-        if line.startswith(VIO_TYPE_PFX):
-            vio_type = line[len(VIO_TYPE_PFX) :].strip()
-            sio.write(f"- type: {vio_type}\n")
-        elif "bbox = " in line:
-            sio.write(f"    {textwrap.dedent(line.replace('bbox = ', '- bbox ='))}")
-        else:
-            sio.write(f"  {textwrap.dedent(line)}")
-
-    sio.seek(0)
-    violations = yaml.load(sio, Loader=yaml.SafeLoader) or []
-    return sum(len(violation["srcs"]) for violation in violations)
+        if "bbox =" in line:
+            error_count += 1
+    return error_count
 
 
 @Step.factory.register()
@@ -1486,11 +1473,27 @@ class GeneratePDN(OpenROADStep):
         + pdn_variables
         + [
             Variable(
+                "FP_MACRO_HORIZONTAL_HALO",
+                Decimal,
+                "Specify the horizontal halo size around macros.",
+                default=10,
+                units="µm",
+                deprecated_names=["FP_TAP_HORIZONTAL_HALO"],
+            ),
+            Variable(
+                "FP_MACRO_VERTICAL_HALO",
+                Decimal,
+                "Specify the vertical halo size around macros.",
+                default=10,
+                units="µm",
+                deprecated_names=["FP_TAP_VERTICAL_HALO"],
+            ),
+            Variable(
                 "PDN_CFG",
                 Optional[Path],
                 "A custom PDN configuration file. If not provided, the default PDN config will be used.",
                 deprecated_names=["FP_PDN_CFG"],
-            )
+            ),
         ]
     )
 
@@ -1499,9 +1502,20 @@ class GeneratePDN(OpenROADStep):
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
+        if self.config["PDN_HORIZONTAL_HALO"] > self.config["FP_MACRO_HORIZONTAL_HALO"]:
+            self.warn(
+                f"PDN_HORIZONTAL_HALO ({self.config['PDN_HORIZONTAL_HALO']}) is set higher than FP_MACRO_HORIZONTAL_HALO ({self.config['FP_MACRO_HORIZONTAL_HALO']}). This may cause PDN generation to fail."
+            )
+        if self.config["PDN_VERTICAL_HALO"] > self.config["FP_MACRO_VERTICAL_HALO"]:
+            self.warn(
+                f"PDN_VERTICAL_HALO ({self.config['PDN_VERTICAL_HALO']}) is set higher than FP_MACRO_VERTICAL_HALO ({self.config['FP_MACRO_VERTICAL_HALO']}). This may cause PDN generation to fail."
+            )
         if self.config["PDN_CFG"] is None:
             env["PDN_CFG"] = os.path.join(
-                get_script_dir(), "openroad", "common", "pdn_cfg.tcl"
+                get_script_dir(),
+                "openroad",
+                "common",
+                "pdn_cfg.tcl",
             )
             info(f"'PDN_CFG' not explicitly set, setting it to {env['PDN_CFG']}…")
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
@@ -1510,14 +1524,14 @@ class GeneratePDN(OpenROADStep):
         error_reports = glob(os.path.join(self.step_dir, "*-grid-errors.rpt"))
         for report in error_reports:
             net = os.path.basename(report).split("-", maxsplit=1)[0]
-            no_terminals = any(
-                alert.code == "PSM-0025" and alert.message.startswith(net)
+            count = 1
+            # ensure current net has no PSM-0025 error
+            if all(
+                alert.code != "PSM-0025" or not alert.message.startswith(net)
                 for alert in alerts
-            )
-            if no_terminals:
-                count = 1
-            else:
-                count = get_psm_error_count(open(report, encoding="utf8"))
+            ):
+                with open(report, encoding="utf8") as f:
+                    count = get_psm_error_count(f)
             metrics_updates[f"design__power_grid_violation__count__net:{net}"] = count
 
         metric_updates_with_aggregates = aggregate_metrics(
@@ -2049,15 +2063,15 @@ class DetailedRouting(OpenROADStep):
 
         drc_paths = list(pathlib.Path(self.step_dir).rglob("*.drc*"))
         for path in drc_paths:
-            drc, _ = DRCObject.from_openroad(
-                open(path, encoding="utf8"), self.config["DESIGN_NAME"]
-            )
+            klayout_lyrdb_path = path.with_name(path.name + ".lyrdb")
 
-            drc.to_klayout_xml(open(pathlib.Path(str(path) + ".xml"), "wb"))
-        #        if violation_count > 0:
-        #            self.warn(
-        #                f"DRC errors found after routing. View the report file at {report_path}.\nView KLayout xml file at {klayout_db_path}"
-        #            )
+            with open(path, encoding="utf8") as rpt:
+                drc, _ = DRCObject.from_openroad(rpt, self.config["DESIGN_NAME"])
+
+            with open(klayout_lyrdb_path, "wb") as rpt_xml:
+                drc.to_klayout_xml(rpt_xml)
+
+            klayout_lyrdb_path.with_suffix(".xml").symlink_to(klayout_lyrdb_path.name)
 
         return views_updates, metrics_updates
 

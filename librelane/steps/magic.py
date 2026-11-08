@@ -18,6 +18,7 @@
 import os
 import re
 import shutil
+import pathlib
 import subprocess
 from os.path import abspath
 from signal import SIGKILL
@@ -38,7 +39,7 @@ from .tclstep import TclStep
 from ..state import DesignFormat, State
 
 from ..config import Variable
-from ..common import get_script_dir, DRC as DRCObject, Path, mkdirp, count_occurences
+from ..common import get_script_dir, DRC as DRCObject, Path, count_occurences
 from ..logging import warn
 
 
@@ -529,8 +530,8 @@ class DRC(MagicStep):
         return os.path.join(get_script_dir(), "magic", "drc.tcl")
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        reports_dir = os.path.join(self.step_dir, "reports")
-        mkdirp(reports_dir)
+        reports_dir = pathlib.Path(self.step_dir) / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
 
         # Check that the DEF exists if needed
         if not self.config["MAGIC_DRC_USE_GDS"]:
@@ -538,20 +539,19 @@ class DRC(MagicStep):
 
         views_updates, metrics_updates = super().run(state_in, **kwargs)
 
-        report_path = os.path.join(reports_dir, "drc.magic.rpt")
-        klayout_db_path = os.path.join(reports_dir, "drc.magic.lyrdb")
+        report_path = reports_dir / "drc.magic.rpt"
+        klayout_lyrdb_path = reports_dir / "drc.magic.lyrdb"
 
         # report_stats = os.stat(report_path)
         # drc_db_file = None
         # if report_stats.st_size >= 0:  # 134217728:
         #     drc_db_file = os.path.join(reports_dir, "drc.db")
 
-        drc, bbox_count = DRCObject.from_magic(
-            open(report_path, encoding="utf8"),
-            # db_file=drc_db_file,
-        )
+        with open(report_path, encoding="utf8") as f:
+            drc, bbox_count = DRCObject.from_magic(f)
 
-        drc.to_klayout_xml(open(klayout_db_path, "wb"))
+        with open(klayout_lyrdb_path, "wb") as f:
+            drc.to_klayout_xml(f)
 
         metrics_updates["magic__drc_error__count"] = bbox_count
 

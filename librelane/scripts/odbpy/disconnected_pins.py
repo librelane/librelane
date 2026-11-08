@@ -16,12 +16,9 @@ from dataclasses import dataclass
 from typing import Dict, Literal, Optional, Sequence, Union
 
 import odb
-import utl
-
-from reader import click, click_odb, OdbReader
-from reader import rich
-from reader import Table
 from rich.console import Console
+
+from reader import OdbReader, Table, click, click_odb, lln_metric_i, rich
 
 
 def is_connected(term: Union[odb.dbITerm, odb.dbBTerm]) -> bool:
@@ -295,9 +292,13 @@ def main(
             )
             console.print(full_table)
 
-    utl.metric_integer("design__disconnected_pin__count", disconnected_pin_count)
-    utl.metric_integer(
-        "design__critical_disconnected_pin__count", critical_disconnected_pin_count
+    lln_metric_i(
+        "design__disconnected_pin__count",
+        disconnected_pin_count,
+    )
+    lln_metric_i(
+        "design__critical_disconnected_pin__count",
+        critical_disconnected_pin_count,
     )
 
 

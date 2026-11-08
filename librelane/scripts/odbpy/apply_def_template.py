@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import defutil
-import utl
 
-from reader import click_odb, click
+from reader import click, click_odb, lln_metric
 
 
 @click.command()
@@ -42,7 +41,7 @@ def cli(reader, input_lefs, permissive, copy_def_power, def_template):
     )
     area = defutil.get_die_area(def_template, input_lefs)
     area_metric = f"{area[0]} {area[1]} {area[2]} {area[3]}"
-    utl.metric("design__die__bbox", area_metric)
+    lln_metric("design__die__bbox", area_metric)
 
 
 if __name__ == "__main__":

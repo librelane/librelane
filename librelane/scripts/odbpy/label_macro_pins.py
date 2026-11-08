@@ -14,7 +14,7 @@
 # limitations under the License.
 import odb
 
-from reader import OdbReader, click_odb, click
+from reader import OdbReader, click, click_odb
 
 
 @click.command()
