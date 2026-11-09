@@ -311,7 +311,7 @@ def synthesize(
         synth_lib_arguments.extend(["-liberty", lib])
 
     stat_lib_arguments = (
-        synth_lib_arguments if config["SYNTH_AREA_STDCELLS_ONLY"] else all_lib_arguments
+        synth_lib_arguments if config["SYNTH_STAT_STDCELLS_ONLY"] else all_lib_arguments
     )
 
     d = ys.Design()
