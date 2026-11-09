@@ -243,7 +243,7 @@ class PyosysStep(Step):
             bool,
             "If set to false, allows Yosys `stat` calls to factor in Macro .lib files and `EXTRA_LIBS`.",
             default=True,
-        )
+        ),
     ]
 
     @classmethod
