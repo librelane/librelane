@@ -238,6 +238,12 @@ class PyosysStep(Step):
             "Generate a graphviz DOT file for the design. This will fail on a completely empty design.",
             default=False,
         ),
+        Variable(
+            "SYNTH_STAT_STDCELLS_ONLY",
+            bool,
+            "If set to false, allows Yosys `stat` calls to factor in Macro .lib files and `EXTRA_LIBS`.",
+            default=True,
+        )
     ]
 
     @classmethod
@@ -302,22 +308,18 @@ class VerilogStep(PyosysStep):
         # Try your best to use powered blackbox models if power_defines is true
         if self.power_defines:
             if self.config["CELL_VERILOG_MODELS"] is not None:
-                blackbox_models.extend(
-                    [
-                        self.toolbox.create_blackbox_model(
-                            frozenset(self.config["CELL_VERILOG_MODELS"]),
-                            frozenset(["USE_POWER_PINS"]),
-                        )
-                    ]
+                blackbox_models.append(
+                    self.toolbox.create_blackbox_model(
+                        frozenset(self.config["CELL_VERILOG_MODELS"]),
+                        frozenset(["USE_POWER_PINS"]),
+                    )
                 )
             if self.config["PAD_VERILOG_MODELS"] is not None:
-                blackbox_models.extend(
-                    [
-                        self.toolbox.create_blackbox_model(
-                            frozenset(self.config["PAD_VERILOG_MODELS"]),
-                            frozenset(["USE_POWER_PINS"]),
-                        )
-                    ]
+                blackbox_models.append(
+                    self.toolbox.create_blackbox_model(
+                        frozenset(self.config["PAD_VERILOG_MODELS"]),
+                        frozenset(["USE_POWER_PINS"]),
+                    )
                 )
         else:
             # Fall back to scl_lib_list and pad_lib_list if you cant
@@ -344,7 +346,10 @@ class VerilogStep(PyosysStep):
         ):
             blackbox_models.append(str(view))
 
+        macro_libs = self.toolbox.get_macro_views(self.config, DesignFormat.lib)
+
         if libs := self.config.get("EXTRA_LIBS"):
+            macro_libs.extend(libs)
             blackbox_models.extend(str(f) for f in libs)
         if models := self.config.get("EXTRA_VERILOG_MODELS"):
             blackbox_models.extend(str(f) for f in models)
@@ -360,12 +365,14 @@ class VerilogStep(PyosysStep):
         )
 
         libs_synth = [str(p) for p in scl_lib_list + pad_lib_list]
+        all_libs = list(str(p) for p in libs_synth + macro_libs)
         extra_path = os.path.join(self.step_dir, "extra.json")
         with open(extra_path, "w") as f:
             json.dump(
                 {
                     "blackbox_models": blackbox_models,
                     "libs_synth": libs_synth,
+                    "all_libs": all_libs,
                     "excluded_cell_patterns": list(excluded_cell_patterns),
                 },
                 f,
