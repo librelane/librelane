@@ -13,6 +13,10 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
+      - name: Set Up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
       - name: Perform Metrics Comparison
         run: |
           make venv
