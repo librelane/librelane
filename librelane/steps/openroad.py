@@ -540,15 +540,11 @@ class OpenROADStep(TclStep):
 
         tried.append(shlex.join(last_cmd))
 
+        # built-in interpreter:
+        # will not work at all for Bazel-built versions of OpenROAD
         or_bin = Self.get_openroad_path()
-        last_cmd = [
-            or_bin,
-            "-exit",
-            "-no_splash",
-            "-python",
-            "-c",
-            "import odb",
-        ]  # will not work at all for Bazel-built versions of OpenROAD
+        or_launch = (or_bin, "-exit", "-no_splash", "-python")
+        last_cmd = [*or_launch, "-c", "import odb"]
         try:
             native_exec_test = subprocess.call(
                 last_cmd,
@@ -557,7 +553,7 @@ class OpenROADStep(TclStep):
                 encoding="utf8",
             )
             if native_exec_test == 0:
-                Self._get_python_launch_command_cached = tuple(last_cmd[:-1])
+                Self._get_python_launch_command_cached = or_launch
                 return Self._get_python_launch_command_cached
         except FileNotFoundError:
             pass
