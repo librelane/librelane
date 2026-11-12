@@ -18,15 +18,17 @@
 import os
 import re
 import io
+import shlex
+import subprocess
 import sys
 import json
 import fnmatch
 import shutil
 from decimal import Decimal
 from abc import abstractmethod
-from typing import List, Literal, Optional, Set, Tuple
+from typing import ClassVar, List, Literal, Optional, Set, Tuple
 
-from .step import ViewsUpdate, MetricsUpdate, Step
+from .step import StepException, ViewsUpdate, MetricsUpdate, Step
 
 from ..config import Variable
 from ..state import State, DesignFormat
@@ -242,26 +244,75 @@ class PyosysStep(Step):
 
     @classmethod
     def get_yosys_path(Self) -> str:
-        return os.getenv("_LLN_OVERRIDE_YOSYS", "yosys")
+        yosys_bin = os.getenv("_LLN_OVERRIDE_YOSYS", "yosys")
+        if "google.colab" in sys.modules:
+            # HACK: Get Colab working
+            yosys_bin = shutil.which("yosys") or yosys_bin
+        return yosys_bin
 
     @abstractmethod
     def get_script_path(self) -> str:
         pass
 
+    _get_launch_command_cached: ClassVar[Optional[Tuple[Tuple[str, ...], bool]]] = None
+
+    @classmethod
+    def get_launch_command(Self) -> Tuple[Tuple[str, ...], bool]:
+        if Self._get_launch_command_cached is not None:
+            return Self._get_launch_command_cached
+        # top priority: yosys binary likely doesn't have requisite libraries
+        tried = []
+        last_cmd = [
+            sys.executable,
+            "-c",
+            "from pyosys import libyosys as ys",
+        ]
+        python_exec_test = subprocess.call(
+            last_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if python_exec_test == 0:
+            Self._get_launch_command_cached = ((sys.executable,), False)
+            return Self._get_launch_command_cached
+
+        tried.append(shlex.join(last_cmd))
+
+        yosys_bin = Self.get_yosys_path()
+        last_cmd = [yosys_bin, "-y", "/dev/stdin"]
+        try:
+            native_exec_test_p = subprocess.Popen(
+                last_cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
+            )
+            assert native_exec_test_p.stdin is not None
+            native_exec_test_p.stdin.write("from pyosys import libyosys as ys\n")
+            native_exec_test_p.stdin.close()
+            native_exec_test = native_exec_test_p.wait()
+            if native_exec_test == 0:
+                return ((yosys_bin, "-y"), True)
+        except FileNotFoundError:
+            pass
+
+        tried.append(shlex.join(last_cmd))
+
+        msg = "\n* ".join(("Failed to run Python scripts using Yosys. Tried:", *tried))
+        raise StepException(msg)
+
     def get_command(self, state_in: State) -> List[str]:
-        script_path = self.get_script_path()
-        # HACK: Get Colab working
-        yosys_bin = self.get_yosys_path()
-        if "google.colab" in sys.modules:
-            yosys_bin = shutil.which("yosys") or "yosys"
-        cmd = [yosys_bin, "-y", script_path]
-        if self.config["YOSYS_LOG_LEVEL"] != "ALL":
-            cmd += ["-Q"]
-        if self.config["YOSYS_LOG_LEVEL"] == "WARNING":
-            cmd += ["-q"]
-        elif self.config["YOSYS_LOG_LEVEL"] == "ERROR":
-            cmd += ["-qq"]
-        cmd += ["--"]
+        launch_cmd, yosys_flags_supported = self.get_launch_command()
+        cmd = [*launch_cmd, self.get_script_path()]
+        if yosys_flags_supported:
+            if self.config["YOSYS_LOG_LEVEL"] != "ALL":
+                cmd += ["-Q"]
+            if self.config["YOSYS_LOG_LEVEL"] == "WARNING":
+                cmd += ["-q"]
+            elif self.config["YOSYS_LOG_LEVEL"] == "ERROR":
+                cmd += ["-qq"]
+            cmd += ["--"]
         cmd += ["--config-in", os.path.join(self.step_dir, "config.json")]
         return cmd
 

@@ -599,7 +599,7 @@ proc max {a b} {
 
 set ::metric_count 0
 set ::metrics_file ""
-if { [namespace exists utl] } {
+if { [namespace exists utl] && (![info exists ::env(_opensta)] || !$::env(_opensta))} {
     proc write_metric_str {metric value} {
         puts "Writing metric $metric: $value"
         utl::metric $metric $value

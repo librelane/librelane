@@ -16,8 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Original Copyright Follows
+#
+# Adapted from OpenROAD
 #
 # BSD 3-Clause License
 #
@@ -49,10 +49,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
-from typing import Tuple, Optional
 
-import pya
 import click
+import pya
 
 
 @click.command()
@@ -103,12 +102,12 @@ import click
 )
 def stream_out(
     output: str,
-    input_lefs: Tuple[str, ...],
+    input_lefs: tuple[str, ...],
     lyt: str,
     lyp: str,
     lym: str,
-    input_gds_files: Tuple[str, ...],
-    seal_gds: Optional[str],
+    input_gds_files: tuple[str, ...],
+    seal_gds: str | None,
     design_name: str,
     input: str,
     conflict_resolution: str,
@@ -151,9 +150,8 @@ def stream_out(
 
         print("[INFO] Clearing cells…")
         for i in main_layout.each_cell():
-            if i.cell_index() != top_cell_index:
-                if not i.name.startswith("VIA"):
-                    i.clear()
+            if i.cell_index() != top_cell_index and not i.name.startswith("VIA"):
+                i.clear()
 
         # Load in the gds to merge
         print("[INFO] Merging GDS files…")
@@ -178,7 +176,7 @@ def stream_out(
                 )
 
         if missing_gds:
-            raise Exception("One or more cell GDS files are missing.")
+            raise RuntimeError("One or more cell GDS files are missing.")
         else:
             print("[INFO] All LEF cells have matching GDS cells.")
 

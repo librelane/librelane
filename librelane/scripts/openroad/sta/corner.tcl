@@ -33,15 +33,21 @@ log_cmd set_cmd_units\
 
 set sta_report_default_digits 6
 
-if { [namespace exists ::ord] } {
-    read_current_odb
-    source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
+if { [namespace exists ::ord]} {
+    if { [info exists ::env(_opensta)] && $::env(_opensta) } {
+        # opensta emulation mode
+        read_lefs
+        read_timing_info
+    } else {
+        read_current_odb
+        source $::env(SCRIPTS_DIR)/openroad/common/set_rc.tcl
 
-    # Internal API- brittle
-    if { [grt::have_routes] } {
-        log_cmd estimate_parasitics -global_routing
-    } elseif { [est::check_corner_wire_cap] } {
-        log_cmd estimate_parasitics -placement
+        # Internal API- brittle
+        if { [grt::have_routes] } {
+            log_cmd estimate_parasitics -global_routing
+        } elseif { [est::check_corner_wire_cap] } {
+            log_cmd estimate_parasitics -placement
+        }
     }
 } else {
     read_timing_info

@@ -14,8 +14,8 @@
 # limitations under the License.
 import json
 
-from klayout.rdb import ReportDatabase
 import click
+from klayout.rdb import ReportDatabase
 
 
 @click.command()

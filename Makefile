@@ -1,3 +1,5 @@
+PYTHON ?= python3
+
 all: dist
 .PHONY: dist
 dist: venv/manifest.txt
@@ -24,12 +26,12 @@ docker-image:
 # double-installing is still fast
 .PHONY: docs
 docs:
-	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= python3 -m pip install -r ./docs/requirements.txt; fi
+	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= $(PYTHON) -m pip install -r ./docs/requirements.txt; fi
 	$(MAKE) -C docs html
 
 .PHONY: host-docs
 host-docs:
-	python3 -m http.server --directory ./docs/build/html
+	$(PYTHON) -m http.server --directory ./docs/build/html
 	
 .PHONY: watch-docs
 watch-docs:
@@ -39,7 +41,7 @@ watch-docs:
 		--ignore "*docs/build/*" \
 		--ignore "*docs/source/reference/*_vars.md" \
 		--ignore "*docs/source/reference/flows.md" \
-		-- $(MAKE) docs '&&' python3 -m http.server --directory docs/build/html
+		-- $(MAKE) docs '&&' $(PYTHON) -m http.server --directory docs/build/html
 
 .PHONY: lint
 lint:
@@ -49,31 +51,22 @@ lint:
 
 .PHONY: coverage-infrastructure
 coverage-infrastructure:
-	python3 -m pytest -n auto\
+	$(PYTHON) -m pytest -n auto\
 		--cov=librelane --cov-config=.coveragerc --cov-report html:htmlcov_infra --cov-report term
 
 .PHONY: coverage-steps
 coverage-steps:
-	python3 -m pytest -n auto\
+	$(PYTHON) -m pytest -n auto\
 		--cov=librelane.steps --cov-config=.coveragerc-steps --cov-report html:htmlcov_steps --cov-report term\
 		-k test_all_steps
-
-.PHONY: check-license
-check-license: venv/manifest.txt
-	./venv/bin/python3 -m pip freeze > ./requirements.frz.txt
-	docker run -v `pwd`:/volume \
-		-it --rm pilosus/pip-license-checker \
-		java -jar app.jar \
-		--requirements '/volume/requirements.frz.txt'
 
 venv: venv/manifest.txt
 venv/manifest.txt: ./pyproject.toml
 	rm -rf venv
-	python3 -m venv ./venv
+	$(PYTHON) -m venv ./venv
 	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade pip
-	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade wheel poetry poetry-plugin-export
-	PYTHONPATH= ./venv/bin/poetry export --all-groups --without-hashes --format=requirements.txt --output=requirements_tmp.txt
-	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade -r requirements_tmp.txt
+	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade wheel poetry
+	PYTHONPATH= ./venv/bin/python3 -m pip install --upgrade --group lint --group test -e .
 	PYTHONPATH= ./venv/bin/python3 -m pip freeze > $@
 	@echo ">> Venv prepared."
 

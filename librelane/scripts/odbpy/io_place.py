@@ -82,7 +82,7 @@ def equally_spaced_sequence(side, side_pin_placement, possible_locations):
     current_track = unused_tracks // 2  # So that the tracks used are centered
     starting_track_index = current_track
     if virtual_pin_count == 0:  # No virtual pins
-        for _ in range(0, total_pin_count):
+        for _ in range(total_pin_count):
             result.append(possible_locations[current_track])
             current_track += tracks_per_pin
     else:  # There are virtual pins
@@ -265,7 +265,7 @@ def io_place(
         H_LENGTH = int(dbus_per_micron * hor_length)
     else:
         H_LENGTH = max(
-            int(math.ceil(H_LAYER.getArea() / H_WIDTH)),
+            math.ceil(H_LAYER.getArea() / H_WIDTH),
             H_WIDTH,
         )
 
@@ -273,12 +273,13 @@ def io_place(
         V_LENGTH = int(dbus_per_micron * ver_length)
     else:
         V_LENGTH = max(
-            int(math.ceil(V_LAYER.getArea() / V_WIDTH)),
+            math.ceil(V_LAYER.getArea() / V_WIDTH),
             V_WIDTH,
         )
 
     # read config + calculate minima
-    config_file_str = open(config_file_name, "r", encoding="utf8").read()
+    with open(config_file_name, encoding="utf8") as f:
+        config_file_str = f.read()
 
     try:
         info_by_side = ioplace_parser.parse(config_file_str)
@@ -343,9 +344,7 @@ def io_place(
 
     # check for extra or missing pins
     not_in_design = unmatched_regexes
-    not_in_config = set(
-        [bterm.getName() for bterm in bterms if bterm not in regex_by_bterm]
-    )
+    not_in_config = {bterm.getName() for bterm in bterms if bterm not in regex_by_bterm}
     mismatches_found = False
     for is_in, not_in, pins in [
         ("config", "design", not_in_design),

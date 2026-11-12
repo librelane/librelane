@@ -16,8 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Original Copyright Follows
+#
+# Adapted from OpenROAD
 #
 # BSD 3-Clause License
 #
@@ -48,10 +48,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from typing import Tuple
-
-import pya
 import click
+import pya
 
 
 @click.command()
@@ -118,7 +116,7 @@ import click
 )
 @click.argument("input")
 def render(
-    input_lefs: Tuple[str, ...],
+    input_lefs: tuple[str, ...],
     output: str,
     lyt: str,
     lyp: str,

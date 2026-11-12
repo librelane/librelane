@@ -17,7 +17,6 @@ from typing import Literal, Optional, Protocol, List, runtime_checkable
 
 from .step import OutputProcessor
 
-
 openroad_alert_rx = re.compile(r"^\[(WARNING|ERROR)(?:\s+([A-Z]+\-\d+))?\]\s*(.+)")
 
 

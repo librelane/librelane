@@ -59,6 +59,10 @@ class OdbpyStep(Step):
     def get_openroad_path(Self) -> str:
         return OpenROADStep.get_openroad_path()
 
+    @classmethod
+    def get_launch_command(Self) -> Tuple[str, ...]:
+        return OpenROADStep.get_python_launch_command()
+
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
         if alert.code in [
             "ORD-0039",  # .openroad ignored with -python
@@ -148,8 +152,6 @@ class OdbpyStep(Step):
         return views_updates, metric_updates_with_aggregates
 
     def get_command(self) -> List[str]:
-        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-
         tech_lefs = self.toolbox.filter_views(self.config, self.config["TECH_LEFS"])
         if len(tech_lefs) != 1:
             raise StepException(
@@ -173,19 +175,12 @@ class OdbpyStep(Step):
         ):
             lefs.append("--design-lef")
             lefs.append(str(design_lef))
-        return (
-            [
-                self.get_openroad_path(),
-                "-exit",
-                "-no_splash",
-                "-metrics",
-                str(metrics_path),
-                "-python",
-                self.get_script_path(),
-            ]
-            + self.get_subcommand()
-            + lefs
-        )
+        return [
+            *self.get_launch_command(),
+            self.get_script_path(),
+            *self.get_subcommand(),
+            *lefs,
+        ]
 
     @abstractmethod
     def get_script_path(self) -> str:

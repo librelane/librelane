@@ -31,18 +31,17 @@
 #  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 #  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import os
 import json
+import os
 import shutil
-from typing import List, Optional, Tuple
 
 import click
 
-from ys_common import ys, yosys_version_at_least
 from construct_abc_script import ABCScriptCreator
+from ys_common import yosys_version_at_least, ys
 
 
-def stat_json(d: ys.Design, lib_arguments: Tuple[str, ...], report_dir: str):
+def stat_json(d: ys.Design, lib_arguments: tuple[str, ...], report_dir: str):
     """
     hack: work around https://github.com/YosysHQ/yosys/issues/6442
     """
@@ -173,9 +172,9 @@ def librelane_synth(
     abc_dff=False,
     undriven=True,
     arith_tree=True,
-    keep_hierarchy_min_cost: Optional[int],
-    keep_hierarchy_instances: List[str],
-    keep_hierarchy_modules: List[str],
+    keep_hierarchy_min_cost: int | None,
+    keep_hierarchy_instances: list[str],
+    keep_hierarchy_modules: list[str],
 ):
 
     d.run_pass("hierarchy", "-check", "-top", top, "-nokeep_prints", "-nokeep_asserts")
@@ -275,8 +274,10 @@ def synthesize(
     extra_in,
     inputs,
 ):
-    config = json.load(open(config_in))
-    extra = json.load(open(extra_in))
+    with open(config_in, encoding="utf8") as f:
+        config = json.load(f)
+    with open(extra_in, encoding="utf8") as f:
+        extra = json.load(f)
 
     lib_dont_use_args = []
     for excluded_cell in extra["excluded_cell_patterns"]:
@@ -400,10 +401,11 @@ def synthesize(
         d.run_pass("tribuf")
 
     adder_type = config["SYNTH_ADDER_TYPE"]
-    if adder_type not in ["YOSYS", "FA"]:
-        if mapping := config[f"SYNTH_{adder_type}_MAP"]:
-            ys.log(f"[INFO] Applying {adder_type} mapping from '{mapping}'…")
-            d.run_pass("techmap", "-map", mapping)
+    if adder_type not in ("YOSYS", "FA") and (
+        mapping := config[f"SYNTH_{adder_type}_MAP"]
+    ):
+        ys.log(f"[INFO] Applying {adder_type} mapping from '{mapping}'…")
+        d.run_pass("techmap", "-map", mapping)
 
     librelane_synth(
         d,
@@ -443,10 +445,9 @@ def synthesize(
         ys.log(f"[INFO] Applying tri-state buffer mapping from '{tristate_mapping}'…")
         d.run_pass("techmap", "-map", tristate_mapping)
         d.run_pass("simplemap")
-    if fa_mapping := config["SYNTH_FA_MAP"]:
-        if adder_type == "FA":
-            ys.log(f"[INFO] Applying full-adder mapping from '{fa_mapping}'…")
-            d.run_pass("techmap", "-map", fa_mapping)
+    if (fa_mapping := config["SYNTH_FA_MAP"]) and adder_type == "FA":
+        ys.log(f"[INFO] Applying full-adder mapping from '{fa_mapping}'…")
+        d.run_pass("techmap", "-map", fa_mapping)
     if latch_mapping := config["SYNTH_LATCH_MAP"]:
         ys.log(f"[INFO] Applying latch mapping from '{latch_mapping}'…")
         d.run_pass("techmap", "-map", latch_mapping)

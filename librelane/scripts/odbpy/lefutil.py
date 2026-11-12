@@ -54,9 +54,10 @@ def zeroize_origin(output, lef):
     )
     ORIGIN_REGEX = re.compile(r"^\s*ORIGIN\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+;$")
 
-    lef_lines = open(lef).read().splitlines()
+    with open(lef, encoding="utf8") as f:
+        lef_lines = f.read().splitlines()
 
-    with open(output, "w") as f:
+    with open(output, "w", encoding="utf8") as f:
         OFFSET_X = OFFSET_Y = 0
         for line in lef_lines:
             if line.isspace():
@@ -66,7 +67,7 @@ def zeroize_origin(output, lef):
                 OFFSET_X, OFFSET_Y = float(origin_match.group(1)), float(
                     origin_match.group(2)
                 )
-                print(line[: line.find("O")] + "ORIGIN %.3f %.3f ;" % (0, 0), file=f)
+                print(line[: line.find("O")] + f"ORIGIN {0:.3f} {0:.3f} ;", file=f)
             else:
                 rect_match = RECT_REGEX.search(line)
                 if rect_match:
@@ -78,13 +79,7 @@ def zeroize_origin(output, lef):
                     )
                     print(
                         line[: line.find("R")]
-                        + "RECT %.3f %.3f %.3f %.3f ;"
-                        % (
-                            llx + OFFSET_X,
-                            lly + OFFSET_Y,
-                            urx + OFFSET_X,
-                            ury + OFFSET_Y,
-                        ),
+                        + f"RECT {llx + OFFSET_X:.3f} {lly + OFFSET_Y:.3f} {urx + OFFSET_X:.3f} {ury + OFFSET_Y:.3f} ;",
                         file=f,
                     )
                 else:

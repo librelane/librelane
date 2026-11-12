@@ -42,7 +42,6 @@ from ..config import Variable
 from ..common import get_script_dir, DRC as DRCObject, Path, count_occurences
 from ..logging import warn
 
-
 DesignFormat(
     "mag",
     "mag",

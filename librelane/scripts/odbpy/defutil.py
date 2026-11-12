@@ -16,7 +16,6 @@ import os
 import re
 import sys
 from decimal import Decimal
-from typing import List, Tuple
 
 import odb
 
@@ -161,7 +160,7 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
     # --------------------------------
     # 3. Create a dict with net -> pin locations.
     # --------------------------------
-    template_bterm_locations = dict()
+    template_bterm_locations = {}
 
     for template_bterm in template_bterms:
         template_name = template_bterm.getName()
@@ -186,13 +185,11 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
                     )
                 )
 
-    template_bterm_names = set(
-        [
-            bterm.getName()
-            for bterm in template_bterms
-            if bterm.getSigType() not in ["POWER", "GROUND"]
-        ]
-    )
+    template_bterm_names = {
+        bterm.getName()
+        for bterm in template_bterms
+        if bterm.getSigType() not in ["POWER", "GROUND"]
+    }
 
     print(f"Found {len(template_bterm_locations)} template_bterms…")
 
@@ -208,15 +205,13 @@ def relocate_pins(db, input_lefs, template_def, permissive, copy_def_power=False
     output_bterms = output_block.getBTerms()
 
     if copy_def_power:
-        output_bterm_names = set([bterm.getName() for bterm in output_bterms])
+        output_bterm_names = {bterm.getName() for bterm in output_bterms}
     else:
-        output_bterm_names = set(
-            [
-                bterm.getName()
-                for bterm in output_bterms
-                if bterm.getNet().getSigType() not in ["POWER", "GROUND"]
-            ]
-        )
+        output_bterm_names = {
+            bterm.getName()
+            for bterm in output_bterms
+            if bterm.getNet().getSigType() not in ["POWER", "GROUND"]
+        }
     not_in_design = template_bterm_names - output_bterm_names
     not_in_template = output_bterm_names - template_bterm_names
 
@@ -462,7 +457,7 @@ def replace_instance_prefixes(original_prefix, new_prefix, reader):
 cli.add_command(replace_instance_prefixes)
 
 
-def parse_obstructions(obstructions) -> List[Tuple[str, List[int]]]:
+def parse_obstructions(obstructions) -> list[tuple[str, list[int]]]:
     RE_NUMBER = r"[\-]?[0-9]+(\.[0-9]+)?"
     RE_OBS = (
         r"(?P<layer>\S+)\s+"
@@ -533,7 +528,7 @@ cli.add_command(add_obstructions)
 @click_odb
 def remove_obstructions(reader, input_lefs, obstructions):
     dbu: int = reader.tech.getDbUnitsPerMicron()
-    existing_obstructions: List[Tuple[str, List[int], odb.dbObstruction]] = []
+    existing_obstructions: list[tuple[str, list[int], odb.dbObstruction]] = []
 
     for odb_obstruction in reader.block.getObstructions():
         bbox = odb_obstruction.getBBox()

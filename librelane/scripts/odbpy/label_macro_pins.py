@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -225,21 +224,17 @@ def label_macro_pins(
     )
     bterms = mapping.block.getBTerms()
     print(
-        set([bterm.getName() for bterm in bterms])
-        - set(
-            [
-                mapping[1]
-                for sublist in [pair[1] for pair in pad_pin_map.items()]
-                for mapping in sublist
-            ]
-        )
+        {bterm.getName() for bterm in bterms}
+        - {
+            mapping[1]
+            for sublist in [pair[1] for pair in pad_pin_map.items()]
+            for mapping in sublist
+        }
     )
     assert pad_pins_to_label_count == len(
         bterms
-    ), "Some pins were not going to be labeled %d/%d" % (
-        pad_pins_to_label_count,
-        len(bterms),
-    )
+    ), f"Some pins were not going to be labeled {pad_pins_to_label_count}/{len(bterms)}"
+
     print("Labeling", len(pad_pin_map), "pads")
     print("Labeling", pad_pins_to_label_count, "pad pins")
     if verbose:
@@ -267,8 +262,7 @@ def label_macro_pins(
                 labeled.append(inst_name)
 
     assert labeled_count == pad_pins_to_label_count, (
-        "Didn't label what I set out to label %d/%d"
-        % (labeled_count, pad_pins_to_label_count),
+        f"Didn't label what I set out to label {labeled_count}/{pad_pins_to_label_count}",
         set(pad_pin_map.keys()) - set(labeled),
     )
 
