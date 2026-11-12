@@ -41,10 +41,10 @@ documentation = "https://librelane.readthedocs.io"
 
 [dependency-groups]
 lint = [
-    "black",
+    "black<26",
     "flake8",
     "flake8-pytest-style; python_version < '4'",
-    "mypy>=1.18.2",
+    "mypy>=1.18.2,<2",
     "lxml-stubs",
     "types-urllib3",
     "types-typed-ast",
