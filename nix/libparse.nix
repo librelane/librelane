@@ -7,8 +7,8 @@
   pytestCheckHook,
   setuptools,
   fetchPypi,
-  version ? "0.56.0",
-  sha256 ? "sha256-diJCTDGODfwlOn7oQdKk/f2fvO/QfXuVg0e7/C7N2iw=",
+  version ? "0.70.0",
+  sha256 ? "sha256-QdeH1noxqaFZ12sV+A+XntLzVzqIR9/B5h4uZUiEGE0=",
 }:
 buildPythonPackage {
   pname = "libparse";
