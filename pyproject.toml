@@ -30,7 +30,7 @@ tools = [
   "pyosys==0.70.*",
   "klayout>=0.30.12,<0.32.0",
   "lln-openroad==26.4.*",
-  "magic-vlsi @ git+https://github.com/donn/magic@py3_none_wheel",
+  "magic-vlsi @ git+https://github.com/rtimothyedwards/magic@8.3.700",
   "netgen @ git+https://github.com/donn/netgen@py3_none_wheel"
 ]
 
