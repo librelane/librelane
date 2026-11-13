@@ -336,7 +336,5 @@ class Minimal(Classic):
         "Checker.Lint*": None,
         "Yosys.EQY": None,
         # Needs full KLayout
-        "KLayout.XOR": None,
-        "Checker.XOR": None,
         "KLayout.DRC": None,
     }

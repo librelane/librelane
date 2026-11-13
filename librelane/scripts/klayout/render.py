@@ -49,7 +49,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import click
-import pya
+from klayout.dbcore import Technology
+from klayout.laycore import LayoutView
 
 
 @click.command()
@@ -133,7 +134,7 @@ def render(
         gds = input.endswith(".gds")
 
         # Load technology file
-        tech = pya.Technology()
+        tech = Technology()
         tech.load(lyt)
 
         layout_options = None
@@ -144,7 +145,7 @@ def render(
             layout_options.lefdef_config.read_lef_with_def = False
             layout_options.lefdef_config.lef_files = list(input_lefs)
 
-        lv = pya.LayoutView()
+        lv = LayoutView()
 
         lv.set_config("grid-visible", str(grid_visible).lower())
         lv.set_config("grid-show-ruler", str(grid_show_ruler).lower())

@@ -51,7 +51,13 @@
 import sys
 
 import click
-import pya
+from klayout.dbcore import (
+    CellInstArray,
+    DTrans,
+    Layout,
+    LoadLayoutOptions,
+    Technology,
+)
 
 
 @click.command()
@@ -113,7 +119,7 @@ def stream_out(
     conflict_resolution: str,
 ):  # Load technology file
     try:
-        tech = pya.Technology()
+        tech = Technology()
         tech.load(lyt)
         layout_options = tech.load_layout_options
         layout_options.lefdef_config.read_lef_with_def = False
@@ -125,10 +131,10 @@ def stream_out(
         layout_options.lefdef_config.pin_property_name = None
 
         cell_conflict_resolution = {
-            "AddToCell": pya.LoadLayoutOptions.CellConflictResolution.AddToCell,
-            "OverwriteCell": pya.LoadLayoutOptions.CellConflictResolution.OverwriteCell,
-            "RenameCell": pya.LoadLayoutOptions.CellConflictResolution.RenameCell,
-            "SkipNewCell": pya.LoadLayoutOptions.CellConflictResolution.SkipNewCell,
+            "AddToCell": LoadLayoutOptions.CellConflictResolution.AddToCell,
+            "OverwriteCell": LoadLayoutOptions.CellConflictResolution.OverwriteCell,
+            "RenameCell": LoadLayoutOptions.CellConflictResolution.RenameCell,
+            "SkipNewCell": LoadLayoutOptions.CellConflictResolution.SkipNewCell,
         }.get(conflict_resolution)
 
         if cell_conflict_resolution is None:
@@ -141,7 +147,7 @@ def stream_out(
             layout_options.cell_conflict_resolution = cell_conflict_resolution
 
         # Load def file
-        main_layout = pya.Layout()
+        main_layout = Layout()
         # main_layout.load_layer_props(props_file)
         main_layout.read(input, layout_options)
 
@@ -160,7 +166,7 @@ def stream_out(
 
         # Copy the top level only to a new layout
         print(f"[INFO] Copying top level cell '{design_name}'…")
-        top_only_layout = pya.Layout()
+        top_only_layout = Layout()
         top_only_layout.dbu = main_layout.dbu
         top = top_only_layout.create_cell(design_name)
         top.copy_tree(main_layout.cell(design_name))
@@ -191,7 +197,7 @@ def stream_out(
                     print(
                         f"[INFO] Merging '{cell.name}' as child of '{top_cell.name}'…"
                     )
-                    top.insert(pya.CellInstArray(cell.cell_index(), pya.Trans()))
+                    top.insert(CellInstArray(cell.cell_index(), DTrans()))
 
         # Write out the GDS
         print(f"[INFO] Writing out GDS '{output}'…")

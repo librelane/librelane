@@ -234,7 +234,11 @@ class Render(KLayoutStep):
         self.run_pya_script(
             [
                 sys.executable,
-                os.path.join(get_script_dir(), "klayout", "render.py"),
+                os.path.join(
+                    get_script_dir(),
+                    "klayout",
+                    "render.py",
+                ),
                 abspath(input_view),
                 "--output",
                 abspath(klayout_render),
@@ -379,9 +383,10 @@ class XOR(KLayoutStep):
     ]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        ignored = ""
+        ignore_args = []
         if ignore_list := self.config["KLAYOUT_XOR_IGNORE_LAYERS"]:
-            ignored = ";".join(ignore_list)
+            for ignored_layer in ignore_list:
+                ignore_args += ["--ignore", ignored_layer]
 
         layout_a = state_in[DesignFormat.MAG_GDS]
         if layout_a is None:
@@ -404,13 +409,13 @@ class XOR(KLayoutStep):
         thread_count = self.config["KLAYOUT_XOR_THREADS"] or _get_process_limit()
         info(f"Running XOR with {thread_count} threads…")
 
-        subprocess_result = self.run_subprocess(
+        subprocess_result = self.run_pya_script(
             [
-                "ruby",
+                sys.executable,
                 os.path.join(
                     get_script_dir(),
                     "klayout",
-                    "xor.drc",
+                    "xor.py",
                 ),
                 "--output",
                 abspath(os.path.join(self.step_dir, "xor.xml")),
@@ -418,8 +423,7 @@ class XOR(KLayoutStep):
                 self.config["DESIGN_NAME"],
                 "--threads",
                 thread_count,
-                "--ignore",
-                ignored,
+                *ignore_args,
                 abspath(layout_a),
                 abspath(layout_b),
             ]
