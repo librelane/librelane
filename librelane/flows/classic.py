@@ -334,7 +334,6 @@ class Minimal(Classic):
     Substitutions = {
         "Verilator.*": None,
         "Checker.Lint*": None,
-        "Netgen.*": None,
         "Yosys.EQY": None,
         # Needs full KLayout
         "KLayout.XOR": None,
