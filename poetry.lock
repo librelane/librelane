@@ -944,6 +944,23 @@ files = [
 ]
 
 [[package]]
+name = "netgen"
+version = "1.5.328"
+description = "General-purpose netlist management system"
+optional = true
+python-versions = ">=3.8"
+groups = ["main"]
+markers = "extra == \"tools\""
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/donn/netgen"
+reference = "py3_none_wheel"
+resolved_reference = "c0390b90be0ce0482cdb0d7e1cc6e44c5b3b593d"
+
+[[package]]
 name = "packaging"
 version = "24.2"
 description = "Core utilities for Python packages"
@@ -1973,9 +1990,9 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-tools = ["klayout", "lln-openroad", "magic-vlsi", "pyosys"]
+tools = ["klayout", "lln-openroad", "magic-vlsi", "netgen", "pyosys"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "b6d0ea880179f832c616506b405626ce4b27cb3d1f84d8cd6951d2ba50c5a383"
+content-hash = "be35b59d731336d5ba9d985ce9f566b65478abfcd2767ef3b49b4466c73330cd"
