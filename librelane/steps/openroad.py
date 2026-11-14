@@ -63,7 +63,8 @@ from ..config import Macro, Variable
 from ..config.flow import option_variables
 from ..logging import console, debug, info, options, verbose
 from ..state import DesignFormat, State
-from .common_variables import (
+from .common import (
+    PythonLaunchInfo,
     dpl_variables,
     grt_variables,
     io_layer_variables,
@@ -516,12 +517,12 @@ class OpenROADStep(TclStep):
 
         return views_updates, metric_updates_with_aggregates
 
-    _get_python_launch_command_cached: ClassVar[Optional[Tuple[str, ...]]] = None
+    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
 
     @classmethod
-    def get_python_launch_command(Self) -> Tuple[str, ...]:
-        if Self._get_python_launch_command_cached is not None:
-            return Self._get_python_launch_command_cached
+    def get_python_launch_info(Self) -> PythonLaunchInfo:
+        if Self._python_launch_info_cached is not None:
+            return Self._python_launch_info_cached
         # top priority: OR binary likely doesn't have requisite libraries
         tried = []
         last_cmd = [
@@ -535,8 +536,8 @@ class OpenROADStep(TclStep):
             stderr=subprocess.PIPE,
         )
         if python_exec_test == 0:
-            Self._get_python_launch_command_cached = (sys.executable,)
-            return Self._get_python_launch_command_cached
+            Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
+            return Self._python_launch_info_cached
 
         tried.append(shlex.join(last_cmd))
 
@@ -553,14 +554,16 @@ class OpenROADStep(TclStep):
                 encoding="utf8",
             )
             if native_exec_test == 0:
-                Self._get_python_launch_command_cached = or_launch
-                return Self._get_python_launch_command_cached
+                Self._python_launch_info_cached = PythonLaunchInfo(or_launch, True)
+                return Self._python_launch_info_cached
         except FileNotFoundError:
             pass
 
         tried.append(shlex.join(last_cmd))
 
-        msg = "\n* ".join(("Failed to run Python scripts using Yosys. Tried:", *tried))
+        msg = "\n* ".join(
+            ("Failed to run Python scripts using OpenROAD. Tried:", *tried)
+        )
         raise StepException(msg)
 
     def get_command(self) -> List[str]:
@@ -1068,7 +1071,7 @@ class STAPostPNR(STAPrePNR):
                 lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
-            *self.get_python_launch_command(),
+            *self.get_python_launch_info().args,
             os.path.join(get_script_dir(), "odbpy", "filter_unannotated.py"),
             "--corner",
             corner,

@@ -32,7 +32,7 @@ from ..state import DesignFormat, State
 
 from .openroad import DetailedPlacement, GlobalRouting, OpenROADStep
 from .openroad_alerts import OpenROADAlert, OpenROADOutputProcessor
-from .common_variables import io_layer_variables, dpl_variables, grt_variables
+from .common import io_layer_variables, dpl_variables, grt_variables
 from .step import (
     CompositeStep,
     DefaultOutputProcessor,
@@ -61,7 +61,7 @@ class OdbpyStep(Step):
 
     @classmethod
     def get_launch_command(Self) -> Tuple[str, ...]:
-        return OpenROADStep.get_python_launch_command()
+        return OpenROADStep.get_python_launch_info().args
 
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
         if alert.code in [

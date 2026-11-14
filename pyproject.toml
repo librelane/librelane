@@ -100,7 +100,7 @@ known-first-party = ["reader", "ys_common", "construct_abc_script", "librelane"]
 
 [tool.ruff.lint.per-file-ignores]
 "librelane/env_info.py" = ["UP"]
-"librelane/scripts/klayout/*.py" = []
+"librelane/scripts/klayout/*.py" = ["PLC0415"]
 
 [tool.black]
 extend-exclude = "(test/designs|test/steps/all)"

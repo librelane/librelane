@@ -60,7 +60,7 @@ from klayout.dbcore import (
 )
 
 
-@click.command()
+@click.command("stream_out")
 @click.option("-o", "--output", required=True)
 @click.option(
     "-l",
@@ -142,7 +142,12 @@ def stream_out(
                 f"[ERROR] Unknown conflict resolution: '{conflict_resolution}'.",
                 file=sys.stderr,
             )
-            exit(1)
+            try:
+                import pya
+
+                pya.Application.instance().exit(1)
+            except AttributeError:
+                sys.exit(1)
         else:
             layout_options.cell_conflict_resolution = cell_conflict_resolution
 
@@ -205,8 +210,24 @@ def stream_out(
         print("[INFO] Done.")
     except Exception as e:
         print(e)
-        exit(1)
+        try:
+            import pya
+
+            pya.Application.instance().exit(1)
+        except AttributeError:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    stream_out()
+    # compatibility block for built-in interpreter
+    argv_resolved = sys.argv
+    if "karg0" in globals():
+        argv_resolved: list[str] = []
+        counter = 0
+        try:
+            while True:
+                argv_resolved.append(globals()[f"karg{counter}"])
+                counter += 1
+        except KeyError:
+            pass
+    stream_out(argv_resolved[1:])

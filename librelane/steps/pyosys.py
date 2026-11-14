@@ -28,6 +28,7 @@ from decimal import Decimal
 from abc import abstractmethod
 from typing import ClassVar, List, Literal, Optional, Set, Tuple
 
+from .common import PythonLaunchInfo
 from .step import StepException, ViewsUpdate, MetricsUpdate, Step
 
 from ..config import Variable
@@ -254,12 +255,12 @@ class PyosysStep(Step):
     def get_script_path(self) -> str:
         pass
 
-    _get_launch_command_cached: ClassVar[Optional[Tuple[Tuple[str, ...], bool]]] = None
+    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
 
     @classmethod
-    def get_launch_command(Self) -> Tuple[Tuple[str, ...], bool]:
-        if Self._get_launch_command_cached is not None:
-            return Self._get_launch_command_cached
+    def get_launch_info(Self) -> PythonLaunchInfo:
+        if Self._python_launch_info_cached is not None:
+            return Self._python_launch_info_cached
         # top priority: yosys binary likely doesn't have requisite libraries
         tried = []
         last_cmd = [
@@ -273,8 +274,8 @@ class PyosysStep(Step):
             stderr=subprocess.PIPE,
         )
         if python_exec_test == 0:
-            Self._get_launch_command_cached = ((sys.executable,), False)
-            return Self._get_launch_command_cached
+            Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
+            return Self._python_launch_info_cached
 
         tried.append(shlex.join(last_cmd))
 
@@ -293,7 +294,11 @@ class PyosysStep(Step):
             native_exec_test_p.stdin.close()
             native_exec_test = native_exec_test_p.wait()
             if native_exec_test == 0:
-                return ((yosys_bin, "-y"), True)
+                Self._python_launch_info_cached = PythonLaunchInfo(
+                    (yosys_bin, "-y"),
+                    True,
+                )
+                return Self._python_launch_info_cached
         except FileNotFoundError:
             pass
 
@@ -303,9 +308,9 @@ class PyosysStep(Step):
         raise StepException(msg)
 
     def get_command(self, state_in: State) -> List[str]:
-        launch_cmd, yosys_flags_supported = self.get_launch_command()
-        cmd = [*launch_cmd, self.get_script_path()]
-        if yosys_flags_supported:
+        launch_info = self.get_launch_info()
+        cmd = [*launch_info.args, self.get_script_path()]
+        if launch_info.built_in_interpreter:
             if self.config["YOSYS_LOG_LEVEL"] != "ALL":
                 cmd += ["-Q"]
             if self.config["YOSYS_LOG_LEVEL"] == "WARNING":

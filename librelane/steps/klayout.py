@@ -22,11 +22,24 @@ import shlex
 import shutil
 import subprocess
 from os.path import abspath
+from deprecated.sphinx import deprecated
 from base64 import b64encode
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, Optional, List, Literal, Sequence, Tuple, Union
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Iterable,
+    Optional,
+    List,
+    Literal,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from .step import ViewsUpdate, MetricsUpdate, Step, StepError, StepException
+from .common import PythonLaunchInfo
 
 from ..config import Variable
 from ..logging import info
@@ -63,6 +76,121 @@ class KLayoutStep(Step):
         ),
     ]
 
+    @classmethod
+    def get_klayout_path(Self) -> str:
+        return os.getenv("__LLN_OVERRIDE_KLAYOUT", "klayout")
+
+    @staticmethod
+    def to_rd_args(
+        script: Union[str, os.PathLike], args: Iterable[Union[str, os.PathLike]]
+    ) -> List[str]:
+        result = ["-rd", f"karg0={script}"]
+        for i, arg in enumerate(args):
+            result += ["-rd", f"karg{i+1}={arg}"]
+        return result
+
+    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
+
+    @classmethod
+    def get_python_launch_command(Self) -> PythonLaunchInfo:
+        if Self._python_launch_info_cached is not None:
+            return Self._python_launch_info_cached
+        # top priority: KLayout binary likely doesn't have requisite libraries
+        tried = []
+        last_cmd = [
+            sys.executable,
+            "-c",
+            "import klayout.dbcore",
+        ]
+        python_exec_test = subprocess.call(
+            last_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if python_exec_test == 0:
+            Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
+            return Self._python_launch_info_cached
+
+        tried.append(shlex.join(last_cmd))
+
+        klayout_bin = Self.get_klayout_path()
+        klayout_launch = (klayout_bin, "-b", "-rm")
+        last_cmd = [
+            *klayout_launch,
+            os.path.join(get_script_dir(), "klayout", "smoke.py"),
+        ]
+        try:
+            native_exec_test = subprocess.call(
+                last_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
+            )
+            if native_exec_test == 0:
+                Self._python_launch_info_cached = PythonLaunchInfo(klayout_launch, True)
+                return Self._python_launch_info_cached
+        except FileNotFoundError:
+            pass
+        tried.append(shlex.join(last_cmd))
+
+        msg = "\n* ".join(
+            ("Failed to run Python scripts using KLayout. Tried:", *tried)
+        )
+        raise StepException(msg)
+
+    def run_python_batch_script(
+        self,
+        script: Union[str, os.PathLike],
+        args: Sequence[Union[str, os.PathLike]],
+        log_to: Optional[Union[str, os.PathLike]] = None,
+        silent: bool = False,
+        report_dir: Optional[Union[str, os.PathLike]] = None,
+        env: Optional[Dict[str, Any]] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        env = env or os.environ.copy()
+        python_launch_info = self.get_python_launch_command()
+        cmd = [*python_launch_info.args, script, *args]
+        libs_missing = False
+        if python_launch_info.built_in_interpreter:
+            cmd = [*python_launch_info.args, script, *self.to_rd_args(script, args)]
+            click_test = subprocess.call(
+                [
+                    *python_launch_info.args,
+                    os.path.join(get_script_dir(), "klayout", "smoke.py"),
+                    "-rd",
+                    "kmodule=click",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
+            )
+            if click_test != 0:
+                self.warn(
+                    "KLayout binary does not seem to be able to find the click library. Forwarding LibreLane's site packages. This may result in bugs."
+                )
+                libs_missing = True
+
+        if not python_launch_info.built_in_interpreter:
+            # Pass site packages
+            python_path_elements = []
+            if current_pythonpath := env.get("PYTHONPATH"):
+                python_path_elements.append(current_pythonpath)
+            python_path_elements += site.getsitepackages() + sys.path
+            env["PYTHONPATH"] = ":".join(python_path_elements)
+        elif libs_missing:
+            python_path_elements = []
+            if current_pythonpath := env.get("PYTHONPATH"):
+                python_path_elements.append(current_pythonpath)
+            env["KLAYOUT_PYTHONPATH"] = ":".join(site.getsitepackages())
+
+        return super().run_subprocess(cmd, log_to, silent, report_dir, env, **kwargs)
+
+    @deprecated(
+        version="3.1.0",
+        reason="Use run_python_batch_script which falls back to the built-in interpreter if available",
+        action="once",
+    )
     def run_pya_script(
         self,
         cmd: Sequence[Union[str, os.PathLike]],
@@ -231,14 +359,13 @@ class Render(KLayoutStep):
             f"{self.config['DESIGN_NAME']}.{DesignFormat.KLAYOUT_RENDER.extension}",
         )
 
-        self.run_pya_script(
+        self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "render.py",
+            ),
             [
-                sys.executable,
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "render.py",
-                ),
                 abspath(input_view),
                 "--output",
                 abspath(klayout_render),
@@ -254,8 +381,8 @@ class Render(KLayoutStep):
                 self.config["KLAYOUT_RENDER_RESOLUTION"],
                 "--oversampling",
                 self.config["KLAYOUT_RENDER_OVERSAMPLING"],
-            ]
-            + self.get_cli_args(include_lefs=True),
+                *self.get_cli_args(include_lefs=True),
+            ],
             silent=True,
         )
 
@@ -303,23 +430,25 @@ class StreamOut(KLayoutStep):
         )
         kwargs, env = self.extract_env(kwargs)
 
-        self.run_pya_script(
+        input = state_in[DesignFormat.DEF]
+        assert isinstance(input, Path)
+
+        self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "stream_out.py",
+            ),
             [
-                sys.executable,
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "stream_out.py",
-                ),
-                state_in[DesignFormat.DEF.id],
+                input,
                 "--output",
                 abspath(klayout_gds_out),
                 "--top",
                 self.config["DESIGN_NAME"],
                 "--conflict-resolution",
                 self.config["KLAYOUT_CONFLICT_RESOLUTION"],
-            ]
-            + self.get_cli_args(include_lefs=True, include_gds=True),
+                *self.get_cli_args(include_lefs=True, include_gds=True),
+            ],
             env=env,
         )
 
@@ -409,14 +538,13 @@ class XOR(KLayoutStep):
         thread_count = self.config["KLAYOUT_XOR_THREADS"] or _get_process_limit()
         info(f"Running XOR with {thread_count} threads…")
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xor.py",
+            ),
             [
-                sys.executable,
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xor.py",
-                ),
                 "--output",
                 abspath(os.path.join(self.step_dir, "xor.xml")),
                 "--top",
@@ -535,7 +663,6 @@ class DRC(KLayoutStep):
             [
                 "klayout",
                 "-b",
-                "-zz",
                 "-r",
                 drc_script_path,
                 "-rd",
@@ -548,14 +675,13 @@ class DRC(KLayoutStep):
             ]
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__drc_error__count",
@@ -617,14 +743,13 @@ class DRC(KLayoutStep):
             env=env,
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__drc_error__count",
@@ -692,14 +817,13 @@ class DRC(KLayoutStep):
             ]
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__drc_error__count",
@@ -761,14 +885,13 @@ class DRC(KLayoutStep):
             ]
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__drc_error__count",
@@ -955,10 +1078,9 @@ class SealRing(KLayoutStep):
         env["PDK_ROOT"] = self.config["PDK_ROOT"]
         env["PDK"] = self.config["PDK"]
 
-        self.run_pya_script(
+        self.run_python_batch_script(
+            script,
             [
-                "python3",
-                script,
                 "--input",
                 abspath(input_gds),
                 "--output",
@@ -1270,14 +1392,13 @@ class Density(KLayoutStep):
             env=env,
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__density_error__count",
@@ -1379,14 +1500,13 @@ class Antenna(KLayoutStep):
             env=env,
         )
 
-        subprocess_result = self.run_pya_script(
+        subprocess_result = self.run_python_batch_script(
+            os.path.join(
+                get_script_dir(),
+                "klayout",
+                "xml_drc_report_to_json.py",
+            ),
             [
-                "python3",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "xml_drc_report_to_json.py",
-                ),
                 f"--xml-file={abspath(lyrdb_report)}",
                 f"--json-file={abspath(json_report)}",
                 "--metric=klayout__antenna_error__count",
@@ -1433,32 +1553,27 @@ class OpenGUI(KLayoutStep):
             mode_args.append("--editor")
 
         layout = state_in[DesignFormat.DEF]
-        if self.config["KLAYOUT_GUI_USE_GDS"]:
-            if gds := state_in.get(DesignFormat.GDS):
-                layout = gds
+        if self.config["KLAYOUT_GUI_USE_GDS"] and (
+            gds := state_in.get(DesignFormat.GDS)
+        ):
+            layout = gds
         assert isinstance(layout, Path)
 
-        env["KLAYOUT_ARGV"] = shlex.join(
-            [
-                abspath(layout),
-            ]
-            + self.get_cli_args(include_lefs=True)
+        script = os.path.join(
+            get_script_dir(),
+            "klayout",
+            "open_design.py",
         )
 
-        cmd = (
-            [
-                shutil.which("klayout") or "klayout",
-            ]
-            + mode_args
-            + [
-                "-rm",
-                os.path.join(
-                    get_script_dir(),
-                    "klayout",
-                    "open_design.py",
-                ),
-            ]
-        )
+        cmd = [
+            self.get_klayout_path(),
+            *mode_args,
+            "-rm",
+            script,
+            *self.to_rd_args(
+                script, [abspath(layout), *self.get_cli_args(include_lefs=True)]
+            ),
+        ]
 
         # Not run_subprocess- need stdin, stdout, stderr to be accessible to the
         # user normally

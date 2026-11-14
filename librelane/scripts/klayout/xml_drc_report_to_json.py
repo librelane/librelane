@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import sys
 
 import click
 from klayout.rdb import ReportDatabase
@@ -22,7 +23,7 @@ from klayout.rdb import ReportDatabase
 @click.option("--xml-file")
 @click.option("--json-file")
 @click.option("--metric")
-def cli(xml_file, json_file, metric):
+def xml_drc_report_to_json(xml_file, json_file, metric):
     database = ReportDatabase("Database")
     json_database = {}
     database.load(xml_file)
@@ -43,4 +44,15 @@ def cli(xml_file, json_file, metric):
 
 
 if __name__ == "__main__":
-    cli()
+    # compatibility block for built-in interpreter
+    argv_resolved = sys.argv
+    if "karg0" in globals():
+        argv_resolved: list[str] = []
+        counter = 0
+        try:
+            while True:
+                argv_resolved.append(globals()[f"karg{counter}"])
+                counter += 1
+        except KeyError:
+            pass
+    xml_drc_report_to_json(argv_resolved[1:])

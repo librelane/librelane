@@ -18,8 +18,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-import os
-import shlex
 import sys
 
 import pya  # Must be run inside KLayout-- the library version of pya does not include "Application"
@@ -69,6 +67,13 @@ if __name__ == "__main__":
         "-M", "--lym", required=True, help="KLayout .map (LEF/DEF layer map) file"
     )
     parser.add_argument("input", help="KLayout cell name")
-
-    args = parser.parse_args(shlex.split(os.environ["KLAYOUT_ARGV"]))
+    argv_resolved: list[str] = []
+    counter = 0
+    try:
+        while True:
+            argv_resolved.append(globals()[f"karg{counter}"])
+            counter += 1
+    except KeyError:
+        pass
+    args = parser.parse_args(argv_resolved[1:])
     open_design(args.input_lefs, args.lyt, args.lyp, args.lym, args.input)

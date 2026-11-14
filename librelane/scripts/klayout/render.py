@@ -48,6 +48,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import sys
+
 import click
 from klayout.dbcore import Technology
 from klayout.laycore import LayoutView
@@ -179,8 +181,24 @@ def render(
 
     except Exception as e:
         print(e)
-        exit(1)
+        try:
+            import pya
+
+            pya.Application.instance().exit(1)
+        except AttributeError:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    render()
+    # compatibility block for built-in interpreter
+    argv_resolved = sys.argv
+    if "karg0" in globals():
+        argv_resolved: list[str] = []
+        counter = 0
+        try:
+            while True:
+                argv_resolved.append(globals()[f"karg{counter}"])
+                counter += 1
+        except KeyError:
+            pass
+    render(argv_resolved[1:])
