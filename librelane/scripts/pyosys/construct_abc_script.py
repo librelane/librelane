@@ -80,7 +80,7 @@ class ABCScriptCreator:
     def generate_abc_script(self, step_dir, strategy):
         strategy_clean = re.sub(r"\s+", "_", strategy)
         abc_script_path = os.path.join(step_dir, f"{strategy_clean}.abc")
-        f = open(abc_script_path, "w")
+        f = open(abc_script_path, "w")  # noqa: SIM115
 
         if strategy == "AREA 3":
             # ORFS Area Script

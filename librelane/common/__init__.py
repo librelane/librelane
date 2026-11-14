@@ -17,6 +17,7 @@ Common Utilities Module
 
 A number of common utility functions and classes used throughout the codebase.
 """
+
 import os
 
 from .tcl import TclUtils

@@ -20,6 +20,8 @@ import os
 import re
 import json
 import pathlib
+import shlex
+import shutil
 import subprocess
 from abc import abstractmethod
 from base64 import b64encode
@@ -29,8 +31,10 @@ from decimal import Decimal
 from enum import Enum
 from glob import glob
 from math import inf
+import sys
 from typing import (
     Any,
+    ClassVar,
     Dict,
     List,
     Literal,
@@ -59,7 +63,8 @@ from ..config import Macro, Variable
 from ..config.flow import option_variables
 from ..logging import console, debug, info, options, verbose
 from ..state import DesignFormat, State
-from .common_variables import (
+from .common import (
+    PythonLaunchInfo,
     dpl_variables,
     grt_variables,
     io_layer_variables,
@@ -512,6 +517,55 @@ class OpenROADStep(TclStep):
 
         return views_updates, metric_updates_with_aggregates
 
+    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
+
+    @classmethod
+    def get_python_launch_info(Self) -> PythonLaunchInfo:
+        if Self._python_launch_info_cached is not None:
+            return Self._python_launch_info_cached
+        # top priority: OR binary likely doesn't have requisite libraries
+        tried = []
+        last_cmd = [
+            sys.executable,
+            "-c",
+            "import odb",
+        ]
+        python_exec_test = subprocess.call(
+            last_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if python_exec_test == 0:
+            Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
+            return Self._python_launch_info_cached
+
+        tried.append(shlex.join(last_cmd))
+
+        # built-in interpreter:
+        # will not work at all for Bazel-built versions of OpenROAD
+        or_bin = Self.get_openroad_path()
+        or_launch = (or_bin, "-exit", "-no_splash", "-python")
+        last_cmd = [*or_launch, "-c", "import odb"]
+        try:
+            native_exec_test = subprocess.call(
+                last_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
+            )
+            if native_exec_test == 0:
+                Self._python_launch_info_cached = PythonLaunchInfo(or_launch, True)
+                return Self._python_launch_info_cached
+        except FileNotFoundError:
+            pass
+
+        tried.append(shlex.join(last_cmd))
+
+        msg = "\n* ".join(
+            ("Failed to run Python scripts using OpenROAD. Tried:", *tried)
+        )
+        raise StepException(msg)
+
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         threads = str(self.config["OPENROAD_THREADS"] or _get_process_limit())
@@ -584,7 +638,14 @@ class OpenSTAStep(OpenROADStep):
     inputs = [DesignFormat.NETLIST]
 
     def get_command(self) -> List[str]:
-        return ["sta", "-no_splash", "-exit", self.get_script_path()]
+        if shutil.which("sta") is not None:
+            return ["sta", "-no_splash", "-exit", self.get_script_path()]
+        return super().get_command()
+
+    def prepare_env(self, env, state):
+        env = super().prepare_env(env, state)
+        env["_opensta"] = "1"
+        return env
 
     def layout_preview(self) -> Optional[str]:
         return None
@@ -1010,12 +1071,7 @@ class STAPostPNR(STAPrePNR):
                 lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
-            self.get_openroad_path(),
-            "-exit",
-            "-no_splash",
-            "-metrics",
-            metrics_path,
-            "-python",
+            *self.get_python_launch_info().args,
             os.path.join(get_script_dir(), "odbpy", "filter_unannotated.py"),
             "--corner",
             corner,

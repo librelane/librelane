@@ -69,13 +69,14 @@ def main(
     )
 
     cells = [instance.getMaster().getName() for instance in block.getInsts()]
-    buffers = open(buffer_list).read().split()
+    with open(buffer_list, encoding="utf8") as f:
+        buffers = f.read().split()
     buffer_frequency = Counter([cell for cell in cells if cell in buffers])
     cell_frequency = Counter(cells)
     scl_frequency = Counter()
     cell_fn_frequency = Counter()
 
-    for cell in cell_frequency.keys():
+    for cell in cell_frequency:
         if match := compiled_pattern.search(cell):
             scl, cell_type = match[1], match[2]
             cell_type_key = f"{scl}__{cell_type}"

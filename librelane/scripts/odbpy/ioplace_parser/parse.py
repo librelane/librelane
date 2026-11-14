@@ -20,7 +20,7 @@ import warnings
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import IntEnum
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 
 class Order(IntEnum):
@@ -30,10 +30,10 @@ class Order(IntEnum):
 
 @dataclass
 class Side:
-    min_distance: Optional[Decimal] = None
+    min_distance: Decimal | None = None
     reverse_result: bool = False
-    pins: List[Union[str, int]] = field(default_factory=list)
-    sort_mode: Optional[Order] = Order.busMajor
+    pins: list[str | int] = field(default_factory=list)
+    sort_mode: Order | None = Order.busMajor
 
 
 VALUE_ANNOTATIONS = ["min_distance"]
@@ -43,7 +43,7 @@ STANDALONE_ANNOTATIONS = [
 ]
 
 
-def parse(string: str) -> Dict[Literal["N", "E", "W", "S"], Side]:
+def parse(string: str) -> dict[Literal["N", "E", "W", "S"], Side]:
     """
     Parses a pin configuration into a dictionary of the four cardinal sides.
 
@@ -52,9 +52,9 @@ def parse(string: str) -> Dict[Literal["N", "E", "W", "S"], Side]:
     :raises ValueError: On syntax or token recognition errors
     """
     sides = {}
-    current_side: Optional[Side] = None
+    current_side: Side | None = None
     global_sort_mode: Order = Order.busMajor
-    global_min_distance: Optional[Decimal] = None
+    global_min_distance: Decimal | None = None
 
     string_mut = string
 
@@ -133,7 +133,7 @@ def parse(string: str) -> Dict[Literal["N", "E", "W", "S"], Side]:
                 f"Syntax Error: Unexpected character starting at {string_mut[:10]}…"
             )
 
-    all_sides: List[Literal["N", "E", "W", "S"]] = ["N", "E", "W", "S"]
+    all_sides: list[Literal["N", "E", "W", "S"]] = ["N", "E", "W", "S"]
     for side in all_sides:
         if side in sides:
             continue

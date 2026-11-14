@@ -16,8 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Original Copyright Follows
+#
+# Adapted from OpenROAD
 #
 # BSD 3-Clause License
 #
@@ -48,10 +48,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from typing import Tuple
+import sys
 
-import pya
 import click
+from klayout.dbcore import Technology
+from klayout.laycore import LayoutView
 
 
 @click.command()
@@ -118,7 +119,7 @@ import click
 )
 @click.argument("input")
 def render(
-    input_lefs: Tuple[str, ...],
+    input_lefs: tuple[str, ...],
     output: str,
     lyt: str,
     lyp: str,
@@ -135,7 +136,7 @@ def render(
         gds = input.endswith(".gds")
 
         # Load technology file
-        tech = pya.Technology()
+        tech = Technology()
         tech.load(lyt)
 
         layout_options = None
@@ -146,7 +147,7 @@ def render(
             layout_options.lefdef_config.read_lef_with_def = False
             layout_options.lefdef_config.lef_files = list(input_lefs)
 
-        lv = pya.LayoutView()
+        lv = LayoutView()
 
         lv.set_config("grid-visible", str(grid_visible).lower())
         lv.set_config("grid-show-ruler", str(grid_show_ruler).lower())
@@ -180,8 +181,24 @@ def render(
 
     except Exception as e:
         print(e)
-        exit(1)
+        try:
+            import pya
+
+            pya.Application.instance().exit(1)
+        except AttributeError:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    render()
+    # compatibility block for built-in interpreter
+    argv_resolved = sys.argv
+    if "karg0" in globals():
+        argv_resolved: list[str] = []
+        counter = 0
+        try:
+            while True:
+                argv_resolved.append(globals()[f"karg{counter}"])
+                counter += 1
+        except KeyError:
+            pass
+    render(argv_resolved[1:])

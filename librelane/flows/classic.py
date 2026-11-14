@@ -327,3 +327,14 @@ class VHDLClassic(Classic):
         "Odb.WriteVerilogHeader": None,
         "Yosys.EQY": None,
     }
+
+
+@Flow.factory.register()
+class Minimal(Classic):
+    Substitutions = {
+        "Verilator.*": None,
+        "Checker.Lint*": None,
+        "Yosys.EQY": None,
+        # Needs full KLayout
+        "KLayout.DRC": None,
+    }

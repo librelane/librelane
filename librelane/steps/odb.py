@@ -17,7 +17,9 @@
 # limitations under the License.
 import os
 import re
+import sys
 import json
+import site
 import shutil
 from math import inf
 from decimal import Decimal
@@ -32,7 +34,7 @@ from ..state import DesignFormat, State
 
 from .openroad import DetailedPlacement, GlobalRouting, OpenROADStep
 from .openroad_alerts import OpenROADAlert, OpenROADOutputProcessor
-from .common_variables import io_layer_variables, dpl_variables, grt_variables
+from .common import PythonLaunchInfo, io_layer_variables, dpl_variables, grt_variables
 from .step import (
     CompositeStep,
     DefaultOutputProcessor,
@@ -58,6 +60,10 @@ class OdbpyStep(Step):
     @classmethod
     def get_openroad_path(Self) -> str:
         return OpenROADStep.get_openroad_path()
+
+    @classmethod
+    def get_launch_info(Self) -> PythonLaunchInfo:
+        return OpenROADStep.get_python_launch_info()
 
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
         if alert.code in [
@@ -96,6 +102,10 @@ class OdbpyStep(Step):
         env["PYTHONPATH"] = ":".join(
             (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "odbpy"))
         )
+        if not self.get_launch_info().built_in_interpreter:
+            # HACK: Re-propagate NIX_PYTHONPATH
+            # See https://github.com/NixOS/nixpkgs/issues/23676
+            env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         check = False
         if "check" in kwargs:
             check = kwargs.pop("check")
@@ -148,8 +158,6 @@ class OdbpyStep(Step):
         return views_updates, metric_updates_with_aggregates
 
     def get_command(self) -> List[str]:
-        metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
-
         tech_lefs = self.toolbox.filter_views(self.config, self.config["TECH_LEFS"])
         if len(tech_lefs) != 1:
             raise StepException(
@@ -173,19 +181,12 @@ class OdbpyStep(Step):
         ):
             lefs.append("--design-lef")
             lefs.append(str(design_lef))
-        return (
-            [
-                self.get_openroad_path(),
-                "-exit",
-                "-no_splash",
-                "-metrics",
-                str(metrics_path),
-                "-python",
-                self.get_script_path(),
-            ]
-            + self.get_subcommand()
-            + lefs
-        )
+        return [
+            *self.get_launch_info().args,
+            self.get_script_path(),
+            *self.get_subcommand(),
+            *lefs,
+        ]
 
     @abstractmethod
     def get_script_path(self) -> str:

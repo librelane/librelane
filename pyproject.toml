@@ -17,13 +17,21 @@ dependencies = [
   "ciel>=3.2.0,<4",
   "lxml>=4.9.0",
   "deprecated>=1.2.10,<2",
-  "lln-libparse==0.56.*",
+  "lln-libparse==0.70.*",
   "psutil>=5.9.0",
   "httpx>=0.22.0,<0.29",
-  "klayout>=0.29.0,<0.32.0",
   "rapidfuzz>=3.9.0,<4",
   "yamlcore>=0.0.2,<0.1.0",
   "semver>=3.0.2,<4"
+]
+
+[project.optional-dependencies]
+tools = [
+  "pyosys==0.70.*",
+  "klayout>=0.30.12,<0.32.0",
+  "lln-openroad==26.4.*",
+  "magic-vlsi @ git+https://github.com/rtimothyedwards/magic@8.3.700",
+  "netgen @ git+https://github.com/donn/netgen@py3_none_wheel"
 ]
 
 [project.urls]
@@ -33,12 +41,11 @@ documentation = "https://librelane.readthedocs.io"
 "Bug Tracker" = "https://github.com/librelane/librelane/issues"
 
 [dependency-groups]
-
 lint = [
-    "black",
+    "black<26",
     "flake8",
     "flake8-pytest-style; python_version < '4'",
-    "mypy>=1.18.2",
+    "mypy>=1.18.2,<2",
     "lxml-stubs",
     "types-urllib3",
     "types-typed-ast",
@@ -71,17 +78,29 @@ librelane = "librelane.__main__:cli"
 
 [tool.ruff]
 target-version = "py310"
+include = ["librelane/scripts/*.py"]
 
 [tool.ruff.lint]
-extend-select = ["I", "PL"]
-ignore = ["PLR"]
+extend-select = ["I", "PL", "UP"]
+ignore = [
+    # Annoying refactor suggestions
+    "PLR",
+    # mutable class variables - this one is kinda valid but there's no way
+    # to fix it without destroying ergonomics
+    "RUF012",
+    # bare except
+    "BLE001",
+    # try-except-pass
+    "S110"
+]
 
 [tool.ruff.lint.isort]
 case-sensitive = true
 known-first-party = ["reader", "ys_common", "construct_abc_script", "librelane"]
 
 [tool.ruff.lint.per-file-ignores]
-"!librelane/scripts/odbpy/**/*.py" = ["I", "E", "F", "PL"]
+"librelane/env_info.py" = ["UP"]
+"librelane/scripts/klayout/*.py" = ["PLC0415"]
 
 [tool.black]
 extend-exclude = "(test/designs|test/steps/all)"
