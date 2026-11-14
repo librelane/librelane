@@ -264,7 +264,6 @@ def run_included_example(
         final_path = os.path.join(d, "smoke_test_design")
         cleanup = True
         kwargs.update(
-            flow_name=None,
             scl=None,
             pad=None,
             tag=None,

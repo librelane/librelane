@@ -19,6 +19,7 @@ import os
 import re
 import io
 import shlex
+import site
 import subprocess
 import sys
 import json
@@ -268,10 +269,15 @@ class PyosysStep(Step):
             "-c",
             "from pyosys import libyosys as ys",
         ]
+        # HACK: Re-propagate NIX_PYTHONPATH
+        # See https://github.com/NixOS/nixpkgs/issues/23676
+        env = os.environ.copy()
+        env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         python_exec_test = subprocess.call(
             last_cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=env,
         )
         if python_exec_test == 0:
             Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
@@ -330,6 +336,10 @@ class PyosysStep(Step):
         env["PYTHONPATH"] = ":".join(
             (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "pyosys"))
         )
+        if not self.get_launch_info().built_in_interpreter:
+            # HACK: Re-propagate NIX_PYTHONPATH
+            # See https://github.com/NixOS/nixpkgs/issues/23676
+            env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         subprocess_result = self.run_subprocess(cmd, env=env, **kwargs)
         return {}, subprocess_result["generated_metrics"]
 

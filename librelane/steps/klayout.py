@@ -92,7 +92,7 @@ class KLayoutStep(Step):
     _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
 
     @classmethod
-    def get_python_launch_command(Self) -> PythonLaunchInfo:
+    def get_python_launch_info(Self) -> PythonLaunchInfo:
         if Self._python_launch_info_cached is not None:
             return Self._python_launch_info_cached
         # top priority: KLayout binary likely doesn't have requisite libraries
@@ -102,10 +102,15 @@ class KLayoutStep(Step):
             "-c",
             "import klayout.dbcore",
         ]
+        # HACK: Re-propagate NIX_PYTHONPATH
+        # See https://github.com/NixOS/nixpkgs/issues/23676
+        env = os.environ.copy()
+        env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         python_exec_test = subprocess.call(
             last_cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=env,
         )
         if python_exec_test == 0:
             Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
@@ -149,7 +154,7 @@ class KLayoutStep(Step):
         **kwargs,
     ) -> Dict[str, Any]:
         env = env or os.environ.copy()
-        python_launch_info = self.get_python_launch_command()
+        python_launch_info = self.get_python_launch_info()
         cmd = [*python_launch_info.args, script, *args]
         libs_missing = False
         if python_launch_info.built_in_interpreter:
@@ -172,17 +177,20 @@ class KLayoutStep(Step):
                 libs_missing = True
 
         if not python_launch_info.built_in_interpreter:
-            # Pass site packages
-            python_path_elements = []
-            if current_pythonpath := env.get("PYTHONPATH"):
-                python_path_elements.append(current_pythonpath)
-            python_path_elements += site.getsitepackages() + sys.path
-            env["PYTHONPATH"] = ":".join(python_path_elements)
+            # HACK: Re-propagate NIX_PYTHONPATH
+            # See https://github.com/NixOS/nixpkgs/issues/23676
+            env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         elif libs_missing:
-            python_path_elements = []
-            if current_pythonpath := env.get("PYTHONPATH"):
+            # HACK: Selectively pass the path element such that click is
+            #       importable
+            python_path_elements: List[str] = []
+            for path in site.getsitepackages() + sys.path:
+                if os.path.isdir(path) and "click" in os.listdir(path):
+                    python_path_elements.insert(0, path)
+                    break
+            if current_pythonpath := env.pop("PYTHONPATH", None):
                 python_path_elements.append(current_pythonpath)
-            env["KLAYOUT_PYTHONPATH"] = ":".join(site.getsitepackages())
+            env["KLAYOUT_PYTHONPATH"] = ":".join(python_path_elements)
 
         return super().run_subprocess(cmd, log_to, silent, report_dir, env, **kwargs)
 

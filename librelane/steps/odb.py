@@ -17,7 +17,9 @@
 # limitations under the License.
 import os
 import re
+import sys
 import json
+import site
 import shutil
 from math import inf
 from decimal import Decimal
@@ -32,7 +34,7 @@ from ..state import DesignFormat, State
 
 from .openroad import DetailedPlacement, GlobalRouting, OpenROADStep
 from .openroad_alerts import OpenROADAlert, OpenROADOutputProcessor
-from .common import io_layer_variables, dpl_variables, grt_variables
+from .common import PythonLaunchInfo, io_layer_variables, dpl_variables, grt_variables
 from .step import (
     CompositeStep,
     DefaultOutputProcessor,
@@ -60,8 +62,8 @@ class OdbpyStep(Step):
         return OpenROADStep.get_openroad_path()
 
     @classmethod
-    def get_launch_command(Self) -> Tuple[str, ...]:
-        return OpenROADStep.get_python_launch_info().args
+    def get_launch_info(Self) -> PythonLaunchInfo:
+        return OpenROADStep.get_python_launch_info()
 
     def on_alert(self, alert: OpenROADAlert) -> OpenROADAlert:
         if alert.code in [
@@ -100,6 +102,10 @@ class OdbpyStep(Step):
         env["PYTHONPATH"] = ":".join(
             (env.get("PYTHONPATH", ""), os.path.join(get_script_dir(), "odbpy"))
         )
+        if not self.get_launch_info().built_in_interpreter:
+            # HACK: Re-propagate NIX_PYTHONPATH
+            # See https://github.com/NixOS/nixpkgs/issues/23676
+            env["NIX_PYTHONPATH"] = ":".join(site.getsitepackages() + sys.path)
         check = False
         if "check" in kwargs:
             check = kwargs.pop("check")
@@ -176,7 +182,7 @@ class OdbpyStep(Step):
             lefs.append("--design-lef")
             lefs.append(str(design_lef))
         return [
-            *self.get_launch_command(),
+            *self.get_launch_info().args,
             self.get_script_path(),
             *self.get_subcommand(),
             *lefs,
