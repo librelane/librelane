@@ -127,6 +127,9 @@ if { ![info exists ::env(DIODE_CELL)] } {
     while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
         puts "\[INFO\] Running antenna repair iteration $i…"
         set diodes_inserted [log_cmd repair_antennas {*}$arg_list]
+        if { [info exists ::env(PL_OPTIMIZE_MIRRORING)] && $::env(PL_OPTIMIZE_MIRRORING) } {
+            optimize_mirroring
+        }
         
         if {$diodes_inserted || $::env(DRT_ANTENNA_REPAIR_JUMPER_ONLY)} {
             drt_run $i {*}$drt_args
