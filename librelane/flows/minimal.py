@@ -1,0 +1,16 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+from .flow import Flow
+from .classic import Classic
+
+
+@Flow.factory.register()
+class Minimal(Classic):
+    Substitutions = {
+        "Verilator.*": None,
+        "Checker.Lint*": None,
+        "Yosys.EQY": None,
+        # Needs full KLayout
+        "KLayout.DRC": None,
+        "Checker.KLayoutDRC": None,
+    }

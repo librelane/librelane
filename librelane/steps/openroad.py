@@ -21,7 +21,6 @@ import re
 import json
 import pathlib
 import shlex
-import shutil
 import subprocess
 from abc import abstractmethod
 from base64 import b64encode
@@ -638,14 +637,7 @@ class OpenSTAStep(OpenROADStep):
     inputs = [DesignFormat.NETLIST]
 
     def get_command(self) -> List[str]:
-        if shutil.which("sta") is not None:
-            return ["sta", "-no_splash", "-exit", self.get_script_path()]
-        return super().get_command()
-
-    def prepare_env(self, env, state):
-        env = super().prepare_env(env, state)
-        env["_opensta"] = "1"
-        return env
+        return ["sta", "-no_splash", "-exit", self.get_script_path()]
 
     def layout_preview(self) -> Optional[str]:
         return None
