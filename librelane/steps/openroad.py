@@ -331,8 +331,8 @@ class OpenROADStep(TclStep):
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
-        env["_PNR_LIBS"] = TclStep.value_to_tcl(lib_list)
-        env["_MACRO_LIBS"] = TclStep.value_to_tcl(
+        env["_PNR_LIBS"] = TclUtils.value_to_tcl(lib_list)
+        env["_MACRO_LIBS"] = TclUtils.value_to_tcl(
             self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
         )
         if self.config["STA_EXTRA_CORNER_TCL_FILE"]:
@@ -382,8 +382,8 @@ class OpenROADStep(TclStep):
                 return hash(
                     (
                         frozenset([str(lib) for lib in self.libs]),
-                        TclStep.value_to_tcl(self.layers_rc),
-                        TclStep.value_to_tcl(self.vias_r),
+                        TclUtils.value_to_tcl(self.layers_rc),
+                        TclUtils.value_to_tcl(self.vias_r),
                     )
                 )
 
@@ -433,7 +433,7 @@ class OpenROADStep(TclStep):
             if vias_r is not None:
                 for via, rc in vias_r.items():
                     res = rc["res"]
-                    env[f"_VIA_R_{count}"] = TclStep.value_to_tcl(
+                    env[f"_VIA_R_{count}"] = TclUtils.value_to_tcl(
                         [corner_name, via, res]
                     )
                     count += 1
@@ -444,14 +444,14 @@ class OpenROADStep(TclStep):
                 for layer, rc in layers_rc.items():
                     res = rc["res"]
                     cap = rc["cap"]
-                    env[f"_LAYER_RC_{count}"] = TclStep.value_to_tcl(
+                    env[f"_LAYER_RC_{count}"] = TclUtils.value_to_tcl(
                         [corner_name, layer, res, cap]
                     )
                     count += 1
 
         count = 0
         for corner_name in filtered_ipvt_corners_names_sorted:
-            env[f"_LIB_CORNER_{count}"] = TclStep.value_to_tcl(
+            env[f"_LIB_CORNER_{count}"] = TclUtils.value_to_tcl(
                 [corner_name] + ipvt_corners[corner_name].libs
             )
             count += 1
@@ -624,11 +624,11 @@ class OpenSTAStep(OpenROADStep):
         current_corner_spef: Optional[str] = None
 
         def set_env(self, env: Dict[str, Any]):
-            env["_CURRENT_CORNER_LIBS"] = TclStep.value_to_tcl(self.libs)
-            env["_CURRENT_CORNER_NETLISTS"] = TclStep.value_to_tcl(self.netlists)
-            env["_CURRENT_CORNER_SPEFS"] = TclStep.value_to_tcl(self.spefs)
+            env["_CURRENT_CORNER_LIBS"] = TclUtils.value_to_tcl(self.libs)
+            env["_CURRENT_CORNER_NETLISTS"] = TclUtils.value_to_tcl(self.netlists)
+            env["_CURRENT_CORNER_SPEFS"] = TclUtils.value_to_tcl(self.spefs)
             if self.extra_spefs_backcompat is not None:
-                env["_CURRENT_CORNER_EXTRA_SPEFS_BACKCOMPAT"] = TclStep.value_to_tcl(
+                env["_CURRENT_CORNER_EXTRA_SPEFS_BACKCOMPAT"] = TclUtils.value_to_tcl(
                     self.extra_spefs_backcompat
                 )
             if self.current_corner_spef is not None:

@@ -56,6 +56,7 @@
             in
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
+              minitcl = callPythonPackage ./nix/minitcl.nix { };
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };

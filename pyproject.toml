@@ -22,7 +22,8 @@ dependencies = [
   "httpx>=0.22.0,<0.29",
   "rapidfuzz>=3.9.0,<4",
   "yamlcore>=0.0.2,<0.1.0",
-  "semver>=3.0.2,<4"
+  "semver>=3.0.2,<4",
+  "minitcl==9.1.*"
 ]
 
 [project.optional-dependencies]

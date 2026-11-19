@@ -871,6 +871,60 @@ files = [
 ]
 
 [[package]]
+name = "minitcl"
+version = "9.1.0"
+description = "Python wrapper around Yosys' libparse module"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "minitcl-9.1.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:bb511810103444ddf3519bf590ec80a88c01795fbbd1c559e3dc731d87c871f5"},
+    {file = "minitcl-9.1.0-cp310-cp310-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f779a5022b224bf5e1de7a93755271e1cfeed1995d200a539bbc2e59fc7db55d"},
+    {file = "minitcl-9.1.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9904a1946e121861333a83bf70b9094dffadcc76638c2e6fca67527e3043a7ff"},
+    {file = "minitcl-9.1.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:44a57652a0a558286d3a9f6c8d7874baac1bb1502d6ad407fe57e661c4dedc21"},
+    {file = "minitcl-9.1.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:818a5bfebdb037d774700ce60edd6e708a7d62fa6f5138850fe69ff52a6fd362"},
+    {file = "minitcl-9.1.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:310cbc855f5ba9bd191bfad75538f0933d1d189eb961649029ff71804d2cae63"},
+    {file = "minitcl-9.1.0-cp311-cp311-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:87da5617279287d0925a421d306c602e3ec889a36b16b393c90d8855f1d83119"},
+    {file = "minitcl-9.1.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:723c4e3414301fce1d90e351a5223797da01c867cd6a8ea229de7c6120a5f250"},
+    {file = "minitcl-9.1.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:7c9b379b7cd91bc9b25018bd2b647a9d4b09105df8fca611a9d62677c7056f36"},
+    {file = "minitcl-9.1.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:9022b0f188934012d173e6f13d115b42deb521c13cbffbc067a94a8ce62c797d"},
+    {file = "minitcl-9.1.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:3a7e552ddcc38ddf9bb342e3100eb6f7f9d6b45c0c735e6572db01ed93fc3342"},
+    {file = "minitcl-9.1.0-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:bc42b85534792825c05a623ae1737e39c6f90e9bfe38593bf94f48c3bd9919b2"},
+    {file = "minitcl-9.1.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:007ee4997b22e552a562b4df0ac3067dd8c1e4f3b241218c8ba78541ceba409c"},
+    {file = "minitcl-9.1.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:eba0ff384540cdc1c2df9b71dddeadbeff0c55e8c484a060d8a7adede73e595b"},
+    {file = "minitcl-9.1.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:23b198f3f243c3e97a38427053edafa9379262bdfc1de7e72a654969736112c8"},
+    {file = "minitcl-9.1.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:fc5806a009d99d9e4ba72721d56d818c057ff91c7f56b4a518907281cc8878ad"},
+    {file = "minitcl-9.1.0-cp313-cp313-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:cc13619064272e163fffcffcf1b9046fdef3271780ff9f7138261f5ad5012394"},
+    {file = "minitcl-9.1.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0d0e6c81c4b322e96f1ee8be4f4e17e2a11b5b099610657fd4b1c48c2db95318"},
+    {file = "minitcl-9.1.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:69cacd674e1869088a8191d25c992c120ca01382308bd286794ea805d88043b4"},
+    {file = "minitcl-9.1.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:e23f0777c1405582bea7a67368749285359d73f78a118e771737687715cce746"},
+    {file = "minitcl-9.1.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:b75b689e2911a677de2c6678bfd910d40af1d8d13a356624844b6dc41f0c49d5"},
+    {file = "minitcl-9.1.0-cp314-cp314-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:aaf55ab4cf6acffad4b05bb22bfe6303753e45a729c2cd630f68968d55de8b7c"},
+    {file = "minitcl-9.1.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:aa31b3c35a1a8f323de43fb78cd9b5273c0964cc5d2f489e3aa1c8a8c1eaf721"},
+    {file = "minitcl-9.1.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:2062909f6cc6ce18ca82bc55b9edc56977bbd77cf7775013e984ca3ae7b546f8"},
+    {file = "minitcl-9.1.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:a93cd297169d1d35ab6f3c7a73240afe98687fa8447a947d649c0917ec423fc7"},
+    {file = "minitcl-9.1.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:104deba4db783e9ab7a708f8971c4d4221b6bd69704d2b23b5237b29b42d8a94"},
+    {file = "minitcl-9.1.0-cp314-cp314t-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:765cfd52241bc61f574f83522c34cb63041cf17a78aab4deaa882775f3bd1bba"},
+    {file = "minitcl-9.1.0-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:47c80b9e5383e41f5a91b86455ee96b330d72db15afb6bed09f3ec3c4da3e8c9"},
+    {file = "minitcl-9.1.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:74b21c77355ad98632ec517c472f3ae1a1816dc9e644d32395abedb3cf45edcd"},
+    {file = "minitcl-9.1.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:a5f0cc0983ce92d60b48779273be56c99d05cbcb939382a2f77e80a6ac990f26"},
+    {file = "minitcl-9.1.0-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:25395ffd5ad4b2d70d175aec19d8d9398940ceb70bfe597eb1b0bb4fb1c1a03c"},
+    {file = "minitcl-9.1.0-cp315-cp315-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a0ab062a56dc623004c172b1ae62256a9112c3b2798933d6a1b70cd7e2e36fcc"},
+    {file = "minitcl-9.1.0-cp315-cp315-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:07483f9782fb50235f59bd6456cb8a4eae82e7159ba625194f1be9d8f232f7a8"},
+    {file = "minitcl-9.1.0-cp315-cp315-musllinux_1_2_aarch64.whl", hash = "sha256:641f5104f3e54a5f723ec614946b8cb0171b52bfb8733aa700238e940d1fec82"},
+    {file = "minitcl-9.1.0-cp315-cp315-musllinux_1_2_x86_64.whl", hash = "sha256:484185a3898746bedd5e574e6fb0998acf32e4f390808d6851ffecbda982e77d"},
+    {file = "minitcl-9.1.0-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:90d6a73f0a27280009c65083632aab716b3b900520d78b5960518a7e77487556"},
+    {file = "minitcl-9.1.0-cp315-cp315t-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:99c37f673d3f713dbf044a6a38d971b0322830e6ac2b5a39334863e00cea77ae"},
+    {file = "minitcl-9.1.0-cp315-cp315t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e6b16d2e9647ba47bc6a40c007f501be7e7f6e095083f7e03516650276b92171"},
+    {file = "minitcl-9.1.0-cp315-cp315t-musllinux_1_2_aarch64.whl", hash = "sha256:aaf161f859b7f847b358f5fd2cab3add1ba92740e2156a22bf301e832830688e"},
+    {file = "minitcl-9.1.0-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:25548e63bfa755c83a4a4170e2492f0ca19baccc0acb7ad007ad8ecc6478c98c"},
+    {file = "minitcl-9.1.0.tar.gz", hash = "sha256:3d9e741b2f94dd878445519bc139499e166d6d5b8e8f457772719ee8614265a2"},
+]
+
+[package.dependencies]
+wheel = "*"
+
+[[package]]
 name = "mypy"
 version = "1.18.2"
 description = "Optional static typing for Python"
@@ -1995,4 +2049,4 @@ tools = ["klayout", "lln-openroad", "magic-vlsi", "netgen", "pyosys"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "2f1eae4eaed9630da8f13faa4df8d0888304bf29acb3221511fd8300f70ff9ef"
+content-hash = "d5ab223bdf16c048acaa7c3a9f899b1cdec1c06d628becaadc11bc74c285d3d0"

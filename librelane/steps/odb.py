@@ -27,7 +27,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional, Tuple
 
-from ..common import Path, get_script_dir, aggregate_metrics
+from ..common import Path, TclUtils, get_script_dir, aggregate_metrics
 from ..config import Instance, Macro, Variable
 from ..logging import info, verbose
 from ..state import DesignFormat, State
@@ -44,7 +44,6 @@ from .step import (
     StepException,
     ViewsUpdate,
 )
-from .tclstep import TclStep
 
 inf_rx = re.compile(r"\b(-?)inf\b")
 
@@ -975,7 +974,7 @@ class CellFrequencyTables(OdbpyStep):
         env_copy = env.copy()
         lib_list = self.toolbox.filter_views(self.config, self.config["CELL_LIBS"])
         lib_list += self.toolbox.filter_views(self.config, self.config["PAD_LIBS"])
-        env_copy["_PNR_LIBS"] = TclStep.value_to_tcl(lib_list)
+        env_copy["_PNR_LIBS"] = TclUtils.value_to_tcl(lib_list)
         super().run_subprocess(
             [
                 self.get_openroad_path(),
