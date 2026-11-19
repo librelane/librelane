@@ -1186,12 +1186,7 @@ class Filler(KLayoutStep):
             Optional[Dict[str, str]],
             "Options passed directly to the KLayout filler runset. They vary from one PDK to another.",
             pdk=True,
-            deprecated_names=[
-                (
-                    "KLAYOUT_FILLER_OPTIONS",
-                    lambda x: {k: str(v) for k, v in (x or {}).items()},
-                )
-            ],
+            deprecated_names=[("KLAYOUT_FILLER_OPTIONS", _migrate_klayout_drc_options)],
         ),
     ]
 
@@ -1328,10 +1323,7 @@ class Density(KLayoutStep):
             "Options passed directly to the KLayout density runset. They vary from one PDK to another.",
             pdk=True,
             deprecated_names=[
-                (
-                    "KLAYOUT_DENSITY_OPTIONS",
-                    lambda x: {k: str(v) for k, v in (x or {}).items()},
-                )
+                ("KLAYOUT_DENSITY_OPTIONS", _migrate_klayout_drc_options)
             ],
         ),
         Variable(
@@ -1451,10 +1443,7 @@ class Antenna(KLayoutStep):
             "Options passed directly to the KLayout antenna runset. They vary from one PDK to another.",
             pdk=True,
             deprecated_names=[
-                (
-                    "KLAYOUT_ANTENNA_OPTIONS",
-                    lambda x: {k: str(v) for k, v in (x or {}).items()},
-                )
+                ("KLAYOUT_ANTENNA_OPTIONS", _migrate_klayout_drc_options)
             ],
         ),
     ]

@@ -29,6 +29,13 @@ Style Notes
 
 ## Steps
 
+* `KLayout.*`
+
+  * Python-based KLayout scripts will first try to use the current Python
+    environment (i.e. check if `klayout.dbcore` is importable), and, newly,
+    fall back to any available KLayout binary if the KLayout wheel is not
+    available.
+
 * `KLayout.DRC`
 
   * `KLAYOUT_DRC_OPTIONS`: changed order of type evaluation so that `threads: 1` is evaluated as integer.
@@ -48,6 +55,14 @@ Style Notes
 
   * Enabled maskhints so that DRC rules against generated layers are run
     against the closest possible version to what's actually in the GDS.
+
+* `Odb.*`
+
+  * Odb scripts will now first try to use the current Python environment
+    (i.e. check if `odb` is importable), before falling back to
+    `openroad -python`. It is important to note the current development version
+    of OpenROAD lacks `-python` support, and a wheel must be made available
+    to LibreLane for those versions.
 
 * `Odb.Remove*Obstructions`
 
@@ -99,6 +114,12 @@ Style Notes
 
   * Deprecated `LINTER_VLT`. Replaced by `LINTER_VLTS`.
 
+* `Yosys.*`
+
+  *  scripts will now first try to use the current Python environment
+    (i.e. check if `pyosys.libyosys` is importable) before falling back to
+    `yosys -y`.
+
 * `Yosys.*Synthesis`
 
   * Added `SYNTH_ARITH_TREE` to run the `arith_tree` techmapping optimisation;
@@ -128,9 +149,17 @@ Style Notes
 
   * Added `SYNTH_CLOCKGATE_TIE_LO` to specify a pin of the clock gate cell to tie to zero.
 
+## Flows
+
+* New flow, `Minimal`, that only requires a PIP installation of LibreLane with
+  the `tools` optional group, i.e., `python3 -m pip install 'librelane[tools]'`.
+  * Not supported: Verilator-based steps and KLayout steps requiring Ruby
+    interpreter support, such as `KLayout.DRC`.
+
 ## Tool Updates
 
-* Updated nix-eda to 7.19.0
+* Added minitcl at `9.1.0`
+* Updated nix-eda to `7.19.0`
   * Added kepler-formal at `1cf86ef` (2026-11-03)
   * Updated NixOS to 26.05
   * Updated Magic to `8.3.693`
@@ -145,11 +174,30 @@ Style Notes
   * Updated KLayout to `0.30.13`
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
+* Updated libparse to `0.70.0`
 * Updated Ciel to `3.2.0`
 * Updated OpenROAD to `26Q4`
   * Updated OpenSTA to `e913e15` (2026-09-26)
+* Python dependencies
+  * `tkinter` is no longer required.
+  * `klayout` is no longer a required: see `KLayout.*` changes above for more
+    info.
+  * New `tools` group added to PIP dependencies: an optional group that includes
+    `pyosys`, `klayout`, `lln-openroad`, `magic`, and `netgen`. Can be installed
+    using `librelane[tools]`.
+    * Requires a modern C++ compiler on Linux and Xcode Command Line Tools on
+      macOS.
 
 ## Misc. Enhancements/Bugfixes
+
+* `librelane.common`
+
+  * `TclUtils`
+
+    * Moved `value_to_tcl`.
+    
+    * **Internal**: Internal evaluation functions now use new `minitcl` library
+      instead of `tkinter`.
 
 * `librelane.config`
 
@@ -164,19 +212,25 @@ Style Notes
   * Added the `array` attribute to a macro instance, to declare it should be expanded to
     an array of instances; and updated the preprocessor to support this behaviour
 
-* Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
+  * Universal PDK variables
 
-* CI: added sky130 full-chip design.
+    * Split `LIB` into `CELL_LIBS` and `PAD_LIBS`.
 
-* CI: added gf180mcu full-chip design.
+* `librelane.steps`
 
-* CI: added test cases for `gf180mcu_fd_sc_mcu9t5v0`, `gf180mcu_as_sc_mcu7t3v3` and `gf180mcu_ocd_sc_rt12t3v3`.
+  * `KLayoutStep`: `run_pya_script` has been deprecated. Use newly added
+    `run_python_batch_script` instead.
+
+  * `TclStep`: `value_to_tcl` has been moved to `librelane.common.TclUtils`, with the
+    original function becoming a deprecated proxy thereof.
+
+* CI
+  * Added full-chip designs for sky130 and gf180mcu.
+  * Added test cases for `gf180mcu_fd_sc_mcu9t5v0`, `gf180mcu_as_sc_mcu7t3v3`,
+    `gf180mcu_ocd_sc_rt12t3v3`, and `ihp-sg13cmos5l`.
 
 * Fixed handling of `PAD_CELL_LIBRARY`, now available in config, synthesis and lint.
 
-* Renamed PDK hash from `ihp-sg13g2` to `ihp-sg13`
-
-* CI: added test cases for `ihp-sg13cmos5l`
 # 3.0.18
 
 ## Steps
