@@ -683,7 +683,7 @@ class Variable:
                 elif ";" in raw:
                     raw = raw.split(";")
                 else:
-                    raw = Interpreter().parse_list(raw)
+                    raw = Interpreter().parse_list(str(raw))
                 if len(raw) and raw[-1] == "":
                     raw.pop()  # Trailing commas
             else:
@@ -726,7 +726,7 @@ class Variable:
                     )
                 components = raw
                 if is_string(raw):
-                    components = Interpreter().parse_list(raw)
+                    components = Interpreter().parse_list(str(raw))
                 assert isinstance(components, list)
                 # Assuming Tcl format:
                 if len(components) % 2 != 0:
