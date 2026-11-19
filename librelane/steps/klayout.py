@@ -38,13 +38,15 @@ from typing import (
     Union,
 )
 
+from minitcl import Interpreter
+
 from .step import ViewsUpdate, MetricsUpdate, Step, StepError, StepException
 from .common import PythonLaunchInfo
 
 from ..config import Variable
 from ..logging import info
 from ..state import DesignFormat, State
-from ..common import Path, get_script_dir, mkdirp, _get_process_limit
+from ..common import Path, get_script_dir, mkdirp, _get_process_limit, is_string
 
 DesignFormat(
     "klayout_gds",
@@ -570,6 +572,15 @@ class XOR(KLayoutStep):
         return {}, subprocess_result["generated_metrics"]
 
 
+def _migrate_klayout_drc_options(value_in):
+    if not isinstance(value_in, Iterable) or is_string(value_in):
+        value_in = Interpreter().parse_list(str(value_in))
+    if isinstance(value_in, dict):
+        return {k: str(v) for k, v in value_in.items()}
+    else:
+        return Interpreter().dict_from_iterable(value_in)
+
+
 @Step.factory.register()
 class DRC(KLayoutStep):
     """
@@ -602,9 +613,7 @@ class DRC(KLayoutStep):
             Optional[Dict[str, str]],
             "Options passed directly to the KLayout DRC runset. They vary from one PDK to another.",
             pdk=True,
-            deprecated_names=[
-                ("KLAYOUT_DRC_OPTIONS", lambda x: {k: str(v) for k, v in x.items()})
-            ],
+            deprecated_names=[("KLAYOUT_DRC_OPTIONS", _migrate_klayout_drc_options)],
         ),
         Variable(
             "KLAYOUT_DRC_THREADS",
