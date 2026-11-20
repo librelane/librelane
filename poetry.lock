@@ -806,7 +806,7 @@ test = ["coverage[toml] (>=7.2.5)", "mypy (>=1.2.0)", "pytest (>=7.3.0)", "pytes
 
 [[package]]
 name = "magic_vlsi"
-version = "8.3.700"
+version = "8.3.706"
 description = "A venerable VLSI layout tool"
 optional = true
 python-versions = ">=3.8"
@@ -818,8 +818,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/rtimothyedwards/magic"
-reference = "8.3.700"
-resolved_reference = "f790f2f1ec35f422cd9512cd2570be3f6e87020d"
+reference = "8.3.706"
+resolved_reference = "1d42dfcdf6cd91df7a59198477324c2ca78ba439"
 
 [[package]]
 name = "markdown-it-py"
@@ -2049,4 +2049,4 @@ tools = ["klayout", "lln-openroad", "magic-vlsi", "netgen", "pyosys"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "e6411abfc23bea7a779791a08b275d25d43328bc27f1074a5f800f395f6dc7e3"
+content-hash = "34633966c0f50b2123ba649b86f2b40b9e4392df599efae1cdb81a80d6805ac2"
