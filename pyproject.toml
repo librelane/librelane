@@ -98,6 +98,7 @@ ignore = [
 [tool.ruff.lint.isort]
 case-sensitive = true
 known-first-party = ["reader", "ys_common", "construct_abc_script", "librelane"]
+force-to-top = ["klayout.rdbcore"]  # https://github.com/KLayout/klayout/issues/2551#issuecomment-6924627274
 
 [tool.ruff.lint.per-file-ignores]
 "librelane/env_info.py" = ["UP"]

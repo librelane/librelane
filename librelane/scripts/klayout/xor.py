@@ -4,8 +4,8 @@ import os
 import sys
 
 import click
-from klayout.dbcore import LayerInfo, Layout, TilingProcessor
 from klayout.rdbcore import ReportDatabase
+from klayout.dbcore import LayerInfo, Layout, TilingProcessor
 
 
 @click.command()
@@ -60,10 +60,6 @@ def xor(output, threads, ignore, tile_size, design_name, gds_a, gds_b):
         b.read(gds_b)
         b_top = b.cell(design_name)
 
-        x = Layout()
-        xor_top = x.create_cell(design_name)
-        xor_top.clear_shapes()
-
         report_name = f"XOR {gds_a} vs. {gds_b}"
         if os.path.basename(gds_a) != os.path.basename(gds_b):
             report_name = f"XOR {os.path.basename(gds_a)} vs. {os.path.basename(gds_b)}"
@@ -98,12 +94,8 @@ def xor(output, threads, ignore, tile_size, design_name, gds_a, gds_b):
             layer_slugified = layer_id.replace("/", "_")
             tp.input(f"a_{layer_slugified}", a, a_top.cell_index(), layer_info)
             tp.input(f"b_{layer_slugified}", b, b_top.cell_index(), layer_info)
-            tp.output(f"xor_{layer_slugified}", x, xor_top.cell_index(), layer_info)
-            ## there is a tp.output overload that enables us to pass the
-            ## ReportDatabase directly, but it is currently missing in Python due to
-            ## a bug
-            # cat = _make_cat(layer_id)
-            # tp.output(f"xor_{layer_slugified}", rdb, rdbc.rdb_id(), cat.rdb_id())
+            cat = _make_cat(layer_id)
+            tp.output(f"xor_{layer_slugified}", rdb, rdbc.rdb_id(), cat.rdb_id())
             tp.queue(
                 f"_output(xor_{layer_slugified}, a_{layer_slugified} ^ b_{layer_slugified})"
             )
@@ -111,21 +103,18 @@ def xor(output, threads, ignore, tile_size, design_name, gds_a, gds_b):
         print("[INFO] Starting XOR…", file=sys.stderr)
         tp.execute("XOR")
 
-        print("[INFO] Generating XOR report…", file=sys.stderr)
+        print("[INFO] Processing XOR report…", file=sys.stderr)
 
         total_xor_differences = 0
-        for layer_index in sorted(x.layer_indices()):
-            layer_info = layout.get_info(layer_index)
+        for layer_info in layers.values():
             layer_id = f"{layer_info.layer}/{layer_info.datatype}"
-            shapes = xor_top.shapes(layer_info)
-            print(f"\t{layer_id}: {len(shapes)} differences")
-            total_xor_differences += len(shapes)
-            cat = _make_cat(layer_id)
-            rdb.create_items(
-                rdbc.rdb_id(),
-                cat.rdb_id(),
-                xor_top.begin_shapes_rec(layer_index),
-            )
+            cat = rdb.category_by_path(f'"{layer_id}"')
+            if cat is None:
+                # ignored layer
+                continue
+            differences = cat.num_items()
+            print(f"\t{layer_id}: {differences} differences")
+            total_xor_differences += differences
         rdb.save(output)
 
         print("---")
