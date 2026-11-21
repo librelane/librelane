@@ -283,20 +283,14 @@ def synthesize(
         lib_dont_use_args.extend(("-dont_use", excluded_cell))
 
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
-    defines = (
-        (config.get("VERILOG_DEFINES") or [])
-        + [
-            f"PDK_{config['PDK'].replace('-','_')}",
-            f"SCL_{config['STD_CELL_LIBRARY']}",
-            "__librelane__",
-            "__pnr__",
-        ]
-        + (
-            [f"PAD_{config['PAD_CELL_LIBRARY']}"]
-            if "PAD_CELL_LIBRARY" in config
-            else []
-        )
-    )
+    defines = [
+        *(config.get("VERILOG_DEFINES") or ()),
+        f"PDK_{config['PDK'].replace('-','_')}",
+        f"SCL_{config['STD_CELL_LIBRARY']}",
+        "__librelane__",
+        "__pnr__",
+        *([f"PAD_{config['PAD_CELL_LIBRARY']}"] * ("PAD_CELL_LIBRARY" in config))
+    ]
 
     blackbox_models = extra["blackbox_models"]
 
@@ -305,13 +299,13 @@ def synthesize(
     for lib in all_libs:
         all_lib_arguments.extend(["-liberty", lib])
 
-    synth_libs: List[str] = extra["libs_synth"]
-    synth_lib_arguments = []
-    for lib in synth_libs:
-        synth_lib_arguments.extend(["-liberty", lib])
+    stdcell_libs: List[str] = extra["libs_synth"]
+    stdcell_lib_arguments = []
+    for lib in stdcell_libs:
+        stdcell_lib_arguments.extend(["-liberty", lib])
 
     stat_lib_arguments = (
-        synth_lib_arguments if config["SYNTH_STAT_STDCELLS_ONLY"] else all_lib_arguments
+        stdcell_lib_arguments if config["SYNTH_STAT_STDCELLS_ONLY"] else all_lib_arguments
     )
 
     d = ys.Design()
@@ -488,7 +482,7 @@ def synthesize(
             *tie_lo,
         )
 
-    d.run_pass("dfflibmap", *synth_lib_arguments, *lib_dont_use_args)
+    d.run_pass("dfflibmap", *stdcell_lib_arguments, *lib_dont_use_args)
 
     stat_json(d, stat_lib_arguments, os.path.join(report_dir, "post_dff.json"))
     d.tee("stat", *stat_lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
@@ -522,7 +516,7 @@ def synthesize(
             "abc_new" if config["SYNTH_ABC_NEW"] else "abc",
             "-constr",
             sdc_path,
-            *synth_lib_arguments,
+            *all_lib_arguments,
             *extra_args,
             *lib_dont_use_args,
         ]

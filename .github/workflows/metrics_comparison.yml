@@ -8,7 +8,7 @@ jobs:
   pr_commented:
     name: Metrics Comparison
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '!metrics')}}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
     steps:
