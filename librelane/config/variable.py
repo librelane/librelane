@@ -15,7 +15,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import shlex
 import inspect
 from enum import Enum
 from decimal import Decimal, InvalidOperation
@@ -46,6 +45,9 @@ from typing import (
     get_origin,
     get_args,
 )
+
+from minitcl import Interpreter
+
 from ..state import DesignFormat, State
 from ..common import GenericDict, Path, is_string, zip_first, Number, slugify
 
@@ -681,7 +683,7 @@ class Variable:
                 elif ";" in raw:
                     raw = raw.split(";")
                 else:
-                    raw = raw.split()
+                    raw = Interpreter().parse_list(str(raw))
                 if len(raw) and raw[-1] == "":
                     raw.pop()  # Trailing commas
             else:
@@ -724,7 +726,7 @@ class Variable:
                     )
                 components = raw
                 if is_string(raw):
-                    components = shlex.split(raw)
+                    components = Interpreter().parse_list(str(raw))
                 assert isinstance(components, list)
                 # Assuming Tcl format:
                 if len(components) % 2 != 0:
@@ -732,7 +734,7 @@ class Variable:
                         f"Tcl-style flat dictionary provided for variable '{key_path}' is invalid: uneven number of components ({len(components)})"
                     )
                 raw = {}
-                for i in range(0, len(components) // 2):
+                for i in range(len(components) // 2):
                     key = components[2 * i]
                     val = components[2 * i + 1]
                     raw[key] = val

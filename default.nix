@@ -11,6 +11,7 @@
   gdsfill,
   klayout-app,
   libparse,
+  minitcl,
   magic-vlsi,
   netgen,
   opensta,
@@ -106,6 +107,7 @@ let
       lxml
       deprecated
       libparse
+      minitcl
       psutil
       klayout
       rapidfuzz

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +68,7 @@ def manual_macro_placement(reader, config, fixed):
 
     # read config
     macros = {}
-    with open(config, "r") as config_file:
+    with open(config) as config_file:
         for line in config_file:
             # Discard comments and empty lines
             line = line.split("#")[0].strip()  # noqa: PLW2901

@@ -39,9 +39,8 @@ from .tclstep import TclStep
 from ..state import DesignFormat, State
 
 from ..config import Variable
-from ..common import get_script_dir, DRC as DRCObject, Path, count_occurences
+from ..common import get_script_dir, DRC as DRCObject, Path, count_occurences, TclUtils
 from ..logging import warn
-
 
 DesignFormat(
     "mag",
@@ -363,7 +362,7 @@ class StreamOut(MagicStep):
                     )
                 macro_gds.append([macro, macro_gdses, generated_metrics.values()])
 
-            env["__MACRO_GDS"] = TclStep.value_to_tcl(macro_gds)
+            env["__MACRO_GDS"] = TclUtils.value_to_tcl(macro_gds)
 
         views_updates, metrics_updates = super().run(
             state_in,
@@ -702,7 +701,7 @@ class OpenGUI(MagicStep):
         env = self._reroute_env(env)
 
         if DesignFormat.GDS in state_in:
-            env["CURRENT_GDS"] = self.value_to_tcl(state_in[DesignFormat.GDS])
+            env["CURRENT_GDS"] = TclUtils.value_to_tcl(state_in[DesignFormat.GDS])
 
         cmd = [
             "magic",

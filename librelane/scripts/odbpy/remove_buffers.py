@@ -13,7 +13,6 @@
 # limitations under the License.
 import re
 import sys
-from typing import List
 
 import odb
 
@@ -28,7 +27,7 @@ def get_pin_name(pin: odb.dbITerm):
     return f"{cell_name}/{master_pin_name}"
 
 
-def get_sinks_terms(net: odb.dbNet) -> List[odb.dbITerm]:
+def get_sinks_terms(net: odb.dbNet) -> list[odb.dbITerm]:
     sinks = []
     for it in net.getITerms():
         cell = it.getInst()
@@ -46,7 +45,7 @@ def get_sinks_terms(net: odb.dbNet) -> List[odb.dbITerm]:
     return sinks
 
 
-def get_drivers(net: odb.dbNet) -> List[odb.dbInst]:
+def get_drivers(net: odb.dbNet) -> list[odb.dbInst]:
     drivers = []
     for it in net.getITerms():
         cell = it.getInst()
@@ -148,7 +147,7 @@ def remove_buffers(reader, rx_str):
             # sink with ITerms in case of things like output ports for example.
             buffer_input_driver = get_drivers(input_net)[0]
             _, bid_outputs = get_io(buffer_input_driver)
-            (bid_iterm, _) = bid_outputs[0]
+            bid_iterm, _ = bid_outputs[0]
             bid_iterm.connect(output_net)
             print(
                 f"  * Connected buffer output({output_net.getConstName()}) to {get_pin_name(bid_iterm)}."

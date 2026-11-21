@@ -1,5 +1,10 @@
+#!/usr/bin/env python3
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2020-2022 Efabless Corporation
-# Copyright 2021 The American University in Cairo and the Cloud V Project
+# Copyright 2021 The American University in Cairo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +17,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import sys
-import shlex
 import argparse
-from typing import Tuple
+import sys
 
 import pya  # Must be run inside KLayout-- the library version of pya does not include "Application"
 
 
-def open_design(input_lefs: Tuple[str, ...], lyt: str, lyp: str, lym: str, input: str):
+def open_design(input_lefs: tuple[str, ...], lyt: str, lyp: str, lym: str, input: str):
     try:
         main_window = pya.Application.instance().main_window()
 
@@ -65,6 +67,13 @@ if __name__ == "__main__":
         "-M", "--lym", required=True, help="KLayout .map (LEF/DEF layer map) file"
     )
     parser.add_argument("input", help="KLayout cell name")
-
-    args = parser.parse_args(shlex.split(os.environ["KLAYOUT_ARGV"]))
+    argv_resolved: list[str] = []
+    counter = 0
+    try:
+        while True:
+            argv_resolved.append(globals()[f"karg{counter}"])
+            counter += 1
+    except KeyError:
+        pass
+    args = parser.parse_args(argv_resolved[1:])
     open_design(args.input_lefs, args.lyt, args.lyp, args.lym, args.input)

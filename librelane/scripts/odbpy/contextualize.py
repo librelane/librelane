@@ -47,7 +47,7 @@ def contextualize(reader, top_def, top_lef, keep_inner_connections):
 
     assert macro.name in [
         inst.getMaster().getName() for inst in top.block.getInsts()
-    ], "%s not found in %s" % (macro.name, top.name)
+    ], f"{macro.name} not found in {top.name}"
 
     for net in nets_top:
         iterms = net.getITerms()  # asssumption: no pins (bterms) on top level

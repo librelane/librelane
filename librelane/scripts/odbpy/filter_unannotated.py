@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +39,7 @@ def main(reader, corner, checks_report):
     nets = block.getNets()
 
     report_content = []
-    with open(checks_report, "r") as f:
+    with open(checks_report) as f:
         report_content = f.readlines()
 
     annotation_report_start = "report_parasitic_annotation -report_unannotated\n"

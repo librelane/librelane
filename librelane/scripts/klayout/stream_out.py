@@ -16,8 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Original Copyright Follows
+#
+# Adapted from OpenROAD
 #
 # BSD 3-Clause License
 #
@@ -49,13 +49,18 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
-from typing import Tuple, Optional
 
-import pya
 import click
+from klayout.dbcore import (
+    CellInstArray,
+    DTrans,
+    Layout,
+    LoadLayoutOptions,
+    Technology,
+)
 
 
-@click.command()
+@click.command("stream_out")
 @click.option("-o", "--output", required=True)
 @click.option(
     "-l",
@@ -103,18 +108,18 @@ import click
 )
 def stream_out(
     output: str,
-    input_lefs: Tuple[str, ...],
+    input_lefs: tuple[str, ...],
     lyt: str,
     lyp: str,
     lym: str,
-    input_gds_files: Tuple[str, ...],
-    seal_gds: Optional[str],
+    input_gds_files: tuple[str, ...],
+    seal_gds: str | None,
     design_name: str,
     input: str,
     conflict_resolution: str,
 ):  # Load technology file
     try:
-        tech = pya.Technology()
+        tech = Technology()
         tech.load(lyt)
         layout_options = tech.load_layout_options
         layout_options.lefdef_config.read_lef_with_def = False
@@ -126,10 +131,10 @@ def stream_out(
         layout_options.lefdef_config.pin_property_name = None
 
         cell_conflict_resolution = {
-            "AddToCell": pya.LoadLayoutOptions.CellConflictResolution.AddToCell,
-            "OverwriteCell": pya.LoadLayoutOptions.CellConflictResolution.OverwriteCell,
-            "RenameCell": pya.LoadLayoutOptions.CellConflictResolution.RenameCell,
-            "SkipNewCell": pya.LoadLayoutOptions.CellConflictResolution.SkipNewCell,
+            "AddToCell": LoadLayoutOptions.CellConflictResolution.AddToCell,
+            "OverwriteCell": LoadLayoutOptions.CellConflictResolution.OverwriteCell,
+            "RenameCell": LoadLayoutOptions.CellConflictResolution.RenameCell,
+            "SkipNewCell": LoadLayoutOptions.CellConflictResolution.SkipNewCell,
         }.get(conflict_resolution)
 
         if cell_conflict_resolution is None:
@@ -137,12 +142,17 @@ def stream_out(
                 f"[ERROR] Unknown conflict resolution: '{conflict_resolution}'.",
                 file=sys.stderr,
             )
-            exit(1)
+            try:
+                import pya
+
+                pya.Application.instance().exit(1)
+            except AttributeError:
+                sys.exit(1)
         else:
             layout_options.cell_conflict_resolution = cell_conflict_resolution
 
         # Load def file
-        main_layout = pya.Layout()
+        main_layout = Layout()
         # main_layout.load_layer_props(props_file)
         main_layout.read(input, layout_options)
 
@@ -151,9 +161,8 @@ def stream_out(
 
         print("[INFO] Clearing cells…")
         for i in main_layout.each_cell():
-            if i.cell_index() != top_cell_index:
-                if not i.name.startswith("VIA"):
-                    i.clear()
+            if i.cell_index() != top_cell_index and not i.name.startswith("VIA"):
+                i.clear()
 
         # Load in the gds to merge
         print("[INFO] Merging GDS files…")
@@ -162,7 +171,7 @@ def stream_out(
 
         # Copy the top level only to a new layout
         print(f"[INFO] Copying top level cell '{design_name}'…")
-        top_only_layout = pya.Layout()
+        top_only_layout = Layout()
         top_only_layout.dbu = main_layout.dbu
         top = top_only_layout.create_cell(design_name)
         top.copy_tree(main_layout.cell(design_name))
@@ -178,7 +187,7 @@ def stream_out(
                 )
 
         if missing_gds:
-            raise Exception("One or more cell GDS files are missing.")
+            raise RuntimeError("One or more cell GDS files are missing.")
         else:
             print("[INFO] All LEF cells have matching GDS cells.")
 
@@ -193,7 +202,7 @@ def stream_out(
                     print(
                         f"[INFO] Merging '{cell.name}' as child of '{top_cell.name}'…"
                     )
-                    top.insert(pya.CellInstArray(cell.cell_index(), pya.Trans()))
+                    top.insert(CellInstArray(cell.cell_index(), DTrans()))
 
         # Write out the GDS
         print(f"[INFO] Writing out GDS '{output}'…")
@@ -201,8 +210,24 @@ def stream_out(
         print("[INFO] Done.")
     except Exception as e:
         print(e)
-        exit(1)
+        try:
+            import pya
+
+            pya.Application.instance().exit(1)
+        except AttributeError:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    stream_out()
+    # compatibility block for built-in interpreter
+    argv_resolved = sys.argv
+    if "karg0" in globals():
+        argv_resolved: list[str] = []
+        counter = 0
+        try:
+            while True:
+                argv_resolved.append(globals()[f"karg{counter}"])
+                counter += 1
+        except KeyError:
+            pass
+    stream_out(argv_resolved[1:])

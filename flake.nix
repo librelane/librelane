@@ -5,7 +5,7 @@
   description = "open-source infrastructure for implementing chip design flows";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/7.19.0";
+    nix-eda.url = "github:fossi-foundation/nix-eda/7.21.0";
     ciel.url = "github:fossi-foundation/ciel/3.2.0";
     devshell.url = "github:numtide/devshell";
     flake-compat = {
@@ -56,6 +56,7 @@
             in
             {
               libparse = callPythonPackage ./nix/libparse.nix { };
+              minitcl = callPythonPackage ./nix/minitcl.nix { };
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };
               sphinx-subfigure = callPythonPackage ./nix/sphinx-subfigure.nix { };
               py-mon = callPythonPackage ./nix/py-mon.nix { };

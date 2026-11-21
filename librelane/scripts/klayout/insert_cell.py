@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pya
+from klayout.dbcore import (
+    DCellInstArray,
+    DTrans,
+    Layout,
+)
 
 
 def insert_cell(
@@ -22,15 +26,15 @@ def insert_cell(
     output: str,
 ):
     # The main layout where the cell is inserted
-    main_layout = pya.Layout()
+    main_layout = Layout()
     main_layout.read(input)
     top = main_layout.top_cell()
 
     # The cell to insert
-    insert_layout = pya.Layout()
+    insert_layout = Layout()
     insert_layout.read(insert)
 
-    def copy_cell_to_layout(target_layout, cell):
+    def copy_cell_to_layout(target_layout: Layout, cell):
         cell_in_target = target_layout.create_cell(cell.name)
         cell_in_target.copy_tree(cell)
         return cell_in_target
@@ -39,7 +43,7 @@ def insert_cell(
     insert_in_main = copy_cell_to_layout(main_layout, insert_layout.top_cell())
 
     # Instantiate the cell
-    top.insert(pya.DCellInstArray(insert_in_main.cell_index(), pya.DTrans(0, 0)))
+    top.insert(DCellInstArray(insert_in_main.cell_index(), DTrans(0, 0)))
 
     main_layout.write(output)
 

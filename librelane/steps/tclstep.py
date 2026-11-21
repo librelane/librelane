@@ -15,22 +15,19 @@ from __future__ import annotations
 
 import os
 import threading
-from enum import Enum
-from decimal import Decimal
 from abc import abstractmethod
-from dataclasses import is_dataclass, asdict
 from typing import (
     Any,
     ClassVar,
-    Iterable,
     List,
-    Mapping,
     Optional,
     Sequence,
     Tuple,
     Dict,
     Union,
 )
+
+from deprecated.sphinx import deprecated
 
 from .step import ViewsUpdate, MetricsUpdate, Step, StepException
 
@@ -40,7 +37,6 @@ from ..common import (
     TclUtils,
     get_script_dir,
     protected,
-    is_string,
 )
 
 
@@ -57,45 +53,17 @@ class TclStep(Step):
 
     reproducibles_allowed: ClassVar[bool] = True
 
+    @deprecated(
+        version="3.1.0",
+        reason="Use common.TclUtils.value_to_tcl",
+        action="once",
+    )
     @staticmethod
     def value_to_tcl(value: Any) -> str:
         """
-        Converts an arbitrary Python value to Tcl as follows:
-
-        * If the value is a dict, the keys and values are escaped recursively
-            using: :meth:`TclUtils.join`.
-        * If the value is an instance of a dataclass, it is treated as a dict.
-        * If the value is a list, it is joined using :meth:`TclUtils.join`.
-        * If the value is an Enum, its name is returned.
-        * If the value is Boolean, "1" is returned for True and "0" for False.
-        * If the value is numeric, it is converted to a string.
-        * Otherwise, the value is passed to ``str()``.
+        Proxy for :meth:`TclUtils.value_to_tcl`
         """
-        if not isinstance(value, type) and is_dataclass(value):
-            return TclStep.value_to_tcl(asdict(value))
-        elif isinstance(value, Mapping):
-            result = []
-            for v_key, v_value in value.items():
-                result.append(TclStep.value_to_tcl(v_key))
-                result.append(TclStep.value_to_tcl(v_value))
-            return TclUtils.join(result)
-        elif isinstance(value, Iterable) and not is_string(value):
-            result = []
-            for item in value:
-                result.append(TclStep.value_to_tcl(item))
-            return TclUtils.join(result)
-        elif isinstance(value, Enum):
-            return value.name
-        elif isinstance(value, bool):
-            return "1" if value else "0"
-        elif isinstance(value, Decimal):
-            if value.to_integral_value() == value:
-                return f"{value:.1f}"
-            return str(value)
-        elif isinstance(value, int):
-            return str(value)
-        else:
-            return str(value)
+        return TclUtils.value_to_tcl(value)
 
     @protected
     @abstractmethod
@@ -159,12 +127,12 @@ class TclStep(Step):
             value = self.config[element]
             if value is None:
                 continue
-            env[element] = TclStep.value_to_tcl(value)
+            env[element] = TclUtils.value_to_tcl(value)
 
         for input in self.inputs:
             key = f"CURRENT_{input.id.upper()}"
             if input_path := state.get_by_df(input):
-                env[key] = TclStep.value_to_tcl(input_path)
+                env[key] = TclUtils.value_to_tcl(input_path)
 
         for output in self.outputs:
             if output.multiple:
@@ -266,7 +234,7 @@ class TclStep(Step):
                     env[key] = value
                 else:
                     f.write(
-                        f"set ::env({key}) {TclUtils.escape(TclStep.value_to_tcl(value))}\n"
+                        f"set ::env({key}) {TclUtils.escape(TclUtils.value_to_tcl(value))}\n"
                     )
         env["_TCL_ENV_IN"] = env_in_file
         return env

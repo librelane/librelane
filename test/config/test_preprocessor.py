@@ -18,7 +18,6 @@ import pytest
 from librelane.config.variable import Instance, InstanceArray, Macro
 from pyfakefs.fake_filesystem_unittest import Patcher
 
-
 pytestmark = pytest.mark.all
 
 
