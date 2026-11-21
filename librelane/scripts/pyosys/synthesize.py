@@ -41,12 +41,12 @@ from construct_abc_script import ABCScriptCreator
 from ys_common import yosys_version_at_least, ys
 
 
-def stat_json(d: ys.Design, lib_arguments: tuple[str, ...], report_dir: str):
+def stat_json(d: ys.Design, lib_arguments: tuple[str, ...], report_path: str):
     """
     hack: work around https://github.com/YosysHQ/yosys/issues/6442
     """
-    raw = os.path.join(report_dir, "stat.json.raw")
-    parseable = os.path.join(report_dir, "stat.json")
+    raw = report_path + ".raw"
+    parseable = report_path
     d.tee("stat", "-json", *lib_arguments, o=raw)
     with (
         open(raw, encoding="utf8") as f_in,
@@ -284,23 +284,32 @@ def synthesize(
         lib_dont_use_args.extend(("-dont_use", excluded_cell))
 
     includes = config.get("VERILOG_INCLUDE_DIRS") or []
-    defines = (
-        (config.get("VERILOG_DEFINES") or [])
-        + [
-            f"PDK_{config['PDK'].replace('-', '_')}",
-            f"SCL_{config['STD_CELL_LIBRARY']}",
-            "__librelane__",
-            "__pnr__",
-        ]
-        + (
-            [f"PAD_{config['PAD_CELL_LIBRARY']}"]
-            if "PAD_CELL_LIBRARY" in config
-            else []
-        )
-    )
+    defines = [
+        *(config.get("VERILOG_DEFINES") or ()),
+        f"PDK_{config['PDK'].replace('-','_')}",
+        f"SCL_{config['STD_CELL_LIBRARY']}",
+        "__librelane__",
+        "__pnr__",
+        *([f"PAD_{config['PAD_CELL_LIBRARY']}"] * ("PAD_CELL_LIBRARY" in config)),
+    ]
 
     blackbox_models = extra["blackbox_models"]
-    libs = extra["libs_synth"]
+
+    all_libs: List[str] = extra["all_libs"]
+    all_lib_arguments = []
+    for lib in all_libs:
+        all_lib_arguments.extend(["-liberty", lib])
+
+    stdcell_libs: List[str] = extra["libs_synth"]
+    stdcell_lib_arguments = []
+    for lib in stdcell_libs:
+        stdcell_lib_arguments.extend(["-liberty", lib])
+
+    stat_lib_arguments = (
+        stdcell_lib_arguments
+        if config["SYNTH_STAT_STDCELLS_ONLY"]
+        else all_lib_arguments
+    )
 
     d = ys.Design()
 
@@ -367,10 +376,6 @@ def synthesize(
         d.run_pass("attrmap", "-remove", "single_bit_vector")
     d.run_pass("select", "-clear")
 
-    lib_arguments = []
-    for lib in libs:
-        lib_arguments.extend(["-liberty", lib])
-
     if config["SYNTH_ELABORATE_ONLY"]:
         librelane_proc(d, report_dir)
         if config["SYNTH_HIERARCHY_MODE"] in ["deferred_flatten", "flatten"]:
@@ -379,8 +384,8 @@ def synthesize(
         d.run_pass("splitnets")
         d.run_pass("opt_clean", "-purge")
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        stat_json(d, lib_arguments, report_dir)
-        d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
+        stat_json(d, stat_lib_arguments, os.path.join(report_dir, "stat.json"))
+        d.tee("stat", *stat_lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         noattr_flag = []
         if config["SYNTH_WRITE_NOATTR"]:
@@ -436,10 +441,8 @@ def synthesize(
     d.run_pass("opt")
     d.run_pass("opt_clean", "-purge")
 
-    d.tee(
-        "stat", "-json", *lib_arguments, o=os.path.join(report_dir, "pre_techmap.json")
-    )
-    d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "pre_techmap.rpt"))
+    stat_json(d, stat_lib_arguments, os.path.join(report_dir, "pre_techmap.json"))
+    d.tee("stat", *stat_lib_arguments, o=os.path.join(report_dir, "pre_techmap.rpt"))
 
     if tristate_mapping := config["SYNTH_TRISTATE_MAP"]:
         ys.log(f"[INFO] Applying tri-state buffer mapping from '{tristate_mapping}'…")
@@ -482,13 +485,10 @@ def synthesize(
             *tie_lo,
         )
 
-    dfflibmap_args = []
-    for lib in libs:
-        dfflibmap_args.extend(["-liberty", lib])
-    d.run_pass("dfflibmap", *dfflibmap_args, *lib_dont_use_args)
+    d.run_pass("dfflibmap", *stdcell_lib_arguments, *lib_dont_use_args)
 
-    d.tee("stat", "-json", *lib_arguments, o=os.path.join(report_dir, "post_dff.json"))
-    d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
+    stat_json(d, stat_lib_arguments, os.path.join(report_dir, "post_dff.json"))
+    d.tee("stat", *stat_lib_arguments, o=os.path.join(report_dir, "post_dff.rpt"))
 
     script_creator = ABCScriptCreator(config)
 
@@ -519,7 +519,7 @@ def synthesize(
             "abc_new" if config["SYNTH_ABC_NEW"] else "abc",
             "-constr",
             sdc_path,
-            *lib_arguments,
+            *all_lib_arguments,
             *extra_args,
             *lib_dont_use_args,
         ]
@@ -547,8 +547,8 @@ def synthesize(
             d.run_pass("insbuf", "-buf", *config["SYNTH_BUFFER_CELL"].split("/"))
 
         d.tee("check", o=os.path.join(report_dir, "chk.rpt"))
-        stat_json(d, lib_arguments, report_dir)
-        d.tee("stat", *lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
+        stat_json(d, stat_lib_arguments, os.path.join(report_dir, "stat.json"))
+        d.tee("stat", *stat_lib_arguments, o=os.path.join(report_dir, "stat.rpt"))
 
         if config["SYNTH_AUTONAME"]:
             # Generate public names for the various nets, resulting in very long
