@@ -289,7 +289,7 @@ def synthesize(
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
-        *([f"PAD_{config['PAD_CELL_LIBRARY']}"] * ("PAD_CELL_LIBRARY" in config))
+        *([f"PAD_{config['PAD_CELL_LIBRARY']}"] * ("PAD_CELL_LIBRARY" in config)),
     ]
 
     blackbox_models = extra["blackbox_models"]
@@ -305,7 +305,9 @@ def synthesize(
         stdcell_lib_arguments.extend(["-liberty", lib])
 
     stat_lib_arguments = (
-        stdcell_lib_arguments if config["SYNTH_STAT_STDCELLS_ONLY"] else all_lib_arguments
+        stdcell_lib_arguments
+        if config["SYNTH_STAT_STDCELLS_ONLY"]
+        else all_lib_arguments
     )
 
     d = ys.Design()
