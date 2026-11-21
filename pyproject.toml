@@ -15,7 +15,7 @@ dependencies = [
   "pyyaml>=5,<7",
   "rich>=12,<16",
   "ciel>=3.2.0,<4",
-  "lxml>=4.9.0",
+  "lxml>=6.0.0",
   "deprecated>=1.2.10,<2",
   "lln-libparse==0.56.*",
   "psutil>=5.9.0",

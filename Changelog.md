@@ -112,6 +112,12 @@ Style Notes
     `SYNTH_ABC_NEW` will always use the `DEFAULT` synthesis strategy or a
     user-provided `SYNTH_ABC_STRATEGY_SCRIPT`.
 
+  * Added `SYNTH_CLOCKGATE_TIE_LO` to specify a pin of the clock gate cell to
+    tie to zero.
+
+  * Added `SYNTH_STAT_STDCELLS_ONLY`, default `true`, that if set to `false`
+    allows Yosys `stat` calls to factor in Macro .lib files and `EXTRA_LIBS`.
+
   * Added `opt_clean` before `setundef` to prevent tie-low cells on nets with
     inouts when using the `abc_new` pass.
 
@@ -125,8 +131,6 @@ Style Notes
     `dfflibmap`, `abc`, and `abc_new` calls.
 
   * `SYNTH_MUL_BOOTH` is now `true` by default.
-
-  * Added `SYNTH_CLOCKGATE_TIE_LO` to specify a pin of the clock gate cell to tie to zero.
 
 ## Tool Updates
 
