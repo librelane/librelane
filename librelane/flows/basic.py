@@ -5,7 +5,7 @@ from .classic import Classic
 
 
 @Flow.factory.register()
-class Minimal(Classic):
+class Basic(Classic):
     Substitutions = {
         "Verilator.*": None,
         "Checker.Lint*": None,

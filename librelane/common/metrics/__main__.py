@@ -27,7 +27,7 @@ from decimal import Decimal
 from typing import Optional, Tuple
 
 import cloup
-import httpx
+import httpx2
 
 from .util import MetricDiff, TableVerbosity
 from .compare import compare_metric_directories, default_filter_set
@@ -210,7 +210,7 @@ def compare_remote(
             result = session.get(
                 f"https://api.github.com/repos/{repo}/branches/{branch}"
             )
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             if e.response is not None and e.response.status_code == 404:
                 print(f"'{branch}' branch of repo {repo} not found.", file=sys.stderr)
             else:
@@ -264,7 +264,7 @@ def compare_remote(
             if table_out is not None:
                 table_file = open(table_out, "w", encoding="utf8")
             print(tables, file=table_file)
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
         if e.response is not None and e.response.status_code == 404:
             print(f"Metrics not found for commit: {commit}.", file=sys.stderr)
         else:

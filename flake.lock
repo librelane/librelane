@@ -1,26 +1,5 @@
 {
   "nodes": {
-    "ciel": {
-      "inputs": {
-        "nix-eda": [
-          "nix-eda"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792594071,
-        "narHash": "sha256-IEeNYjmA7geiHCVzjadDzy77STbbWmie47HF63bqMqk=",
-        "owner": "fossi-foundation",
-        "repo": "ciel",
-        "rev": "d2eb3cf1c43f0f8522e93c537f8fca50781216d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "fossi-foundation",
-        "ref": "3.2.0",
-        "repo": "ciel",
-        "type": "github"
-      }
-    },
     "devshell": {
       "inputs": {
         "nixpkgs": [
@@ -95,7 +74,6 @@
     },
     "root": {
       "inputs": {
-        "ciel": "ciel",
         "devshell": "devshell",
         "flake-compat": "flake-compat",
         "nix-eda": "nix-eda"

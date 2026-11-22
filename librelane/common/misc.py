@@ -39,7 +39,7 @@ from typing import (
     Union,
 )
 
-import httpx
+import httpx2
 from deprecated.sphinx import deprecated
 
 from ..__version__ import __version__
@@ -407,7 +407,7 @@ def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional
     return latest_json
 
 
-def get_httpx_session(token: Optional[str] = None) -> httpx.Client:
+def get_httpx_session(token: Optional[str] = None) -> httpx2.Client:
     """
     Creates an ``httpx`` session client that follows redirects and has the
     User-Agent header set to ``librelane/{__version__}``.
@@ -416,11 +416,11 @@ def get_httpx_session(token: Optional[str] = None) -> httpx.Client:
         Authorization: Bearer {token}, is included.
     :returns: The created client
     """
-    session = httpx.Client(follow_redirects=True)
+    session = httpx2.Client(follow_redirects=True)
     headers_raw = {"User-Agent": f"librelane/{__version__}"}
     if token is not None and token.strip() != "":
         headers_raw["Authorization"] = f"Bearer {token}"
-    session.headers = httpx.Headers(headers_raw)
+    session.headers = httpx2.Headers(headers_raw)
     return session
 
 

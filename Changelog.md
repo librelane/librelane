@@ -157,7 +157,7 @@ Style Notes
 
 ## Flows
 
-* New flow, `Minimal`, that only requires a PIP installation of LibreLane with
+* New flow, `Basic`, that only requires a PIP installation of LibreLane with
   the `tools` optional group, i.e., `python3 -m pip install 'librelane[tools]'`.
   * Not supported: Verilator-based steps and KLayout steps requiring Ruby
     interpreter support, such as `KLayout.DRC`.
@@ -181,13 +181,16 @@ Style Notes
   * Updated GHDL to `6.0.0`
     * Drops support for Intel Macs
 * Updated libparse to `0.70.0`
-* Updated Ciel to `3.2.0`
+* Updated Ciel to `3.3.0`
+  * Ciel's derivation is now inside LibreLane's Nix files proper, and the flake
+    input has been removed.
 * Updated OpenROAD to `26Q4`
   * Updated OpenSTA to `e913e15` (2026-09-26)
 * Python dependencies
   * `tkinter` is no longer required.
   * `klayout` is no longer a required: see `KLayout.*` changes above for more
     info.
+  * Replaced `httpx` with `httpx2`.
   * New `tools` group added to PIP dependencies: an optional group that includes
     `pyosys`, `klayout`, `lln-openroad`, `magic`, and `netgen`. Can be installed
     using `librelane[tools]`.

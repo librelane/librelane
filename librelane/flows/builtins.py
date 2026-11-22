@@ -15,6 +15,6 @@
 from .optimizing import Optimizing
 from .classic import Classic, VHDLClassic
 from .chip import Chip
-from .minimal import Minimal
+from .basic import Basic
 from .misc import OpenInKLayout, OpenInOpenROAD
 from .synth_explore import SynthesisExploration

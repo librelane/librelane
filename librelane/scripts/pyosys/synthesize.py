@@ -295,12 +295,12 @@ def synthesize(
 
     blackbox_models = extra["blackbox_models"]
 
-    all_libs: List[str] = extra["all_libs"]
+    all_libs: list[str] = extra["all_libs"]
     all_lib_arguments = []
     for lib in all_libs:
         all_lib_arguments.extend(["-liberty", lib])
 
-    stdcell_libs: List[str] = extra["libs_synth"]
+    stdcell_libs: list[str] = extra["libs_synth"]
     stdcell_lib_arguments = []
     for lib in stdcell_libs:
         stdcell_lib_arguments.extend(["-liberty", lib])

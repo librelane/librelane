@@ -6,7 +6,6 @@
 
   inputs = {
     nix-eda.url = "github:fossi-foundation/nix-eda/7.21.0";
-    ciel.url = "github:fossi-foundation/ciel/3.2.0";
     devshell.url = "github:numtide/devshell";
     flake-compat = {
       url = "github:NixOS/flake-compat";
@@ -14,14 +13,12 @@
     };
   };
 
-  inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs =
     {
       self,
       nix-eda,
-      ciel,
       devshell,
       ...
     }:
@@ -33,7 +30,6 @@
       # Common
       overlays = {
         default = lib.composeManyExtensions [
-          (ciel.overlays.default)
           (
             pkgs': pkgs:
             let
@@ -55,6 +51,9 @@
               callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
             in
             {
+              httpcore2 = callPythonPackage ./nix/httpcore2.nix { };
+              httpx2 = callPythonPackage ./nix/httpx2.nix { };
+              ciel = callPythonPackage ./nix/ciel.nix { };
               libparse = callPythonPackage ./nix/libparse.nix { };
               minitcl = callPythonPackage ./nix/minitcl.nix { };
               sphinx-tippy = callPythonPackage ./nix/sphinx-tippy.nix { };

@@ -40,7 +40,7 @@
   pyyaml,
   yamlcore,
   rich,
-  requests,
+  httpx2,
   tkinter,
   lxml,
   deprecated,
@@ -101,7 +101,7 @@ let
       pyyaml
       yamlcore
       rich
-      requests
+      httpx2
       ciel
       tkinter
       lxml
