@@ -20,25 +20,25 @@ def test_slugify():
     from librelane.common import slugify
 
     assert slugify("ABCD efg.xy-Z") == "abcd-efg-xy-z", "Failed slugify test"
-    assert (
-        slugify("Lorem ipsum   dolor sit amet") == "lorem-ipsum-dolor-sit-amet"
-    ), "Failed slugify test"
+    assert slugify("Lorem ipsum   dolor sit amet") == "lorem-ipsum-dolor-sit-amet", (
+        "Failed slugify test"
+    )
 
 
 def test_filter_filter():
     from librelane.common import Filter
 
-    assert (
-        list(Filter([]).filter(["a", "b", "c"])) == []
-    ), "filter with no wildcards matches nothing"
+    assert list(Filter([]).filter(["a", "b", "c"])) == [], (
+        "filter with no wildcards matches nothing"
+    )
 
-    assert (
-        list(Filter(["*", "!b"]).filter(["b"])) == []
-    ), "filter with deny wildcard did not work properly"
+    assert list(Filter(["*", "!b"]).filter(["b"])) == [], (
+        "filter with deny wildcard did not work properly"
+    )
 
-    assert list(Filter(["*", "!b"]).filter(["b", "be"])) == [
-        "be"
-    ], "filter with deny wildcard matched too many elements"
+    assert list(Filter(["*", "!b"]).filter(["b", "be"])) == ["be"], (
+        "filter with deny wildcard matched too many elements"
+    )
 
     assert list(
         Filter(["boing*", "!boinger", "boinge*"]).filter(["boingee", "boinger"])
@@ -48,9 +48,9 @@ def test_filter_filter():
 def test_filter_all_matching():
     from librelane.common import Filter
 
-    assert list(Filter(["k", "!b"]).get_matching_wildcards("c")) == [
-        "b"
-    ], "filter did not accurately return rejecting wildcard"
+    assert list(Filter(["k", "!b"]).get_matching_wildcards("c")) == ["b"], (
+        "filter did not accurately return rejecting wildcard"
+    )
 
     assert list(Filter(["*", "!c"]).get_matching_wildcards("c")) == [
         "*",

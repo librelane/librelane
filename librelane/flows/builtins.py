@@ -11,10 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# flake8: noqa
-from .optimizing import Optimizing
-from .classic import Classic, VHDLClassic
-from .chip import Chip
 from .basic import Basic
+from .chip import Chip
+from .classic import Classic, VHDLClassic
 from .misc import OpenInKLayout, OpenInOpenROAD
+from .optimizing import Optimizing
 from .synth_explore import SynthesisExploration
+
+__all__ = [
+    "Basic",
+    "Chip",
+    "Classic",
+    "OpenInKLayout",
+    "OpenInOpenROAD",
+    "Optimizing",
+    "SynthesisExploration",
+    "VHDLClassic",
+]

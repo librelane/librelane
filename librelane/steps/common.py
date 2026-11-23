@@ -17,14 +17,14 @@
 # limitations under the License.
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Tuple, Optional, List, Literal
+from typing import Literal
 
 from ..config import Variable
 
 
 @dataclass(frozen=True)
 class PythonLaunchInfo:
-    args: Tuple[str, ...]
+    args: tuple[str, ...]
     built_in_interpreter: bool
 
 
@@ -75,7 +75,7 @@ io_layer_variables = [
     ),
     Variable(
         "IO_PIN_V_LENGTH",
-        Optional[Decimal],
+        Decimal | None,
         """
         The length of the pins with a north or south orientation. If unspecified by a PDK, OpenROAD will use whichever is higher of the following two values:
             * The pin width
@@ -87,7 +87,7 @@ io_layer_variables = [
     ),
     Variable(
         "IO_PIN_H_LENGTH",
-        Optional[Decimal],
+        Decimal | None,
         """
         The length of the pins with an east or west orientation. If unspecified by a PDK, OpenROAD will use whichever is higher of the following two values:
             * The pin width
@@ -273,7 +273,7 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_RING_CONNECT_TO_PAD_LAYERS",
-        Optional[List[str]],
+        list[str] | None,
         "Restrict the pad pins layers to this list.",
         pdk=True,
     ),
@@ -315,13 +315,13 @@ pdn_variables = [
     ),
     Variable(
         "PDN_CORE_HORIZONTAL_LAYER",
-        Optional[str],
+        str | None,
         "Defines the horizontal PDN layer for the core ring. Falls back to `PDN_HORIZONTAL_LAYER` if undefined.",
         pdk=True,
     ),
     Variable(
         "PDN_CORE_VERTICAL_LAYER",
-        Optional[str],
+        str | None,
         "Defines the vertical PDN layer for the core ring. Falls back to `PDN_VERTICAL_LAYER` if undefined.",
         pdk=True,
     ),
@@ -344,12 +344,12 @@ pdn_variables = [
 routing_layer_variables = [
     Variable(
         "RT_CLOCK_MIN_LAYER",
-        Optional[str],
+        str | None,
         "The name of lowest layer to be used in routing the clock net.",
     ),
     Variable(
         "RT_CLOCK_MAX_LAYER",
-        Optional[str],
+        str | None,
         "The name of highest layer to be used in routing the clock net.",
     ),
     Variable(
@@ -366,7 +366,7 @@ routing_layer_variables = [
     ),
     Variable(
         "GRT_LAYER_ADJUSTMENTS",
-        List[Decimal],
+        list[Decimal],
         "Layer-specific reductions in the routing capacity of the edges between the cells in the global routing graph, delimited by commas. Values range from 0 through 1.",
         pdk=True,
     ),
@@ -406,7 +406,7 @@ dpl_variables = [
 grt_variables = routing_layer_variables + [
     Variable(
         "DIODE_PADDING",
-        Optional[int],
+        int | None,
         "Diode cell padding; increases the width of diode cells during placement checks..",
         units="sites",
     ),
@@ -461,13 +461,13 @@ rsz_variables = dpl_variables + [
     ),
     Variable(
         "RSZ_DONT_TOUCH_LIST",
-        Optional[List[str]],
+        list[str] | None,
         'A list of nets and instances as "don\'t touch" by design repairs or resizer optimizations.',
         default=None,
     ),
     Variable(
         "RSZ_CORNERS",
-        Optional[List[str]],
+        list[str] | None,
         "Resizer step-specific override for PNR_CORNERS.",
     ),
 ]

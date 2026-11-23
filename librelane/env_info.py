@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2021-2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,17 +17,17 @@
 # with ancient versions of Python.
 
 ## This file is internal to LibreLane and is not part of the API.
-import os
-import re
-import sys
 import json
-import shutil
-import tempfile
+import os
 import platform
+import re
+import shutil
 import subprocess
+import sys
+import tempfile
 
 try:
-    from typing import Union, Optional, Dict, List  # noqa: F401
+    from typing import Dict, List, Optional, Union  # noqa: F401
 except ImportError:
     pass
 
@@ -43,7 +41,7 @@ class StringRepresentable(object):
 
 
 class ContainerInfo(StringRepresentable):
-    path = None  # type: Optional[str]
+    path = None  # type: str | None
     engine = "UNKNOWN"  # type: str
     version = "UNKNOWN"  # type: str
     conmon = False  # type: bool
@@ -136,7 +134,7 @@ class ContainerInfo(StringRepresentable):
 
 class NixInfo(StringRepresentable):
     version_string = ""  # type: str
-    channels = None  # type: Optional[Dict[str, str]]
+    channels = None  # type: Dict[str, str] | None
     nix_command = False  # type: bool
     flakes = False  # type: bool
 
@@ -179,6 +177,7 @@ class NixInfo(StringRepresentable):
                 stderr=subprocess.STDOUT,
                 cwd=d,
                 encoding="utf8",
+                check=False,
             )
             nix_command_result = nix_command.stdout
             if "'nix-command'" in nix_command_result:
@@ -218,13 +217,6 @@ class OSInfo(StringRepresentable):
         self.distro_version = "UNKNOWN"
         self.python_version = platform.python_version()
         self.python_path = sys.path.copy()
-        self.tkinter = False
-        try:
-            import tkinter  # noqa: F401
-
-            self.tkinter = True
-        except ImportError:
-            pass
         self.container_info = ""
         self.nix_info = ""
 
@@ -246,11 +238,13 @@ class OSInfo(StringRepresentable):
         if osinfo.kernel == "Linux":
             os_release = ""
             try:
-                os_release += open("/etc/lsb-release").read()
+                with open("/etc/lsb-release", encoding="utf8") as f:
+                    os_release += f.read()
             except FileNotFoundError:
                 pass
             try:
-                os_release += open("/etc/os-release").read()
+                with open("/etc/os-release", encoding="utf8") as f:
+                    os_release += f.read()
             except FileNotFoundError:
                 pass
 
@@ -284,7 +278,7 @@ def env_info_cli():
     def print_params(obj, indent=0):
         if isinstance(obj, list):
             for value in obj:
-                if isinstance(value, StringRepresentable) or isinstance(value, dict):
+                if isinstance(value, (StringRepresentable, dict)):
                     print("%s- " % (" " * indent), end="")
                     print_params(value, indent=indent + 2)
                 elif isinstance(value, list):
@@ -300,7 +294,7 @@ def env_info_cli():
             current = obj if isinstance(obj, dict) else obj.__dict__
             for key in current:
                 value = current[key]
-                if isinstance(value, StringRepresentable) or isinstance(value, dict):
+                if isinstance(value, (StringRepresentable, dict)):
                     print("%s%s:" % (" " * indent, key))
                     print_params(value, indent=indent + 2)
                 elif isinstance(value, list):

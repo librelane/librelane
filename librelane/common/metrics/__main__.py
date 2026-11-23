@@ -15,24 +15,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import gzip
 import os
 import sys
-import json
-import gzip
-import click
 import tarfile
 import tempfile
 from io import BytesIO
-from decimal import Decimal
-from typing import Optional, Tuple
 
+import click
 import cloup
 import httpx2
 
-from .util import MetricDiff, TableVerbosity
-from .compare import compare_metric_directories, default_filter_set
+from ..cli import IntEnumChoice, formatter_settings
 from ..misc import Filter, get_httpx_session, mkdirp
-from ..cli import formatter_settings, IntEnumChoice
+from ..serialize import json_loadp
+from .compare import compare_metric_directories, default_filter_set
+from .util import MetricDiff, TableVerbosity
 
 
 @cloup.group(
@@ -77,10 +75,10 @@ def common_opts(f):
 @common_opts
 @cloup.argument("metric_files", nargs=2)
 def compare(
-    metric_files: Tuple[str, str],
+    metric_files: tuple[str, str],
     table_verbosity: TableVerbosity,
-    filter_wildcards: Tuple[str, ...],
-    table_out: Optional[str],
+    filter_wildcards: tuple[str, ...],
+    table_out: str | None,
     significant_figures: int,
 ):
     """
@@ -91,8 +89,8 @@ def compare(
         exit(0)
 
     a_path, b_path = metric_files
-    a = json.load(open(a_path, encoding="utf8"), parse_float=Decimal)
-    b = json.load(open(b_path, encoding="utf8"), parse_float=Decimal)
+    a = json_loadp(a_path)
+    b = json_loadp(b_path)
 
     final_filters = []
     for wildcard in filter_wildcards:
@@ -109,8 +107,9 @@ def compare(
 
     table_file = sys.stdout
     if table_out is not None:
-        table_file = open(table_out, "w", encoding="utf8")
+        table_file = open(table_out, "w", encoding="utf8")  # noqa: SIM115
     print(md_str, file=table_file)
+    table_file.close()
 
     # When we upgrade to rich 13 (when NixOS 23.11 comes out,
     # it has a proper markdown table renderer, but until then, this will have to do)
@@ -123,10 +122,10 @@ cli.add_command(compare)
 @common_opts
 @cloup.argument("metric_directories", nargs=2)
 def compare_multiple(
-    filter_wildcards: Tuple[str, ...],
+    filter_wildcards: tuple[str, ...],
     table_verbosity: TableVerbosity,
-    metric_directories: Tuple[str, str],
-    table_out: Optional[str],
+    metric_directories: tuple[str, str],
+    table_out: str | None,
     significant_figures: int,
 ):
     """
@@ -143,7 +142,7 @@ def compare_multiple(
     print(summary)
     table_file = sys.stdout
     if table_out is not None:
-        table_file = open(table_out, "w", encoding="utf8")
+        table_file = open(table_out, "w", encoding="utf8")  # noqa: SIM115
     print(tables, file=table_file)
 
 
@@ -184,14 +183,14 @@ cli.add_command(compare_multiple)
 @common_opts
 @cloup.argument("metric_directory", nargs=1)
 def compare_remote(
-    filter_wildcards: Tuple[str, ...],
+    filter_wildcards: tuple[str, ...],
     table_verbosity: TableVerbosity,
     repo: str,
     metric_repo: str,
-    commit: Optional[str],
+    commit: str | None,
     token: str,
     metric_directory: str,
-    table_out: Optional[str],
+    table_out: str | None,
     significant_figures: int,
     branch: str,
 ):
@@ -262,7 +261,7 @@ def compare_remote(
             print(summary)
             table_file = sys.stdout
             if table_out is not None:
-                table_file = open(table_out, "w", encoding="utf8")
+                table_file = open(table_out, "w", encoding="utf8")  # noqa: SIM115
             print(tables, file=table_file)
     except httpx2.HTTPStatusError as e:
         if e.response is not None and e.response.status_code == 404:

@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import annotations
-from decimal import Decimal
+
 import os
+from concurrent.futures import Future
+from decimal import Decimal
 
 import rich
 import rich.table
-from concurrent.futures import Future
-from typing import Dict, List, Tuple
 
-from .flow import Flow
-from ..state import State
 from ..config import Config
-from ..logging import success
-from ..logging import options, console
-from ..steps import Step, Yosys, OpenROAD, StepError
+from ..logging import console, options, success
+from ..state import State
+from ..steps import OpenROAD, Step, StepError, Yosys
+from .flow import Flow
 
 
 # "Synthesis Exploration" is a non-seqeuential flow that tries all synthesis
@@ -68,12 +67,12 @@ class SynthesisExploration(Flow):
         self,
         initial_state: State,
         **kwargs,
-    ) -> Tuple[State, List[Step]]:
-        step_list: List[Step] = []
+    ) -> tuple[State, list[Step]]:
+        step_list: list[Step] = []
 
         self.progress_bar.set_max_stage_count(1)
 
-        synth_futures: List[Tuple[Config, Future[State]]] = []
+        synth_futures: list[tuple[Config, Future[State]]] = []
         self.progress_bar.start_stage("Synthesis Exploration")
 
         options.set_condensed_mode(True)
@@ -119,8 +118,8 @@ class SynthesisExploration(Flow):
 
             synth_futures.append((config, sta_future))
 
-        results: Dict[
-            str, Tuple[Decimal, Decimal, Decimal, Decimal, Decimal] | None
+        results: dict[
+            str, tuple[Decimal, Decimal, Decimal, Decimal, Decimal] | None
         ] = {}
         for config, future in synth_futures:
             strategy = config["SYNTH_STRATEGY"]
@@ -140,11 +139,11 @@ class SynthesisExploration(Flow):
         options.set_condensed_mode(False)
 
         successful_results = {k: v for k, v in results.items() if v is not None}
-        min_gates = min(map(lambda x: x[0], successful_results.values()))
-        min_area = min(map(lambda x: x[1], successful_results.values()))
-        max_r2r_slack = max(map(lambda x: x[2], successful_results.values()))
-        max_slack = max(map(lambda x: x[3], successful_results.values()))
-        max_tns = max(map(lambda x: x[4], successful_results.values()))
+        min_gates = min(x[0] for x in successful_results.values())
+        min_area = min(x[1] for x in successful_results.values())
+        max_r2r_slack = max(x[2] for x in successful_results.values())
+        max_slack = max(x[3] for x in successful_results.values())
+        max_tns = max(x[4] for x in successful_results.values())
 
         table = rich.table.Table()
         table.add_column("SYNTH_STRATEGY")
@@ -172,11 +171,12 @@ class SynthesisExploration(Flow):
 
         console.print(table)
         assert self.run_dir is not None
-        file_console = rich.console.Console(
-            file=open(os.path.join(self.run_dir, "summary.rpt"), "w", encoding="utf8"),
-            width=160,
-        )
-        file_console.print(table)
+        with open(os.path.join(self.run_dir, "summary.rpt"), "w", encoding="utf8") as f:
+            file_console = rich.console.Console(
+                file=f,
+                width=160,
+            )
+            file_console.print(table)
 
         success("Flow complete.")
         return (initial_state, step_list)

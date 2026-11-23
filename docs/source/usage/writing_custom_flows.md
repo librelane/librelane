@@ -111,6 +111,7 @@ something like this:
 from librelane.flows import SequentialFlow
 from librelane.steps import Yosys, Misc, OpenROAD, Magic, Netgen
 
+
 class MyFlow(SequentialFlow):
     Steps = [
         Yosys.Synthesis,
@@ -127,7 +128,7 @@ class MyFlow(SequentialFlow):
         Magic.StreamOut,
         Magic.DRC,
         Magic.SpiceExtraction,
-        Netgen.LVS
+        Netgen.LVS,
     ]
 ```
 

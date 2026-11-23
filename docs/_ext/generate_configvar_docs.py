@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +18,13 @@ import os
 import traceback
 
 import jinja2
-from sphinx.config import Config
 from sphinx.application import Sphinx
+from sphinx.config import Config
 
 import librelane
+import librelane.config
 import librelane.flows
 import librelane.steps
-import librelane.config
 from librelane.common import slugify
 
 
@@ -123,14 +121,12 @@ def generate_module_docs(app: Sphinx, conf: Config):
         del by_category["Misc"]
 
         ## Sort Categories
-        categories_sorted = list(sorted(by_category.items(), key=lambda c: c[0])) + [
-            misc
-        ]
+        categories_sorted = [*sorted(by_category.items(), key=lambda c: c[0]), misc]
 
         ## Sort Steps
-        for i in range(0, len(categories_sorted)):
+        for i in range(len(categories_sorted)):
             category, step_list = categories_sorted[i]
-            steps_sorted = list(sorted(step_list, key=lambda s: s[0]))
+            steps_sorted = sorted(step_list, key=lambda s: s[0])
             categories_sorted[i] = (category, steps_sorted)
 
         # --

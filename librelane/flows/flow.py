@@ -12,63 +12,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import annotations
-import os
-import glob
-import shutil
-import fnmatch
-import logging
+
+import builtins
 import datetime
+import fnmatch
+import glob
+import logging
+import os
+import shutil
 import textwrap
-from dataclasses import dataclass
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+from collections.abc import Callable, Sequence
 from concurrent.futures import Future
+from dataclasses import dataclass
 from functools import wraps
 from typing import (
-    List,
-    Sequence,
-    Tuple,
-    Type,
     ClassVar,
-    Optional,
-    Dict,
-    Callable,
     TypeVar,
-    Union,
 )
 
+from deprecated.sphinx import deprecated
 from rich.progress import (
-    Progress,
-    TextColumn,
     BarColumn,
     MofNCompleteColumn,
-    TimeElapsedColumn,
+    Progress,
     TaskID,
+    TextColumn,
+    TimeElapsedColumn,
 )
-from deprecated.sphinx import deprecated
+
 from librelane.common.types import Path
 
-from ..config import Config, Variable, universal_flow_config_variables, AnyConfigs
-from ..state import State, DesignFormat
-from ..steps import Step, StepNotFound
-from ..logging import (
-    LevelFilter,
-    console,
-    info,
-    warn,
-    verbose,
-    register_additional_handler,
-    deregister_additional_handler,
-    options,
-)
 from ..common import (
+    Toolbox,
+    final,
+    get_latest_file,
     get_tpe,
     mkdirp,
     protected,
-    final,
     slugify,
-    Toolbox,
-    get_latest_file,
 )
+from ..config import AnyConfigs, Config, Variable, universal_flow_config_variables
+from ..logging import (
+    LevelFilter,
+    console,
+    deregister_additional_handler,
+    info,
+    options,
+    register_additional_handler,
+    verbose,
+    warn,
+)
+from ..state import DesignFormat, State
+from ..steps import Step, StepNotFound
 
 
 class FlowError(RuntimeError):
@@ -76,8 +72,6 @@ class FlowError(RuntimeError):
     A ``RuntimeError`` that occurs when a Flow, or one of its underlying Steps,
     fails to finish execution properly.
     """
-
-    pass
 
 
 class FlowException(FlowError):
@@ -90,8 +84,6 @@ class FlowException(FlowError):
     * Mis-use of class interfaces of the :class:`Flow`
     * Other unexpected failures
     """
-
-    pass
 
 
 T = TypeVar("T", bound=Callable)
@@ -127,7 +119,7 @@ def ensure_progress_started(method: T) -> Callable:
     return _impl
 
 
-class FlowProgressBar(object):
+class FlowProgressBar:
     """
     A wrapper for a flow's progress bar, rendered using Rich at the bottom of
     interactive terminals.
@@ -292,7 +284,7 @@ class Flow(ABC):
         @dataclass
         class Record:
             message: str
-            step: Optional[str] = None
+            step: str | None = None
             repeats: int = 0
             similar: int = 0
 
@@ -303,13 +295,13 @@ class Flow(ABC):
                 postfix = ""
                 if self.repeats + self.similar:
                     postfix = f"and {self.repeats + self.similar} similar warnings"
-                if len(postfix):
+                if postfix:
                     postfix = f" ({postfix})"
                 return f"{prefix}{self.message}{postfix}"
 
         def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
-            self.warnings: Dict[str, Flow._StepWarningHandler.Record] = {}
+            self.warnings: dict[str, Flow._StepWarningHandler.Record] = {}
 
         def emit(self, record: logging.LogRecord) -> None:
             step = None
@@ -327,24 +319,24 @@ class Flow(ABC):
                 self.warnings[key] = Flow._StepWarningHandler.Record(record.msg, step)
 
     name: str = NotImplemented
-    Steps: List[Type[Step]] = NotImplemented  # Override
-    config_vars: List[Variable] = []
-    step_objects: Optional[List[Step]] = None
-    run_dir: Optional[str] = None
-    toolbox: Optional[Toolbox] = None
-    config_resolved_path: Optional[str] = None
+    Steps: list[type[Step]] = NotImplemented  # Override
+    config_vars: list[Variable] = []
+    step_objects: list[Step] | None = None
+    run_dir: str | None = None
+    toolbox: Toolbox | None = None
+    config_resolved_path: str | None = None
 
     def __init__(
         self,
         config: AnyConfigs,
         *,
-        name: Optional[str] = None,
-        pdk: Optional[str] = None,
-        pdk_root: Optional[str] = None,
-        scl: Optional[str] = None,
-        pad: Optional[str] = None,
-        design_dir: Optional[str] = None,
-        config_override_strings: Optional[Sequence[str]] = None,
+        name: str | None = None,
+        pdk: str | None = None,
+        pdk_root: str | None = None,
+        scl: str | None = None,
+        pad: str | None = None,
+        design_dir: str | None = None,
+        config_override_strings: Sequence[str] | None = None,
     ):
         if self.__class__.Steps == NotImplemented:
             raise NotImplementedError(
@@ -456,22 +448,23 @@ class Flow(ABC):
         try:
             get_ipython()  # type: ignore
 
-            import IPython.display
+            import IPython.display  # noqa: PLC0415
 
             IPython.display.display(IPython.display.Markdown(Self.get_help_md()))
         except NameError:
-            from ..logging import console
-            from rich.markdown import Markdown
+            from rich.markdown import Markdown  # noqa: PLC0415
+
+            from ..logging import console  # noqa: PLC0415
 
             console.log(Markdown(Self.get_help_md()))
 
-    def get_all_config_variables(self) -> List[Variable]:
+    def get_all_config_variables(self) -> list[Variable]:
         """
         :returns: All configuration variables for this Flow, including
             universal configuration variables, flow-specific configuration
             variables and step-specific configuration variables.
         """
-        flow_variables_by_name: Dict[str, Tuple[Variable, str]] = {
+        flow_variables_by_name: dict[str, tuple[Variable, str]] = {
             variable.name: (variable, "universal flow variables")
             for variable in universal_flow_config_variables
         }
@@ -510,7 +503,7 @@ class Flow(ABC):
     )
     def init_with_config(
         Self,
-        config_in: Union[Config, str, os.PathLike, Dict],
+        config_in: Config | str | os.PathLike | dict,
         **kwargs,
     ):  # pragma: no cover
         kwargs["config"] = config_in
@@ -519,10 +512,10 @@ class Flow(ABC):
     @final
     def start(
         self,
-        with_initial_state: Optional[State] = None,
-        tag: Optional[str] = None,
+        with_initial_state: State | None = None,
+        tag: str | None = None,
         last_run: bool = False,
-        _force_run_dir: Optional[str] = None,
+        _force_run_dir: str | None = None,
         _no_load_previous_steps: bool = False,
         *,
         overwrite: bool = False,
@@ -555,7 +548,7 @@ class Flow(ABC):
         :returns: ``(success, state_list)``
         """
 
-        handlers: List[logging.Handler] = []
+        handlers: list[logging.Handler] = []
 
         warning_handler = Flow._StepWarningHandler()
         warning_handler.addFilter(LevelFilter("WARNING"))
@@ -572,7 +565,7 @@ class Flow(ABC):
             runs = sorted(glob.glob(os.path.join(self.design_dir, "runs", "*")))
 
             latest_time: float = 0
-            latest_run: Optional[str] = None
+            latest_run: str | None = None
             for run in runs:
                 time = os.path.getmtime(run)
                 if time > latest_time:
@@ -638,13 +631,13 @@ class Flow(ABC):
                 starting_ordinal = max(starting_ordinal, extracted_ordinal + 1)
 
             # Extract Maximum State
-            if with_initial_state is None:
-                if latest_json := get_latest_file(self.run_dir, "state_out.json"):
-                    verbose(f"Using state at '{latest_json}'.")
+            if with_initial_state is None and (
+                latest_json := get_latest_file(self.run_dir, "state_out.json")
+            ):
+                verbose(f"Using state at '{latest_json}'.")
 
-                    initial_state = State.loads(
-                        open(latest_json, encoding="utf8").read()
-                    )
+                with open(latest_json, encoding="utf8") as f:
+                    initial_state = State.loads(f.read())
 
         except NotADirectoryError:
             raise FlowException(
@@ -706,7 +699,7 @@ class Flow(ABC):
         self,
         initial_state: State,
         **kwargs,
-    ) -> Tuple[State, List[Step]]:
+    ) -> tuple[State, list[Step]]:
         """
         The core of the Flow. Subclasses of flow are expected to override this
         method.
@@ -714,7 +707,6 @@ class Flow(ABC):
         :param initial_state: An initial state object to use.
         :returns: A tuple of states and instantiated step objects for inspection.
         """
-        pass
 
     @protected
     def dir_for_step(self, step: Step) -> str:
@@ -789,7 +781,7 @@ class Flow(ABC):
 
         return get_tpe().submit(step.start, *args, **kwargs)
 
-    def _save_snapshot_ef(self, path: Union[str, os.PathLike]):
+    def _save_snapshot_ef(self, path: str | os.PathLike):
         if (
             self.step_objects is None
             or self.toolbox is None
@@ -839,9 +831,9 @@ class Flow(ABC):
             target_dir = os.path.join(path, subdirectory)
             if not isinstance(value, Path):
                 if isinstance(value, dict):
-                    assert (
-                        self.toolbox is not None
-                    ), "toolbox check was not executed properly"
+                    assert self.toolbox is not None, (
+                        "toolbox check was not executed properly"
+                    )
                     default_corner_view = self.toolbox.filter_views(self.config, value)
                     default_corner_target_dir = os.path.dirname(target_dir)
                     mkdirp(default_corner_target_dir)
@@ -923,18 +915,16 @@ class Flow(ABC):
                             "<!-- Despite the name, this is the Magic DRC report in KLayout format. -->\n"
                         )
                         shutil.copyfileobj(i, o)
-            if step_imp_id == "Netgen.LVS":
-                if lvs_rpt := find_one(os.path.join(reports_dir, "*.rpt")):
-                    shutil.copyfile(
-                        lvs_rpt, os.path.join(openlane_signoff_dir, "lvs.rpt")
-                    )
-            if step_imp_id.endswith("DRC") or step_imp_id.endswith("LVS"):
+            if step_imp_id == "Netgen.LVS" and (
+                lvs_rpt := find_one(os.path.join(reports_dir, "*.rpt"))
+            ):
+                shutil.copyfile(lvs_rpt, os.path.join(openlane_signoff_dir, "lvs.rpt"))
+            if step_imp_id.endswith(("DRC", "LVS")):
                 copy_dir_contents(step.step_dir, openlane_signoff_dir, "*.log")
-            if step_imp_id.endswith("CheckAntennas"):
-                if os.path.exists(reports_dir):
-                    copy_dir_contents(
-                        reports_dir, openlane_signoff_dir, "antenna_summary.rpt"
-                    )
+            if step_imp_id.endswith("CheckAntennas") and os.path.exists(reports_dir):
+                copy_dir_contents(
+                    reports_dir, openlane_signoff_dir, "antenna_summary.rpt"
+                )
             if step_imp_id.endswith("STAPostPNR"):
                 timing_report_folder = os.path.join(
                     openlane_signoff_dir, "timing-reports"
@@ -997,7 +987,7 @@ class Flow(ABC):
         """
         self.progress_bar.end_stage(increment_ordinal=increment_ordinal)
 
-    class FlowFactory(object):
+    class FlowFactory:
         """
         A factory singleton for Flows, allowing Flow types to be registered and then
         retrieved by name.
@@ -1007,12 +997,12 @@ class Flow(ABC):
         for a primer.
         """
 
-        __registry: ClassVar[Dict[str, Type[Flow]]] = {}
+        __registry: ClassVar[dict[str, type[Flow]]] = {}
 
         @classmethod
         def register(
-            Self, registered_name: Optional[str] = None
-        ) -> Callable[[Type[Flow]], Type[Flow]]:
+            Self, registered_name: str | None = None
+        ) -> Callable[[type[Flow]], type[Flow]]:
             """
             A decorator that adds a flow type to the registry.
 
@@ -1022,7 +1012,7 @@ class Flow(ABC):
                 class name.
             """
 
-            def decorator(cls: Type[Flow]) -> Type[Flow]:
+            def decorator(cls: type[Flow]) -> type[Flow]:
                 name = cls.__name__
                 if registered_name is not None:
                     name = registered_name
@@ -1032,7 +1022,7 @@ class Flow(ABC):
             return decorator
 
         @classmethod
-        def get(Self, name: str) -> Optional[Type[Flow]]:
+        def get(Self, name: str) -> type[Flow] | None:
             """
             Retrieves a Flow type from the registry using a lookup string.
 
@@ -1041,7 +1031,7 @@ class Flow(ABC):
             return Self.__registry.get(name)
 
         @classmethod
-        def list(Self) -> List[str]:
+        def list(Self) -> builtins.list[str]:
             """
             :returns: A list of strings representing all registered flows.
             """

@@ -14,23 +14,24 @@
 
 ## This file is internal to LibreLane and is not part of the API.
 import os
-import re
-import uuid
-import shlex
 import pathlib
+import re
+import shlex
 import subprocess
-from typing import List, NoReturn, Sequence, Optional, Union, Tuple
+import uuid
+from collections.abc import Sequence
+from typing import NoReturn
 
 import semver
 
 from .common import mkdirp
-from .logging import err, info, warn
 from .env_info import ContainerInfo, OSInfo
+from .logging import err, info, warn
 
 __file_dir__ = os.path.dirname(os.path.abspath(__file__))
 
 
-def permission_args(osinfo: OSInfo) -> List[str]:
+def permission_args(osinfo: OSInfo) -> list[str]:
     if (
         osinfo.kernel == "Linux"
         and isinstance(osinfo.container_info, ContainerInfo)
@@ -45,7 +46,7 @@ def permission_args(osinfo: OSInfo) -> List[str]:
     return []
 
 
-def gui_args(osinfo: OSInfo) -> List[str]:
+def gui_args(osinfo: OSInfo) -> list[str]:
     args = []
     if osinfo.kernel == "Linux":
         if os.environ.get("DISPLAY") is None:
@@ -97,7 +98,7 @@ def ensure_image(ce_path: str, image: str) -> bool:
 dos_path_sep = re.compile(r"\\")
 
 
-def sanitize_path(path: Union[str, os.PathLike]) -> Tuple[str, str]:
+def sanitize_path(path: str | os.PathLike) -> tuple[str, str]:
     """
     :returns: A tuple of:
         - The host path, processed ``abspath``
@@ -115,7 +116,7 @@ def sanitize_path(path: Union[str, os.PathLike]) -> Tuple[str, str]:
     return (abspath, mountable_path)
 
 
-def container_version_error(input: str, against: str) -> Optional[str]:
+def container_version_error(input: str, against: str) -> str | None:
     if input == "UNKNOWN":
         return (
             "Could not determine version for %s. You may encounter unexpected issues."
@@ -134,15 +135,15 @@ def ubuntu_version_at_least(current: str, minimum: str) -> bool:
 def run_in_container(
     image: str,
     args: Sequence[str],
-    pdk_root: Optional[str] = None,
-    pdk: Optional[str] = None,
-    scl: Optional[str] = None,
-    other_mounts: Optional[Sequence[str]] = None,
+    pdk_root: str | None = None,
+    pdk: str | None = None,
+    scl: str | None = None,
+    other_mounts: Sequence[str] | None = None,
     tty: bool = False,
 ) -> NoReturn:
     # If imported at the top level, would interfere with Conda where Volare
     # would not be installed.
-    import ciel
+    import ciel  # noqa: PLC0415
 
     osinfo = OSInfo.get()
     if not osinfo.supported:

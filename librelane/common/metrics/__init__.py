@@ -32,5 +32,15 @@ Classes and functions for dealing with Metrics based on the `METRICS2.1 <https:/
 """
 
 from . import library
-from .metric import MetricAggregator, MetricComparisonResult, Metric
-from .util import parse_metric_modifiers, aggregate_metrics, MetricDiff
+from .metric import Metric, MetricAggregator, MetricComparisonResult
+from .util import MetricDiff, aggregate_metrics, parse_metric_modifiers
+
+__all__ = [
+    "Metric",
+    "MetricAggregator",
+    "MetricComparisonResult",
+    "MetricDiff",
+    "aggregate_metrics",
+    "library",
+    "parse_metric_modifiers",
+]

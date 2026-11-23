@@ -11,19 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import os
 import re
-from typing import ClassVar, Set, Tuple, List
 from decimal import Decimal
-from typing import Optional
+from typing import ClassVar
 
-from .step import ViewsUpdate, MetricsUpdate, Step, StepError, DeferredStepError, State
-
-from ..logging import info, debug, verbose
-from ..config import Variable
 from ..common import Filter, parse_metric_modifiers
+from ..config import Variable
+from ..logging import debug, info, verbose
 from ..state import DesignFormat
+from .step import DeferredStepError, MetricsUpdate, State, Step, StepError, ViewsUpdate
 
 
 @Step.factory.register()
@@ -49,12 +48,12 @@ class NetlistAssignStatements(Step):
         )
     ]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         assign_rx = re.compile(r"^\s*\bassign\b")
         netlist_in = str(state_in[DesignFormat.NETLIST])
         emit_error = self.config["ERROR_ON_NL_ASSIGN_STATEMENTS"]
         found = False
-        with open(netlist_in, "r", encoding="utf8") as f:
+        with open(netlist_in, encoding="utf8") as f:
             for i, line in enumerate(f, start=1):
                 if assign_rx.search(line) is not None:
                     found = True
@@ -77,7 +76,7 @@ class MetricChecker(Step):
     metric_name: ClassVar[str] = NotImplemented
     metric_description: ClassVar[str] = NotImplemented
     deferred: ClassVar[bool] = True
-    error_on_var: Optional[Variable] = None
+    error_on_var: Variable | None = None
 
     def __init_subclass__(cls):
         threshold_string = cls.get_threshold_description(None)
@@ -95,13 +94,13 @@ class MetricChecker(Step):
         cls.__doc__ = dynamic_docstring
         return super().__init_subclass__()
 
-    def get_threshold(self: Optional["MetricChecker"]) -> Optional[Decimal]:
+    def get_threshold(self: MetricChecker | None) -> Decimal | None:
         return Decimal(0)
 
-    def get_threshold_description(self: Optional["MetricChecker"]) -> Optional[str]:
+    def get_threshold_description(self: MetricChecker | None) -> str | None:
         return None
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         threshold = self.get_threshold()
 
         if threshold is None:
@@ -269,19 +268,19 @@ class WireLength(MetricChecker):
         error_on_var,
         Variable(
             "WIRE_LENGTH_THRESHOLD",
-            Optional[Decimal],
+            Decimal | None,
             "A value above which wire lengths generate warnings.",
             units="µm",
             pdk=True,
         ),
     ]
 
-    def get_threshold(self) -> Optional[Decimal]:
+    def get_threshold(self) -> Decimal | None:
         threshold = self.config["WIRE_LENGTH_THRESHOLD"]
         assert threshold is None or isinstance(threshold, Decimal)
         return threshold
 
-    def get_threshold_description(self) -> Optional[str]:
+    def get_threshold_description(self) -> str | None:
         return "the threshold specified in the configuration file."
 
 
@@ -400,7 +399,7 @@ class LintTimingConstructs(MetricChecker):
     )
     config_vars = [error_on_var]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         metric_value = state_in.metrics.get(self.metric_name)
 
         if metric_value is not None:
@@ -496,7 +495,7 @@ class TimingViolations(MetricChecker):
 
     violation_type: str = NotImplemented
     match_none_wildcard = ""
-    corner_override: Optional[List[str]] = None
+    corner_override: list[str] | None = None
     base_corner_var_name = "TIMING_VIOLATION_CORNERS"
 
     def __init_subclass__(cls, **kwargs):
@@ -506,7 +505,7 @@ class TimingViolations(MetricChecker):
         cls.config_vars += [
             Variable(
                 cls.base_corner_var_name,
-                List[str],
+                list[str],
                 "A list of wildcards matching IPVT corners to use during checking for timing violations.",
                 pdk=True,
                 deprecated_names=["TIMING_VIOLATIONS_CORNERS"],
@@ -519,7 +518,7 @@ class TimingViolations(MetricChecker):
         replace_by = cls.violation_type.upper().replace(" ", "_")
         variable = Variable(
             cls.base_corner_var_name.replace("TIMING", replace_by),
-            Optional[List[str]],
+            list[str] | None,
             f"A list of wildcards matching IPVT corners to use during checking for {cls.violation_type} violations.",
             pdk=True,
         )
@@ -543,7 +542,7 @@ class TimingViolations(MetricChecker):
         self,
         metric_basename: str,
         state_in: State,
-        threshold: Optional[Decimal],
+        threshold: Decimal | None,
         violation_type: str,
     ):
         if not threshold:
@@ -559,13 +558,13 @@ class TimingViolations(MetricChecker):
         if not metrics:
             self.warn(f"No metrics found for {metric_basename}.")
         else:
-            metric_corners = set(
-                [parse_metric_modifiers(key)[1]["corner"] for key in metrics.keys()]
-            )
+            metric_corners = {
+                parse_metric_modifiers(key)[1]["corner"] for key in metrics
+            }
 
             all_config_wildcards = set(self.get_corner_wildcards())
             corner_filter = Filter(all_config_wildcards)
-            matched_config_wildcards: Set[str] = set()
+            matched_config_wildcards: set[str] = set()
             for corner in metric_corners:
                 matched_config_wildcards.update(
                     corner_filter.get_matching_wildcards(corner)
@@ -575,13 +574,11 @@ class TimingViolations(MetricChecker):
             matched_corners = set(corner_filter.filter(metric_corners))
             unmatched_corners = metric_corners - matched_corners
 
-            all_violating_corners = set(
-                [
-                    corner
-                    for corner in metric_corners
-                    if metrics[f"{metric_basename}:{corner}"] > threshold
-                ]
-            )
+            all_violating_corners = {
+                corner
+                for corner in metric_corners
+                if metrics[f"{metric_basename}:{corner}"] > threshold
+            }
 
             matched_violating_corners = all_violating_corners.intersection(
                 matched_corners
@@ -629,7 +626,7 @@ class TimingViolations(MetricChecker):
             if err_msg:
                 raise DeferredStepError("\n".join(err_msg))
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         self.check_timing_violations(
             f"{self.metric_name}__corner",
             state_in,

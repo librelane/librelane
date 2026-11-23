@@ -149,10 +149,8 @@
                 pillow
                 mdformat
                 ruff
-                black
                 ipython
                 tokenize-rt
-                flake8
                 mypy
                 types-deprecated
                 types-pyyaml

@@ -15,9 +15,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib.metadata
 import sys
 from pathlib import Path
-import importlib.metadata
 
 __file_dir__ = Path(__file__).absolute().parent
 
@@ -26,7 +26,7 @@ def __get_version(pkg_name: str):
     try:
         return importlib.metadata.version(__package__ or __name__)
     except importlib.metadata.PackageNotFoundError:
-        import re
+        import re  # noqa: PLC0415
 
         rx = re.compile(r"version\s*=\s*\"([^\"]+)\"")
         pyproject_toml_dir = __file_dir__.parent

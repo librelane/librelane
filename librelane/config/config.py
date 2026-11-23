@@ -15,73 +15,43 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import json
-import yaml
-from yamlcore import CCoreLoader
+from __future__ import annotations
+
 import dataclasses
-from glob import glob
-from decimal import Decimal
-from textwrap import dedent
-from functools import lru_cache
+import json
+import os
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
+from glob import glob
+from textwrap import dedent
 from typing import (
     Any,
     ClassVar,
     Literal,
-    Mapping,
-    Tuple,
-    Union,
-    List,
-    Optional,
-    Sequence,
-    Dict,
-    Set,
 )
 
-from .variable import Variable, MissingRequiredVariable
-from .removals import removed_variables
-from .flow import pdk_variables, scl_variables, pad_variables, flow_common_variables
-from .pdk_compat import migrate_old_config
-from .preprocessor import preprocess_dict, Keys as SpecialKeys
-from ..logging import info, warn
+import yaml
+
 from ..__version__ import __version__
 from ..common import (
+    AnyPath,
     GenericDict,
     GenericImmutableDict,
     TclUtils,
-    AnyPath,
     is_string,
+    serialize,
 )
+from ..logging import info, warn
+from .flow import flow_common_variables, pad_variables, pdk_variables, scl_variables
+from .pdk_compat import migrate_old_config
+from .preprocessor import Keys as SpecialKeys
+from .preprocessor import preprocess_dict
+from .removals import removed_variables
+from .variable import MissingRequiredVariable, Variable
 
-AnyConfig = Union[AnyPath, Mapping[str, Any]]
-AnyConfigs = Union[AnyConfig, Sequence[AnyConfig]]
-
-
-class _OpenLaneYAMLLoader(CCoreLoader):
-    def construct_yaml_float(self, node: yaml.ScalarNode) -> Decimal:  # type: ignore
-        value = str(self.construct_scalar(node))
-        value = value.replace("_", "").lower()
-        sign = +1
-        if value[0] == "-":
-            sign = -1
-        if value[0] in "+-":
-            value = value[1:]
-        if value == ".inf":
-            return sign * Decimal("Infinity")
-        elif value == ".nan":
-            return Decimal("nan")
-        else:
-            return sign * Decimal(value)
-
-    def __init__(self, stream) -> None:
-        super().__init__(stream)
-        self.add_constructor(
-            "tag:yaml.org,2002:float",
-            constructor=_OpenLaneYAMLLoader.construct_yaml_float,
-        )
-        # print(list(self.yaml_implicit_resolvers.keys()))
-        # del self.yaml_implicit_resolvers["tag:yaml.org,2002:float"]
+AnyConfig = AnyPath | Mapping[str, Any]
+AnyConfigs = AnyConfig | Sequence[AnyConfig]
 
 
 class UnknownExtensionError(ValueError):
@@ -116,7 +86,7 @@ def _validate_config_file(config: AnyPath) -> Literal["json", "tcl", "yaml"]:
         return "tcl"
     elif config.endswith(".json"):
         return "json"
-    elif config.endswith(".yml") or config.endswith(".yaml"):
+    elif config.endswith((".yml", ".yaml")):
         return "yaml"
     elif os.path.isdir(config):
         raise PassedDirectoryError(config)
@@ -145,9 +115,9 @@ class InvalidConfig(ValueError):
     def __init__(
         self,
         config: str,
-        warnings: List[str],
-        errors: List[str],
-        message: Optional[str] = None,
+        warnings: list[str],
+        errors: list[str],
+        message: str | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -169,14 +139,12 @@ class Meta:
     """
 
     version: int = 1
-    flow: Union[None, str, List[str]] = None
-    substituting_steps: Union[
-        None,
-        Dict[str, Union[str, None]],
-        List[Tuple[str, Union[str, None]]],
-    ] = None
-    step: Union[None, str] = None
-    librelane_version: Union[None, str] = __version__
+    flow: None | str | list[str] = None
+    substituting_steps: None | dict[str, str | None] | list[tuple[str, str | None]] = (
+        None
+    )
+    step: None | str = None
+    librelane_version: None | str = __version__
 
     @classmethod
     def from_dict(Self, meta_dict: dict):
@@ -186,7 +154,7 @@ class Meta:
             del meta_dict_copy["openlane_version"]
         return Self(**meta_dict_copy)
 
-    def copy(self) -> "Meta":
+    def copy(self) -> Meta:
         return dataclasses.replace(self)
 
 
@@ -206,13 +174,13 @@ class Config(GenericImmutableDict[str, Any]):
 
     """
 
-    current_interactive: ClassVar[Optional["Config"]] = None
+    current_interactive: ClassVar[Config | None] = None
     meta: Meta
 
     def __init__(
         self,
         *args,
-        meta: Optional[Meta] = None,
+        meta: Meta | None = None,
         **kwargs,
     ):
         if meta is None:
@@ -222,7 +190,7 @@ class Config(GenericImmutableDict[str, Any]):
 
         super().__init__(*args, **kwargs)
 
-    def copy(self, **overrides) -> "Config":
+    def copy(self, **overrides) -> Config:
         """
         Produces a *shallow* copy of the configuration object.
 
@@ -232,7 +200,7 @@ class Config(GenericImmutableDict[str, Any]):
         """
         return Config(self, meta=self.meta, overrides=overrides)
 
-    def to_raw_dict(self, include_meta: bool = True) -> Dict[str, Any]:
+    def to_raw_dict(self, include_meta: bool = True) -> dict[str, Any]:
         """
         :param include_meta: Whether to include the "meta" object or not
         :returns: A raw dictionary representation including the ``meta`` object.
@@ -259,7 +227,7 @@ class Config(GenericImmutableDict[str, Any]):
         self,
         config_vars: Sequence[Variable],
         include_flow_variables: bool = True,
-    ) -> "Config":
+    ) -> Config:
         """
         Creates a new copy of the configuration object, but only with the
         configuration variables defined by the parameter.
@@ -273,10 +241,10 @@ class Config(GenericImmutableDict[str, Any]):
             set to ``False`` by callers.
         :returns: The new copy
         """
-        variables: Set[str] = set([variable.name for variable in config_vars])
+        variables = {variable.name for variable in config_vars}
         if include_flow_variables:
             variables = variables.union(
-                set([variable.name for variable in flow_common_variables])
+                {variable.name for variable in flow_common_variables}
             )
 
         return Config(
@@ -289,7 +257,7 @@ class Config(GenericImmutableDict[str, Any]):
         config_vars: Sequence[Variable],
         other_inputs: Mapping[str, Any],
         config_quiet: bool = False,
-    ) -> "Config":
+    ) -> Config:
         """
         Creates a new ``Config`` object by copying all values
         from the original in addition to any new variables (and removing
@@ -349,7 +317,7 @@ class Config(GenericImmutableDict[str, Any]):
     def get_meta(
         Self,
         config_in: AnyConfig,
-        flow_override: Optional[str] = None,
+        flow_override: str | None = None,
     ) -> Meta:
         """
         Returns the Meta object of a configuration dictionary or file.
@@ -367,12 +335,9 @@ class Config(GenericImmutableDict[str, Any]):
                 return Meta(version=default_meta_version)
             elif validated_type == "json":
                 default_meta_version = 1
-                config_in = json.load(open(config_in, encoding="utf8"))
+                config_in = serialize.json_loadp(config_in)
             elif validated_type == "yaml":
-                config_in = yaml.load(
-                    open(config_in, encoding="utf8"),
-                    Loader=_OpenLaneYAMLLoader,
-                )
+                config_in = serialize.yaml_loadp(config_in)
 
         assert not isinstance(config_in, str)
         assert not isinstance(config_in, os.PathLike)
@@ -391,11 +356,11 @@ class Config(GenericImmutableDict[str, Any]):
         Self,
         DESIGN_NAME: str,
         PDK: str,
-        STD_CELL_LIBRARY: Optional[str] = None,
-        PAD_CELL_LIBRARY: Optional[str] = None,
-        PDK_ROOT: Optional[str] = None,
+        STD_CELL_LIBRARY: str | None = None,
+        PAD_CELL_LIBRARY: str | None = None,
+        PDK_ROOT: str | None = None,
         **kwargs,
-    ) -> "Config":
+    ) -> Config:
         """
         This constructs a partial configuration object that may be incrementally
         adjusted per-step, and activates LibreLane's **interactive mode**.
@@ -464,14 +429,14 @@ class Config(GenericImmutableDict[str, Any]):
         config_in: AnyConfigs,
         flow_config_vars: Sequence[Variable],
         *,
-        config_override_strings: Optional[Sequence[str]] = None,
-        pdk: Optional[str] = None,
-        pdk_root: Optional[str] = None,
-        scl: Optional[str] = None,
-        pad: Optional[str] = None,
-        design_dir: Optional[str] = None,
+        config_override_strings: Sequence[str] | None = None,
+        pdk: str | None = None,
+        pdk_root: str | None = None,
+        scl: str | None = None,
+        pad: str | None = None,
+        design_dir: str | None = None,
         _load_pdk_configs: bool = True,
-    ) -> Tuple["Config", str]:
+    ) -> tuple[Config, str]:
         """
         Creates a new Config object based on a Tcl file, a JSON file, or a
         dictionary.
@@ -524,7 +489,7 @@ class Config(GenericImmutableDict[str, Any]):
             raise ValueError("The value for config_in must not be empty.")
 
         file_design_dir = None
-        configs_validated: List[AnyConfig] = []
+        configs_validated: list[AnyConfig] = []
         for config in config_in:
             if isinstance(config, Mapping):
                 configs_validated.append(config)
@@ -567,15 +532,9 @@ class Config(GenericImmutableDict[str, Any]):
                         pad=pad,
                     )
                 elif validated_type == "json":
-                    mapping = json.load(
-                        open(config_validated, encoding="utf8"),
-                        parse_float=Decimal,
-                    )
+                    mapping = serialize.json_loadp(config_validated)
                 elif validated_type == "yaml":
-                    mapping = yaml.load(
-                        open(config_validated, encoding="utf8"),
-                        Loader=_OpenLaneYAMLLoader,
-                    )
+                    mapping = serialize.yaml_loadp(config_validated)
 
             assert mapping is not None, "Invalid validated config"
 
@@ -630,9 +589,8 @@ class Config(GenericImmutableDict[str, Any]):
         values_title = (
             "Initial Values" if self == Config.current_interactive else "Values"
         )
-        return (
-            dedent(
-                f"""
+        return dedent(
+            f"""
                 ### {title}
                 #### {values_title}
 
@@ -642,9 +600,7 @@ class Config(GenericImmutableDict[str, Any]):
                 %s
                 ```
                 """
-            )
-            % yaml.safe_dump(json.loads(self.dumps()))
-        )
+        ) % yaml.safe_dump(json.loads(self.dumps()))
 
     ## Private Methods
     @classmethod
@@ -655,19 +611,18 @@ class Config(GenericImmutableDict[str, Any]):
         flow_config_vars: Sequence[Variable],
         *,
         meta: Meta,
-        pdk_root: Optional[str] = None,
-        pdk: Optional[str] = None,
-        scl: Optional[str] = None,
-        pad: Optional[str] = None,
+        pdk_root: str | None = None,
+        pdk: str | None = None,
+        scl: str | None = None,
+        pad: str | None = None,
         full_pdk_warnings: bool = False,
         permissive_typing: bool = False,
         missing_ok: bool = False,
         _load_pdk_configs: bool = True,
-    ) -> "Config":
+    ) -> Config:
         raw = dict(mapping_in)
 
-        if "meta" in raw:
-            del raw["meta"]
+        raw.pop("meta", None)
 
         flow_option_vars = []
         flow_pdk_vars = []
@@ -753,12 +708,13 @@ class Config(GenericImmutableDict[str, Any]):
         config: AnyPath,
         design_dir: str,
         *,
-        pdk_root: Optional[str] = None,
-        pdk: Optional[str] = None,
-        scl: Optional[str] = None,
-        pad: Optional[str] = None,
+        pdk_root: str | None = None,
+        pdk: str | None = None,
+        scl: str | None = None,
+        pad: str | None = None,
     ) -> Mapping[str, Any]:
-        config_str = open(config, encoding="utf8").read()
+        with open(config, encoding="utf8") as f:
+            config_str = f.read()
 
         warn(
             "Support for .tcl configuration files is deprecated. Please migrate to a .json file at your earliest convenience."
@@ -813,11 +769,11 @@ class Config(GenericImmutableDict[str, Any]):
     @classmethod
     def __resolve_pdk_root(
         Self,
-        pdk_root: Optional[str],
+        pdk_root: str | None,
     ) -> str:
         if pdk_root is None:
             try:
-                import ciel
+                import ciel  # noqa: PLC0415
 
                 pdk_root = str(ciel.get_ciel_home(pdk_root))
             except ImportError:
@@ -830,8 +786,8 @@ class Config(GenericImmutableDict[str, Any]):
     @staticmethod
     @lru_cache(1, True)
     def __get_pdk_raw(
-        pdk_root: str, pdk: str, scl: Optional[str], pad: Optional[str]
-    ) -> Tuple[GenericImmutableDict[str, Any], str, str, Optional[str]]:
+        pdk_root: str, pdk: str, scl: str | None, pad: str | None
+    ) -> tuple[GenericImmutableDict[str, Any], str, str, str | None]:
         seed_config: GenericDict[str, Any] = GenericDict(
             {
                 SpecialKeys.pdk_root: pdk_root,
@@ -878,9 +834,9 @@ class Config(GenericImmutableDict[str, Any]):
         pdk_env = TclUtils._eval_env_file(seed_config, pdk_config_path)
 
         scl = pdk_env.get("STD_CELL_LIBRARY", None)
-        assert (
-            scl is not None
-        ), "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
+        assert scl is not None, (
+            "Fatal error: STD_CELL_LIBRARY default value not set by PDK."
+        )
 
         scl_config_path = os.path.join(
             pdkpath, "libs.tech", "librelane", scl, "config.tcl"
@@ -923,12 +879,12 @@ class Config(GenericImmutableDict[str, Any]):
     @staticmethod
     def __get_pdk_config(
         pdk: str,
-        scl: Optional[str],
-        pad: Optional[str],
+        scl: str | None,
+        pad: str | None,
         pdk_root: str,
-        flow_pdk_vars: Optional[List[Variable]] = None,
-        full_pdk_warnings: Optional[bool] = False,
-    ) -> Tuple[GenericDict[str, Any], str, str, Optional[str]]:
+        flow_pdk_vars: list[Variable] | None = None,
+        full_pdk_warnings: bool | None = False,
+    ) -> tuple[GenericDict[str, Any], str, str, str | None]:
         """
         :returns: A tuple of the PDK configuration, the PDK path, the SCL and the PAD.
         """
@@ -948,13 +904,12 @@ class Config(GenericImmutableDict[str, Any]):
         if len(pdk_errors) != 0:
             raise InvalidConfig("PDK configuration files", pdk_warnings, pdk_errors)
 
-        if len(pdk_warnings) > 0:
-            if full_pdk_warnings:
-                info(
-                    "Loading the PDK configuration files has generated the following warnings:"
-                )
-                for warning in pdk_warnings:
-                    warn(warning)
+        if len(pdk_warnings) > 0 and full_pdk_warnings:
+            info(
+                "Loading the PDK configuration files has generated the following warnings:"
+            )
+            for warning in pdk_warnings:
+                warn(warning)
 
         processed["PDK_ROOT"] = pdk_root
         processed["PDK"] = pdk
@@ -963,13 +918,13 @@ class Config(GenericImmutableDict[str, Any]):
 
     def __process_variable_list(
         mutable: GenericDict[str, Any],
-        variables: Sequence["Variable"],
-        removed: Optional[Mapping[str, str]] = None,
+        variables: Sequence[Variable],
+        removed: Mapping[str, str] | None = None,
         *,
-        on_unknown_key: Union[Literal["error", "warn"], None] = "warn",
+        on_unknown_key: Literal["error", "warn"] | None = "warn",
         permissive_typing: bool = False,
         missing_ok: bool = False,
-    ) -> Tuple[GenericDict[str, Any], List[str], List[str]]:
+    ) -> tuple[GenericDict[str, Any], list[str], list[str]]:
         """
         Verifies a configuration object against a list of variables, returning
         an object with the variables normalized according to their types.
@@ -987,7 +942,7 @@ class Config(GenericImmutableDict[str, Any]):
         """
         if removed is None:
             removed = {}
-        warnings: List[str] = []
+        warnings: list[str] = []
         errors = []
         final: GenericDict[str, Any] = GenericDict()
 

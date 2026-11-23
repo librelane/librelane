@@ -19,7 +19,17 @@ An API for implementing new flows using the LibreLane infrastructure, as well
 as a number of built-in flows.
 """
 
-from .flow import FlowError, FlowException, FlowProgressBar, Flow
-from .sequential import SequentialFlow
 from . import builtins
 from .cli import cloup_flow_opts
+from .flow import Flow, FlowError, FlowException, FlowProgressBar
+from .sequential import SequentialFlow
+
+__all__ = [
+    "Flow",
+    "FlowError",
+    "FlowException",
+    "FlowProgressBar",
+    "SequentialFlow",
+    "builtins",
+    "cloup_flow_opts",
+]

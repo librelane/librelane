@@ -15,35 +15,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import io
-import os
-import re
+import fnmatch
 import glob
 import gzip
-import yaml
+import io
+import os
+import pathlib
+import re
 import shutil
 import typing
-import pathlib
-import fnmatch
 import unicodedata
+from collections.abc import Generator, Iterable
 from math import inf
 from typing import (
     IO,
     Any,
-    Generator,
-    Iterable,
-    List,
-    Optional,
     SupportsFloat,
     TypeVar,
-    Union,
 )
 
 import httpx2
+import yaml
 from deprecated.sphinx import deprecated
 
-from ..__version__ import __version__
 from .types import AnyPath, Path
+from ..__version__ import __version__
 from ..logging import err
 
 T = TypeVar("T")
@@ -86,7 +82,7 @@ def get_pdk_hash(pdk_variant) -> str:
     Gets the PDK version hash confirmed compatible with this version of LibreLane.
     """
 
-    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml"), "r") as file:
+    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml")) as file:
         pdk_hashes = yaml.safe_load(file)
         for pdk_family in pdk_hashes:
             if pdk_family in pdk_variant:
@@ -104,9 +100,9 @@ def get_ciel_pdk_hash(pdk_variant: str) -> str:
 
     Requires ciel
     """
-    import ciel
+    import ciel  # noqa: PLC0415
 
-    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml"), "r") as file:
+    with open(os.path.join(get_librelane_root(), "pdk_hashes.yaml")) as file:
         pdk_hashes = yaml.safe_load(file)
 
     pdk_family = ciel.resolve_pdk_family(pdk_variant)
@@ -181,7 +177,7 @@ def protected(method):
         method.__doc__ = ""
     method.__doc__ = "**protected**\n" + method.__doc__
 
-    setattr(method, "protected", True)
+    method.protected = True
     return method
 
 
@@ -213,7 +209,7 @@ final.__doc__ = """A decorator to indicate final methods and final classes.
 """
 
 
-def mkdirp(path: typing.Union[str, os.PathLike]):
+def mkdirp(path: str | os.PathLike):
     """
     Attempts to create a directory and all of its parents.
 
@@ -226,7 +222,7 @@ def mkdirp(path: typing.Union[str, os.PathLike]):
     return pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
 
-class zip_first(object):
+class zip_first:
     """
     Works like ``zip_longest`` if ｜a｜ > ｜b｜ and ``zip`` if ｜a｜ <= ｜b｜.
     """
@@ -291,7 +287,7 @@ def format_elapsed_time(elapsed_seconds: SupportsFloat) -> str:
     return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 
 
-class Filter(object):
+class Filter:
     """
     Encapsulates commonly used wildcard-based filtering functions into an object.
 
@@ -389,7 +385,7 @@ def recreate_tree(
                 shutil.copyfileobj(fi, fo)
 
 
-def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional[Path]:
+def get_latest_file(in_path: str | os.PathLike, filename: str) -> Path | None:
     """
     :param in_path: A directory to search in
     :param filename: The final filename
@@ -407,7 +403,7 @@ def get_latest_file(in_path: Union[str, os.PathLike], filename: str) -> Optional
     return latest_json
 
 
-def get_httpx_session(token: Optional[str] = None) -> httpx2.Client:
+def get_httpx_session(token: str | None = None) -> httpx2.Client:
     """
     Creates an ``httpx`` session client that follows redirects and has the
     User-Agent header set to ``librelane/{__version__}``.
@@ -424,7 +420,7 @@ def get_httpx_session(token: Optional[str] = None) -> httpx2.Client:
     return session
 
 
-def process_list_file(from_file: AnyPath) -> List[str]:
+def process_list_file(from_file: AnyPath) -> list[str]:
     """
     Convenience function to process text files in a ``.gitignore``-style format,
     i.e., those where the lines may be:
@@ -438,14 +434,14 @@ def process_list_file(from_file: AnyPath) -> List[str]:
         prefixed with a ``#`` and empty lines.
     """
     excluded_cells = []
-    list_str = open(str(from_file), encoding="utf8").read()
-    for line in list_str.splitlines():
-        line = line.strip()
-        if line == "":
-            continue
-        if line[0] == "#":
-            continue
-        excluded_cells.append(line)
+    with open(from_file, encoding="utf8") as f:
+        for line in f:
+            line = line.strip()
+            if line == "":
+                continue
+            if line[0] == "#":
+                continue
+            excluded_cells.append(line)
     return excluded_cells
 
 
@@ -470,7 +466,7 @@ def gzopen(filename: AnyPath, mode="rt") -> IO[Any]:
     :returns: An I/O wrapper that may very slightly based on the mode.
     """
     try:
-        g = gzip.open(filename, mode=mode)
+        g = gzip.open(filename, mode=mode)  # noqa: SIM115
         # Incredibly, it won't actually try to figure out if it's a gzipped
         # file until you try to read from it.
         if "r" in mode:

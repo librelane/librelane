@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cloup
+
 from ..common.cli import formatter_settings
 from ..flows import Flow
-from ..steps import Step
 from ..logging import console
-
-import cloup
+from ..steps import Step
 
 
 @cloup.command(formatter_settings=formatter_settings)

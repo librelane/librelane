@@ -13,21 +13,15 @@
 # limitations under the License.
 import re
 import textwrap
-from enum import IntEnum
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import (
-    List,
-    Mapping,
-    Tuple,
-    Dict,
     Any,
-    Iterable,
-    Optional,
-    Union,
 )
 
-from .metric import Metric, MetricAggregator, MetricComparisonResult
 from ..misc import Filter
+from .metric import Metric, MetricAggregator, MetricComparisonResult
 
 modifier_rx = re.compile(r"([\w\-]+)\:([\w\-]+)")
 
@@ -45,7 +39,7 @@ class TableVerbosity(IntEnum):
     ALL = 4
 
 
-def parse_metric_modifiers(metric_name: str) -> Tuple[str, Mapping[str, str]]:
+def parse_metric_modifiers(metric_name: str) -> tuple[str, Mapping[str, str]]:
     """
     Parses a metric name into a base and modifiers as specified in
     the METRICS2.1 naming convention.
@@ -64,10 +58,8 @@ def parse_metric_modifiers(metric_name: str) -> Tuple[str, Mapping[str, str]]:
 
 def aggregate_metrics(
     input: Mapping[str, Any],
-    aggregator_by_metric: Optional[
-        Mapping[str, Union[MetricAggregator, Metric]]
-    ] = None,
-) -> Dict[str, Any]:
+    aggregator_by_metric: Mapping[str, MetricAggregator | Metric] | None = None,
+) -> dict[str, Any]:
     """
     Takes a set of metrics generated according to the METRICS2.1 naming
     convention.
@@ -82,7 +74,7 @@ def aggregate_metrics(
     if aggregator_by_metric is None:
         aggregator_by_metric = Metric.by_name
 
-    aggregated: Dict[str, Any] = {}
+    aggregated: dict[str, Any] = {}
     for name, value in input.items():
         metric_name, modifiers = parse_metric_modifiers(name)
         if len(modifiers) < 1:
@@ -114,7 +106,7 @@ def aggregate_metrics(
     return final_values
 
 
-def _key_from_metrics(fields: Iterable[str], metric: str) -> List[str]:
+def _key_from_metrics(fields: Iterable[str], metric: str) -> list[str]:
     base, modifiers = parse_metric_modifiers(metric)
     result = []
     for field in fields:
@@ -125,7 +117,7 @@ def _key_from_metrics(fields: Iterable[str], metric: str) -> List[str]:
     return result
 
 
-class MetricDiff(object):
+class MetricDiff:
     """
     Aggregates a number of ``MetricComparisonResult`` and allows a number of
     functions to be performed on them.
@@ -152,14 +144,14 @@ class MetricDiff(object):
         critical: int = 0
         unchanged: int = 0
 
-    differences: List[MetricComparisonResult]
+    differences: list[MetricComparisonResult]
 
     def __init__(self, differences: Iterable[MetricComparisonResult]) -> None:
         self.differences = list(differences)
 
     def render_md(
         self,
-        sort_by: Optional[Iterable[str]] = None,
+        sort_by: Iterable[str] | None = None,
         table_verbosity: TableVerbosity = TableVerbosity.ALL,
     ) -> str:
         """
@@ -195,7 +187,7 @@ class MetricDiff(object):
             else:
                 remaining.append(row)
 
-        listed_differences: List[MetricComparisonResult] = []
+        listed_differences: list[MetricComparisonResult] = []
         if table_verbosity >= TableVerbosity.CRITICAL:
             listed_differences += critical
         if table_verbosity >= TableVerbosity.WORSE:
@@ -208,8 +200,8 @@ class MetricDiff(object):
         if len(listed_differences) > 0:
             table = textwrap.dedent(
                 f"""
-                | {'Metric':<70} | {'Before':<10} | {'After':<10} | {'Delta':<20} |
-                | {'-':<70} | {'-':<10} | {'-':<10} | {'-':<20} |
+                | {"Metric":<70} | {"Before":<10} | {"After":<10} | {"Delta":<20} |
+                | {"-":<70} | {"-":<10} | {"-":<10} | {"-":<20} |
                 """
             )
 
@@ -250,7 +242,7 @@ class MetricDiff(object):
         gold: dict,
         new: dict,
         significant_figures: int,
-        filter: Filter = Filter(["*"]),
+        filter: Filter | None = None,
     ) -> "MetricDiff":
         """
         Creates a :class:`MetricDiff` object from two sets of metrics.
@@ -261,6 +253,7 @@ class MetricDiff(object):
             or exclude certain metrics.
         :returns: The aggregate of the differences between gold and good
         """
+        filter = filter or Filter(["*"])
 
         def generator(g, n):
             for metric in filter.filter(sorted(n.keys())):

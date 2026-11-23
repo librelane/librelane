@@ -17,15 +17,15 @@
 # limitations under the License.
 import os
 import sys
-import json
 from decimal import Decimal
 
 import click
 
-from .config import Config
+from ..common.serialize import json_dumpp
+from ..flows.cli import cloup_flow_opts
 from ..flows.flow import universal_flow_config_variables
 from ..steps.yosys import verilog_rtl_cfg_vars
-from ..flows.cli import cloup_flow_opts
+from .config import Config
 
 
 @click.group
@@ -109,12 +109,12 @@ def create_config(
                     exit(1)
                 source_rtl.append(file)
         except EOFError:
-            print("")
+            print()
             if len(source_rtl) == 0:
                 print("At least one source RTL file is required.", file=sys.stderr)
                 exit(1)
     source_rtl_key = "VERILOG_FILES"
-    if not all(file.endswith(".sv") or file.endswith(".v") for file in source_rtl):
+    if not all(file.endswith((".sv", ".v")) for file in source_rtl):
         print(
             "Only Verilog/SystemVerilog files are supported by create-config.",
             file=sys.stderr,
@@ -130,7 +130,9 @@ def create_config(
             "version": 2,
         },
     }
-    config, _ = Config.load(
+
+    # validate
+    _ = Config.load(
         config_dict,
         universal_flow_config_variables + verilog_rtl_cfg_vars,
         design_dir=design_dir,
@@ -138,11 +140,8 @@ def create_config(
         pdk_root=pdk_root,
         scl=scl,
     )
-    with open(file_name, "w") as f:
-        print(
-            json.dumps(config_dict, cls=config.get_encoder(), indent=4),
-            file=f,
-        )
+
+    json_dumpp(config_dict, file_name, indent=4)
 
     design_dir_opt = ""
     if os.path.abspath(design_dir) != os.path.abspath(os.path.dirname(file_name)):

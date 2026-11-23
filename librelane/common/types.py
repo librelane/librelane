@@ -14,22 +14,22 @@
 import os
 import sys
 import tempfile
-from math import isfinite
-from decimal import Decimal
-from weakref import finalize
 from collections import UserString
-from typing import Any, Union, ClassVar, Tuple, Optional
+from decimal import Decimal
+from math import isfinite
+from typing import Any, ClassVar
+from weakref import finalize
 
 
 def is_string(obj: Any) -> bool:
-    return isinstance(obj, str) or isinstance(obj, UserString)
+    return isinstance(obj, (str, UserString))
 
 
-Number = Union[int, float, Decimal]
+Number = int | float | Decimal
 
 
 def is_number(obj: Any) -> bool:
-    return isinstance(obj, int) or isinstance(obj, float) or isinstance(obj, Decimal)
+    return isinstance(obj, (int, float, Decimal))
 
 
 def is_real_number(obj: Any) -> bool:
@@ -69,20 +69,21 @@ class Path(UserString, os.PathLike):
 
     def startswith(
         self,
-        prefix: Union[str, Tuple[str, ...], UserString, os.PathLike],
-        start: Optional[int] = 0,
-        end: Optional[int] = sys.maxsize,
+        prefix: str | tuple[str, ...] | UserString | os.PathLike,
+        start: int | None = 0,
+        end: int | None = sys.maxsize,
     ) -> bool:
-        if isinstance(prefix, UserString) or isinstance(prefix, os.PathLike):
+        if isinstance(prefix, (UserString, os.PathLike)):
             prefix = str(prefix)
         return super().startswith(prefix, start, end)
 
     def rel_if_child(
         self,
-        start: Union[str, os.PathLike] = os.getcwd(),
+        start: str | os.PathLike | None = None,
         *,
         relative_prefix: str = "",
     ) -> "Path":
+        start = start or os.getcwd()
         my_abspath = os.path.abspath(self)
         start_abspath = os.path.abspath(start)
         if my_abspath.startswith(start_abspath):
@@ -97,13 +98,11 @@ class Path(UserString, os.PathLike):
             return ofile.write(data)
 
     def read_text(self, encoding=None, errors=None, newline=None):
-        with open(
-            self, "r", encoding=encoding, errors=errors, newline=newline
-        ) as ifile:
+        with open(self, encoding=encoding, errors=errors, newline=newline) as ifile:
             return ifile.read()
 
 
-AnyPath = Union[str, os.PathLike]
+AnyPath = str | os.PathLike
 
 
 class ScopedFile(Path):
@@ -117,7 +116,7 @@ class ScopedFile(Path):
     """
 
     def __init__(self, *, contents="") -> None:
-        self._ntf = tempfile.NamedTemporaryFile(
+        self._ntf = tempfile.NamedTemporaryFile(  # noqa: SIM115
             "w",
             delete=False,
             encoding="utf8",

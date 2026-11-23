@@ -186,9 +186,7 @@ Additionally, they comes with a common set of `config_vars` required by all invo
 of said tool; you can declare more for your step, however, as shown in this example.:
 
 ```python
-config_vars = OpenROADStep.config_vars + [
-    ...
-]
+config_vars = OpenROADStep.config_vars + [...]
 ```
 
 Be sure to read the subclasses' `run` docstrings as they may contain critical information.

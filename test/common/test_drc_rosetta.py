@@ -13,6 +13,7 @@
 # limitations under the License.
 import io
 from decimal import Decimal
+
 import pytest
 
 pytestmark = pytest.mark.all
@@ -106,7 +107,7 @@ violation type: Metal Spacing
 
 
 def test_magic_drc():
-    from librelane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, BoundingBox, Violation
 
     drc_object, count = DRC.from_magic(io.StringIO(MAGIC_EXAMPLE))
     violations = {
@@ -155,9 +156,9 @@ def test_magic_drc_badrule():
     """
 
     drc_object, _ = DRC.from_magic(io.StringIO(magic_bad_rule_example))
-    assert (
-        drc_object.violations["UNKNOWN.UNKNOWN0"].description == description
-    ), "bad rule name improperly handled"
+    assert drc_object.violations["UNKNOWN.UNKNOWN0"].description == description, (
+        "bad rule name improperly handled"
+    )
 
 
 def test_magic_drc_exceptions():
@@ -185,7 +186,7 @@ def test_magic_drc_exceptions():
 
 
 def test_magic_feedback():
-    from librelane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, BoundingBox, Violation
 
     expected_violations = {
         "obsm4-metal4.ILLEGAL_OVERLAP": Violation(
@@ -349,13 +350,13 @@ def test_magic_feedback():
         io.StringIO(FEEDBACK_EXAMPLE), Decimal("0.05"), "EXAMPLE"
     )
     assert count == 22, "Incorrect number of violations extracted"
-    assert (
-        drc_object.violations == expected_violations
-    ), "Violations extracted have one or more critical data mismatches"
+    assert drc_object.violations == expected_violations, (
+        "Violations extracted have one or more critical data mismatches"
+    )
 
 
 def test_openroad_drc():
-    from librelane.common import DRC, Violation, BoundingBox
+    from librelane.common import DRC, BoundingBox, Violation
 
     drc_object, count = DRC.from_openroad(io.StringIO(OPENROAD_EXAMPLE), "EXAMPLE")
 
@@ -370,7 +371,7 @@ def test_openroad_drc():
                     lly=Decimal("357.6400"),
                     urx=Decimal("312.7150"),
                     ury=Decimal("357.7350"),
-                    info="net:net1599 to " "None",
+                    info="net:net1599 to None",
                 )
             ],
         ),
@@ -383,35 +384,35 @@ def test_openroad_drc():
                     lly=Decimal("346.8900"),
                     urx=Decimal("330.5800"),
                     ury=Decimal("347.0300"),
-                    info="net:_03401_ to " "net:net870",
+                    info="net:_03401_ to net:net870",
                 ),
                 BoundingBox(
                     llx=Decimal("330.4400"),
                     lly=Decimal("346.2200"),
                     urx=Decimal("330.5800"),
                     ury=Decimal("346.3600"),
-                    info="net:_03401_ to " "net:_03430_",
+                    info="net:_03401_ to net:_03430_",
                 ),
                 BoundingBox(
                     llx=Decimal("427.9150"),
                     lly=Decimal("139.5000"),
                     urx=Decimal("428.0550"),
                     ury=Decimal("139.6400"),
-                    info="net:_01612_ to " "net:_01616_",
+                    info="net:_01612_ to net:_01616_",
                 ),
                 BoundingBox(
                     llx=Decimal("330.8250"),
                     lly=Decimal("346.8900"),
                     urx=Decimal("331.1150"),
                     ury=Decimal("347.0300"),
-                    info="net:_03401_ to " "net:net870",
+                    info="net:_03401_ to net:net870",
                 ),
                 BoundingBox(
                     llx=Decimal("330.4400"),
                     lly=Decimal("346.9000"),
                     urx=Decimal("331.1150"),
                     ury=Decimal("347.0300"),
-                    info="net:_03401_ to " "net:net870",
+                    info="net:_03401_ to net:net870",
                 ),
             ],
         ),
@@ -419,8 +420,9 @@ def test_openroad_drc():
 
 
 def test_klayout_xml():
-    from librelane.common import DRC
     from xml.etree import ElementTree as ET
+
+    from librelane.common import DRC
 
     drc_object, _ = DRC.from_magic(io.StringIO(MAGIC_EXAMPLE))
 

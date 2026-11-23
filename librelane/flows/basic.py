@@ -1,7 +1,7 @@
 # Copyright 2026 LibreLane Contributors
 # SPDX-License-Identifier: Apache-2.0
-from .flow import Flow
 from .classic import Classic
+from .flow import Flow
 
 
 @Flow.factory.register()

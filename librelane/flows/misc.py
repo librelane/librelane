@@ -13,9 +13,9 @@
 # limitations under the License.
 from __future__ import annotations
 
+from ..steps import KLayout, Magic, OpenROAD
 from .flow import Flow
 from .sequential import SequentialFlow
-from ..steps import KLayout, OpenROAD, Magic
 
 
 @Flow.factory.register()

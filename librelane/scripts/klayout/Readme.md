@@ -12,6 +12,7 @@ As of KLayout 0.30.13, using the built-in interpreter:
 ```python3
 try:
     import pya
+
     pya.Application.instance().exit(1)
 except AttributeError:
     sys.exit(1)

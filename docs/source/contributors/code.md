@@ -127,13 +127,10 @@ chosen tools (and one optional tool):
   - Kind
   - Command
   - Description
-* - [black](https://github.com/psf/black)
-  - [Formatter](https://en.wikipedia.org/wiki/Prettyprint#Programming_code_formatting)
-  - `black .`
-  - Ensures indentation and whitespace follow a strict standard without having you lift a finger.
-* - [flake8](https://github.com/pycqa/flake8)
-  - [Linter](https://en.wikipedia.org/wiki/Lint_(software)>)
-  - `flake8 .`
+* - [fuff](https://github.com/psf/black)
+  - [Formatter](https://en.wikipedia.org/wiki/Prettyprint#Programming_code_formatting) and [Linter](https://en.wikipedia.org/wiki/Lint_(software)>)
+  - `ruff format . && ruff check --fix .`
+  - Ensures indentation and whitespace follow a strict standard without having you lift a finger, and finds a number of common programming pitfalls.
   - Finds a number of common programming pitfalls.
 * - [mypy](https://github.com/python/mypy)
   - [Type-Checker](https://en.wikipedia.org/wiki/Type_system#Type_checking)

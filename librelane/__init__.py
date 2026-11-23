@@ -33,6 +33,9 @@ using their module name as follows:
         A dictionary of detected LibreLane plugins, with the module name as a key and
         the module version as a version.
 """
-from .plugins import discovered_plugins
+
 from .__version__ import __version__
 from .env_info import env_info_cli
+from .plugins import discovered_plugins
+
+__all__ = ["__version__", "discovered_plugins", "env_info_cli"]

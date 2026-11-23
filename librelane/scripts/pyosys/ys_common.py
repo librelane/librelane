@@ -40,7 +40,7 @@ except ImportError:
         )
         exit(-1)
 
-_yosys_version_extracted: Optional[Tuple[int, int]] = None
+_yosys_version_extracted: Tuple[int, int] | None = None
 
 
 def yosys_version_at_least(*target: Tuple[int, ...]) -> Tuple[int, int]:

@@ -16,8 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import annotations
+
+import builtins
 from dataclasses import dataclass, field, replace
-from typing import Dict, List, Optional, ClassVar
+from typing import ClassVar
+
 from deprecated.sphinx import deprecated
 
 
@@ -57,8 +60,8 @@ class DesignFormat(metaclass=DFMetaclass):
     id: str
     extension: str
     full_name: str
-    alts: List[str] = field(default_factory=list)
-    folder_override: Optional[str] = None
+    alts: list[str] = field(default_factory=list)
+    folder_override: str | None = None
     multiple: bool = False
 
     _instance_optional: bool = False
@@ -104,10 +107,10 @@ class DesignFormat(metaclass=DFMetaclass):
         version="3.0.0",
         action="once",
     )
-    def by_id(id: str) -> Optional["DesignFormat"]:
+    def by_id(id: str) -> DesignFormat | None:
         return DesignFormat.factory.get(id)
 
-    class DesignFormatFactory(object):
+    class DesignFormatFactory:
         """
         A factory singleton for DesignFormats, allowing them to be registered
         and then retrieved by a string name.
@@ -116,7 +119,7 @@ class DesignFormat(metaclass=DFMetaclass):
         a primer.
         """
 
-        _registry: ClassVar[Dict[str, DesignFormat]] = {}
+        _registry: ClassVar[dict[str, DesignFormat]] = {}
 
         @classmethod
         def register(Self, df: DesignFormat) -> DesignFormat:
@@ -131,7 +134,7 @@ class DesignFormat(metaclass=DFMetaclass):
             return df
 
         @classmethod
-        def get(Self, name: str) -> Optional[DesignFormat]:
+        def get(Self, name: str) -> DesignFormat | None:
             """
             Retrieves a DesignFormat type from the registry using a lookup
             string.
@@ -141,7 +144,7 @@ class DesignFormat(metaclass=DFMetaclass):
             return Self._registry.get(name)
 
         @classmethod
-        def list(Self) -> List[str]:
+        def list(Self) -> builtins.list[str]:
             """
             :returns: A list of IDs of all registered DesignFormat.
             """
@@ -149,7 +152,7 @@ class DesignFormat(metaclass=DFMetaclass):
 
     factory: ClassVar = DesignFormatFactory
 
-    def mkOptional(self) -> "DesignFormat":
+    def mkOptional(self) -> DesignFormat:
         return replace(self, _instance_optional=True)
 
 

@@ -11,20 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .flow import Flow
-from .sequential import SequentialFlow
 from ..config import Variable
 from ..steps import (
-    Yosys,
-    OpenROAD,
-    Magic,
-    KLayout,
-    Odb,
-    Netgen,
     Checker,
-    Verilator,
+    KLayout,
+    Magic,
     Misc,
+    Netgen,
+    Odb,
+    OpenROAD,
+    Verilator,
+    Yosys,
 )
+from .flow import Flow
+from .sequential import SequentialFlow
 
 
 @Flow.factory.register()

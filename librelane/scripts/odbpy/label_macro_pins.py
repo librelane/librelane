@@ -231,9 +231,9 @@ def label_macro_pins(
             for mapping in sublist
         }
     )
-    assert pad_pins_to_label_count == len(
-        bterms
-    ), f"Some pins were not going to be labeled {pad_pins_to_label_count}/{len(bterms)}"
+    assert pad_pins_to_label_count == len(bterms), (
+        f"Some pins were not going to be labeled {pad_pins_to_label_count}/{len(bterms)}"
+    )
 
     print("Labeling", len(pad_pin_map), "pads")
     print("Labeling", pad_pins_to_label_count, "pad pins")

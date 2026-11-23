@@ -13,38 +13,26 @@
 # limitations under the License.
 from __future__ import annotations
 
-import os
 import fnmatch
-from typing import (
-    Iterable,
-    List,
-    Set,
-    Tuple,
-    Optional,
-    Type,
-    Dict,
-    Union,
-)
+import os
+from collections.abc import Iterable
 
 from deprecated.sphinx import deprecated
-from rapidfuzz import process, fuzz, utils
+from rapidfuzz import fuzz, process, utils
 
-from .flow import Flow, FlowException, FlowError
 from ..common import Filter
+from ..logging import debug, info, success
 from ..state import State
-from ..logging import info, success, debug
 from ..steps import (
+    DeferredStepError,
     Step,
     StepError,
     StepException,
-    DeferredStepError,
 )
+from .flow import Flow, FlowError, FlowException
 
-Substitution = Union[str, Type[Step], None]
-SubstitutionsObject = Union[
-    Dict[str, Substitution],
-    List[Tuple[str, Substitution]],
-]
+Substitution = str | type[Step] | None
+SubstitutionsObject = dict[str, Substitution] | list[tuple[str, Substitution]]
 
 
 class SequentialFlow(Flow):
@@ -100,8 +88,8 @@ class SequentialFlow(Flow):
         ``-2`` shall become ``-1``, for example.
     """
 
-    Substitutions: Optional[SubstitutionsObject] = None
-    gating_config_vars: Dict[str, List[str]] = {}
+    Substitutions: SubstitutionsObject | None = None
+    gating_config_vars: dict[str, list[str]] = {}
 
     def __init__(
         self,
@@ -146,7 +134,7 @@ class SequentialFlow(Flow):
                     )
 
     @classmethod
-    def Make(Self, step_ids: List[str]) -> Type[SequentialFlow]:
+    def Make(Self, step_ids: list[str]) -> type[SequentialFlow]:
         Step_list = []
         for name in step_ids:
             step = Step.factory.get(name)
@@ -166,11 +154,11 @@ class SequentialFlow(Flow):
         version="3.0.0",
         action="once",
     )
-    def make(Self, step_ids: List[str]) -> Type[SequentialFlow]:
+    def make(Self, step_ids: list[str]) -> type[SequentialFlow]:
         return Self.Make(step_ids)
 
     @classmethod
-    def Substitute(Self, Substitutions: SubstitutionsObject) -> Type[SequentialFlow]:
+    def Substitute(Self, Substitutions: SubstitutionsObject) -> type[SequentialFlow]:
         """
         Convenience method to quickly subclass a sequential flow and add
         Substitutions to it.
@@ -183,8 +171,8 @@ class SequentialFlow(Flow):
 
     @staticmethod
     def __substitute_in_place(
-        target: Type[SequentialFlow],
-        Substitutions: Optional[SubstitutionsObject],
+        target: type[SequentialFlow],
+        Substitutions: SubstitutionsObject | None,
     ):
         if Substitutions is None:
             return Substitutions
@@ -197,11 +185,11 @@ class SequentialFlow(Flow):
 
     @staticmethod
     def __substitute_step(
-        target: Union[SequentialFlow, Type[SequentialFlow]],
+        target: SequentialFlow | type[SequentialFlow],
         id: str,
-        with_step: Union[str, Type[Step], None],
+        with_step: str | type[Step] | None,
     ):
-        step_indices: List[int] = []
+        step_indices: list[int] = []
         mode = "replace"
         if id.startswith("+"):
             id = id[1:]
@@ -252,8 +240,8 @@ class SequentialFlow(Flow):
         target.__normalize_step_ids(target)
 
     @staticmethod
-    def __normalize_step_ids(target: Union[SequentialFlow, Type[SequentialFlow]]):
-        ids_used: Set[str] = set()
+    def __normalize_step_ids(target: SequentialFlow | type[SequentialFlow]):
+        ids_used: set[str] = set()
 
         for i, step in enumerate(target.Steps):
             counter = 0
@@ -273,17 +261,17 @@ class SequentialFlow(Flow):
     def run(
         self,
         initial_state: State,
-        frm: Optional[str] = None,
-        to: Optional[str] = None,
-        skip: Optional[Iterable[str]] = None,
-        reproducible: Optional[str] = None,
+        frm: str | None = None,
+        to: str | None = None,
+        skip: Iterable[str] | None = None,
+        reproducible: str | None = None,
         **kwargs,
-    ) -> Tuple[State, List[Step]]:
+    ) -> tuple[State, list[Step]]:
         debug(f"Starting run ▶ '{self.run_dir}'")
         step_ids = {cls.id.lower(): cls.id for cls in reversed(self.Steps)}
-        skipped_ids: List[str] = []
+        skipped_ids: list[str] = []
 
-        def resolve_step(matchable: Optional[str], multiple_ok: bool = False):
+        def resolve_step(matchable: str | None, multiple_ok: bool = False):
             nonlocal step_ids
             dangerous_fuzzy_matching = (
                 os.getenv(
@@ -341,7 +329,7 @@ class SequentialFlow(Flow):
         executing = frm is None
         deferred_errors = []
 
-        gating_cvars_expanded: Dict[str, List[str]] = {}
+        gating_cvars_expanded: dict[str, list[str]] = {}
         for key, value in self.gating_config_vars.items():
             if key in step_ids.values():
                 gating_cvars_expanded[key] = value

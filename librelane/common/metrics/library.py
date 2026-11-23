@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .metric import Metric, sum_aggregator, min_aggregator, max_aggregator
+from .metric import Metric, max_aggregator, min_aggregator, sum_aggregator
 
 # Area and Counts
 Metric(

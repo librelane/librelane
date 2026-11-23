@@ -13,33 +13,32 @@
 # limitations under the License.
 from __future__ import annotations
 
+import csv
 import io
 import os
-import csv
-import sys
-import json
 import shutil
-from decimal import Decimal
-from typing import Callable, List, Mapping, Tuple, Union, Optional, Dict, Any
+import sys
+from collections.abc import Callable, Mapping
+from typing import Any
 
+from ..common import (
+    GenericImmutableDict,
+    Path,
+    copy_recursive,
+    mkdirp,
+)
+from ..common.serialize import JSONError, json_loads
+from ..logging import info
 from .design_format import (
     DesignFormat,
 )
-
-from ..common import (
-    Path,
-    GenericImmutableDict,
-    mkdirp,
-    copy_recursive,
-)
-from ..logging import info
 
 
 class InvalidState(RuntimeError):
     pass
 
 
-StateElement = Union[Path, List[Path], Dict[str, Union[Path, List[Path]]], None]
+StateElement = Path | list[Path] | dict[str, Path | list[Path]] | None
 
 
 class State(GenericImmutableDict[str, StateElement]):
@@ -78,17 +77,17 @@ class State(GenericImmutableDict[str, StateElement]):
 
     def __init__(
         self,
-        copying: Optional[
-            Union[Mapping[str, StateElement], Mapping[DesignFormat, StateElement]]
-        ] = None,
+        copying: Mapping[str, StateElement]
+        | Mapping[DesignFormat, StateElement]
+        | None = None,
         *args,
-        overrides: Optional[
-            Union[Mapping[str, StateElement], Mapping[DesignFormat, StateElement]]
-        ] = None,
-        metrics: Optional[Mapping[str, Any]] = None,
+        overrides: Mapping[str, StateElement]
+        | Mapping[DesignFormat, StateElement]
+        | None = None,
+        metrics: Mapping[str, Any] | None = None,
         **kwargs,
     ) -> None:
-        copying_resolved: Dict[str, StateElement] = {}
+        copying_resolved: dict[str, StateElement] = {}
         if c_mapping := copying:
             for key, value in c_mapping.items():
                 if isinstance(key, DesignFormat):
@@ -118,31 +117,31 @@ class State(GenericImmutableDict[str, StateElement]):
     def get_by_df(self, key: DesignFormat) -> StateElement:
         return self.get(key.id)
 
-    def __getitem__(self, key: Union[DesignFormat, str]) -> StateElement:
+    def __getitem__(self, key: DesignFormat | str) -> StateElement:
         if isinstance(key, DesignFormat):
             id: str = key.id
             key = id
         return super().__getitem__(key)
 
-    def __setitem__(self, key: Union[DesignFormat, str], item: StateElement):
+    def __setitem__(self, key: DesignFormat | str, item: StateElement):
         if isinstance(key, DesignFormat):
             id: str = key.id
             key = id
         return super().__setitem__(key, item)
 
-    def __delitem__(self, key: Union[DesignFormat, str]):
+    def __delitem__(self, key: DesignFormat | str):
         if isinstance(key, DesignFormat):
             id: str = key.id
             key = id
         return super().__delitem__(key)
 
-    def to_raw_dict(self, metrics: bool = True) -> Dict[str, Any]:
+    def to_raw_dict(self, metrics: bool = True) -> dict[str, Any]:
         final = super().to_raw_dict()
         if metrics:
             final["metrics"] = self.metrics.to_raw_dict()
         return final
 
-    def copy(self: "State") -> "State":
+    def copy(self: State) -> State:
         metrics: GenericImmutableDict[str, Any] = GenericImmutableDict(
             copy_recursive(self.metrics)
         )
@@ -151,12 +150,12 @@ class State(GenericImmutableDict[str, StateElement]):
 
     def _walk(
         self,
-        views: Union[Dict, "State"],
-        save_directory: Union[str, os.PathLike],
+        views: dict | State,
+        save_directory: str | os.PathLike,
         visit: Callable[[str, StateElement, str, str, int], StateElement],
         key_path: str = "",
         depth: int = 0,
-        top_key: Optional[str] = None,
+        top_key: str | None = None,
     ):
         for key, value in views.items():
             current_top_key = top_key
@@ -190,7 +189,7 @@ class State(GenericImmutableDict[str, StateElement]):
                         depth + 1,
                     )
 
-    def save_snapshot(self, path: Union[str, os.PathLike]):
+    def save_snapshot(self, path: str | os.PathLike):
         """
         Validates the current state then saves all views to a folder by
         design format, including the metrics.
@@ -218,7 +217,7 @@ class State(GenericImmutableDict[str, StateElement]):
             f.write(self.metrics.dumps())
 
     def metrics_to_csv(
-        self, fp: io.TextIOWrapper, metrics_object: Optional[Dict[str, Any]] = None
+        self, fp: io.TextIOWrapper, metrics_object: dict[str, Any] | None = None
     ):
         w = csv.writer(fp)
         w.writerow(("Metric", "Value"))
@@ -241,11 +240,7 @@ class State(GenericImmutableDict[str, StateElement]):
                 )
             if value is None:
                 return
-            if not (
-                isinstance(value, Path)
-                or isinstance(value, dict)
-                or isinstance(value, list)
-            ):
+            if not isinstance(value, (Path, dict, list)):
                 raise InvalidState(
                     f"Value at '{key}' is not a Path nor a dictionary/list of Paths: '{value}'."
                 )
@@ -255,7 +250,7 @@ class State(GenericImmutableDict[str, StateElement]):
     @classmethod
     def __load_recursive(
         Self,
-        views: Dict,
+        views: dict,
         validate_path: bool = True,
         key_path: str = "",
     ) -> dict:
@@ -289,7 +284,7 @@ class State(GenericImmutableDict[str, StateElement]):
         return target
 
     @classmethod
-    def load(Self, dict_in: dict, validate_path: bool = True) -> "State":
+    def load(Self, dict_in: dict, validate_path: bool = True) -> State:
         metrics = dict_in.get("metrics")
         if metrics is not None:
             del dict_in["metrics"]
@@ -298,10 +293,10 @@ class State(GenericImmutableDict[str, StateElement]):
         return Self(views, metrics=metrics)
 
     @classmethod
-    def loads(Self, json_in: str, validate_path: bool = True) -> "State":
+    def loads(Self, json_in: str, validate_path: bool = True) -> State:
         try:
-            raw = json.loads(json_in, parse_float=Decimal)
-        except json.JSONDecodeError as e:
+            raw = json_loads(json_in)
+        except JSONError as e:
             raise InvalidState(f"Invalid JSON string provided for state: {e}")
 
         if not isinstance(raw, dict):
@@ -312,7 +307,7 @@ class State(GenericImmutableDict[str, StateElement]):
     def __mapping_to_html_rec(
         self,
         mapping: Mapping[str, Any],
-        header_optional: Optional[Tuple[str, str]] = None,
+        header_optional: tuple[str, str] | None = None,
     ):
         result = """
         <table style="grid-column-start: 1; grid-column-end: 2; ">

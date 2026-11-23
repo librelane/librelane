@@ -15,7 +15,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tkinter
 
 import pytest
 
@@ -28,9 +27,9 @@ mock_variables = pytest.mock_variables
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
-def test_tclstep_init(mock_config):  # noqa: F811
-    from librelane.steps import TclStep
+def test_tclstep_init(mock_config):
     from librelane.state import DesignFormat, State
+    from librelane.steps import TclStep
 
     class TclStepTest(TclStep):
         inputs = []
@@ -45,9 +44,9 @@ def test_tclstep_init(mock_config):  # noqa: F811
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
-def test_tclstep_get_command(mock_config):  # noqa: F811
-    from librelane.steps import TclStep
+def test_tclstep_get_command(mock_config):
     from librelane.state import DesignFormat, State
+    from librelane.steps import TclStep
 
     class TclStepTest(TclStep):
         inputs = []
@@ -64,10 +63,10 @@ def test_tclstep_get_command(mock_config):  # noqa: F811
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
-def test_env(mock_config):  # noqa: F811
-    from librelane.steps import TclStep
-    from librelane.state import DesignFormat, State
+def test_env(mock_config):
     from librelane.common import TclUtils
+    from librelane.state import DesignFormat, State
+    from librelane.steps import TclStep
 
     script_path = "/dummy_path"
     state_in = State({DesignFormat.NETLIST: "abc"})
@@ -83,14 +82,14 @@ def test_env(mock_config):  # noqa: F811
 
     step = TclStepTest(config=mock_config, state_in=state_in)
     env = step.prepare_env({}, state_in)
-    assert (
-        env["STEP_DIR"] == TclStepTest.step_dir
-    ), "Wrong prepared env. Bad STEP_DIR value"
+    assert env["STEP_DIR"] == TclStepTest.step_dir, (
+        "Wrong prepared env. Bad STEP_DIR value"
+    )
     assert env["CURRENT_NL"] == "abc", "Wrong prepared env. Bad CURRENT_ input"
     assert "SAVE_NL" in env, "Wrong prepared env. SAVE_NL missing"
     for var in mock_config:
         if mock_config[var] is not None:
             assert var in env, "Wrong prepared env. Missing config variable"
-            assert env[var] == TclUtils.value_to_tcl(
-                mock_config[var]
-            ), "Wrong prepared env. Mismatching configuration variable"
+            assert env[var] == TclUtils.value_to_tcl(mock_config[var]), (
+                "Wrong prepared env. Mismatching configuration variable"
+            )

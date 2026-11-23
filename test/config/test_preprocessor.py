@@ -15,7 +15,6 @@ import os
 from decimal import Decimal
 
 import pytest
-from librelane.config.variable import Instance, InstanceArray, Macro
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 pytestmark = pytest.mark.all
@@ -38,16 +37,16 @@ def test_expr():
 
     assert Expr.evaluate("5 + 4 * (2 + 1)", {}) == 17, "Order of evaluation failure"
 
-    assert (
-        Expr.evaluate("5 + 4 * (2 + $A)", {"A": 20}) == 93
-    ), "Variable dereferencing failure"
+    assert Expr.evaluate("5 + 4 * (2 + $A)", {"A": 20}) == 93, (
+        "Variable dereferencing failure"
+    )
 
-    assert (
-        Expr.evaluate("5 + 4 * (2 + $A[0].B)", {"A[0].B": 1}) == 17
-    ), "Deep variable dereferencing failure"
+    assert Expr.evaluate("5 + 4 * (2 + $A[0].B)", {"A[0].B": 1}) == 17, (
+        "Deep variable dereferencing failure"
+    )
 
     with pytest.raises(TypeError, match="valid numeric"):
-        Expr.evaluate("5 + 4 * (2 + $A)", {"A": "20"}) == 93
+        Expr.evaluate("5 + 4 * (2 + $A)", {"A": "20"})
 
     with pytest.raises(ValueError, match="is empty"):
         Expr.evaluate("", {})
@@ -73,16 +72,16 @@ def test_process_string():
 
     assert process_string(
         "refg::$DESIGN_DIR/src/a*.v", {"DESIGN_DIR": "/cwd"}
-    ) == process_string(
-        "dir::src/a*.v", {"DESIGN_DIR": "/cwd"}
-    ), "dir:: doesn't match refg::$DESIGN_DIR"
+    ) == process_string("dir::src/a*.v", {"DESIGN_DIR": "/cwd"}), (
+        "dir:: doesn't match refg::$DESIGN_DIR"
+    )
 
-    assert process_string("refg::$A/*", {"A": "B"}) == [
-        "B/*"
-    ], "refg:: on non-existent directory not working"
-    assert process_string("refg::$A", {"A": "B"}) == [
-        "B"
-    ], "refg:: without asterisks or ? did not return the same file path"
+    assert process_string("refg::$A/*", {"A": "B"}) == ["B/*"], (
+        "refg:: on non-existent directory not working"
+    )
+    assert process_string("refg::$A", {"A": "B"}) == ["B"], (
+        "refg:: without asterisks or ? did not return the same file path"
+    )
 
 
 def test_process_string_inline_expr():
@@ -134,13 +133,13 @@ def test_process_info_extraction():
         only_extract_process_info=True,
     )
 
-    assert (
-        process_info["PDK"] == "sky130A"
-    ), "Failed to properly extract PDK info from config"
+    assert process_info["PDK"] == "sky130A", (
+        "Failed to properly extract PDK info from config"
+    )
 
-    assert (
-        process_info["STD_CELL_LIBRARY"] == "sky130_fd_sc_hd"
-    ), "Failed to properly extract PDK info from config"
+    assert process_info["STD_CELL_LIBRARY"] == "sky130_fd_sc_hd", (
+        "Failed to properly extract PDK info from config"
+    )
 
 
 def test_preprocess_dict():
@@ -168,7 +167,7 @@ def test_preprocess_dict():
                 "instances": {
                     "spm_inst_0": {"location": [10, 150], "orientation": "N"},
                     "spm_inst_1": {
-                        "location": [Decimal("150"), 150.0],
+                        "location": [Decimal(150), 150.0],
                         "orientation": "N",
                     },
                 },

@@ -13,20 +13,18 @@
 # limitations under the License.
 import os
 import shutil
-from typing import Optional, Tuple
 
-from .step import ViewsUpdate, MetricsUpdate, Step
-
+from ..common import Path, _get_process_limit
 from ..config import Variable
 from ..state import DesignFormat, State
-from ..common import Path, _get_process_limit
+from .step import MetricsUpdate, Step, ViewsUpdate
 
 
 class GdsfillStep(Step):
     config_vars = [
         Variable(
             "GDSFILL_CONFIG",
-            Optional[Path],
+            Path | None,
             "Path to gdsfill configuration file. If not provided, default settings will be used.",
             pdk=True,
         )
@@ -48,7 +46,7 @@ class Filler(GdsfillStep):
 
     config_vars = GdsfillStep.config_vars + []
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         env["RAYON_NUM_THREADS"] = str(_get_process_limit())
 

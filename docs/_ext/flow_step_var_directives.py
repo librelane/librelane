@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +13,16 @@
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
-from docutils import nodes
-from sphinx.application import Sphinx
-from docutils.parsers.rst.states import Struct
 import re
 
+from docutils import nodes
+from docutils.parsers.rst.states import Struct
+from sphinx.application import Sphinx
+
 from librelane.common import slugify
+from librelane.config import universal_flow_config_variables
 from librelane.flows import Flow
 from librelane.steps import Step
-from librelane.config import universal_flow_config_variables
 
 custom_text_rx = re.compile(r"([\s\S]+)\s+\<([A-Za-z_\-\.:]+)\>")
 

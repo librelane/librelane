@@ -264,9 +264,9 @@ def test_pdk_migration_basics():
             "TECH_LEF_MAX",
             "SYNTH_CAP_LOAD",
         ]:
-            assert (
-                bad_variable not in pdk_migrated
-            ), f"OL2-incompatible variable {bad_variable} survived migration script for {pdk_name}"
+            assert bad_variable not in pdk_migrated, (
+                f"OL2-incompatible variable {bad_variable} survived migration script for {pdk_name}"
+            )
 
         for cell_variable in [
             "SYNTH_DRIVING_CELL",
@@ -274,10 +274,10 @@ def test_pdk_migration_basics():
             "SYNTH_BUFFER_CELL",
             "DIODE_CELL",
         ]:
-            assert (
-                cell_variable in pdk_migrated
-            ), f"required variable {cell_variable} missing from migrated object for sky130"
+            assert cell_variable in pdk_migrated, (
+                f"required variable {cell_variable} missing from migrated object for sky130"
+            )
 
-            assert (
-                "/" in pdk_migrated[cell_variable]
-            ), f"required variable {cell_variable} has invalid value: {pdk_migrated[cell_variable]}"
+            assert "/" in pdk_migrated[cell_variable], (
+                f"required variable {cell_variable} has invalid value: {pdk_migrated[cell_variable]}"
+            )

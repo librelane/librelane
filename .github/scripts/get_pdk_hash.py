@@ -2,8 +2,9 @@
 # Copyright (c) 2025 LibreLane Contributors
 # SPDX-License-Identifier: Apache-2.0
 import sys
-import yaml
+
 import click
+import yaml
 
 
 @click.command()
@@ -14,7 +15,7 @@ def get_pdk_hash(filename, pdk_family):
     Prints the hash of the PDK family in filename.
     """
 
-    with open(filename, "r") as file:
+    with open(filename) as file:
         pdk_hashes = yaml.safe_load(file)
 
         if pdk_family in pdk_hashes:

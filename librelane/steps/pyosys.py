@@ -15,27 +15,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import fnmatch
+import io
 import os
 import re
-import io
 import shlex
+import shutil
 import site
 import subprocess
 import sys
-import json
-import fnmatch
-import shutil
-from decimal import Decimal
 from abc import abstractmethod
-from typing import ClassVar, List, Literal, Optional, Set, Tuple
+from typing import ClassVar, Literal
 
-from .common import PythonLaunchInfo
-from .step import StepException, ViewsUpdate, MetricsUpdate, Step
+from librelane.common.serialize.json import json_dumpp, json_loadp
 
-from ..config import Variable
-from ..state import State, DesignFormat
-from ..logging import debug, verbose
 from ..common import Path, get_script_dir, process_list_file
+from ..config import Variable
+from ..logging import debug, verbose
+from ..state import DesignFormat, State
+from .common import PythonLaunchInfo
+from .step import MetricsUpdate, Step, StepException, ViewsUpdate
 
 starts_with_whitespace = re.compile(r"^\s+.+$")
 
@@ -43,8 +42,8 @@ yosys_cell_rx = r"cell\s+\S+\s+\((\S+)\)"
 
 
 def _check_any_tristate(
-    cells: List[str],
-    tristate_patterns: List[str],
+    cells: list[str],
+    tristate_patterns: list[str],
 ):
     for cell in cells:
         for tristate_pattern in tristate_patterns:
@@ -56,7 +55,7 @@ def _check_any_tristate(
 
 def _parse_yosys_check(
     report: io.TextIOBase,
-    tristate_patterns: Optional[List[str]] = None,
+    tristate_patterns: list[str] | None = None,
     tristate_okay: bool = False,
     elaborate_only: bool = False,
 ) -> int:
@@ -68,7 +67,7 @@ def _parse_yosys_check(
     tristate_patterns = tristate_patterns or []
 
     for line in report:
-        if line.startswith("Warning:") or line.startswith("Found and reported"):
+        if line.startswith(("Warning:", "Found and reported")):
             last_warning = current_warning
             current_warning = line
             if last_warning is None:
@@ -102,30 +101,30 @@ def _parse_yosys_check(
 verilog_rtl_cfg_vars = [
     Variable(
         "VERILOG_FILES",
-        List[Path],
+        list[Path],
         "The paths of the design's Verilog files.",
     ),
     Variable(
         "VERILOG_DEFINES",
-        Optional[List[str]],
+        list[str] | None,
         "Preprocessor defines for input Verilog files.",
         deprecated_names=["SYNTH_DEFINES"],
     ),
     Variable(
         "VERILOG_POWER_DEFINE",
-        Optional[str],
+        str | None,
         "Specifies the name of the define used to guard power and ground connections in the input RTL.",
         deprecated_names=["SYNTH_USE_PG_PINS_DEFINES", "SYNTH_POWER_DEFINE"],
         default="USE_POWER_PINS",
     ),
     Variable(
         "VERILOG_INCLUDE_DIRS",
-        Optional[List[Path]],
+        list[Path] | None,
         "Specifies the Verilog `include` directories.",
     ),
     Variable(
         "SYNTH_PARAMETERS",
-        Optional[List[str]],
+        list[str] | None,
         "Key-value pairs to be `chparam`ed in Yosys, in the format `key1=value1`.",
     ),
     Variable(
@@ -137,7 +136,7 @@ verilog_rtl_cfg_vars = [
     ),
     Variable(
         "SLANG_ARGUMENTS",
-        Optional[List[str]],
+        list[str] | None,
         "Pass arguments to the Slang frontend.",
     ),
 ]
@@ -150,9 +149,7 @@ DesignFormat(
 ).register()
 
 
-def _validate_icg(
-    variable: Variable, input: Optional[str], warning_list_ref: List[str]
-):
+def _validate_icg(variable: Variable, input: str | None, warning_list_ref: list[str]):
     if input is not None:
         components = input.split("/")
         if len(components) != 4:
@@ -166,61 +163,61 @@ class PyosysStep(Step):
     config_vars = [
         Variable(
             "SYNTH_LATCH_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the latch mapping for Yosys.",
             pdk=True,
         ),
         Variable(
             "SYNTH_TRISTATE_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the tri-state buffer mapping for Yosys.",
             deprecated_names=["TRISTATE_BUFFER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_CSA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the carry-select adder mapping for Yosys.",
             deprecated_names=["CARRY_SELECT_ADDER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_RCA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the ripple-carry adder mapping for Yosys.",
             deprecated_names=["RIPPLE_CARRY_ADDER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_FA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the full adder mapping for Yosys.",
             deprecated_names=["FULL_ADDER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_CLOCKGATE_MIN_WIDTH",
-            Optional[int],
+            int | None,
             "If set to a value, a group of flip-flops with size >= SYNTH_CLOCKGATE_MIN_WIDTH and an enable signal are clock-gated instead.",
             deprecated_names=[("USE_LIGHTER", lambda x: 1 if x else None)],
         ),
         Variable(
             "SYNTH_CLOCKGATE_POSEDGE_ICG",
-            Optional[str],
+            str | None,
             "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
             pdk=True,
             validator=_validate_icg,
         ),
         Variable(
             "SYNTH_CLOCKGATE_NEGEDGE_ICG",
-            Optional[str],
+            str | None,
             "The integrated clock gate cell used for positive-edge flip-flops, in the format `<cell>/<active-high clock enable port>/<clk port>/<gated clk port>`.",
             pdk=True,
             validator=_validate_icg,
         ),
         Variable(
             "SYNTH_CLOCKGATE_TIE_LO",
-            Optional[str],
+            str | None,
             "Port of the integrated clock gate cell to be tied to zero. Intended for DFT scan-enable pins.",
             pdk=True,
         ),
@@ -232,7 +229,7 @@ class PyosysStep(Step):
         ),
         Variable(
             "SYNTH_CORNER",
-            Optional[str],
+            str | None,
             "A fully qualified IPVT corner to use during synthesis. If unspecified, the value for `DEFAULT_CORNER` from the PDK will be used.",
             pdk=True,
         ),
@@ -262,7 +259,7 @@ class PyosysStep(Step):
     def get_script_path(self) -> str:
         pass
 
-    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
+    _python_launch_info_cached: ClassVar[PythonLaunchInfo | None] = None
 
     @classmethod
     def get_launch_info(Self) -> PythonLaunchInfo:
@@ -319,7 +316,7 @@ class PyosysStep(Step):
         msg = "\n* ".join(("Failed to run Python scripts using Yosys. Tried:", *tried))
         raise StepException(msg)
 
-    def get_command(self, state_in: State) -> List[str]:
+    def get_command(self, state_in: State) -> list[str]:
         launch_info = self.get_launch_info()
         cmd = [*launch_info.args, self.get_script_path()]
         if launch_info.built_in_interpreter:
@@ -333,7 +330,7 @@ class PyosysStep(Step):
         cmd += ["--config-in", os.path.join(self.step_dir, "config.json")]
         return cmd
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         cmd = self.get_command(state_in)
         kwargs, env = self.extract_env(kwargs)
         # HACK: Get Colab working
@@ -355,7 +352,7 @@ class VerilogStep(PyosysStep):
 
     config_vars = PyosysStep.config_vars + verilog_rtl_cfg_vars
 
-    def get_command(self, state_in: State) -> List[str]:
+    def get_command(self, state_in: State) -> list[str]:
         cmd = super().get_command(state_in)
 
         blackbox_models = []
@@ -420,7 +417,7 @@ class VerilogStep(PyosysStep):
         if models := self.config.get("EXTRA_VERILOG_MODELS"):
             blackbox_models.extend(str(f) for f in models)
 
-        excluded_cell_patterns: Set[str] = set(
+        excluded_cell_patterns: set[str] = set(
             self.config["EXTRA_EXCLUDED_CELLS"] or []
         )
         excluded_cell_patterns.update(
@@ -431,18 +428,17 @@ class VerilogStep(PyosysStep):
         )
 
         libs_synth = [str(p) for p in scl_lib_list + pad_lib_list]
-        all_libs = list(str(p) for p in libs_synth + macro_libs)
+        all_libs = [str(p) for p in libs_synth + macro_libs]
         extra_path = os.path.join(self.step_dir, "extra.json")
-        with open(extra_path, "w") as f:
-            json.dump(
-                {
-                    "blackbox_models": blackbox_models,
-                    "libs_synth": libs_synth,
-                    "all_libs": all_libs,
-                    "excluded_cell_patterns": list(excluded_cell_patterns),
-                },
-                f,
-            )
+        json_dumpp(
+            {
+                "blackbox_models": blackbox_models,
+                "libs_synth": libs_synth,
+                "all_libs": all_libs,
+                "excluded_cell_patterns": list(excluded_cell_patterns),
+            },
+            extra_path,
+        )
         cmd.extend(["--extra-in", extra_path])
         return cmd
 
@@ -469,14 +465,14 @@ class JsonHeader(VerilogStep):
     def get_script_path(self) -> str:
         return os.path.join(get_script_dir(), "pyosys", "json_header.py")
 
-    def get_command(self, state_in: State) -> List[str]:
+    def get_command(self, state_in: State) -> list[str]:
         out_file = os.path.join(
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.extension}",
         )
         return super().get_command(state_in) + ["--output", out_file]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.JSON_HEADER.extension}",
@@ -517,7 +513,7 @@ class SynthesisCommon(VerilogStep):
         ),
         Variable(
             "SYNTH_ABC_STRATEGY_SCRIPT",
-            Optional[Path],
+            Path | None,
             "Custom ABC strategy script, overriding the script generated by the SYNTH_STRATEGY.",
         ),
         Variable(
@@ -603,17 +599,17 @@ class SynthesisCommon(VerilogStep):
         ),
         Variable(
             "SYNTH_KEEP_HIERARCHY_MIN_COST",
-            Optional[int],
+            int | None,
             "Sets the 'keep_hierarchy' attribute on modules where the gate count is estimated to exceed the specified threshold. This prevents larger modules from being flattened. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
         ),
         Variable(
             "SYNTH_KEEP_HIERARCHY_INSTANCES",
-            Optional[List[str]],
+            list[str] | None,
             "A list of instances for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
         ),
         Variable(
             "SYNTH_KEEP_HIERARCHY_MODULES",
-            Optional[List[str]],
+            list[str] | None,
             "A list of modules for which to set the 'keep_hierarchy' attribute. This variable only affects the design when 'flatten' is called through `SYNTH_HIERARCHY_MODE`.",
         ),
         Variable(
@@ -630,7 +626,7 @@ class SynthesisCommon(VerilogStep):
         ),
         Variable(
             "SYNTH_EXTRA_MAPPING_FILE",
-            Optional[Path],
+            Path | None,
             "Points to an extra techmap file for yosys that runs right after yosys `synth` before generic techmap.",
         ),
         Variable(
@@ -647,7 +643,7 @@ class SynthesisCommon(VerilogStep):
         ),
         Variable(
             "SYNTH_TIE_UNDEFINED",
-            Optional[Literal["high", "low"]],
+            Literal["high", "low"] | None,
             "Whether to tie undefined values low or high. Explicitly provide null if you wish to simply leave them undriven.",
             default="low",
         ),
@@ -671,7 +667,7 @@ class SynthesisCommon(VerilogStep):
         ),
         # Variable(
         #     "SYNTH_SDC_FILE",
-        #     Optional[Path],
+        #     Path | None,
         #     "Specifies the SDC file read during all Synthesis steps",
         # ),
     ]
@@ -679,14 +675,14 @@ class SynthesisCommon(VerilogStep):
     def get_script_path(self) -> str:
         return os.path.join(get_script_dir(), "pyosys", "synthesize.py")
 
-    def get_command(self, state_in: State) -> List[str]:
+    def get_command(self, state_in: State) -> list[str]:
         out_file = os.path.join(
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
         )
         return super().get_command(state_in) + ["--output", out_file]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         out_file = os.path.join(
             self.step_dir,
             f"{self.config['DESIGN_NAME']}.{DesignFormat.NETLIST.extension}",
@@ -695,8 +691,7 @@ class SynthesisCommon(VerilogStep):
         view_updates, metric_updates = super().run(state_in, **kwargs)
 
         stats_file = os.path.join(self.step_dir, "reports", "stat.json")
-        with open(stats_file, encoding="utf8") as f:
-            stats = json.load(f, parse_float=Decimal)
+        stats = json_loadp(stats_file)
 
         metric_updates["design__instance__count"] = stats["design"]["num_cells"]
         if chip_area := stats["design"].get("area"):  # needs nonzero area
@@ -705,7 +700,7 @@ class SynthesisCommon(VerilogStep):
         cells = stats["design"]["num_cells_by_type"]
         safe = ["$assert"]
         unmapped_cells = [
-            cells[y] for y in cells.keys() if y not in safe and y.startswith("$")
+            v for (k, v) in cells.items() if k not in safe and k.startswith("$")
         ]
         metric_updates["design__instance_unmapped__count"] = sum(unmapped_cells)
 
@@ -715,13 +710,18 @@ class SynthesisCommon(VerilogStep):
         ]
         metric_updates["synthesis__check_error__count"] = 0
         for check_error_count_file in check_report_files:
-            if os.path.exists(check_error_count_file):
-                metric_updates["synthesis__check_error__count"] += _parse_yosys_check(
-                    open(check_error_count_file),
-                    self.config["TRISTATE_CELLS"],
-                    self.config["SYNTH_CHECKS_ALLOW_TRISTATE"],
-                    self.config["SYNTH_ELABORATE_ONLY"],
-                )
+            try:
+                with open(check_error_count_file, encoding="utf8") as f:
+                    metric_updates["synthesis__check_error__count"] += (
+                        _parse_yosys_check(
+                            f,
+                            self.config["TRISTATE_CELLS"],
+                            self.config["SYNTH_CHECKS_ALLOW_TRISTATE"],
+                            self.config["SYNTH_ELABORATE_ONLY"],
+                        )
+                    )
+            except FileNotFoundError:
+                pass
 
         view_updates[DesignFormat.NETLIST] = Path(out_file)
 
@@ -805,12 +805,12 @@ class VHDLSynthesis(SynthesisCommon):
     config_vars = SynthesisCommon.config_vars + [
         Variable(
             "VHDL_FILES",
-            List[Path],
+            list[Path],
             "The paths of the design's VHDL files.",
         ),
         Variable(
             "GHDL_ARGUMENTS",
-            Optional[List[str]],
+            list[str] | None,
             "Pass arguments to the ghdl frontend.",
         ),
     ]

@@ -11,44 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import os
 import re
-import uuid
 import shutil
-import tempfile
 import subprocess
-from enum import IntEnum
+import tempfile
+import uuid
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from decimal import Decimal
+from enum import IntEnum
 from functools import lru_cache
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    FrozenSet,
-    Iterable,
     Literal,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    List,
-    Union,
 )
 
 import libparse
 from deprecated.sphinx import deprecated
 
-
-from .misc import mkdirp, gzopen
 from .types import Path
-from .metrics import aggregate_metrics
+from ..logging import debug, err, warn
 from .generic_dict import GenericImmutableDict, is_string
-from ..state import DesignFormat
-from ..common import Filter
-from ..logging import debug, warn, err
+from .metrics import aggregate_metrics
+from .misc import Filter, gzopen, mkdirp
+
+if TYPE_CHECKING:
+    from ..state import DesignFormat
 
 
-class Toolbox(object):
+class Toolbox:
     """
     An assisting object shared by a Flow and all its constituent Steps.
 
@@ -71,17 +64,17 @@ class Toolbox(object):
     )
     def aggregate_metrics(
         self,
-        input: Dict[str, Any],
-        aggregator_by_metric: Dict[str, Tuple[Any, Callable[[Iterable], Any]]],
-    ) -> Dict[str, Any]:
+        input: dict[str, Any],
+        aggregator_by_metric: dict[str, tuple[Any, Callable[[Iterable], Any]]],
+    ) -> dict[str, Any]:
         return aggregate_metrics(input, aggregator_by_metric)
 
     def filter_views(
         self,
         config: Mapping[str, Any],
-        views_by_corner: Mapping[str, Union[Path, Iterable[Path]]],
-        timing_corner: Optional[str] = None,
-    ) -> List[Path]:
+        views_by_corner: Mapping[str, Path | Iterable[Path]],
+        timing_corner: str | None = None,
+    ) -> list[Path]:
         """
         Given a mapping from (wildcards of) corner names to views, this function
         enumerates all views matching either the default timing corner or
@@ -96,7 +89,7 @@ class Toolbox(object):
         :returns: The created list
         """
         timing_corner = timing_corner or config["DEFAULT_CORNER"]
-        result: List[Path] = []
+        result: list[Path] = []
 
         for key in Filter(views_by_corner).get_matching_wildcards(timing_corner):
             value = views_by_corner[key]
@@ -111,9 +104,9 @@ class Toolbox(object):
         self,
         config: Mapping[str, Any],
         view: DesignFormat,
-        timing_corner: Optional[str] = None,
-        unless_exist: Union[None, DesignFormat, Sequence[DesignFormat]] = None,
-    ) -> List[Path]:
+        timing_corner: str | None = None,
+        unless_exist: None | DesignFormat | Sequence[DesignFormat] = None,
+    ) -> list[Path]:
         """
         For :class:`Config` objects (or similar Mappings) that have Macro
         information, this function gets all Macro views matching a certain
@@ -136,10 +129,11 @@ class Toolbox(object):
             above.
         """
         from ..config import Macro
+        from ..state import DesignFormat
 
         timing_corner = timing_corner or config["DEFAULT_CORNER"]
         macros = config["MACROS"]
-        result: List[Path] = []
+        result: list[Path] = []
 
         if macros is None:
             return result
@@ -158,7 +152,7 @@ class Toolbox(object):
             if views is None:
                 continue
 
-            alt_views: List[Path] = []
+            alt_views: list[Path] = []
             for alternate_format in unless_exist:
                 entry = macro.view_by_df(alternate_format)
                 if entry is not None:
@@ -186,10 +180,10 @@ class Toolbox(object):
         self,
         config: Mapping[str, Any],
         design_formats: Sequence[DesignFormat],
-        timing_corner: Optional[str] = None,
-    ) -> List[Tuple[Path, DesignFormat]]:
-        result: List[Tuple[Path, DesignFormat]] = []
-        formats_so_far: List[DesignFormat] = []
+        timing_corner: str | None = None,
+    ) -> list[tuple[Path, DesignFormat]]:
+        result: list[tuple[Path, DesignFormat]] = []
+        formats_so_far: list[DesignFormat] = []
         for format in design_formats:
             views = self.get_macro_views(
                 config,
@@ -205,9 +199,9 @@ class Toolbox(object):
     def get_timing_files_categorized(
         self,
         config: Mapping[str, Any],
-        timing_corner: Optional[str] = None,
+        timing_corner: str | None = None,
         prioritize_nl: bool = False,
-    ) -> Tuple[str, List[Path], List[Path], List[Tuple[str, Path]]]:
+    ) -> tuple[str, list[Path], list[Path], list[tuple[str, Path]]]:
         """
         Returns the lib files for a given configuration and timing corner.
 
@@ -233,7 +227,7 @@ class Toolbox(object):
         timing_corner = timing_corner or config["DEFAULT_CORNER"]
 
         # Filter the cell libs
-        all_libs: List[Path] = self.filter_views(
+        all_libs: list[Path] = self.filter_views(
             config, config["CELL_LIBS"], timing_corner
         )
         if len(all_libs) == 0:
@@ -242,8 +236,8 @@ class Toolbox(object):
         # Add optional I/O pad libs
         all_libs += self.filter_views(config, config["PAD_LIBS"], timing_corner)
 
-        all_netlists: List[Path] = []
-        all_spefs: List[Tuple[str, Path]] = []
+        all_netlists: list[Path] = []
+        all_spefs: list[tuple[str, Path]] = []
 
         macros = config["MACROS"]
         if macros is None:
@@ -264,15 +258,15 @@ class Toolbox(object):
                     macro.spef,
                     timing_corner,
                 )
-                if len(netlists) and not len(spefs):
+                if netlists and not len(spefs):
                     warn(
                         f"Netlists found for macro {module}, but no parasitics extraction found at corner {timing_corner}. The netlist cannot be used for timing on this module."
                     )
-                elif len(spefs) and not len(netlists):
+                elif len(spefs) and not netlists:
                     warn(
                         f"Parasitics extraction(s) found for macro {module} at corner {timing_corner}, but no netlist found. The parasitics cannot be used for timing on this module."
                     )
-                elif len(spefs) and len(netlists):
+                elif len(spefs) and netlists:
                     debug(f"Adding {[netlists + spefs]} to timing info…")
                     all_netlists += netlists
                     for spef in spefs:
@@ -298,9 +292,9 @@ class Toolbox(object):
     def get_timing_files(
         self,
         config: Mapping[str, Any],
-        timing_corner: Optional[str] = None,
+        timing_corner: str | None = None,
         prioritize_nl: bool = False,
-    ) -> Tuple[str, List[str]]:
+    ) -> tuple[str, list[str]]:
         """
         Returns the lib files for a given configuration and timing corner.
 
@@ -340,11 +334,11 @@ class Toolbox(object):
         self,
         config: GenericImmutableDict[str, Any],
         state_in: GenericImmutableDict[str, Any],
-    ) -> Optional[bytes]:  # pragma: no cover
+    ) -> bytes | None:  # pragma: no cover
         try:
-            from ..steps import KLayout, StepError
             from ..config import Config, InvalidConfig
             from ..state import State
+            from ..steps import KLayout, StepError
 
             # I'm too damn tired to figure out a way to forward-declare those two,
             # have fun if you want to
@@ -374,9 +368,9 @@ class Toolbox(object):
     )
     def remove_cells_from_lib(
         self,
-        input_lib_files: FrozenSet[str],
-        excluded_cells: FrozenSet[str],
-    ) -> List[str]:
+        input_lib_files: frozenset[str],
+        excluded_cells: frozenset[str],
+    ) -> list[str]:
         """
         Creates a new lib file with some cells removed.
 
@@ -407,34 +401,32 @@ class Toolbox(object):
 
             state = State.initial
             brace_count = 0
-            output_file_handle = open(out_path, "w")
-            write = lambda x: print(x, file=output_file_handle, end="")
-            for line in input_lib_stream:
-                if state == State.initial:
-                    cell_m = cell_start_rx.search(line)
-                    if cell_m is not None:
-                        whitespace = cell_m[1]
-                        cell_name = cell_m[2]
-                        if excluded_cells_filter.match(cell_name):
-                            state = State.excluded_cell
-                            write(f"{whitespace}/* removed {cell_name} */\n")
+            with open(out_path, "w") as output_file:
+                write = lambda x: print(x, file=output_file, end="")
+                for line in input_lib_stream:
+                    if state == State.initial:
+                        cell_m = cell_start_rx.search(line)
+                        if cell_m is not None:
+                            whitespace = cell_m[1]
+                            cell_name = cell_m[2]
+                            if excluded_cells_filter.match(cell_name):
+                                state = State.excluded_cell
+                                write(f"{whitespace}/* removed {cell_name} */\n")
+                            else:
+                                state = State.cell
+                                write(line)
+                            brace_count = 1
                         else:
-                            state = State.cell
                             write(line)
-                        brace_count = 1
-                    else:
-                        write(line)
-                elif state in [State.cell, State.excluded_cell]:
-                    if "{" in line:
-                        brace_count += 1
-                    if "}" in line:
-                        brace_count -= 1
-                    if state == State.cell:
-                        write(line)
-                    if brace_count == 0:
-                        state = State.initial
-
-            output_file_handle.close()
+                    elif state in [State.cell, State.excluded_cell]:
+                        if "{" in line:
+                            brace_count += 1
+                        if "}" in line:
+                            brace_count -= 1
+                        if state == State.cell:
+                            write(line)
+                        if brace_count == 0:
+                            state = State.initial
 
             out_paths.append(out_path)
 
@@ -442,44 +434,45 @@ class Toolbox(object):
 
     def create_blackbox_model(
         self,
-        input_models: Union[frozenset, Tuple[str, ...]],
-        defines: FrozenSet[str],
+        input_models: frozenset | tuple[str, ...],
+        defines: frozenset[str],
     ) -> str:
         mkdirp(self.tmp_dir)
         out_path = os.path.join(self.tmp_dir, f"{uuid.uuid4().hex}.bb.v")
         debug(f"Creating cell models for {input_models} at '{out_path}'…")
         bad_yosys_line = re.compile(r"^\s+(\w+|(\\\S+?))\s*\(.*\).*;")
 
-        stack: List[Literal["specify", "primitive"]] = []
+        stack: list[Literal["specify", "primitive"]] = []
         with open(out_path, "w", encoding="utf8") as out:
             for model in input_models:
-                try:
-                    for line in open(model, "r", encoding="utf8"):
-                        if len(stack) == 0:
-                            if line.strip().startswith("specify"):
-                                stack.append("specify")
-                            elif line.strip().startswith("primitive"):
-                                stack.append("primitive")
-                            elif bad_yosys_line.search(line) is None:
-                                print(line.strip("\n"), file=out)
-                        else:
-                            if line.strip().startswith("endspecify"):
-                                current = stack.pop()
-                                if current != "specify":
-                                    raise ValueError(
-                                        f"Invalid specify block in {model}"
-                                    )
-                                print("/* removed specify */", file=out)
-                            elif line.strip().startswith("endprimitive"):
-                                current = stack.pop()
-                                if current != "primitive":
-                                    raise ValueError(
-                                        f"Invalid primitive block in {model}"
-                                    )
-                                print("/* removed primitive */", file=out)
-                    print("", file=out)
-                except ValueError as e:
-                    err(f"Failed to pre-process input models for linting: {e}")
+                with open(model, encoding="utf8") as model_in:
+                    try:
+                        for line in model_in:
+                            if len(stack) == 0:
+                                if line.strip().startswith("specify"):
+                                    stack.append("specify")
+                                elif line.strip().startswith("primitive"):
+                                    stack.append("primitive")
+                                elif bad_yosys_line.search(line) is None:
+                                    print(line.strip("\n"), file=out)
+                            else:
+                                if line.strip().startswith("endspecify"):
+                                    current = stack.pop()
+                                    if current != "specify":
+                                        raise ValueError(
+                                            f"Invalid specify block in {model}"
+                                        )
+                                    print("/* removed specify */", file=out)
+                                elif line.strip().startswith("endprimitive"):
+                                    current = stack.pop()
+                                    if current != "primitive":
+                                        raise ValueError(
+                                            f"Invalid primitive block in {model}"
+                                        )
+                                    print("/* removed primitive */", file=out)
+                        print(file=out)
+                    except ValueError as e:
+                        err(f"Failed to pre-process input models for linting: {e}")
 
         yosys = shutil.which("yosys") or shutil.which("yowasp-yosys")
 
@@ -495,7 +488,7 @@ class Toolbox(object):
         commands += f"read_verilog -sv -lib {out_path};\n"
 
         output_log_path = f"{out_path}_yosys.log"
-        output_log = open(output_log_path, "wb")
+        output_log = open(output_log_path, "wb")  # noqa: SIM115
         try:
             subprocess.check_call(
                 [
@@ -507,13 +500,14 @@ class Toolbox(object):
                     write_verilog -noattr -noexpr -nohex -nodec -defparam -blackboxes {out_path};
                     """,
                 ],
-                stdout=output_log,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as e:
             output_log.close()
             err(f"Failed to pre-process input models for linting with Yosys: {e}")
-            err(open(output_log_path, "r", encoding="utf8").read())
+            with open(output_log_path, encoding="utf8") as f:
+                err(f.read())
             err("Will attempt to load models into linter as-is.")
 
         return out_path
@@ -521,7 +515,7 @@ class Toolbox(object):
     def get_lib_voltage(
         self,
         input_lib: str,
-    ) -> Optional[Decimal]:
+    ) -> Decimal | None:
         """
         Extract the voltage from the default operating conditions of a liberty file.
 
@@ -532,7 +526,8 @@ class Toolbox(object):
         :param input_lib: The lib file in question
         :returns: The voltage in question
         """
-        parser = libparse.LibertyParser(open(input_lib, encoding="utf8"))
+        with open(input_lib, encoding="utf8") as f:
+            parser = libparse.LibertyParser(f)
         ast = parser.ast
 
         default_operating_conditions_id = None
@@ -553,7 +548,8 @@ class Toolbox(object):
             elif len(operating_conditions_raw) < 1:
                 warn(f"Lib file '{input_lib}' has no operating conditions set.")
                 return None
-            default_operating_conditions_id = list(operating_conditions_raw.keys())[0]
+            operating_condition_list = list(operating_conditions_raw.keys())
+            default_operating_conditions_id = operating_condition_list[0]
 
         operating_conditions = operating_conditions_raw[default_operating_conditions_id]
         operating_condition_dict = {}
