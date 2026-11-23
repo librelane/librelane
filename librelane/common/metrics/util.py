@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -261,7 +266,7 @@ class MetricDiff:
                     continue
                 base_metric, modifiers = parse_metric_modifiers(metric)
                 lhs_value, rhs_value = g[metric], n[metric]
-                if type(lhs_value) != type(rhs_value):
+                if type(lhs_value) is not type(rhs_value):
                     lhs_value = type(rhs_value)(lhs_value)
 
                 if metric_object := Metric.by_name.get(base_metric):

@@ -151,6 +151,7 @@
                 ruff
                 ipython
                 tokenize-rt
+                ruff
                 mypy
                 types-deprecated
                 types-pyyaml

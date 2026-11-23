@@ -16,7 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from decimal import Decimal
-from io import StringIO
 from math import isinf, isnan
 
 import pytest
@@ -25,21 +24,18 @@ pytestmark = pytest.mark.all
 
 
 def test_yaml_decimals():
-    from librelane.common.serialize import yaml_load
+    from librelane.common.serialize import yaml_dumps, yaml_loads
 
-    sio = StringIO()
-    sio.write(
+    result = yaml_loads(
         """
         canonical: 1.23015e+3
         exponential: 12.3015e+02
         fixed: 1230.15
         nan: .nan
         inf: -.inf
+        integer: 4.0
         """
     )
-    sio.seek(0)
-
-    result = yaml_load(sio)
     nan_found = False
     inf_found = False
     for i, number in enumerate(result.values()):
@@ -50,9 +46,21 @@ def test_yaml_decimals():
             nan_found = True
         elif isinf(number):
             inf_found = True
-        else:
+        elif number != Decimal(4):
             assert number == Decimal("1230.15"), (
                 f"YAML float load returned incorrect number at index {i}"
             )
     assert nan_found, "Failed to parse nan"
     assert inf_found, "Failed to parse inf"
+
+    assert (
+        yaml_dumps(result)
+        == """\
+canonical: 1230.15
+exponential: 1230.15
+fixed: 1230.15
+nan: .nan
+inf: -.inf
+integer: 4.0
+"""
+    ), "unexpected dump result"

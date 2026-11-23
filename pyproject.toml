@@ -80,7 +80,7 @@ target-version = "py310"
 exclude = ["test/steps/all/*", "test/designs/*"]
 
 [tool.ruff.lint]
-extend-select = ["I", "PL", "UP"]
+extend-select = ["I", "PL", "UP", "F"]
 ignore = [
     # Annoying refactor suggestions
     "PLR",
@@ -92,7 +92,9 @@ ignore = [
     # try-except-pass
     "S110",
     # for loop variable overwritten by target - common pattern
-    "PLW2901"
+    "PLW2901",
+    # no assigning lambdas
+    "E731"
 ]
 
 [tool.ruff.lint.isort]
@@ -104,6 +106,7 @@ force-to-top = [
 ]  
 
 [tool.ruff.lint.per-file-ignores]
+"notebook.ipynb" = ["E402"]
 "librelane/env_info.py" = ["UP"]
 "librelane/scripts/klayout/*.py" = ["PLC0415"]
 "test/*.py" = ["PLC0415", "UP"]

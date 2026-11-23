@@ -147,7 +147,7 @@ def test_step_unit(
     )
 
     ## Create empty State if state_in.json is missing
-    if state_in is None or (type(state_in) == str and not os.path.isfile(state_in)):
+    if state_in is None or (type(state_in) is str and not os.path.isfile(state_in)):
         state_in = State()
 
     # 2. Load and Launch Step

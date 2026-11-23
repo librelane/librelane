@@ -128,7 +128,7 @@ class SequentialFlow(Flow):
                     raise TypeError(
                         f"Gating variable '{var_name}' for Step '{id}' does not match any declared config_vars in Flow '{Self.__qualname__}'"
                     )
-                if variables_by_name[var_name].type != bool:
+                if variables_by_name[var_name].type is not bool:
                     raise TypeError(
                         f"Gating variable '{var_name}' in Flow '{Self.__qualname__}' is not a Boolean"
                     )

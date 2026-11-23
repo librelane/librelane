@@ -196,7 +196,7 @@ def test_copy_recursive_visitor():
     from librelane.common import copy_recursive
 
     def visitor(x):
-        if type(x) == MyString:
+        if type(x) is MyString:
             x = "MY_" + x
         return x
 

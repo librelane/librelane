@@ -32,7 +32,8 @@ class Classic(SequentialFlow):
     """
     A flow of type :class:`librelane.flows.SequentialFlow` that is the most
     similar to the original OpenLane flow, running the Verilog RTL through
-    Yosys, OpenROAD, KLayout and Magic to produce a valid GDSII for simpler designs.
+    Yosys, OpenROAD, KLayout and Magic to produce a valid GDSII for simpler
+    macro designs.
 
     This is the default when using LibreLane via the command-line.
     """
