@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2022 Efabless Corporation
 # place_diodes Copyright (C) 2020 Sylvain Munaut <tnt@246tNt.com>
 #
@@ -17,7 +16,6 @@
 import random
 import sys
 from decimal import Decimal
-from typing import List, Optional
 
 import click
 import odb
@@ -38,7 +36,7 @@ class DiodeInserter:
         diode_pin: str,
         threshold_microns: Decimal,
         side_strategy: str = "source",
-        port_protect_polarities: Optional[List[str]] = None,
+        port_protect_polarities: list[str] | None = None,
         verbose=False,
     ):
         print(f"Using threshold {threshold_microns}µm…")

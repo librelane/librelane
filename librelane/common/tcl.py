@@ -15,10 +15,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import re
-from typing import Dict, Mapping, Any, Iterable
+from enum import Enum
+from decimal import Decimal
+from dataclasses import asdict, is_dataclass
+from typing import Callable, Dict, Mapping, Any, Iterable, Union
 
-_env_rx = re.compile(r"(?:\:\:)?env\((\w+)\)")
+from minitcl import Interpreter
+
+from .types import is_string
+
 _find_unsafe = re.compile(r"[^\w@%+=:,./-]", re.ASCII).search
 _escapes_in_quotes = re.compile(r"([\\\$\"\[])")
 
@@ -57,67 +64,75 @@ class TclUtils(object):
         return " ".join(TclUtils.escape(arg) for arg in ss)
 
     @staticmethod
-    def _eval_env(env_in: Mapping[str, Any], tcl_in: str) -> Dict[str, Any]:
-        import tkinter
+    def value_to_tcl(value: Any) -> str:
+        """
+        Converts an arbitrary Python value to Tcl as follows:
 
-        interpreter = tkinter.Tcl()
+        * If the value is a dict, the keys and values are escaped recursively
+            using: :meth:`TclUtils.join`.
+        * If the value is an instance of a dataclass, it is treated as a dict.
+        * If the value is a list, it is joined using :meth:`TclUtils.join`.
+        * If the value is an Enum, its name is returned.
+        * If the value is Boolean, "1" is returned for True and "0" for False.
+        * If the value is numeric, it is converted to a string.
+        * Otherwise, the value is passed to ``str()``.
+        """
+        if not isinstance(value, type) and is_dataclass(value):
+            return TclUtils.value_to_tcl(asdict(value))
+        elif isinstance(value, Mapping):
+            result = []
+            for v_key, v_value in value.items():
+                result.append(TclUtils.value_to_tcl(v_key))
+                result.append(TclUtils.value_to_tcl(v_value))
+            return TclUtils.join(result)
+        elif isinstance(value, Iterable) and not is_string(value):
+            result = []
+            for item in value:
+                result.append(TclUtils.value_to_tcl(item))
+            return TclUtils.join(result)
+        elif isinstance(value, Enum):
+            return value.name
+        elif isinstance(value, bool):
+            return "1" if value else "0"
+        elif isinstance(value, Decimal):
+            if value.to_integral_value() == value:
+                # ensure there's a .0 so it is not parsed as an int
+                return f"{value:.1f}"
+            return str(value)
+        elif isinstance(value, int):
+            return str(value)
+        else:
+            return str(value)
+
+    @staticmethod
+    def _eval_env_common(
+        env_in: Mapping[str, Any], do_eval: Callable
+    ) -> Dict[str, str]:
+        interpreter = Interpreter()
 
         interpreter.eval("array unset ::env")
         for key, value in env_in.items():
-            interpreter.setvar(f"env({key})", str(value))
+            if value is not None:
+                interpreter.set_var("env", key, TclUtils.value_to_tcl(value))
 
         env_out = dict(env_in)
+        do_eval(interpreter)
+        interpreter.eval("set _env_dict [array get ::env]")
 
-        def py_set(key, value=None):
-            if match := _env_rx.fullmatch(key):
-                if value is not None:
-                    env_out[match.group(1)] = value
-
-        def py_dict(command, target=None, *args):
-            if command == "set":
-                if match := _env_rx.fullmatch(target):
-
-                    if len(args) > 1:
-                        value = args[-1]
-                        keys = args[:-1]
-
-                        # Create new dict if it does not exist
-                        if not match.group(1) in env_out:
-                            env_out[match.group(1)] = {}
-
-                        # set ::env(...) [dict create]
-                        # will create an empty string ""
-                        # convert into an empty dictionary
-                        if env_out[match.group(1)] == "":
-                            env_out[match.group(1)] = {}
-
-                        # Set key value pair
-                        cur_dict = env_out[match.group(1)]
-
-                        # Create all nested dicts
-                        for key in keys[:-1]:
-                            if key in cur_dict:
-                                cur_dict = cur_dict[key]
-                            else:
-                                cur_dict[key] = {}
-                                cur_dict = cur_dict[key]
-
-                        # Finally set the value
-                        cur_dict[keys[-1]] = value
-
-        py_set_name = interpreter.register(py_set)
-        py_dict_name = interpreter.register(py_dict)
-        interpreter.call("rename", py_set_name, "_py_set")
-        interpreter.call("rename", "set", "_orig_set")
-        interpreter.call("rename", py_dict_name, "_py_dict")
-        interpreter.call("rename", "dict", "_orig_dict")
-        interpreter.eval(
-            "proc set args { _py_set {*}$args; tailcall _orig_set {*}$args; }"
-        )
-        interpreter.eval(
-            "proc dict args { _py_dict {*}$args; tailcall _orig_dict {*}$args; }"
-        )
-
-        interpreter.eval(tcl_in)
-
+        parsed = interpreter.parse_list(interpreter.get_var("_env_dict"))
+        env_out = {}
+        for i in range(len(parsed) // 2):
+            key = parsed[2 * i]
+            val = parsed[2 * i + 1]
+            env_out[key] = val
         return env_out
+
+    @staticmethod
+    def _eval_env(env_in: Mapping[str, Any], tcl_in: str) -> Dict[str, Any]:
+        return TclUtils._eval_env_common(env_in, lambda i: i.eval(tcl_in))
+
+    @staticmethod
+    def _eval_env_file(
+        env_in: Mapping[str, Any], tcl_in: Union[str, os.PathLike]
+    ) -> Dict[str, Any]:
+        return TclUtils._eval_env_common(env_in, lambda i: i.eval_file(tcl_in))

@@ -29,8 +29,10 @@ def json_header(
     config_in,
     extra_in,
 ):
-    config = json.load(open(config_in))
-    extra = json.load(open(extra_in))
+    with open(config_in, encoding="utf8") as f:
+        config = json.load(f)
+    with open(extra_in, encoding="utf8") as f:
+        extra = json.load(f)
 
     blackbox_models = extra["blackbox_models"]
 
@@ -38,7 +40,7 @@ def json_header(
     defines = (
         (config["VERILOG_DEFINES"] or [])
         + [
-            f"PDK_{config['PDK'].replace('-','_')}",
+            f"PDK_{config['PDK'].replace('-', '_')}",
             f"SCL_{config['STD_CELL_LIBRARY']}",
             "__librelane__",
             "__pnr__",

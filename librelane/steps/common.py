@@ -15,10 +15,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional, List, Literal
+from typing import Tuple, Optional, List, Literal
 
 from ..config import Variable
+
+
+@dataclass(frozen=True)
+class PythonLaunchInfo:
+    args: Tuple[str, ...]
+    built_in_interpreter: bool
+
 
 io_layer_variables = [
     Variable(

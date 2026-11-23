@@ -17,7 +17,7 @@ exclude =
     __pycache__,
     build/,
     pdk/,
-    venv/,
+    *venv/,
     test/designs/*.py,
     examples,
     sandbox/,

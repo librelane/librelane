@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, Literal, Optional, Sequence, Union
+from typing import Literal
 
 import odb
 from rich.console import Console
@@ -21,7 +22,7 @@ from rich.console import Console
 from reader import OdbReader, Table, click, click_odb, lln_metric_i, rich
 
 
-def is_connected(term: Union[odb.dbITerm, odb.dbBTerm]) -> bool:
+def is_connected(term: odb.dbITerm | odb.dbBTerm) -> bool:
     if isinstance(term, odb.dbITerm):
         return term.getNet() is not None
     # all bterms have a net, we need to check if it has another
@@ -33,11 +34,11 @@ def is_connected(term: Union[odb.dbITerm, odb.dbBTerm]) -> bool:
 @dataclass
 class Port:
     polarity: Literal["INPUT", "OUTPUT", "INOUT"]
-    signal_type: Optional[Literal["POWER", "GROUND", "SIGNAL"]]
+    signal_type: Literal["POWER", "GROUND", "SIGNAL"] | None
     connected: bool = False
 
 
-class Module(object):
+class Module:
     @dataclass
     class PortStats:
         inputs = 0
@@ -57,7 +58,7 @@ class Module(object):
             module: "Module",
         ):
             result = Self()
-            for name, terminal in module.ports.items():
+            for terminal in module.ports.values():
                 if terminal.polarity == "INPUT":
                     result.inputs += 1
                     if terminal.connected:
@@ -124,9 +125,9 @@ class Module(object):
                 )
             return critical_disconnected_pins
 
-    def __init__(self, object: Union[odb.dbBlock, odb.dbInst]) -> None:
+    def __init__(self, object: odb.dbBlock | odb.dbInst) -> None:
         self.name = object.getName()
-        self.ports: Dict[str, Port] = {}
+        self.ports: dict[str, Port] = {}
         terminals = (
             object.getBTerms()
             if isinstance(object, odb.dbBlock)
@@ -237,7 +238,7 @@ class Module(object):
 def main(
     reader: OdbReader,
     ignore_modules: Sequence[str],
-    write_full_table_to: Optional[str],
+    write_full_table_to: str | None,
 ):
     db = reader.db
     block = db.getChip().getBlock()
@@ -285,11 +286,9 @@ def main(
 
     if critical_table.row_count > 0:
         rich.print(critical_table)
-    if full_table.row_count > 0:
-        if full_table_path := write_full_table_to:
-            console = Console(
-                file=open(full_table_path, "w", encoding="utf8"), width=160
-            )
+    if full_table.row_count > 0 and (full_table_path := write_full_table_to):
+        with open(full_table_path, "w", encoding="utf8") as f:
+            console = Console(file=f, width=160)
             console.print(full_table)
 
     lln_metric_i(

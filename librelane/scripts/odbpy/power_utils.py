@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2020-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@ import json
 import re
 import sys
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import odb
 import utl
@@ -29,21 +27,21 @@ def cli():
     pass
 
 
-class Design(object):
+class Design:
     @dataclass
     class Instance:
         name: str
         module_name: str
-        power_connections: Dict[str, str]
-        ground_connections: Dict[str, str]
+        power_connections: dict[str, str]
+        ground_connections: dict[str, str]
 
     def __init__(self, reader: OdbReader, yosys_dict: dict) -> None:
         self.reader = reader
         self.design_name = reader.block.getName()
         self.yosys_dict = yosys_dict
 
-        self.pins_by_module_name: Dict[str, Dict[str, odb.dbMTerm]] = {}
-        self.verilog_net_names_by_bit_by_module: Dict[str, Dict[int, str]] = {}
+        self.pins_by_module_name: dict[str, dict[str, odb.dbMTerm]] = {}
+        self.verilog_net_names_by_bit_by_module: dict[str, dict[int, str]] = {}
         self.nets_by_net_name = {net.getName(): net for net in reader.block.getNets()}
 
     def get_verilog_net_name_by_bit(self, top_module: str, target_bit: int):
@@ -66,7 +64,7 @@ class Design(object):
             self.verilog_net_names_by_bit_by_module[top_module] = netname_by_bit
         return self.verilog_net_names_by_bit_by_module[top_module][target_bit]
 
-    def get_pins(self, module_name: str) -> Dict[str, odb.dbMTerm]:
+    def get_pins(self, module_name: str) -> dict[str, odb.dbMTerm]:
         if module_name not in self.pins_by_module_name:
             master = self.reader.db.findMaster(module_name)
             if master is None:
@@ -143,11 +141,11 @@ class Design(object):
         self,
         top_module: str,
         prefix: str = "",
-    ) -> List["Design.Instance"]:
+    ) -> list["Design.Instance"]:
         yosys_design_object = self.yosys_dict["modules"][top_module]
         instances = []
         cells = yosys_design_object["cells"]
-        for cell_name in cells.keys():
+        for cell_name in cells:
             module_name = cells[cell_name]["type"]
             if module_name.startswith("$"):
                 # yosys primitive
@@ -184,7 +182,7 @@ class Design(object):
         pin_name: str,
         power: bool = False,
         ground: bool = False,
-        region: Optional[odb.dbRegion] = None,
+        region: odb.dbRegion | None = None,
     ):
         # Function adapted from OpenROAD
         #
@@ -284,13 +282,13 @@ class Design(object):
 )
 @click_odb
 def set_power_connections(input_json, reader: OdbReader):
-    design_str = open(input_json).read()
-    yosys_dict = json.loads(design_str)
+    with open(input_json, encoding="utf8") as f:
+        yosys_dict = json.load(f)
 
     design = Design(reader, yosys_dict)
     macro_instances = design.extract_instances(design.design_name)
     for instance in macro_instances:
-        for pin in instance.power_connections.keys():
+        for pin in instance.power_connections:
             net_name = instance.power_connections[pin]
             print(f"Connecting power net {net_name} to {instance.name}/{pin}…")
             design.add_global_connection(
@@ -299,7 +297,7 @@ def set_power_connections(input_json, reader: OdbReader):
                 pin_name=pin,
                 power=True,
             )
-        for pin in instance.ground_connections.keys():
+        for pin in instance.ground_connections:
             net_name = instance.ground_connections[pin]
             print(f"Connecting ground net {net_name} to {instance.name}/{pin}…")
             design.add_global_connection(
@@ -339,10 +337,11 @@ cli.add_command(set_power_connections)
 def write_verilog_header(
     output_vh: str,
     input_json: str,
-    power_define: Optional[str],
+    power_define: str | None,
     reader: OdbReader,
 ):
-    input_dict = json.load(open(input_json))
+    with open(input_json, encoding="utf8") as f:
+        input_dict = json.load(f)
     design_name = reader.block.getName()
     pg_bterms = {}
     for bterm in reader.block.getBTerms():

@@ -18,7 +18,6 @@ from dataclasses import dataclass
 from pyfakefs.fake_filesystem_unittest import Patcher
 from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
-
 pytestmark = pytest.mark.all
 
 

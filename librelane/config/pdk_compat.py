@@ -354,20 +354,4 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
             new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
 
-    # x7. KLAYOUT_DRC_OPTIONS to defines
-    if new["PDK"].startswith("sky130") and "KLAYOUT_DRC_OPTIONS" in new:
-        tcl_dict = new["KLAYOUT_DRC_OPTIONS"]
-        ws_rx = re.compile(r"\s+")
-        del new["KLAYOUT_DRC_OPTIONS"]
-        new["KLAYOUT_DRC_DEFINES"] = {}
-        # deliberately not checking for bad dicts or dicts that require quoting
-        # it's already overkill to assume people modified the PDK files here
-        #
-        # if someone complains we can parse a Tcl dict later
-        tcl_dict_entries = ws_rx.split(tcl_dict)
-        while len(tcl_dict_entries):
-            key = tcl_dict_entries.pop(0)
-            value = tcl_dict_entries.pop(0)
-            new["KLAYOUT_DRC_DEFINES"][key] = value
-
     return new

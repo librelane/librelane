@@ -18,7 +18,6 @@
 import os
 import re
 import json
-import textwrap
 from decimal import Decimal
 from abc import abstractmethod
 from typing import List, Dict, Tuple, Optional
@@ -58,7 +57,7 @@ def get_metrics(stats: Dict) -> Dict:
     if "devices" in top_cell:
         devices = top_cell["devices"]
         devlist = [val for pair in zip(devices[0], devices[1]) for val in pair]
-        devpair = list(devlist[p : p + 2] for p in range(0, len(devlist), 2))
+        devpair = [devlist[p : p + 2] for p in range(0, len(devlist), 2)]
         for dev in devpair:
             c1dev = dev[0]
             c2dev = dev[1]
@@ -67,17 +66,16 @@ def get_metrics(stats: Dict) -> Dict:
     if "pins" in top_cell:
         pins = top_cell["pins"]
         pinlist = [val for pair in zip(pins[0], pins[1]) for val in pair]
-        pinpair = list(pinlist[p : p + 2] for p in range(0, len(pinlist), 2))
+        pinpair = [pinlist[p : p + 2] for p in range(0, len(pinlist), 2)]
         for pin in pinpair:
             # Avoid flagging global vs. local names, e.g., "gnd" vs. "gnd!,"
             # and ignore case when comparing pins.
             pin0 = re.sub("!$", "", pin[0].lower())
             pin1 = re.sub("!$", "", pin[1].lower())
-            if pin0 != pin1:
-                # The text "(no pin)" indicates a missing pin that can be
-                # ignored because the pin in the other netlist is a no-connect
-                if pin0 != "(no pin)" and pin1 != "(no pin)":
-                    pin_fails += 1
+            # The text "(no pin)" indicates a missing pin that can be
+            # ignored because the pin in the other netlist is a no-connect
+            if pin0 != pin1 and "(no pin)" not in (pin0, pin1):
+                pin_fails += 1
 
     total_errors = (
         device_differences
@@ -124,7 +122,7 @@ class NetgenStep(TclStep):
         pass
 
     def get_command(self) -> List[str]:
-        return ["netgen", "-batch", "source"]
+        return ["netgen", "-noconsole", "-batch", "source"]
 
 
 @Step.factory.register()
@@ -191,30 +189,18 @@ class LVS(NetgenStep):
         stats_file_json = os.path.join(reports_dir, "lvs.netgen.json")
         mkdirp(reports_dir)
 
-        with open(self.get_script_path(), "w") as f:
-            for lib in spice_files:
-                print(
-                    f"puts \"Reading SPICE netlist file '{lib}'...\"",
-                    file=f,
-                )
-                print(
-                    f"readnet spice {lib} 1",
-                    file=f,
-                )
         netgen_setup_script = os.path.join(get_script_dir(), "netgen", "setup.tcl")
         mkdirp(reports_dir)
 
         spice_files_commands = []
         for lib in spice_files:
-            spice_files_commands.append(
-                f"puts \"Reading SPICE netlist file '{lib}'...\""
-            )
-            spice_files_commands.append(f"readnet spice {lib} $circuit2")
+            spice_files_commands += [f"puts \"Reading SPICE netlist file '{lib}'...\""]
+            spice_files_commands += [f"readnet spice {lib} $circuit2"]
 
         macros_commands = []
-        macros_commands.append(
+        macros_commands += [
             f"puts \"Reading Verilog netlist file '{state_in[DesignFormat.POWERED_NETLIST]}'...\""
-        )
+        ]
         macros_commands += [
             f"readnet verilog {state_in[DesignFormat.POWERED_NETLIST]} $circuit2"
         ]
@@ -233,36 +219,29 @@ class LVS(NetgenStep):
                 macros_views.append(TclUtils.escape(str(view)))
 
             for netlist in macros_views:
-                macros_commands.append(
-                    f"puts \"Reading Verilog netlist file '{str(netlist)}'...\""
-                )
-                macros_commands.append(f"readnet verilog {str(netlist)} $circuit2")
+                macros_commands += [
+                    f"puts \"Reading Verilog netlist file '{netlist}'...\""
+                ]
+                macros_commands += [f"readnet verilog {netlist} $circuit2"]
 
-        netgen_commands = (
-            (
-                textwrap.dedent(
-                    f"""
-                    set circuit1 [readnet spice {state_in[DesignFormat.SPICE]}]
-                    set circuit2 [readnet verilog /dev/null]"""
-                )
-            )
-            .lstrip()
-            .rstrip()
-            .split("\n")
-        )
+        netgen_commands = [
+            f"set circuit1 [readnet spice {state_in[DesignFormat.SPICE]}]",
+            "set circuit2 [readnet verilog /dev/null]",
+        ]
         netgen_commands += spice_files_commands
         netgen_commands += macros_commands
-        netgen_commands += f'lvs "$circuit1 {design_name}" "$circuit2 {design_name}" {netgen_setup_script} {stats_file} -blackbox -json'.split(
-            "\n"
-        )
+        netgen_commands += [
+            f'lvs "$circuit1 {design_name}" "$circuit2 {design_name}" {netgen_setup_script} {stats_file} -blackbox -json',
+        ]
         with open(self.get_script_path(), "w") as f:
             print(
                 "\n".join(netgen_commands),
                 file=f,
             )
         views_updates, metrics_updates = super().run(state_in, **kwargs)
-        stats_string = open(stats_file_json).read()
-        lvs_metrics = get_metrics(json.loads(stats_string, parse_float=Decimal))
+        with open(stats_file_json, encoding="utf8") as f:
+            stats = json.load(f, parse_float=Decimal)
+            lvs_metrics = get_metrics(stats)
         metrics_updates.update(lvs_metrics)
 
         return (views_updates, metrics_updates)

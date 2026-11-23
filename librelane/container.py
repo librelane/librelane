@@ -21,7 +21,6 @@ import pathlib
 import subprocess
 from typing import List, NoReturn, Sequence, Optional, Union, Tuple
 
-import httpx
 import semver
 
 from .common import mkdirp
@@ -80,42 +79,6 @@ def image_exists(ce_path: str, image: str) -> bool:
         .split("\n")[1:]
     )
     return len(images) >= 1
-
-
-def remote_manifest_exists(image: str) -> bool:
-    registry = "docker.io"
-    image_elements = image.split("/", maxsplit=1)
-    if len(image_elements) > 1:
-        registry = image_elements[0]
-        image = image_elements[1]
-    elements = image.split(":")
-    repo = elements[0]
-    tag = "latest"
-    if len(elements) > 1:
-        tag = elements[1]
-
-    url = None
-    if registry == "docker.io":
-        url = f"https://registry.hub.docker.com/v2/repositories/{repo}/tags/{tag}"
-    elif registry == "ghcr.io":
-        url = f"https://ghcr.io/v2/{repo}/manifests/{tag}"
-    else:
-        err(f"Unknown registry '{registry}'.")
-        return False
-
-    try:
-        httpx.Client(follow_redirects=True).get(
-            url, headers={"Accept": "application/json"}
-        )
-    except httpx.NetworkError:
-        err("Couldn't connect to the internet to pull container images.")
-        return False
-    except httpx.HTTPStatusError as e:
-        err(
-            f"The image {image} was not found. This may be because the CI for this image is running- in which case, please try again later. (error: {e})"
-        )
-        return False
-    return True
 
 
 def ensure_image(ce_path: str, image: str) -> bool:

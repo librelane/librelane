@@ -832,7 +832,7 @@ class Config(GenericImmutableDict[str, Any]):
     def __get_pdk_raw(
         pdk_root: str, pdk: str, scl: Optional[str], pad: Optional[str]
     ) -> Tuple[GenericImmutableDict[str, Any], str, str, Optional[str]]:
-        pdk_config: GenericDict[str, Any] = GenericDict(
+        seed_config: GenericDict[str, Any] = GenericDict(
             {
                 SpecialKeys.pdk_root: pdk_root,
                 SpecialKeys.pdk: pdk,
@@ -840,15 +840,15 @@ class Config(GenericImmutableDict[str, Any]):
         )
 
         if scl is not None:
-            pdk_config[SpecialKeys.scl] = scl
+            seed_config[SpecialKeys.scl] = scl
 
             # HACK: Prevent loading default SCL cfg vars for old openlane PDK
             # configs
             # For more info: https://github.com/librelane/librelane/issues/932
-            pdk_config["STD_CELL_LIBRARY_OPT"] = scl
+            seed_config["STD_CELL_LIBRARY_OPT"] = scl
 
         if pad is not None:
-            pdk_config[SpecialKeys.pad] = pad
+            seed_config[SpecialKeys.pad] = pad
 
         pdkpath = os.path.join(pdk_root, pdk)
         if not os.path.exists(pdkpath):
@@ -875,10 +875,7 @@ class Config(GenericImmutableDict[str, Any]):
                 )
             pdk_config_path = pdk_config_path_alt
 
-        pdk_env = TclUtils._eval_env(
-            pdk_config,
-            open(pdk_config_path, encoding="utf8").read(),
-        )
+        pdk_env = TclUtils._eval_env_file(seed_config, pdk_config_path)
 
         scl = pdk_env.get("STD_CELL_LIBRARY", None)
         assert (
@@ -902,12 +899,7 @@ class Config(GenericImmutableDict[str, Any]):
                 )
             scl_config_path = scl_config_path_alt
 
-        full_env = migrate_old_config(
-            TclUtils._eval_env(
-                pdk_env,
-                open(scl_config_path, encoding="utf8").read(),
-            )
-        )
+        full_env = migrate_old_config(TclUtils._eval_env_file(pdk_env, scl_config_path))
 
         pad = pdk_env.get("PAD_CELL_LIBRARY", None)
 
@@ -923,10 +915,7 @@ class Config(GenericImmutableDict[str, Any]):
                 )
 
             full_env = migrate_old_config(
-                TclUtils._eval_env(
-                    full_env,
-                    open(pad_config_path, encoding="utf8").read(),
-                )
+                TclUtils._eval_env_file(full_env, pad_config_path)
             )
 
         return GenericImmutableDict(full_env), pdkpath, scl, pad

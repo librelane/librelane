@@ -13,7 +13,6 @@
 # limitations under the License.
 from .metric import Metric, sum_aggregator, min_aggregator, max_aggregator
 
-
 # Area and Counts
 Metric(
     "design__core__area",

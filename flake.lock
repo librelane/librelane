@@ -1,26 +1,5 @@
 {
   "nodes": {
-    "ciel": {
-      "inputs": {
-        "nix-eda": [
-          "nix-eda"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792594071,
-        "narHash": "sha256-IEeNYjmA7geiHCVzjadDzy77STbbWmie47HF63bqMqk=",
-        "owner": "fossi-foundation",
-        "repo": "ciel",
-        "rev": "d2eb3cf1c43f0f8522e93c537f8fca50781216d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "fossi-foundation",
-        "ref": "3.2.0",
-        "repo": "ciel",
-        "type": "github"
-      }
-    },
     "devshell": {
       "inputs": {
         "nixpkgs": [
@@ -63,16 +42,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1794131366,
-        "narHash": "sha256-ZtcI88sRJtKcSooxPkOx4H43sy8odrFYLY37JObbUhI=",
+        "lastModified": 1795176084,
+        "narHash": "sha256-geJM8T3efY5Uza3GHq3YWrqPk5WNVDggDt3GaWLI2pI=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "2aa1145c9b07048329d7cc45350647f45da87373",
+        "rev": "daa7016899028a984a82c62a15201dd4531b8823",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "7.19.0",
+        "ref": "7.21.0",
         "repo": "nix-eda",
         "type": "github"
       }
@@ -95,7 +74,6 @@
     },
     "root": {
       "inputs": {
-        "ciel": "ciel",
         "devshell": "devshell",
         "flake-compat": "flake-compat",
         "nix-eda": "nix-eda"

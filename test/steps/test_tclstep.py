@@ -62,107 +62,12 @@ def test_tclstep_get_command(mock_config):  # noqa: F811
     ).get_command() == ["tclsh", "/dummy_path"], "Wrong TclStep command"
 
 
-def test_tcl_step_value_to_tcl():
-    from enum import Enum
-    from librelane.steps import TclStep
-    from librelane.common import TclUtils
-
-    numerical_list_value = [1.0, 2.1000, 3, 4.01]
-    numerical_list_value_string = "1.0 2.1 3 4.01"
-    assert (
-        TclStep.value_to_tcl(numerical_list_value) == numerical_list_value_string
-    ), "Wrong numerical list to tcl list conversion"
-
-    alphanumerical_list_value = [
-        1.0,
-        2.1000,
-        3,
-        "abc",
-        "abc f",
-        "{abc}",
-        "[abc]",
-        "\\abc",
-    ]
-    alphanumerical_list_value_string = (
-        '1.0 2.1 3 abc "abc f" "{abc}" "\\[abc]" "\\\\abc"'
-    )
-    assert (
-        TclStep.value_to_tcl(alphanumerical_list_value)
-        == alphanumerical_list_value_string
-    ), "Wrong alpahnumerical list to tcl list conversion"
-
-    assert TclStep.value_to_tcl(True) == "1", "Wrong bool to tcl conversion"
-    assert TclStep.value_to_tcl(1) == "1", "Wrong integer to tcl conversion"
-    assert TclStep.value_to_tcl(-1) == "-1", "Wrong negative integer to tcl conversion"
-    assert TclStep.value_to_tcl(-1.01) == "-1.01", "Wrong decimal to tcl conversion"
-    assert TclStep.value_to_tcl("Hello") == "Hello", "Wrong string to tcl conversion"
-
-    assert TclStep.value_to_tcl({}) == ""
-    assert TclStep.value_to_tcl([]) == ""
-    assert TclStep.value_to_tcl("") == ""
-    assert TclStep.value_to_tcl(" ") == " "
-
-    class Color(Enum):
-        RED = 1
-
-    assert TclStep.value_to_tcl(Color.RED) == "RED"
-
-    dict_value = {"abc": 1}
-    dict_value_string = "abc 1"
-    assert (
-        TclStep.value_to_tcl(dict_value) == dict_value_string
-    ), "Wrong dict to tcl conversion"
-    dict_value = {
-        "abc": 1,
-        "cde": "123",
-        "f": "[hello]",
-        "h": [1, 2, 3],
-        "[g]": alphanumerical_list_value,
-    }
-
-    interpreter = tkinter.Tcl()
-    interpreter.eval(
-        f"""
-        set test_dict {TclUtils.escape(TclStep.value_to_tcl(dict_value))}
-        set counter 0
-        dict for {{k v}} $test_dict {{
-            set "key$counter" $k
-            set "value$counter" $v
-            incr counter
-        }}
-        """
-    )
-
-    expected_dict_value = {
-        "abc": "1",
-        "cde": "123",
-        "f": "[hello]",
-        "h": "1 2 3",
-        "[g]": alphanumerical_list_value_string,
-    }
-
-    out = {}
-    counter = 0
-    while True:
-        key_var = f"key{counter}"
-        value_var = f"value{counter}"
-
-        try:
-            key = interpreter.getvar(key_var)
-        except tkinter.TclError:
-            break
-        value = interpreter.getvar(value_var)
-        out[key] = value
-        counter += 1
-
-    assert out == expected_dict_value, "failed to convert dictionary"
-
-
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_env(mock_config):  # noqa: F811
     from librelane.steps import TclStep
     from librelane.state import DesignFormat, State
+    from librelane.common import TclUtils
 
     script_path = "/dummy_path"
     state_in = State({DesignFormat.NETLIST: "abc"})
@@ -186,6 +91,6 @@ def test_env(mock_config):  # noqa: F811
     for var in mock_config:
         if mock_config[var] is not None:
             assert var in env, "Wrong prepared env. Missing config variable"
-            assert env[var] == TclStep.value_to_tcl(
+            assert env[var] == TclUtils.value_to_tcl(
                 mock_config[var]
             ), "Wrong prepared env. Mismatching configuration variable"

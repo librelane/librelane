@@ -20,6 +20,7 @@ import os
 import re
 import json
 import pathlib
+import shlex
 import subprocess
 from abc import abstractmethod
 from base64 import b64encode
@@ -29,8 +30,10 @@ from decimal import Decimal
 from enum import Enum
 from glob import glob
 from math import inf
+import sys
 from typing import (
     Any,
+    ClassVar,
     Dict,
     List,
     Literal,
@@ -59,7 +62,8 @@ from ..config import Macro, Variable
 from ..config.flow import option_variables
 from ..logging import console, debug, info, options, verbose
 from ..state import DesignFormat, State
-from .common_variables import (
+from .common import (
+    PythonLaunchInfo,
     dpl_variables,
     grt_variables,
     io_layer_variables,
@@ -327,8 +331,8 @@ class OpenROADStep(TclStep):
         lib_list += self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
 
         env["_SDC_IN"] = self.config["PNR_SDC_FILE"] or self.config["FALLBACK_SDC"]
-        env["_PNR_LIBS"] = TclStep.value_to_tcl(lib_list)
-        env["_MACRO_LIBS"] = TclStep.value_to_tcl(
+        env["_PNR_LIBS"] = TclUtils.value_to_tcl(lib_list)
+        env["_MACRO_LIBS"] = TclUtils.value_to_tcl(
             self.toolbox.get_macro_views(self.config, DesignFormat.LIB)
         )
         if self.config["STA_EXTRA_CORNER_TCL_FILE"]:
@@ -378,8 +382,8 @@ class OpenROADStep(TclStep):
                 return hash(
                     (
                         frozenset([str(lib) for lib in self.libs]),
-                        TclStep.value_to_tcl(self.layers_rc),
-                        TclStep.value_to_tcl(self.vias_r),
+                        TclUtils.value_to_tcl(self.layers_rc),
+                        TclUtils.value_to_tcl(self.vias_r),
                     )
                 )
 
@@ -429,7 +433,7 @@ class OpenROADStep(TclStep):
             if vias_r is not None:
                 for via, rc in vias_r.items():
                     res = rc["res"]
-                    env[f"_VIA_R_{count}"] = TclStep.value_to_tcl(
+                    env[f"_VIA_R_{count}"] = TclUtils.value_to_tcl(
                         [corner_name, via, res]
                     )
                     count += 1
@@ -440,14 +444,14 @@ class OpenROADStep(TclStep):
                 for layer, rc in layers_rc.items():
                     res = rc["res"]
                     cap = rc["cap"]
-                    env[f"_LAYER_RC_{count}"] = TclStep.value_to_tcl(
+                    env[f"_LAYER_RC_{count}"] = TclUtils.value_to_tcl(
                         [corner_name, layer, res, cap]
                     )
                     count += 1
 
         count = 0
         for corner_name in filtered_ipvt_corners_names_sorted:
-            env[f"_LIB_CORNER_{count}"] = TclStep.value_to_tcl(
+            env[f"_LIB_CORNER_{count}"] = TclUtils.value_to_tcl(
                 [corner_name] + ipvt_corners[corner_name].libs
             )
             count += 1
@@ -512,6 +516,55 @@ class OpenROADStep(TclStep):
 
         return views_updates, metric_updates_with_aggregates
 
+    _python_launch_info_cached: ClassVar[Optional[PythonLaunchInfo]] = None
+
+    @classmethod
+    def get_python_launch_info(Self) -> PythonLaunchInfo:
+        if Self._python_launch_info_cached is not None:
+            return Self._python_launch_info_cached
+        # top priority: OR binary likely doesn't have requisite libraries
+        tried = []
+        last_cmd = [
+            sys.executable,
+            "-c",
+            "import odb",
+        ]
+        python_exec_test = subprocess.call(
+            last_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if python_exec_test == 0:
+            Self._python_launch_info_cached = PythonLaunchInfo((sys.executable,), False)
+            return Self._python_launch_info_cached
+
+        tried.append(shlex.join(last_cmd))
+
+        # built-in interpreter:
+        # will not work at all for Bazel-built versions of OpenROAD
+        or_bin = Self.get_openroad_path()
+        or_launch = (or_bin, "-exit", "-no_splash", "-python")
+        last_cmd = [*or_launch, "-c", "import odb"]
+        try:
+            native_exec_test = subprocess.call(
+                last_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
+            )
+            if native_exec_test == 0:
+                Self._python_launch_info_cached = PythonLaunchInfo(or_launch, True)
+                return Self._python_launch_info_cached
+        except FileNotFoundError:
+            pass
+
+        tried.append(shlex.join(last_cmd))
+
+        msg = "\n* ".join(
+            ("Failed to run Python scripts using OpenROAD. Tried:", *tried)
+        )
+        raise StepException(msg)
+
     def get_command(self) -> List[str]:
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         threads = str(self.config["OPENROAD_THREADS"] or _get_process_limit())
@@ -571,11 +624,11 @@ class OpenSTAStep(OpenROADStep):
         current_corner_spef: Optional[str] = None
 
         def set_env(self, env: Dict[str, Any]):
-            env["_CURRENT_CORNER_LIBS"] = TclStep.value_to_tcl(self.libs)
-            env["_CURRENT_CORNER_NETLISTS"] = TclStep.value_to_tcl(self.netlists)
-            env["_CURRENT_CORNER_SPEFS"] = TclStep.value_to_tcl(self.spefs)
+            env["_CURRENT_CORNER_LIBS"] = TclUtils.value_to_tcl(self.libs)
+            env["_CURRENT_CORNER_NETLISTS"] = TclUtils.value_to_tcl(self.netlists)
+            env["_CURRENT_CORNER_SPEFS"] = TclUtils.value_to_tcl(self.spefs)
             if self.extra_spefs_backcompat is not None:
-                env["_CURRENT_CORNER_EXTRA_SPEFS_BACKCOMPAT"] = TclStep.value_to_tcl(
+                env["_CURRENT_CORNER_EXTRA_SPEFS_BACKCOMPAT"] = TclUtils.value_to_tcl(
                     self.extra_spefs_backcompat
                 )
             if self.current_corner_spef is not None:
@@ -1010,12 +1063,7 @@ class STAPostPNR(STAPrePNR):
                 lefs.append(lef)
         metrics_path = os.path.join(corner_dir, "filter_unannotated_metrics.json")
         filter_unannotated_cmd = [
-            self.get_openroad_path(),
-            "-exit",
-            "-no_splash",
-            "-metrics",
-            metrics_path,
-            "-python",
+            *self.get_python_launch_info().args,
             os.path.join(get_script_dir(), "odbpy", "filter_unannotated.py"),
             "--corner",
             corner,

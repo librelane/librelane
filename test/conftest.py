@@ -47,7 +47,15 @@ def pytest_assertrepr_compare(op, left, right):
 
 @pytest.fixture
 def _mock_conf_fs():
+    from librelane.common import TclUtils
+
     with Patcher() as patcher:
+
+        def _eval_env_file_patch(env_in, tcl_in):
+            with open(tcl_in, encoding="utf8") as f:
+                return TclUtils._eval_env(env_in, f.read())
+
+        TclUtils._eval_env_file = _eval_env_file_patch
         patcher.fs.create_dir("/cwd/src")
         patcher.fs.create_dir("/cwd/src2")
         patcher.fs.create_file("/cwd/src/a.v")

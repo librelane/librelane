@@ -5,6 +5,8 @@
 # XOR between two layouts. The names of the layouts are given in global variables
 # $a and $b.
 
+# Deprecated, unused, kept for reference.
+
 if !defined?(RBA)
   require 'optparse'
 

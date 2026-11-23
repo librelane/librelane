@@ -11,6 +11,7 @@
   gdsfill,
   klayout-app,
   libparse,
+  minitcl,
   magic-vlsi,
   netgen,
   opensta,
@@ -39,7 +40,7 @@
   pyyaml,
   yamlcore,
   rich,
-  requests,
+  httpx2,
   tkinter,
   lxml,
   deprecated,
@@ -100,12 +101,13 @@ let
       pyyaml
       yamlcore
       rich
-      requests
+      httpx2
       ciel
       tkinter
       lxml
       deprecated
       libparse
+      minitcl
       psutil
       klayout
       rapidfuzz
