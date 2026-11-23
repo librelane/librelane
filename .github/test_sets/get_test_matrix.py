@@ -45,13 +45,13 @@ def main(scls, use_json, test_sets):
     with open(TEST_SETS_FILE, encoding="utf8") as f:
         data_str = f.read()
     data = yaml.safe_load(data_str)
-    test_set_data: dict = filter(
+    test_set_data: filter[dict] = filter(
         lambda e: e["scl"] in scls and e["name"] in test_sets, data
     )
 
     designs = []
     empty_runner_script = "None"
-    for test_set in sorted(test_set_data.keys()):
+    for test_set in test_set_data:
         pdk, scl = test_set["scl"].split("/")
         for design in test_set["designs"]:
             design_name = design
