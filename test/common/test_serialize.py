@@ -24,9 +24,9 @@ pytestmark = pytest.mark.all
 
 
 def test_yaml_decimals():
-    from librelane.common.serialize import yaml_dumps, yaml_loads
+    from librelane.common.serialize import _yaml_dumps, _yaml_loads
 
-    result = yaml_loads(
+    result = _yaml_loads(
         """
         canonical: 1.23015e+3
         exponential: 12.3015e+02
@@ -54,7 +54,7 @@ def test_yaml_decimals():
     assert inf_found, "Failed to parse inf"
 
     assert (
-        yaml_dumps(result)
+        _yaml_dumps(result)
         == """\
 canonical: 1230.15
 exponential: 1230.15
