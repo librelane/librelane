@@ -31,8 +31,7 @@ from ..types import AnyPath
 
 class _LibreLaneYAMLDumper(CCoreDumper):
     def __init__(self, *args, **kwargs):
-        if "sort_keys" not in kwargs:
-            kwargs["sort_keys"] = False
+        kwargs["sort_keys"] = False
         super().__init__(*args, **kwargs)
         self.add_representer(Decimal, _LibreLaneYAMLDumper.represent_decimal)
 
