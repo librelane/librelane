@@ -201,6 +201,16 @@ Style Notes
 
 * `librelane.common`
 
+  * Added new `serialize` submodule
+
+    * Contains `json_{load,dump}{,p,s}`, which load and dump JSON files from/to
+      streams, **p**aths and **s**trings respectively, using Decimals for
+      real numbers when loading and having the ability to dump LibreLane
+      classes.
+
+    * YAML support exists (`_yaml_{load,dump}{,p,s}`) but is marked internal as
+      it is not yet final. We're considering switching YAML libraries.
+
   * `TclUtils`
 
     * Moved `value_to_tcl`.

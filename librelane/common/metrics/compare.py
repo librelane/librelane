@@ -111,6 +111,13 @@ def compare_metric_directories(
             os.path.join(path_b, f"{pdk}-{scl}-{design}.metrics.json")
         )
 
+        assert isinstance(metrics_a, dict), (
+            "First metrics file unexpectedly non-dictionary"
+        )
+        assert isinstance(metrics_b, dict), (
+            "Second metrics file unexpectedly non-dictionary"
+        )
+
         diff = MetricDiff.from_metrics(
             metrics_a,
             metrics_b,

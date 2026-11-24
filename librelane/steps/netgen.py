@@ -237,7 +237,7 @@ class LVS(NetgenStep):
                 file=f,
             )
         views_updates, metrics_updates = super().run(state_in, **kwargs)
-        stats = json_loadp(stats_file_json)
+        stats: dict = json_loadp(stats_file_json)  # type: ignore
         lvs_metrics = get_metrics(stats)
         metrics_updates.update(lvs_metrics)
 

@@ -335,9 +335,9 @@ class Config(GenericImmutableDict[str, Any]):
                 return Meta(version=default_meta_version)
             elif validated_type == "json":
                 default_meta_version = 1
-                config_in = serialize.json_loadp(config_in)
+                config_in = serialize.json_loadp(config_in)  # type: ignore
             elif validated_type == "yaml":
-                config_in = serialize.yaml_loadp(config_in)
+                config_in = serialize._yaml_loadp(config_in)
 
         assert not isinstance(config_in, str)
         assert not isinstance(config_in, os.PathLike)
@@ -532,9 +532,9 @@ class Config(GenericImmutableDict[str, Any]):
                         pad=pad,
                     )
                 elif validated_type == "json":
-                    mapping = serialize.json_loadp(config_validated)
+                    mapping = serialize.json_loadp(config_validated)  # type: ignore
                 elif validated_type == "yaml":
-                    mapping = serialize.yaml_loadp(config_validated)
+                    mapping = serialize._yaml_loadp(config_validated)
 
             assert mapping is not None, "Invalid validated config"
 

@@ -776,7 +776,7 @@ class Step(ABC):
     ) -> Config:
         config_dict = json_loadp(config_path)
         config, _ = Config.load(
-            config_in=config_dict,
+            config_in=config_dict,  # type: ignore
             flow_config_vars=Self.get_all_config_variables(),
             design_dir=".",
             pdk_root=pdk_root,
@@ -1427,7 +1427,7 @@ class Step(ABC):
             if isinstance(step_config_path, Config):
                 step_id = Config.meta.step
             else:
-                config_dict = json_loadp(step_config_path)
+                config_dict: dict = json_loadp(step_config_path)  # type: ignore
                 meta = config_dict.get("meta") or {}
                 step_id = meta.get("step")
             if step_id is None:

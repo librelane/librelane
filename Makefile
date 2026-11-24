@@ -26,7 +26,6 @@ docker-image:
 # double-installing is still fast
 .PHONY: docs
 docs:
-	@if [[ -n "$(VIRTUAL_ENV)" ]]; then PYTHONPATH= $(PYTHON) -m pip install -r ./docs/requirements.txt; fi
 	$(MAKE) -C docs html
 
 .PHONY: host-docs

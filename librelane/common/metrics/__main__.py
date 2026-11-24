@@ -101,7 +101,10 @@ def compare(
             final_filters.append(wildcard)
 
     diff = MetricDiff.from_metrics(
-        a, b, significant_figures, filter=Filter(final_filters)
+        a,  # type: ignore
+        b,  # type: ignore
+        significant_figures,
+        filter=Filter(final_filters),
     )
 
     md_str = diff.render_md(sort_by=("corner", ""), table_verbosity=table_verbosity)

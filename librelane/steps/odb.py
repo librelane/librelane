@@ -151,7 +151,7 @@ class OdbpyStep(Step):
         # 2. Metrics
         metrics_path = os.path.join(self.step_dir, "or_metrics_out.json")
         if os.path.exists(metrics_path):
-            or_metrics_out = json_loadp(metrics_path)
+            or_metrics_out: dict = json_loadp(metrics_path)  # type: ignore
             for key, value in or_metrics_out.items():
                 if value == "Infinity":
                     or_metrics_out[key] = inf

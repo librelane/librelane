@@ -1,4 +1,4 @@
-# Copyright (c) 2026 LibreLane Contributors
+# Copyright 2026 LibreLane Contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Adapted from OpenLane 2
@@ -16,6 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
+
 import dataclasses
 import io
 import os
@@ -27,6 +29,9 @@ from json import JSONEncoder, dump, dumps, load, loads
 from typing import Any, AnyStr
 
 from ..types import AnyPath
+
+JSONScalar = int | Decimal | bool | str | None
+JSON = list["JSON"] | dict[JSONScalar, "JSON"] | JSONScalar
 
 
 class LibreLaneJSONEncoder(JSONEncoder):
@@ -40,37 +45,100 @@ class LibreLaneJSONEncoder(JSONEncoder):
         elif isinstance(o, Enum):
             return o.name
         elif isinstance(o, Decimal):
-            if o.is_infinite() or o.as_integer_ratio()[1] != 1:
-                return float(o)
-            else:
-                return int(o)
+            return float(o)
         return o
 
 
-def json_load(f: io.TextIOWrapper):
+def json_load(f: io.TextIOWrapper) -> JSON:
+    """
+    Deserializes a JSON data structure with floats parsed as Decimals.
+
+    :param f: A readable stream
+    :returns: the top-level JSON object readable in f
+    :raises: JSONError
+    """
     return load(f, parse_float=Decimal)
 
 
-def json_loads(s: AnyStr):
+def json_loads(s: AnyStr) -> JSON:
+    """
+    Deserializes a JSON data structure with floats parsed as Decimals.
+
+    :param s: A string
+    :returns: the top-level JSON object readable in s
+    :raises: JSONError
+    """
     return loads(s, parse_float=Decimal)
 
 
-def json_loadp(p: AnyPath):
+def json_loadp(p: AnyPath) -> JSON:
+    """
+    Deserializes a JSON data structure with floats parsed as Decimals.
+
+    :param p: A path to a readable file
+    :returns: the top-level JSON object readable at p
+    :raises: JSONError
+    """
     with open(p, encoding="utf8") as f:
         return load(f, parse_float=Decimal)
 
 
-def json_dump(a: Any, f: io.TextIOWrapper, **kwargs):
-    return dump(a, f, cls=LibreLaneJSONEncoder, **kwargs)
+def json_dump(a: Any, f: io.TextIOWrapper, *, indent: int | None = None):
+    """
+    Serializes a LibreLane data structure as JSON, with some handling
+    implemented for otherwise unsupported types:
+
+    - :class:`librelane.common.GenericDict`: Turned into a raw dict.
+    - Any :class:`os.PathLike`, :class:`UserString`: Turned into a string.
+    - Any dataclass: deep-converted into a dict, then the dict is processed.
+    - Any enum: saved by name (not value).
+    - Any decimal: saved as a float.
+    - JSON scalars are handled as-is.
+
+    :param a: Any object to serialize
+    :param f: A writable text stream
+    :param indent: (Optional) indentation of JSON output
+    """
+    return dump(a, f, cls=LibreLaneJSONEncoder, indent=indent)
 
 
-def json_dumps(a: Any, **kwargs):
-    return dumps(a, cls=LibreLaneJSONEncoder, **kwargs)
+def json_dumps(a: Any, *, indent: int | None = None) -> str:
+    """
+    Serializes a LibreLane data structure as JSON, with some handling
+    implemented for otherwise unsupported types:
+
+    - :class:`librelane.common.GenericDict`: Turned into a raw dict.
+    - Any :class:`os.PathLike`, :class:`UserString`: Turned into a string.
+    - Any dataclass: deep-converted into a dict, then the dict is processed.
+    - Any enum: saved by name (not value).
+    - Any decimal: saved as a float.
+    - JSON scalars are handled as-is.
+
+    :param a: Any object to serialize
+    :param indent: (Optional) indentation of JSON output
+    :returns: The JSON string
+    """
+    return dumps(a, cls=LibreLaneJSONEncoder, indent=indent)
 
 
-def json_dumpp(a: Any, p: AnyPath, **kwargs):
+def json_dumpp(a: Any, p: AnyPath, *, indent: int | None = None):
+    """
+    Serializes a LibreLane data structure as JSON, with some handling
+    implemented for otherwise unsupported types:
+
+    - :class:`librelane.common.GenericDict`: Turned into a raw dict.
+    - Any :class:`os.PathLike`, :class:`UserString`: Turned into a string.
+    - Any dataclass: deep-converted into a dict, then the dict is processed.
+    - Any enum: saved by name (not value).
+    - Any decimal: saved as a float.
+    - JSON scalars are handled as-is.
+
+    :param a: Any object to serialize
+    :param p: A path to a writable file
+    :param indent: (Optional) indentation of JSON output
+    """
     with open(p, "w", encoding="utf8") as f:
-        return dump(a, f, cls=LibreLaneJSONEncoder, **kwargs)
+        return dump(a, f, cls=LibreLaneJSONEncoder, indent=indent)
 
 
 __all__ = [

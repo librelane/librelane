@@ -41,14 +41,14 @@ def latest(extract_metrics_to: str | None, run_dir: str):
 
     if latest_state := get_latest_file(run_dir, "state_*.json"):
         try:
-            state = json_loadp(latest_state)
+            state: dict = json_loadp(latest_state)  # type: ignore
+            metrics = state["metrics"]
+            print(latest_state, end="")
+            if output := extract_metrics_to:
+                json_dumpp(metrics, output)
         except JSONError as e:
             print(f"Latest state at {latest_state} is invalid: {e}", file=sys.stderr)
             exit(1)
-        metrics = state["metrics"]
-        print(latest_state, end="")
-        if output := extract_metrics_to:
-            json_dumpp(metrics, output)
     else:
         print("No state_*.json files found", file=sys.stderr)
         exit_code = 1
