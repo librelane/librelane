@@ -15,11 +15,9 @@ import sys
 
 import cloup
 
-from librelane.common.serialize.json import json_dumpp
-
 from ..common import get_latest_file
 from ..common.cli import formatter_settings
-from ..common.serialize import JSONError, json_loadp
+from ..common.serialize import JSONError, json_dumpp, json_loadp
 
 
 @cloup.group(

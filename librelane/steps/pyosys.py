@@ -27,9 +27,8 @@ import sys
 from abc import abstractmethod
 from typing import ClassVar, Literal
 
-from librelane.common.serialize.json import json_dumpp, json_loadp
-
 from ..common import Path, get_script_dir, process_list_file
+from ..common.serialize import json_dumpp, json_loadp
 from ..config import Variable
 from ..logging import debug, verbose
 from ..state import DesignFormat, State

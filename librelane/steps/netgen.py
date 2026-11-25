@@ -19,9 +19,8 @@ import os
 import re
 from abc import abstractmethod
 
-from librelane.common.serialize.json import json_loadp
-
 from ..common import Path, TclUtils, get_script_dir, mkdirp
+from ..common.serialize import json_loadp
 from ..config import Variable
 from ..state import DesignFormat, State
 from .step import MetricsUpdate, Step, ViewsUpdate

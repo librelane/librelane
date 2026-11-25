@@ -40,8 +40,6 @@ from typing import (
 import psutil
 from rich.markup import escape
 
-from librelane.common.serialize.json import json_dumpp, json_loadp
-
 from .. import logging
 from ..__version__ import __version__
 from ..common import (
@@ -58,6 +56,7 @@ from ..common import (
     protected,
     slugify,
 )
+from ..common.serialize import json_dumpp, json_loadp
 from ..config import (
     Config,
     Variable,

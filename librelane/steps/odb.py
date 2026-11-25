@@ -26,9 +26,8 @@ from decimal import Decimal
 from math import inf
 from typing import Literal
 
-from librelane.common.serialize.json import json_loadp
-
 from ..common import Path, TclUtils, aggregate_metrics, get_script_dir
+from ..common.serialize import json_loadp
 from ..config import Instance, Macro, Variable
 from ..logging import info, verbose
 from ..state import DesignFormat, State

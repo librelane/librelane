@@ -40,8 +40,6 @@ from typing import (
 import rich
 import rich.table
 
-from librelane.common.serialize.json import json_loadp
-
 from ..common import (
     DRC as DRCObject,
 )
@@ -55,6 +53,7 @@ from ..common import (
     mkdirp,
     process_list_file,
 )
+from ..common.serialize import json_loadp
 from ..config import Macro, Variable
 from ..config.flow import option_variables
 from ..logging import console, debug, info, options, verbose
