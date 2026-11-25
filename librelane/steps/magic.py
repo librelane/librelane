@@ -302,9 +302,9 @@ class StreamOut(MagicStep):
             default=False,
         ),
         Variable(
-            "MAGIC_STREAMOUT_ISOLATE_SUBSTRATE",
+            "STREAMOUT_ISOLATE_SUBSTRATE",
             bool,
-            "Adds a virtual substrate isolation layer over the top cell. Useful when the design is getting integrated in another design with multiple power domains, where Magic's SPICE extraction engine would mistakenly conflate the power domains and result in an LVS error.",
+            description="Adds a virtual substrate isolation layer over the top cell. Useful when the design is getting integrated in another design with multiple power domains, where SPICE extraction engines may otherwise mistakenly conflate the power domains and cause a false LVS error.",
             default=False,
         ),
         Variable(
@@ -797,18 +797,3 @@ class RCX(MagicStep):
         views_updates, metrics_updates = super().run(state_in, env=env, **kwargs)
 
         return views_updates, metrics_updates
-
-class AddIsosub(MagicStep):
-    """
-    Draws isosub(subcut) over the design. Might be useful when design is getting integrated
-    in another design with multiple power domains.
-    """
-
-    id = "Magic.AddIsosub"
-    name = "Add isosub(subcut) to the design"
-
-    outputs = [DesignFormat.GDS, DesignFormat.MAG_GDS]
-    config_vars = StreamOut.config_vars
-
-    def get_script_path(self):
-        return os.path.join(get_script_dir(), "magic", "add_subcut.tcl")

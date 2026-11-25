@@ -88,7 +88,8 @@ from klayout.dbcore import (
 )
 @click.option(
     "--isosub",
-    "isosub",
+    default=None,
+    help="Layer number and datatype for virtual substrate isolation (SUBCUT) layer, in the format '{number}/{datatype}'. If passed, a polygon the size of the top cell is added to this layer.",
 )
 @click.option("-w", "--with-gds-file", "input_gds_files", multiple=True, default=[])
 @click.option("-s", "--seal-gds-file", "seal_gds", default=None)

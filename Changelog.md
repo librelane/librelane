@@ -51,6 +51,21 @@ Style Notes
   * Now accepts either a DEF or GDS as optional inputs, acting as a no-op if
     both are missing.
 
+* `KLayout.StreamOut`
+
+  * Added new variable `STREAMOUT_ISOLATE_SUBSTRATE`, which if set to
+    true, runs `paint isosub`, which isolates the design's substrate from
+    its surroundings during SPICE extraction as it can cause false LVS issues
+    for designs with multiple voltage domains.
+  * Added new PDK variable, `KLAYOUT_ISOSUB_LAYER`, to support the above.
+
+* `Magic.StreamOut`
+
+  * Added new variable `STREAMOUT_ISOLATE_SUBSTRATE`, which if set to
+    true, runs `paint isosub`, which isolates the design's substrate from
+    its surroundings during SPICE extraction as it can cause false LVS issues
+    for designs with multiple voltage domains.
+
 * `Magic.DRC`
 
   * Enabled maskhints so that DRC rules against generated layers are run

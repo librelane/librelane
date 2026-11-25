@@ -106,7 +106,6 @@ class Classic(SequentialFlow):
         Checker.XOR,
         Magic.DRC,
         KLayout.DRC,
-        Magic.AddIsosub,
         Checker.MagicDRC,
         Checker.KLayoutDRC,
         Magic.SpiceExtraction,
