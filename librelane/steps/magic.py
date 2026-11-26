@@ -302,6 +302,12 @@ class StreamOut(MagicStep):
             default=False,
         ),
         Variable(
+            "STREAMOUT_ISOLATE_SUBSTRATE",
+            bool,
+            description="Adds a virtual substrate isolation layer over the top cell. Useful when the design is getting integrated in another design with multiple power domains, where SPICE extraction engines may otherwise mistakenly conflate the power domains and cause a false LVS error.",
+            default=False,
+        ),
+        Variable(
             "MAGIC_DISABLE_CIF_INFO",
             bool,
             "A flag to disable writing Caltech Intermediate Format (CIF) hierarchy and subcell array information to the GDSII file.",
