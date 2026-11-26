@@ -53,10 +53,11 @@ Style Notes
 
 * `KLayout.StreamOut`
 
-  * Added new variable `STREAMOUT_ISOLATE_SUBSTRATE`, which if set to
-    true, runs `paint isosub`, which isolates the design's substrate from
-    its surroundings during SPICE extraction as it can cause false LVS issues
-    for designs with multiple voltage domains.
+  * Added new variable `STREAMOUT_ISOLATE_SUBSTRATE`, which if set to true, adds
+    a new polygon with the same dimensions as the top cell to the layer defined
+    as `KLAYOUT_ISOSUB_LAYER`, which isolates the design's substrate from its
+    surroundings during SPICE extraction as it can cause false LVS issues for
+    designs with multiple voltage domains.
   * Added new PDK variable, `KLAYOUT_ISOSUB_LAYER`, to support the above.
 
 * `Magic.StreamOut`
