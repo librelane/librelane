@@ -1967,20 +1967,20 @@ class GlobalRouting(OpenROADStep):
         return os.path.join(get_script_dir(), "openroad", "grt.tcl")
 
 
-class _DiodeInsertion(GlobalRouting):
-    id = "OpenROAD.DiodeInsertion"
-    name = "Diode Insertion"
+class _GRTAntennaRepair(GlobalRouting):
+    id = "OpenROAD.GRTAntennaRepair"
+    name = "GRT Antenna Repair"
 
     def get_script_path(self):
-        return os.path.join(get_script_dir(), "openroad", "antenna_repair.tcl")
+        return os.path.join(get_script_dir(), "openroad", "grt_antenna_repair.tcl")
 
 
 @Step.factory.register()
-class RepairAntennas(CompositeStep):
+class GRTRepairAntennas(CompositeStep):
     """
     Applies `antenna effect <https://en.wikipedia.org/wiki/Antenna_effect>`_
-    mitigations using global-routing information, then re-runs detailed placement
-    and global routing to legalize any inserted diodes.
+    mitigations using global-routing information.
+    TODO: cell mirroring
 
     An antenna check is once again performed, updating the
     ``route__antenna_violation__count`` metric.
@@ -1989,13 +1989,32 @@ class RepairAntennas(CompositeStep):
     id = "OpenROAD.RepairAntennas"
     name = "Antenna Repair"
 
-    Steps = [_DiodeInsertion, CheckAntennas]
+    Steps = [_GRTAntennaRepair, CheckAntennas]
 
     def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         if self.config["DIODE_CELL"] is None:
             info(f"'DIODE_CELL' not set. Skipping '{self.id}'…")
             return {}, {}
 
+        return super().run(state_in, **kwargs)
+
+
+# For backwards compatibility
+@Step.factory.register()
+class RepairAntennas(GRTRepairAntennas):
+    """
+    Applies `antenna effect <https://en.wikipedia.org/wiki/Antenna_effect>`_
+    mitigations using global-routing information.
+    TODO: cell mirroring
+
+    An antenna check is once again performed, updating the
+    ``route__antenna_violation__count`` metric.
+    """
+
+    id = "OpenROAD.RepairAntennas"
+    name = "GRT Antenna Repair"
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
         return super().run(state_in, **kwargs)
 
 
@@ -2054,32 +2073,6 @@ class DetailedRouting(OpenROADStep):
                 default=False,
             ),
             Variable(
-                "DRT_ANTENNA_REPAIR_ITERS",
-                int,
-                "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
-                default=3,
-            ),
-            Variable(
-                "DRT_ANTENNA_REPAIR_MARGIN",
-                int,
-                "The margin to over fix antenna violations.",
-                default=10,
-                units="%",
-                deprecated_names=["DRT_ANTENNA_MARGIN"],
-            ),
-            Variable(
-                "DRT_ANTENNA_REPAIR_JUMPER_ONLY",
-                bool,
-                "Only use jumpers to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_DIODE_ONLY.",
-                default=False,
-            ),
-            Variable(
-                "DRT_ANTENNA_REPAIR_DIODE_ONLY",
-                bool,
-                "Only use antenna diodes to fix antenna violations. Cannot be used in conjunction with DRT_ANTENNA_REPAIR_JUMPER_ONLY.",
-                default=False,
-            ),
-            Variable(
                 "DRT_SAVE_DRC_REPORT_ITERS",
                 Optional[int],
                 "Write a DRC report every N iterations. If DRT_SAVE_SNAPSHOTS is enabled, there is an implicit default value of 1.",
@@ -2122,6 +2115,54 @@ class DetailedRouting(OpenROADStep):
             klayout_lyrdb_path.with_suffix(".xml").symlink_to(klayout_lyrdb_path.name)
 
         return views_updates, metrics_updates
+
+
+class _DRTAntennaRepair(DetailedRouting):
+    id = "OpenROAD.DRTAntennaRepair"
+    name = "DRT Antenna Repair"
+
+    config_vars = DetailedRouting.config_vars + [
+        Variable(
+            "DRT_ANTENNA_REPAIR_ITERS",
+            int,
+            "The maximum number of iterations to run antenna repair. Set to a positive integer to attempt to repair antennas and then re-run DRT as appropriate.",
+            default=3,
+        ),
+        Variable(
+            "DRT_ANTENNA_REPAIR_MARGIN",
+            int,
+            "The margin to over fix antenna violations.",
+            default=10,
+            units="%",
+            deprecated_names=["DRT_ANTENNA_MARGIN"],
+        ),
+    ]
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "openroad", "drt_antenna_repair.tcl")
+
+
+@Step.factory.register()
+class DRTRepairAntennas(CompositeStep):
+    """
+    Applies `antenna effect <https://en.wikipedia.org/wiki/Antenna_effect>`_
+    mitigations using detailed-routing information.
+
+    An antenna check is once again performed, updating the
+    ``route__antenna_violation__count`` metric.
+    """
+
+    id = "OpenROAD.RepairAntennas"
+    name = "Antenna Repair"
+
+    Steps = [_DRTAntennaRepair, CheckAntennas]
+
+    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+        if self.config["DIODE_CELL"] is None:
+            info(f"'DIODE_CELL' not set. Skipping '{self.id}'…")
+            return {}, {}
+
+        return super().run(state_in, **kwargs)
 
 
 @Step.factory.register()

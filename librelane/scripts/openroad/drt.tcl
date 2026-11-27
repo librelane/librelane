@@ -1,3 +1,7 @@
+# Copyright 2026 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
 # Copyright 2020-2022 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,42 +103,11 @@ if { [info exists ::env(DRT_SAVE_DRC_REPORT_ITERS)] } {
     set drc_report_iter_step_arg "-drc_report_iter_step $::env(DRT_SAVE_DRC_REPORT_ITERS)"
 }
 
-set i 0
-
 set drt_args [list]
 lappend drt_args -droute_end_iter $::env(DRT_OPT_ITERS)
 lappend drt_args -or_seed 42
 lappend drt_args -verbose 1
 lappend drt_args {*}$drc_report_iter_step_arg
-drt_run $i {*}$drt_args
+drt_run 0 {*}$drt_args
 
-incr i
-
-if { ![info exists ::env(DIODE_CELL)] } {
-    puts "\[INFO\] Skipping post-DRT antenna repair: 'DIODE_CELL' not set."
-} elseif { $::env(DRT_ANTENNA_REPAIR_ITERS) == 0 } {
-    puts "\[INFO\] Skipping post-DRT antenna repair: DRT_ANTENNA_REPAIR_ITERS set to 0."
-} else {
-    set diode_cell [lindex [split $::env(DIODE_CELL) "/"] 0]
-
-    set arg_list [list]
-    lappend arg_list $diode_cell
-    lappend arg_list -ratio_margin $::env(GRT_ANTENNA_REPAIR_MARGIN)
-    append_if_flag arg_list GRT_ALLOW_CONGESTION -allow_congestion
-    append_if_flag arg_list DRT_ANTENNA_REPAIR_JUMPER_ONLY -jumper_only
-    append_if_flag arg_list DRT_ANTENNA_REPAIR_DIODE_ONLY -diode_only
-
-    while {$i <= $::env(DRT_ANTENNA_REPAIR_ITERS) && [log_cmd check_antennas]} {
-        puts "\[INFO\] Running antenna repair iteration $i…"
-        set diodes_inserted [log_cmd repair_antennas {*}$arg_list]
-        
-        if {$diodes_inserted || $::env(DRT_ANTENNA_REPAIR_JUMPER_ONLY)} {
-            drt_run $i {*}$drt_args
-        } else {
-            puts "\[INFO\] No diodes inserted. Ending antenna repair iterations."
-            break
-        }
-        incr i
-    }
-}
 write_views
