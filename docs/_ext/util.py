@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +15,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import shutil
 import pathlib
-from typing import Union
+import shutil
 
 
 def debug(*args, **kwargs):
@@ -27,7 +24,7 @@ def debug(*args, **kwargs):
         print(*args, **kwargs)
 
 
-def rimraf(path: Union[str, os.PathLike]):
+def rimraf(path: str | os.PathLike):
     try:
         shutil.rmtree(path)
     except NotADirectoryError:

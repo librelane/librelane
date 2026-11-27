@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +14,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 import re
-from typing import List
 from enum import IntEnum
 
 from sphinx.application import Sphinx
@@ -32,7 +29,7 @@ migration_comparison_rx = re.compile(
 )
 
 
-def subst_migration_comparison(app: Sphinx, docname: str, sourceRef: List[str]):
+def subst_migration_comparison(app: Sphinx, docname: str, sourceRef: list[str]):
     class State(IntEnum):
         default = 0
         before = 1

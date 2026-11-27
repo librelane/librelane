@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-import json
-from typing import Optional
 
 import cloup
 
 from ..common import get_latest_file
 from ..common.cli import formatter_settings
+from ..common.serialize import JSONError, json_dumpp, json_loadp
 
 
 @cloup.group(
@@ -35,19 +34,19 @@ def cli():
     default=None,
 )
 @cloup.argument("run_dir")
-def latest(extract_metrics_to: Optional[str], run_dir: str):
+def latest(extract_metrics_to: str | None, run_dir: str):
     exit_code = 0
 
     if latest_state := get_latest_file(run_dir, "state_*.json"):
         try:
-            state = json.load(open(latest_state, encoding="utf8"))
-        except json.JSONDecodeError as e:
+            state: dict = json_loadp(latest_state)  # type: ignore
+            metrics = state["metrics"]
+            print(latest_state, end="")
+            if output := extract_metrics_to:
+                json_dumpp(metrics, output)
+        except JSONError as e:
             print(f"Latest state at {latest_state} is invalid: {e}", file=sys.stderr)
             exit(1)
-        metrics = state["metrics"]
-        print(latest_state, end="")
-        if output := extract_metrics_to:
-            json.dump(metrics, open(output, "w", encoding="utf8"))
     else:
         print("No state_*.json files found", file=sys.stderr)
         exit_code = 1

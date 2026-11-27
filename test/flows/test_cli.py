@@ -23,6 +23,7 @@ pytestmark = pytest.mark.all
 
 def test_cli_basic():
     import click
+
     from librelane.flows import cloup_flow_opts
 
     @click.command()
@@ -37,6 +38,7 @@ def test_cli_basic():
 @pytest.mark.usefixtures("_chdir_test_rundir")
 def test_only_flag():
     import click
+
     from librelane.flows import cloup_flow_opts
 
     @click.command()
@@ -50,9 +52,9 @@ def test_only_flag():
     )
     assert result["frm"] == "this-step", "only flag not translated to frm correctly"
     assert result["to"] == "this-step", "only flag not translated to to correctly"
-    assert (
-        "only" not in result
-    ), "only flag not disposed of after translating to from and to"
+    assert "only" not in result, (
+        "only flag not disposed of after translating to from and to"
+    )
 
 
 @pytest.mark.usefixtures("_chdir_test_rundir")
@@ -97,8 +99,8 @@ def test_log_level_flag(caplog: pytest.LogCaptureFixture):
 def test_worker_count_cb():
     import click
 
-    from librelane.flows import cloup_flow_opts
     from librelane.common import get_tpe, set_tpe
+    from librelane.flows import cloup_flow_opts
 
     @click.command()
     @cloup_flow_opts(volare_by_default=False)
@@ -119,6 +121,7 @@ def test_worker_count_cb():
 @pytest.mark.usefixtures("_chdir_test_rundir")
 def test_initial_state(fs: FakeFilesystem, caplog: pytest.LogCaptureFixture):
     import click
+
     from librelane.flows import cloup_flow_opts
 
     @click.command()
@@ -168,7 +171,7 @@ def test_initial_state(fs: FakeFilesystem, caplog: pytest.LogCaptureFixture):
         ["--with-initial-state", "/cwd/non_dict.json"],
         standalone_mode=False,
     )
-    assert (
-        "is not a dictionary" in caplog.text
-    ), "Non-dictionary JSON file did not report an error"
+    assert "is not a dictionary" in caplog.text, (
+        "Non-dictionary JSON file did not report an error"
+    )
     caplog.clear()

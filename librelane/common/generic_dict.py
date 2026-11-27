@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,29 +16,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import json
 import dataclasses
-from enum import Enum
-from decimal import Decimal
+import json
+import os
 from collections import UserString
+from collections.abc import Callable, Hashable, ItemsView, Iterator, Mapping, Sequence
+from decimal import Decimal
+from enum import Enum
 from typing import (
     Any,
-    Callable,
-    Dict,
-    Hashable,
-    ItemsView,
-    Iterator,
-    Mapping,
-    Sequence,
-    Type,
     TypeVar,
-    Tuple,
-    Optional,
 )
 
-from .misc import idem
+from typing_extensions import Self
+
 from .types import is_string
+from .misc import idem
 
 
 class GenericDictEncoder(json.JSONEncoder):
@@ -42,14 +40,14 @@ class GenericDictEncoder(json.JSONEncoder):
     necessarily handled by the default JSON encoder, i.e., UserString, os.PathLike,
     Decimals, etcetera.
 
-    It is recommended to use :meth:`GenericDict.to_json` unless you know what
+    It is recommended to use :meth:`GenericDict.dumps` unless you know what
     you're doing.
     """
 
     def default(self, o):
         if isinstance(o, GenericDict):
             return o.to_raw_dict()
-        elif isinstance(o, os.PathLike) or isinstance(o, UserString):
+        elif isinstance(o, (os.PathLike, UserString)):
             return str(o)
         elif not isinstance(o, type) and dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
@@ -67,7 +65,7 @@ KT = TypeVar("KT", bound=Hashable)
 VT = TypeVar("VT")
 
 
-class GenericDict(Mapping[KT, VT]):
+class GenericDict(Mapping[KT, VT]):  # noqa: PLW1641 <- this is not hashable, idk why it's complaining
     """
     A dictionary with generic keys and values that is compatible with Python 3.8.1.
 
@@ -76,13 +74,13 @@ class GenericDict(Mapping[KT, VT]):
         with.
     """
 
-    _data: Dict[KT, VT]
+    _data: dict[KT, VT]
 
     def __init__(
         self,
-        copying: Optional[Mapping[KT, VT]] = None,
+        copying: Mapping[KT, VT] | None = None,
         /,
-        overrides: Optional[Mapping[KT, VT]] = None,
+        overrides: Mapping[KT, VT] | None = None,
     ) -> None:
         super().__init__()
         self.__data = {}
@@ -112,8 +110,8 @@ class GenericDict(Mapping[KT, VT]):
     def __iter__(self) -> Iterator[KT]:
         return iter(self.__data)
 
-    def __eq__(self, __o: object) -> bool:
-        if not (isinstance(__o, GenericDict) or isinstance(__o, dict)):
+    def __eq__(self, __o: object, /) -> bool:
+        if not isinstance(__o, (GenericDict, dict)):
             raise NotImplementedError()
 
         rhs = __o
@@ -144,7 +142,7 @@ class GenericDict(Mapping[KT, VT]):
 
     T = TypeVar("T", bound="GenericDict")
 
-    def copy(self: T) -> T:
+    def copy(self) -> Self:
         """
         Convenience replacement for `object.__class__(object)`, which would
         create a copy of the ``GenericDict`` object.
@@ -159,7 +157,7 @@ class GenericDict(Mapping[KT, VT]):
         """
         return self.__data.copy()
 
-    def get_encoder(self) -> Type[GenericDictEncoder]:
+    def get_encoder(self) -> type[GenericDictEncoder]:
         """
         :returns: A JSON encoder handling GenericDict objects.
         """
@@ -192,7 +190,7 @@ class GenericDict(Mapping[KT, VT]):
             kwargs["indent"] = 4
         return json.dumps(self.to_raw_dict(), cls=self.get_encoder(), **kwargs)
 
-    def check(self, key: KT, /) -> Tuple[Optional[KT], Optional[VT]]:
+    def check(self, key: KT, /) -> tuple[KT | None, VT | None]:
         """
         Checks if a key exists and returns a tuple in the form ``(key, value)``.
 
@@ -236,7 +234,7 @@ class GenericImmutableDict(GenericDict[KT, VT]):
 
     def __init__(
         self,
-        copying: Optional[Mapping[KT, VT]] = None,
+        copying: Mapping[KT, VT] | None = None,
         /,
         *args,
         **kwargs,

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import pytest
-from decimal import Decimal
 from dataclasses import dataclass
+from decimal import Decimal
+from typing import Literal, Optional, Union
+
+import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
 pytestmark = pytest.mark.all
 
@@ -104,12 +105,12 @@ def test_is_optional():
 
     assert is_optional(int) is False, "is_optional false positive"
     assert is_optional(Optional[int]) is True, "is_optional false negative"
-    assert (
-        is_optional(Optional[Union[int, dict]]) is True
-    ), "is_optional composite false negative"
-    assert (
-        is_optional(Union[None, int, dict]) is True
-    ), "is_optional flattened union false negative"
+    assert is_optional(Optional[int | dict]) is True, (
+        "is_optional composite false negative"
+    )
+    assert is_optional(Union[None, int, dict]) is True, (
+        "is_optional flattened union false negative"
+    )
     assert is_optional(int | None) is True
     assert is_optional(int | dict | None) is True
 
@@ -118,25 +119,25 @@ def test_some_of():
     from librelane.config.variable import some_of
 
     assert some_of(int) is int, "some_of changed the type of a non-option type"
-    assert (
-        some_of(List[str]) == List[str]
-    ), "some_of changed the type of a non-option type"
-    assert (
-        some_of(Optional[int]) is int
-    ), "some_of failed to extract type from option type"
-    assert (
-        some_of(Optional[Union[Dict, List]]) is Union[Dict, List]
-    ), "some of failed to properly handle optional union"
+    assert some_of(list[str]) == list[str], (
+        "some_of changed the type of a non-option type"
+    )
+    assert some_of(Optional[int]) is int, (
+        "some_of failed to extract type from option type"
+    )
+    assert some_of(Optional[dict | list]) is Union[dict, list], (
+        "some of failed to properly handle optional union"
+    )
 
-    assert (
-        some_of(Union[Dict, List, None]) is Union[Dict, List]
-    ), "some of failed to properly handle flattened optional union"
-    assert (
-        some_of(int | None) is int
-    ), "some of failed to properly handle PEP 604 optional union"
-    assert (
-        some_of(dict | list | None) == dict | list
-    ), "some of failed to properly handle PEP 604 flattened optional union"
+    assert some_of(Union[dict, list, None]) is Union[dict, list], (
+        "some of failed to properly handle flattened optional union"
+    )
+    assert some_of(int | None) is int, (
+        "some of failed to properly handle PEP 604 optional union"
+    )
+    assert some_of(dict | list | None) == dict | list, (
+        "some of failed to properly handle PEP 604 flattened optional union"
+    )
 
 
 def test_variable_construction():
@@ -158,9 +159,9 @@ def test_variable_construction():
         description="My Other Description",
     )
 
-    assert (
-        variable == variable_b
-    ), "Variable with different description or deprecated_name didn't match"
+    assert variable == variable_b, (
+        "Variable with different description or deprecated_name didn't match"
+    )
 
     variable_c = Variable(
         "EXAMPLE",
@@ -168,30 +169,30 @@ def test_variable_construction():
         description="My Description",
     )
 
-    assert (
-        variable == variable_c
-    ), "Variable with different description or deprecated_name didn't match"
+    assert variable == variable_c, (
+        "Variable with different description or deprecated_name didn't match"
+    )
 
     variable_union = Variable(
         "UNION_VAR",
-        Union[int, Dict[str, str]],
+        Union[int, dict[str, str]],
         description="x",
     )
-    assert (
-        variable_union.type == Union[int, Dict[str, str]]
-    ), "Union magically switched types"
+    assert variable_union.type == Union[int, dict[str, str]], (
+        "Union magically switched types"
+    )
 
     variable_union_new = Variable(
         "UNION_VAR",
-        int | Dict[str, str],
+        int | dict[str, str],
         description="x",
     )
-    assert (
-        variable_union_new.type == int | Dict[str, str]
-    ), "PEP 604 union didn't match typing union"
-    assert (
-        variable_union.type == variable_union_new.type
-    ), "Variable with different union syntax didn't match"
+    assert variable_union_new.type == int | dict[str, str], (
+        "PEP 604 union didn't match typing union"
+    )
+    assert variable_union.type == variable_union_new.type, (
+        "Variable with different union syntax didn't match"
+    )
 
 
 @pytest.fixture
@@ -201,7 +202,7 @@ def variable():
 
     return Variable(
         "EXAMPLE",
-        Optional[List[Path]],
+        Optional[list[Path]],
         description="x",
         deprecated_names=["OLD_EXAMPLE"],
     )
@@ -273,9 +274,9 @@ def test_compile_deprecated(variable):
         deprecated_valid_input,
         warning_list,
     )
-    assert (
-        used_name == "OLD_EXAMPLE"
-    ), "deprecated valid input returned incorrect used name"
+    assert used_name == "OLD_EXAMPLE", (
+        "deprecated valid input returned incorrect used name"
+    )
     assert paths == [
         "/cwd/a",
         "/cwd/b",
@@ -295,8 +296,8 @@ def test_enum():
 
 
 def test_compile_validators():
-    from librelane.config import Variable
     from librelane.common import GenericDict
+    from librelane.config import Variable
 
     def zero_to_one_validator(variable: Variable, input, _):
         if input < 0 or input > 1:
@@ -342,10 +343,10 @@ def test_compile_validators():
     assert result == Decimal("0.5"), "updater modified valid value"
 
     _, result = updated.compile(
-        GenericDict({"TEST_VARIABLE_UPDATER": Decimal("24601")}), warning_list_ref
+        GenericDict({"TEST_VARIABLE_UPDATER": Decimal(24601)}), warning_list_ref
     )
-    assert result == Decimal("1"), "updater did not modify out of scope value"
-    assert len(warning_list_ref), "invalid updated value did not emit a warning"
+    assert result == Decimal(1), "updater did not modify out of scope value"
+    assert warning_list_ref, "invalid updated value did not emit a warning"
 
 
 @pytest.fixture
@@ -356,47 +357,47 @@ def variable_set(variable, test_enum):
         variable,
         Variable(
             "LIST_VAR",
-            List[int],
+            list[int],
             description="x",
         ),
         Variable(
             "TUPLE_2_VAR",
-            Tuple[int, int],
+            tuple[int, int],
             description="x",
         ),
         Variable(
             "TUPLE_3_VAR",
-            Tuple[int, int, int],
+            tuple[int, int, int],
             description="x",
         ),
         Variable(
             "TUPLE_4_VAR",
-            Tuple[str, int, int],
+            tuple[str, int, int],
             description="x",
         ),
         Variable(
             "DICT_VAR",
-            Dict[str, str],
+            dict[str, str],
             description="x",
         ),
         Variable(
             "OTHER_DICT_VAR",
-            Dict[str, str],
+            dict[str, str],
             description="x",
         ),
         Variable(
             "ANOTHER_DICT_VAR",
-            Dict[str, str],
+            dict[str, str],
             description="x",
         ),
         Variable(
             "UNION_VAR",
-            Union[int, Dict[str, str]],
+            Union[int, dict[str, str]],
             description="x",
         ),
         Variable(
             "UNION_VAR_2",
-            int | Dict[str, str],
+            int | dict[str, str],
             description="x",
         ),
         Variable(
@@ -464,7 +465,7 @@ def test_compile_invalid(variable_set: list):
 
 
 @pytest.mark.usefixtures("_mock_fs")
-def test_compile_permissive(variable_set: list, test_enum: Type):
+def test_compile_permissive(variable_set: list, test_enum: type):
     from librelane.common import GenericDict
 
     permissive_valid_input = GenericDict(
@@ -508,7 +509,7 @@ def test_compile_permissive(variable_set: list, test_enum: Type):
         "UNION_VAR_2": 4,
         "BOOL_VAR": False,
         "ENUM_VAR": test_enum["AValue"],
-        "NUMBER_VAR": Decimal("90123"),
+        "NUMBER_VAR": Decimal(90123),
         "LITERAL_VAR": "yes",
     }, "Permissive parsing mode returned an unexpected result"
 

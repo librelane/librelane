@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 import subprocess
 
 __dir__ = os.path.dirname(__file__)

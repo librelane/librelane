@@ -64,9 +64,9 @@ def test_metric_check_pass(
             metrics={"design__burnt_potato__count": 0},
         )
     )
-    assert (
-        "Check for Burnt Potato Count clear" in caplog.text
-    ), "Metric check did not pass"
+    assert "Check for Burnt Potato Count clear" in caplog.text, (
+        "Metric check did not pass"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
@@ -83,9 +83,9 @@ def test_metric_check_not_found(
             metrics={"design__burnt_potatoes__count": 0},
         )
     )
-    assert (
-        "metric was not found" in caplog.text
-    ), "Metric check did not flag appropriate warning"
+    assert "metric was not found" in caplog.text, (
+        "Metric check did not flag appropriate warning"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
@@ -108,10 +108,10 @@ def test_metric_exceed(
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([step])
 def test_metric_exceed_deferred(mock_config):
-    from librelane.state import State
-    from librelane.steps.checker import MetricChecker
-    from librelane.steps import DeferredStepError
     from librelane.common import Toolbox
+    from librelane.state import State
+    from librelane.steps import DeferredStepError
+    from librelane.steps.checker import MetricChecker
 
     class PotatoesDropped(MetricChecker):
         id = "Potatoes Dropped"

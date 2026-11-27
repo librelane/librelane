@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .metric import Metric, sum_aggregator, min_aggregator, max_aggregator
+from .metric import Metric, max_aggregator, min_aggregator, sum_aggregator
 
 # Area and Counts
 Metric(

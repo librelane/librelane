@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pkgutil
 import importlib
+import pkgutil
 
 discovered_plugins = {
     name: importlib.import_module(name)
     for finder, name, ispkg in pkgutil.iter_modules()
-    if name.startswith("librelane_plugin_") or name.startswith("openlane_plugin_")
+    if name.startswith(("librelane_plugin_", "openlane_plugin_"))
 }

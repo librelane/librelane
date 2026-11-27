@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import tkinter
 
 import pytest
+from minitcl import Interpreter
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 pytestmark = pytest.mark.all
@@ -31,19 +31,19 @@ def _mock_fs():
 def test_escape():
     from librelane.common import TclUtils
 
-    assert (
-        TclUtils.escape("ringo") == r"ringo"
-    ), ".escape altered a non-dangerous string"
+    assert TclUtils.escape("ringo") == r"ringo", (
+        ".escape altered a non-dangerous string"
+    )
     assert TclUtils.escape("r ingo") == r'"r ingo"', ".escape neglected whitespace"
-    assert (
-        TclUtils.escape("[expr ringo]") == r'"\[expr ringo]"'
-    ), ".escape neglected expression braces"
-    assert (
-        TclUtils.escape("[expr $ringo]") == r'"\[expr \$ringo]"'
-    ), ".escape neglected dollar sign"
-    assert (
-        TclUtils.escape("[expr \\$ringo]") == r'"\[expr \\\$ringo]"'
-    ), ".escape neglected backslash"
+    assert TclUtils.escape("[expr ringo]") == r'"\[expr ringo]"', (
+        ".escape neglected expression braces"
+    )
+    assert TclUtils.escape("[expr $ringo]") == r'"\[expr \$ringo]"', (
+        ".escape neglected dollar sign"
+    )
+    assert TclUtils.escape("[expr \\$ringo]") == r'"\[expr \\\$ringo]"', (
+        ".escape neglected backslash"
+    )
 
 
 @pytest.mark.usefixtures("_mock_fs")
@@ -59,7 +59,7 @@ def test_join():
     ]
 
     very_wild_list_escaped = TclUtils.join(very_wild_list)
-    interpreter = tkinter.Tcl()
+    interpreter = Interpreter()
     interpreter.eval(
         f"""
         set very_wild_variable [list {very_wild_list_escaped}]
@@ -71,7 +71,7 @@ def test_join():
     )
 
     assert os.listdir("/cwd") == [], "Arbitrary code execution"
-    assert interpreter.getvar("length") == 5, "Tcl list not escaped properly"
+    assert interpreter.get_var("length") == "5", "Tcl list not escaped properly"
 
 
 def test_eval_env():
@@ -114,9 +114,9 @@ def test_eval_env():
         """,
     )
 
-    assert (
-        os.getenv("STD_CELL_LIBRARY") == "sky130_fd_sc_hd"
-    ), "env_from_tcl unset a previously set environment variable"
+    assert os.getenv("STD_CELL_LIBRARY") == "sky130_fd_sc_hd", (
+        "env_from_tcl unset a previously set environment variable"
+    )
 
     del os.environ["STD_CELL_LIBRARY"]
 
@@ -125,13 +125,14 @@ def test_eval_env():
 
 def test_value_to_tcl():
     from enum import Enum
+
     from librelane.common import TclUtils
 
     numerical_list_value = [1.0, 2.1000, 3, 4.01]
     numerical_list_value_string = "1.0 2.1 3 4.01"
-    assert (
-        TclUtils.value_to_tcl(numerical_list_value) == numerical_list_value_string
-    ), "Wrong numerical list to tcl list conversion"
+    assert TclUtils.value_to_tcl(numerical_list_value) == numerical_list_value_string, (
+        "Wrong numerical list to tcl list conversion"
+    )
 
     alphanumerical_list_value = [
         1.0,
@@ -169,9 +170,9 @@ def test_value_to_tcl():
 
     dict_value = {"abc": 1}
     dict_value_string = "abc 1"
-    assert (
-        TclUtils.value_to_tcl(dict_value) == dict_value_string
-    ), "Wrong dict to tcl conversion"
+    assert TclUtils.value_to_tcl(dict_value) == dict_value_string, (
+        "Wrong dict to tcl conversion"
+    )
     dict_value = {
         "abc": 1,
         "cde": "123",
@@ -180,7 +181,7 @@ def test_value_to_tcl():
         "[g]": alphanumerical_list_value,
     }
 
-    interpreter = tkinter.Tcl()
+    interpreter = Interpreter()
     interpreter.eval(
         f"""
         set test_dict {TclUtils.escape(TclUtils.value_to_tcl(dict_value))}
@@ -208,10 +209,10 @@ def test_value_to_tcl():
         value_var = f"value{counter}"
 
         try:
-            key = interpreter.getvar(key_var)
-        except tkinter.TclError:
+            key = interpreter.get_var(key_var)
+        except RuntimeError:
             break
-        value = interpreter.getvar(value_var)
+        value = interpreter.get_var(value_var)
         out[key] = value
         counter += 1
 

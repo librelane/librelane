@@ -71,10 +71,10 @@ def manual_macro_placement(reader, config, fixed):
     with open(config) as config_file:
         for line in config_file:
             # Discard comments and empty lines
-            line = line.split("#")[0].strip()  # noqa: PLW2901
+            line = line.split("#")[0].strip()
             if not line:
                 continue
-            line = line.split()  # noqa: PLW2901
+            line = line.split()
             name, x, y, orientation = line
             macro_data = [
                 name,

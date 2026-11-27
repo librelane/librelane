@@ -24,43 +24,45 @@ pytestmark = pytest.mark.all
 
 
 def test_parse():
-    from librelane.scripts.odbpy.ioplace_parser import parse, Order
+    from librelane.scripts.odbpy.ioplace_parser import Order, parse
 
     example_path = os.path.join(pytest.ioplace_parser_root, "example", "complex.cfg")
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     example_parsed = parse(example_str)
 
-    assert example_parsed["N"].min_distance == Decimal(
-        "0.42"
-    ), "min distance not set for north"
+    assert example_parsed["N"].min_distance == Decimal("0.42"), (
+        "min distance not set for north"
+    )
 
     for side in ["E", "W", "S"]:
-        assert (
-            example_parsed[side].min_distance is None
-        ), "min distance set for unset side"
+        assert example_parsed[side].min_distance is None, (
+            "min distance set for unset side"
+        )
 
     for side in ["N", "E", "W"]:
-        assert (
-            example_parsed[side].sort_mode is Order.bitMajor
-        ), f"global @bit_major annotation did not affect side {side}"
+        assert example_parsed[side].sort_mode is Order.bitMajor, (
+            f"global @bit_major annotation did not affect side {side}"
+        )
 
-    assert (
-        example_parsed["S"].sort_mode == Order.busMajor
-    ), "per-direction @bus_major annotation did not affect S"
+    assert example_parsed["S"].sort_mode == Order.busMajor, (
+        "per-direction @bus_major annotation did not affect S"
+    )
 
 
 def test_global_min():
     from librelane.scripts.odbpy.ioplace_parser import parse
 
     example_path = os.path.join(pytest.ioplace_parser_root, "example", "globals.cfg")
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     example_parsed = parse(example_str)
     for side in ["N", "E", "W", "S"]:
-        assert example_parsed[side].min_distance == Decimal(
-            "0"
-        ), f"min distance unset for {side} with global option"
+        assert example_parsed[side].min_distance == Decimal(0), (
+            f"min distance unset for {side} with global option"
+        )
 
 
 @pytest.mark.xfail(
@@ -73,7 +75,8 @@ def test_syntax_error():
         pytest.ioplace_parser_root, "example", "grammar_error.cfg"
     )
 
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(ValueError, match="Syntax Error"):
         parse(example_str)
@@ -85,7 +88,8 @@ def test_unknown_annotation():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "unknown_annotation.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(ValueError, match="Unknown annotation"):
         parse(example_str)
@@ -97,7 +101,8 @@ def test_misused_value():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "misused_value.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(ValueError, match=r"Annotation \w+ cannot be assigned a value"):
         parse(example_str)
@@ -109,7 +114,8 @@ def test_missing_value():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "missing_value.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(ValueError, match=r"Annotation \w+ requires a value"):
         parse(example_str)
@@ -121,7 +127,8 @@ def test_dep_annotation():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "deprecated_bus_sort.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.warns(
         UserWarning,
@@ -136,7 +143,8 @@ def test_invalid_vpin():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "invalid_virtual.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(
         ValueError,
@@ -151,7 +159,8 @@ def test_invalid_pin():
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "invalid_pin.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.raises(
         ValueError,
@@ -161,12 +170,13 @@ def test_invalid_pin():
 
 
 def test_housekeeping():
-    from librelane.scripts.odbpy.ioplace_parser import parse, Side, Order
+    from librelane.scripts.odbpy.ioplace_parser import Order, Side, parse
 
     example_path = os.path.join(
         pytest.ioplace_parser_root, "example", "housekeeping.cfg"
     )
-    example_str = open(example_path, encoding="utf8").read()
+    with open(example_path, encoding="utf8") as f:
+        example_str = f.read()
 
     with pytest.warns(
         UserWarning,

@@ -2,7 +2,6 @@
 <p align="center">
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
     <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.10-3776AB.svg?style=flat&logo=python&logoColor=white" alt="Python ≥3.10" /></a>
-    <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style: black"/></a>
     <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"/></a>
     <a href="https://nixos.org/"><img src="https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a" alt="Built with Nix"/></a>
 </p>
@@ -78,7 +77,7 @@ Colaboratory by following
 
 You'll need the following:
 
-* Python **3.10** or higher with PIP, Venv and Tkinter
+* Python **3.10** or higher with PIP and Venv
 
 ### Nix (Recommended)
 

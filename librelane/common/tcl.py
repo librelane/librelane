@@ -17,10 +17,11 @@
 # limitations under the License.
 import os
 import re
-from enum import Enum
-from decimal import Decimal
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import asdict, is_dataclass
-from typing import Callable, Dict, Mapping, Any, Iterable, Union
+from decimal import Decimal
+from enum import Enum
+from typing import Any
 
 from minitcl import Interpreter
 
@@ -30,7 +31,7 @@ _find_unsafe = re.compile(r"[^\w@%+=:,./-]", re.ASCII).search
 _escapes_in_quotes = re.compile(r"([\\\$\"\[])")
 
 
-class TclUtils(object):
+class TclUtils:
     """
     A collection of useful Tcl utilities.
     """
@@ -107,7 +108,7 @@ class TclUtils(object):
     @staticmethod
     def _eval_env_common(
         env_in: Mapping[str, Any], do_eval: Callable
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         interpreter = Interpreter()
 
         interpreter.eval("array unset ::env")
@@ -128,11 +129,11 @@ class TclUtils(object):
         return env_out
 
     @staticmethod
-    def _eval_env(env_in: Mapping[str, Any], tcl_in: str) -> Dict[str, Any]:
+    def _eval_env(env_in: Mapping[str, Any], tcl_in: str) -> dict[str, Any]:
         return TclUtils._eval_env_common(env_in, lambda i: i.eval(tcl_in))
 
     @staticmethod
     def _eval_env_file(
-        env_in: Mapping[str, Any], tcl_in: Union[str, os.PathLike]
-    ) -> Dict[str, Any]:
+        env_in: Mapping[str, Any], tcl_in: str | os.PathLike
+    ) -> dict[str, Any]:
         return TclUtils._eval_env_common(env_in, lambda i: i.eval_file(tcl_in))

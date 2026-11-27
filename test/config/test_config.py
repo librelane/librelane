@@ -15,8 +15,8 @@ from decimal import Decimal
 
 import pytest
 
-from librelane.config import config, Macro, Instance
 from librelane.common import Path
+from librelane.config import Instance, Macro, config
 from librelane.config.variable import Orientation
 
 pytestmark = pytest.mark.all
@@ -27,7 +27,7 @@ mock_variables = pytest.mock_variables
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_dict_config():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     cfg, _ = Config.load(
         {"DESIGN_NAME": "whatever", "VERILOG_FILES": "dir::src/*.v"},
@@ -46,7 +46,7 @@ def test_dict_config():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -67,7 +67,7 @@ def test_dict_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_json_config():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -99,7 +99,7 @@ def test_json_config():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -123,7 +123,7 @@ def test_json_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_yaml_config():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.yaml", "w") as f:
         f.write(
@@ -152,7 +152,7 @@ def test_yaml_config():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -176,7 +176,7 @@ def test_yaml_config():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_tcl_config():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.tcl", "w") as f:
         f.write(
@@ -209,7 +209,7 @@ def test_tcl_config():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -270,7 +270,7 @@ def test_multiconf():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": False,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -290,7 +290,7 @@ def test_multiconf():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_mixed_configs():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -332,7 +332,7 @@ def test_mixed_configs():
             "PDK": "dummy",
             "STD_CELL_LIBRARY": "dummy_scl",
             "VERILOG_FILES": ["/cwd/src/a.v", "/cwd/src/b.v"],
-            "EXAMPLE_PDK_VAR": Decimal("30"),
+            "EXAMPLE_PDK_VAR": Decimal(30),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -430,9 +430,9 @@ def test_with_increment():
         config.flow_common_variables + step1_variables, {}, True
     )
 
-    assert (
-        step1_cfg == step1_cfg_incr
-    ), "_with_increment not properly working as a filter"
+    assert step1_cfg == step1_cfg_incr, (
+        "_with_increment not properly working as a filter"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
@@ -493,7 +493,7 @@ def test_automatic_conversion():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_pdk():
-    from librelane.config import InvalidConfig, Config
+    from librelane.config import Config, InvalidConfig
 
     cfg1, _ = Config.load(
         {
@@ -571,15 +571,15 @@ def test_pdk():
             pdk="dumm",
         )
 
-    assert True in [
-        "similarly-named" in warning for warning in e.value.warnings
-    ], "invalid PDK did not return suggestions in warnings"
+    assert True in ["similarly-named" in warning for warning in e.value.warnings], (
+        "invalid PDK did not return suggestions in warnings"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_invalid_keys(caplog: pytest.LogCaptureFixture):
-    from librelane.config import InvalidConfig, Config
+    from librelane.config import Config, InvalidConfig
 
     with open("/cwd/config.json", "w") as f:
         f.write(
@@ -601,13 +601,13 @@ def test_invalid_keys(caplog: pytest.LogCaptureFixture):
             pdk_root="/pdk",
         )
     except InvalidConfig as e:
-        assert (  # noqa: PT017
-            e is None
-        ), "unknown variable triggered an error when loading from a meta.version: 1 JSON file"
+        assert e is None, (
+            "unknown variable triggered an error when loading from a meta.version: 1 JSON file"
+        )
 
-    assert (
-        "unknown key" in caplog.text
-    ), "unknown variable did not trigger a warning when loading from a meta.version: 1 JSON file"
+    assert "unknown key" in caplog.text, (
+        "unknown variable did not trigger a warning when loading from a meta.version: 1 JSON file"
+    )
     caplog.clear()
 
     with pytest.raises(InvalidConfig, match="Unknown key") as e:
@@ -624,9 +624,9 @@ def test_invalid_keys(caplog: pytest.LogCaptureFixture):
             pdk_root="/pdk",
         )
 
-    assert (
-        e is not None
-    ), "unknown variable did not trigger an error when loading from dict"
+    assert e is not None, (
+        "unknown variable did not trigger an error when loading from dict"
+    )
 
     Config.load(
         {
@@ -641,9 +641,9 @@ def test_invalid_keys(caplog: pytest.LogCaptureFixture):
         pdk_root="/pdk",
     )
 
-    assert (
-        "has been removed" in caplog.text
-    ), "removed variable did not trigger a warning when loading from a meta.version: 1 JSON file"
+    assert "has been removed" in caplog.text, (
+        "removed variable did not trigger a warning when loading from a meta.version: 1 JSON file"
+    )
     caplog.clear()
 
 
@@ -725,16 +725,16 @@ def test_dis_migration(caplog: pytest.LogCaptureFixture):
     assert cfg["RUN_HEURISTIC_DIODE_INSERTION"], "failed to migrate dis 6 properly"
     assert cfg["DIODE_ON_PORTS"] == "in", "failed to migrate dis 6 properly"
 
-    assert (
-        "See 'Migrating DIODE_INSERTION_STRATEGY'" in caplog.text
-    ), "diode insertion strategy did not trigger a warning"
+    assert "See 'Migrating DIODE_INSERTION_STRATEGY'" in caplog.text, (
+        "diode insertion strategy did not trigger a warning"
+    )
     caplog.clear()
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_config_inline_var_substitution():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.yaml", "w") as f:
         f.write(
@@ -771,7 +771,7 @@ def test_config_inline_var_substitution():
                 "/cwd/src/a.v",
                 "/cwd/src/b.v",
             ],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -795,7 +795,7 @@ def test_config_inline_var_substitution():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_config_array_macro():
-    from librelane.config import Meta, Config
+    from librelane.config import Config, Meta
 
     with open("/cwd/config.yaml", "w") as f:
         f.write(
@@ -841,7 +841,7 @@ def test_config_array_macro():
                 "/cwd/src/a.v",
                 "/cwd/src/b.v",
             ],
-            "EXAMPLE_PDK_VAR": Decimal("10"),
+            "EXAMPLE_PDK_VAR": Decimal(10),
             "GRT_REPAIR_ANTENNAS": True,
             "RUN_HEURISTIC_DIODE_INSERTION": False,
             "DIODE_ON_PORTS": "none",
@@ -859,22 +859,22 @@ def test_config_array_macro():
                         ),
                         "epic_sram_512x8_1_0": Instance(
                             location=(
-                                Decimal(200.0),
-                                Decimal(100.0),
+                                Decimal("200.0"),
+                                Decimal("100.0"),
                             ),
                             orientation=Orientation.N,
                         ),
                         "epic_sram_512x8_0_1": Instance(
                             location=(
-                                Decimal(100.0),
-                                Decimal(200.0),
+                                Decimal("100.0"),
+                                Decimal("200.0"),
                             ),
                             orientation=Orientation.N,
                         ),
                         "epic_sram_512x8_1_1": Instance(
                             location=(
-                                Decimal(200.0),
-                                Decimal(200.0),
+                                Decimal("200.0"),
+                                Decimal("200.0"),
                             ),
                             orientation=Orientation.N,
                         ),
@@ -898,7 +898,7 @@ def test_config_array_macro():
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables()
 def test_config_array_macro_invalid():
-    from librelane.config import Meta, Config
+    from librelane.config import Config
 
     with open("/cwd/config.yaml", "w") as f:
         f.write(
@@ -927,7 +927,7 @@ def test_config_array_macro_invalid():
         )
 
     with pytest.raises(RuntimeError):
-        cfg, _ = Config.load(
+        _ = Config.load(
             "/cwd/config.yaml",
             config.flow_common_variables,
             pdk="dummy",

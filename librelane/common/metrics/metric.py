@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,17 +16,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from math import inf
-from decimal import Decimal
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Mapping, Optional, Tuple, ClassVar, Dict
-
+from decimal import Decimal
+from math import inf
+from typing import Any, ClassVar
 
 from ..types import Number, is_number, is_real_number
 
-MetricAggregator = Tuple[Number, Callable[[Iterable[Number]], Number]]
+MetricAggregator = tuple[Number, Callable[[Iterable[Number]], Number]]
 
-sum_aggregator: MetricAggregator = (0, lambda x: sum(x))
+sum_aggregator: MetricAggregator = (0, sum)
 min_aggregator: MetricAggregator = (inf, min)
 max_aggregator: MetricAggregator = (-inf, max)
 
@@ -48,28 +53,28 @@ class MetricComparisonResult:
     metric_name: str
     gold: Any
     new: Any
-    delta: Optional[Number]
-    delta_pct: Optional[Number]
-    better: Optional[bool]
+    delta: Number | None
+    delta_pct: Number | None
+    better: bool | None
     critical: bool
-    significant_figures: Optional[int]
+    significant_figures: int | None
 
     def is_changed(self) -> bool:
         return (self.delta is not None and self.delta != 0) or self.gold != self.new
 
-    def format_values(self) -> Tuple[str, str, str]:
+    def format_values(self) -> tuple[str, str, str]:
         before_str = str(self.gold)
-        if isinstance(self.gold, float) or isinstance(self.gold, Decimal):
+        if isinstance(self.gold, (float, Decimal)):
             before_str = str(f"{self.gold:.{self.significant_figures}f}")
 
         after_str = str(self.new)
-        if isinstance(self.new, float) or isinstance(self.new, Decimal):
+        if isinstance(self.new, (float, Decimal)):
             after_str = str(f"{self.new:.{self.significant_figures}f}")
 
         delta_str = "N/A"
         if self.delta is not None:
             delta_str = str(round(self.delta, 6))
-            if isinstance(self.delta, float) or isinstance(self.delta, Decimal):
+            if isinstance(self.delta, (float, Decimal)):
                 delta_str = str(f"{self.delta:.{self.significant_figures}f}")
             if self.delta_pct is not None:
                 delta_pct_str = str(f"{self.delta_pct:.{self.significant_figures}f}")
@@ -81,7 +86,7 @@ class MetricComparisonResult:
 
 
 @dataclass
-class Metric(object):
+class Metric:
     """
     An object storing data about a metric as defined in METRICS2.1.
 
@@ -105,12 +110,12 @@ class Metric(object):
     """
 
     name: str
-    aggregator: Optional[MetricAggregator] = None
-    higher_is_better: Optional[bool] = None
-    dont_aggregate: Optional[Iterable[str]] = None
+    aggregator: MetricAggregator | None = None
+    higher_is_better: bool | None = None
+    dont_aggregate: Iterable[str] | None = None
     critical: bool = False
 
-    by_name: ClassVar[Dict[str, "Metric"]] = {}
+    by_name: ClassVar[dict[str, "Metric"]] = {}
 
     def __post_init__(self):
         Metric.by_name[self.name] = self
@@ -127,7 +132,7 @@ class Metric(object):
         gold: Any,
         new: Any,
         significant_figures: int,
-        modifiers: Optional[Mapping[str, str]] = None,
+        modifiers: Mapping[str, str] | None = None,
     ) -> MetricComparisonResult:
         """
         :param gold: The "gold-standard" value for this metric to compare against

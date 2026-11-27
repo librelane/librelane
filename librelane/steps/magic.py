@@ -16,31 +16,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import pathlib
 import re
 import shutil
-import pathlib
 import subprocess
+from abc import abstractmethod
+from decimal import Decimal
 from os.path import abspath
 from signal import SIGKILL
-from decimal import Decimal
-from abc import abstractmethod
-from typing import Any, Literal, List, Optional, Tuple
+from typing import Any, Literal
 
+from ..common import DRC as DRCObject
+from ..common import Path, TclUtils, count_occurences, get_script_dir
+from ..config import Variable
+from ..logging import warn
+from ..state import DesignFormat, State
 from .step import (
     DefaultOutputProcessor,
+    MetricsUpdate,
     OutputProcessor,
+    Step,
     StepError,
     StepException,
     ViewsUpdate,
-    MetricsUpdate,
-    Step,
 )
 from .tclstep import TclStep
-from ..state import DesignFormat, State
-
-from ..config import Variable
-from ..common import get_script_dir, DRC as DRCObject, Path, count_occurences, TclUtils
-from ..logging import warn
 
 DesignFormat(
     "mag",
@@ -147,13 +147,13 @@ class MagicStep(TclStep):
         ),
         Variable(
             "CELL_MAGS",
-            Optional[List[Path]],
+            list[Path] | None,
             "A list of pre-processed concrete views for cells. Read as a fallback for undefined cells.",
             pdk=True,
         ),
         Variable(
             "CELL_MAGLEFS",
-            Optional[List[Path]],
+            list[Path] | None,
             "A list of pre-processed abstract LEF views for cells. Read as a fallback for undefined cells in scripts where cells are black-boxed.",
             pdk=True,
         ),
@@ -172,7 +172,7 @@ class MagicStep(TclStep):
     def get_script_path(self) -> str:
         pass
 
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         return [
             "magic",
             "-dnull",
@@ -192,7 +192,7 @@ class MagicStep(TclStep):
 
         return env
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         env = self.prepare_env(env, state_in)
 
@@ -266,7 +266,7 @@ class WriteLEF(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "lef.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         env["MAGTYPE"] = "mag"
         return super().run(state_in, **kwargs)
@@ -291,7 +291,7 @@ class StreamOut(MagicStep):
     config_vars = MagicStep.config_vars + [
         Variable(
             "DIE_AREA",
-            Optional[Tuple[Decimal, Decimal, Decimal, Decimal]],
+            tuple[Decimal, Decimal, Decimal, Decimal] | None,
             'Specific die area to be used in floorplanning when `FP_SIZING` is set to `absolute`. Specified as a 4-corner rectangle "x0 y0 x1 y1".',
             units="µm",
         ),
@@ -328,7 +328,7 @@ class StreamOut(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "def", "mag_gds.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
 
         env = self.prepare_env(env, state_in)
@@ -343,7 +343,7 @@ class StreamOut(MagicStep):
         ):
             macro_gds = []
             env_copy = env.copy()
-            for macro in self.config["MACROS"].keys():
+            for macro in self.config["MACROS"]:
                 macro_gdses = [str(path) for path in self.config["MACROS"][macro].gds]
                 if len(macro_gdses) > 1:
                     raise StepException(
@@ -404,19 +404,19 @@ class Filler(Step):
     config_vars = [
         Variable(
             "MAGIC_FILLER_SCRIPT",
-            Optional[Path],
+            Path | None,
             "Path to the magic filler script.",
             pdk=True,
         ),
         Variable(
             "MAGIC_FILLER_OPTIONS",
-            Optional[List[str]],
+            list[str] | None,
             "Options passed directly to the magic filler script.",
             pdk=True,
         ),
     ]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         metrics_updates: MetricsUpdate = {}
         views_updates: ViewsUpdate = {}
 
@@ -432,7 +432,7 @@ class Filler(Step):
 
     def run_generic(
         self, state_in: State, **kwargs
-    ) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    ) -> tuple[ViewsUpdate, MetricsUpdate]:
         views_updates: ViewsUpdate = {}
         kwargs, env = self.extract_env(kwargs)
 
@@ -521,12 +521,12 @@ class DRC(MagicStep):
         ),
         Variable(
             "MAGIC_GDS_FLATGLOB",
-            Optional[List[str]],
+            list[str] | None,
             "Flatten cells by name pattern on input. May be used to avoid false positive DRC errors. The strings may use standard shell-type glob patterns, with * for any length string match, ? for any single character match, \\ for special characters, and [] for matching character sets or ranges.",
         ),
         Variable(
             "MAGIC_DRC_MAGLEFS",
-            Optional[List[Path]],
+            list[Path] | None,
             "A list of pre-processed abstract LEF views for cells. They are read in before the design and act as blackboxes during DRC.",
         ),
     ]
@@ -534,7 +534,7 @@ class DRC(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "drc.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         reports_dir = pathlib.Path(self.step_dir) / "reports"
         reports_dir.mkdir(parents=True, exist_ok=True)
 
@@ -593,7 +593,7 @@ class SpiceExtraction(MagicStep):
         ),
         Variable(
             "MAGIC_EXT_ABSTRACT_CELLS",
-            Optional[List[str]],
+            list[str] | None,
             "A list of regular expressions which are matched against the cells of a "
             + "the design. Matches are abstracted (black-boxed) during SPICE extraction.",
         ),
@@ -630,7 +630,7 @@ class SpiceExtraction(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "extract_spice.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         if self.config["MAGIC_EXT_USE_GDS"] and self.config["MAGIC_EXT_ABSTRACT"]:
             raise StepException(
                 "'MAGIC_EXT_USE_GDS' and 'MAGIC_EXT_ABSTRACT' cannot be both set to 'True'. The step cannot run."
@@ -654,13 +654,15 @@ class SpiceExtraction(MagicStep):
             )
             return views_updates, metrics_updates
 
-        cif_scale = Decimal(open(os.path.join(self.step_dir, "cif_scale.txt")).read())
+        with open(os.path.join(self.step_dir, "cif_scale.txt"), encoding="utf8") as f:
+            cif_scale = Decimal(f.read())
         try:
-            se_feedback, _ = DRCObject.from_magic_feedback(
-                open(feedback_path, encoding="utf8"),
-                cif_scale,
-                self.config["DESIGN_NAME"],
-            )
+            with open(feedback_path, encoding="utf8") as f:
+                se_feedback, _ = DRCObject.from_magic_feedback(
+                    f,
+                    cif_scale,
+                    self.config["DESIGN_NAME"],
+                )
             illegal_overlap_count = sum(
                 len(v.bounding_boxes)
                 for v in se_feedback.violations.values()
@@ -700,7 +702,7 @@ class OpenGUI(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "open.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
 
         env = self.prepare_env(env, state_in)
@@ -787,7 +789,7 @@ class RCX(MagicStep):
     def get_script_path(self):
         return os.path.join(get_script_dir(), "magic", "spice_rcx.tcl")
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
 
         # always 'mag', since we'll never define the abstract setting like the original SpiceExtraction step

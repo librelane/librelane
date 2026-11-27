@@ -16,28 +16,22 @@ from __future__ import annotations
 import os
 import threading
 from abc import abstractmethod
+from collections.abc import Sequence
 from typing import (
     Any,
     ClassVar,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Dict,
-    Union,
 )
 
 from deprecated.sphinx import deprecated
 
-from .step import ViewsUpdate, MetricsUpdate, Step, StepException
-
-from ..state import State, DesignFormat
 from ..common import (
     Path,
     TclUtils,
     get_script_dir,
     protected,
 )
+from ..state import DesignFormat, State
+from .step import MetricsUpdate, Step, StepException, ViewsUpdate
 
 
 class TclStep(Step):
@@ -71,10 +65,9 @@ class TclStep(Step):
         """
         :returns: A path to the Tcl script to be run by this step.
         """
-        pass
 
     @protected
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         """
         This command should be overridden by subclasses and replaced with a
         command incorporating the  appropriate tool: e.g. ``openroad``,
@@ -123,7 +116,7 @@ class TclStep(Step):
         macro_lefs = self.toolbox.get_macro_views(self.config, DesignFormat.LEF)
         env["MACRO_LEFS"] = TclUtils.join([str(lef) for lef in macro_lefs])
 
-        for element in self.config.keys():
+        for element in self.config:
             value = self.config[element]
             if value is None:
                 continue
@@ -144,7 +137,7 @@ class TclStep(Step):
         return env
 
     @protected
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         """
         This overridden :meth:`run` function prepares configuration variables and
         inputs for use with Tcl: specifically, it converts them all to
@@ -195,8 +188,8 @@ class TclStep(Step):
 
     def _reroute_env(
         self,
-        env: Dict[str, str],
-        report_dir: Optional[Union[str, os.PathLike]] = None,
+        env: dict[str, str],
+        report_dir: str | os.PathLike | None = None,
     ):
         thread_postfix = f"_{threading.current_thread().name}"
         if threading.current_thread() is threading.main_thread():
@@ -215,7 +208,7 @@ class TclStep(Step):
             "PDK",
             "_TCL_ENV_IN",
         ]
-        env_in: List[Tuple[str, str]] = list(env.items())
+        env_in: list[tuple[str, str]] = list(env.items())
 
         # Create new "blank" env dict
         #
@@ -242,13 +235,13 @@ class TclStep(Step):
     @protected
     def run_subprocess(
         self,
-        cmd: Sequence[Union[str, os.PathLike]],
-        log_to: Optional[Union[str, os.PathLike]] = None,
+        cmd: Sequence[str | os.PathLike],
+        log_to: str | os.PathLike | None = None,
         silent: bool = False,
-        report_dir: Optional[Union[str, os.PathLike]] = None,
-        env: Optional[Dict[str, str]] = None,
+        report_dir: str | os.PathLike | None = None,
+        env: dict[str, str] | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if env is not None:
             env = self._reroute_env(env, report_dir=report_dir)
         return super().run_subprocess(

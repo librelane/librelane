@@ -17,12 +17,11 @@
 # limitations under the License.
 import os
 import re
-from typing import List, Optional, Set, Tuple
 
-from .step import Step, StepException, ViewsUpdate, MetricsUpdate
+from ..common import Path
 from ..config import Variable
 from ..state import DesignFormat, State
-from ..common import Path
+from .step import MetricsUpdate, Step, StepException, ViewsUpdate
 
 
 @Step.factory.register()
@@ -43,17 +42,17 @@ class Lint(Step):
     config_vars = [
         Variable(
             "VERILOG_FILES",
-            List[Path],
+            list[Path],
             "The paths of the design's Verilog files.",
         ),
         Variable(
             "VERILOG_INCLUDE_DIRS",
-            Optional[List[Path]],
+            list[Path] | None,
             "Specifies the Verilog `include` directories.",
         ),
         Variable(
             "VERILOG_POWER_DEFINE",
-            Optional[str],
+            str | None,
             "Specifies the name of the define used to guard power and ground connections in the input RTL.",
             deprecated_names=["SYNTH_USE_PG_PINS_DEFINES", "SYNTH_POWER_DEFINE"],
             default="USE_POWER_PINS",
@@ -85,36 +84,36 @@ class Lint(Step):
         ),
         Variable(
             "VERILOG_DEFINES",
-            Optional[List[str]],
+            list[str] | None,
             "Preprocessor defines for input Verilog files",
             deprecated_names=["SYNTH_DEFINES"],
         ),
         Variable(
             "LINTER_DEFINES",
-            Optional[List[str]],
+            list[str] | None,
             "Linter-specific preprocessor definitions; overrides VERILOG_DEFINES for the lint step if exists",
         ),
         Variable(
             "LINTER_DISABLE_WARNINGS",
-            Optional[List[str]],
+            list[str] | None,
             "Warning codes that are passed to the linter to be disabled.",
             default=["DECLFILENAME", "EOFNEWLINE"],
         ),
         Variable(
             "LINTER_DISABLE_WARNINGS_BLACKBOX",
-            Optional[List[str]],
+            list[str] | None,
             "Warning codes that are passed to the linter to be disabled for all blackbox modules.",
             default=["UNDRIVEN", "UNUSEDSIGNAL"],
         ),
         Variable(
             "LINTER_VLTS",
-            Optional[List[Path]],
+            list[Path] | None,
             "List of paths to Verilator Configuration format files (`.vlt`) that are passed to the linter.",
             deprecated_names=[("LINTER_VLT", lambda x: [x])],
         ),
     ]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         kwargs, env = self.extract_env(kwargs)
         views_updates: ViewsUpdate = {}
         metrics_updates: MetricsUpdate = {}
@@ -122,8 +121,8 @@ class Lint(Step):
 
         blackboxes = []
 
-        model_list: List[str] = []
-        model_set: Set[str] = set()
+        model_list: list[str] = []
+        model_set: set[str] = set()
 
         if cell_verilog_models := self.config["CELL_VERILOG_MODELS"]:
             blackboxes.append(
@@ -179,7 +178,7 @@ class Lint(Step):
 
         defines += self.config["LINTER_DEFINES"] or self.config["VERILOG_DEFINES"] or []
 
-        if len(model_list):
+        if model_list:
             bb_path = self.toolbox.create_blackbox_model(
                 tuple(model_list),
                 frozenset(defines),
@@ -190,15 +189,16 @@ class Lint(Step):
         with open(vlt_file, "w") as f:
             f.write("`verilator_config\n")
             if disable_warnings := self.config["LINTER_DISABLE_WARNINGS"]:
-                for warn in disable_warnings:
-                    f.write(f"lint_off -rule {warn}\n")
+                f.writelines(f"lint_off -rule {warn}\n" for warn in disable_warnings)
 
             for blackbox in blackboxes:
                 if disable_warnings_bb := self.config[
                     "LINTER_DISABLE_WARNINGS_BLACKBOX"
                 ]:
-                    for warn in disable_warnings_bb:
-                        f.write(f'lint_off -rule {warn} -file "{blackbox}"\n')
+                    f.writelines(
+                        f'lint_off -rule {warn} -file "{blackbox}"\n'
+                        for warn in disable_warnings_bb
+                    )
 
         extra_args.append("--Wno-fatal")
 
@@ -245,7 +245,7 @@ class Lint(Step):
         timing_constructs = 0
 
         exiting_rx = re.compile(r"^\s*%Error: Exiting due to (\d+) error\(s\)")
-        with open(self.get_log_path(), "r", encoding="utf8") as f:
+        with open(self.get_log_path(), encoding="utf8") as f:
             for line in f:
                 line = line.strip()
                 if r"%Warning-" in line:
@@ -270,5 +270,5 @@ class Lint(Step):
         metrics_updates.update({"design__inferred_latch__count": latch_count})
         return views_updates, metrics_updates
 
-    def layout_preview(self) -> Optional[str]:
+    def layout_preview(self) -> str | None:
         return None

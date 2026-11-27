@@ -1,4 +1,4 @@
-from typing import List, Iterable
+from collections.abc import Iterable
 
 class Design:
     def __init__(self) -> None: ...
@@ -24,4 +24,4 @@ class Design:
 
 class Pass:
     @staticmethod
-    def call(design: Design, cmd: List[str]): ...
+    def call(design: Design, cmd: list[str]): ...

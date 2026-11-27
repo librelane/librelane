@@ -15,12 +15,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import sys
-import shutil
-import inspect
 import importlib
-from typing import Callable, Optional, Tuple
+import inspect
+import os
+import shutil
+import sys
+from collections.abc import Callable
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -36,23 +36,16 @@ def create_reproducible_on_fail(request: SubRequest):
 @pytest.fixture
 def pdk_root(request):
     import ciel
-    from ciel.source import StaticWebDataSource
+
     from librelane.common import get_ciel_pdk_hash
 
     ciel_home = ciel.get_ciel_home(request.config.option.pdk_root)
+    sky130_hash = get_ciel_pdk_hash("sky130A")
+    version_dir = ciel.Version(sky130_hash, "sky130").get_dir(ciel_home)
+    if not os.path.exists(version_dir):
+        pytest.fail(f"PDK required: run ciel enable --pdk sky130A {sky130_hash}")
 
-    data_source = StaticWebDataSource(
-        "https://fossi-foundation.github.io/ciel-releases"
-    )
-
-    version = ciel.fetch(
-        ciel_home,
-        "sky130",
-        get_ciel_pdk_hash("sky130A"),
-        data_source=data_source,
-    )
-
-    return version.get_dir(ciel_home)
+    return version_dir
 
 
 def try_call(fn: Callable, /, **kwargs):
@@ -87,18 +80,19 @@ def attribute_from_file(file: str, attribute: str):
 @pytest.mark.parametrize("test", pytest.tests)
 @pytest.mark.usefixtures("_chdir_test_rundir", "create_reproducible_on_fail")
 def test_step_unit(
-    test: Tuple[str, bool],
+    test: tuple[str, bool],
     pdk_root: str,
     caplog: pytest.LogCaptureFixture,
 ):
 
-    from librelane.steps import Step
-    from librelane.state import State
-    from librelane.config import Config
-    from librelane.common import Toolbox, get_script_dir
-    from librelane.steps.openroad_alerts import SupportsOpenROADAlerts
-    from decimal import Decimal
     import json
+    from decimal import Decimal
+
+    from librelane.common import Toolbox, get_script_dir
+    from librelane.config import Config
+    from librelane.state import State
+    from librelane.steps import Step
+    from librelane.steps.openroad_alerts import SupportsOpenROADAlerts
 
     sys.path.insert(0, os.getcwd())
 
@@ -111,7 +105,8 @@ def test_step_unit(
 
     for file in os.listdir("."):
         if file.endswith(".ref"):
-            referenced_file_path = open(file, encoding="utf8").read().strip()
+            with open(file, encoding="utf8") as f:
+                referenced_file_path = f.read().strip()
             final_path = os.path.join(".", file[:-4])
             referenced_file = os.path.join(pytest.step_common_dir, referenced_file_path)
             shutil.copy(referenced_file, final_path)
@@ -152,25 +147,26 @@ def test_step_unit(
     )
 
     ## Create empty State if state_in.json is missing
-    if state_in is None or (type(state_in) == str and not os.path.isfile(state_in)):
+    if state_in is None or (type(state_in) is str and not os.path.isfile(state_in)):
         state_in = State()
 
     # 2. Load and Launch Step
 
     if not isinstance(config, Config):
-        config_object, _ = Config.load(
-            config_in=json.loads(open(config).read(), parse_float=Decimal),
-            flow_config_vars=Target.get_all_config_variables(),
-            design_dir=".",
-            pdk_root=pdk_root,
-            _load_pdk_configs=True,
-        )
+        with open(config, encoding="utf8") as f:
+            config_object, _ = Config.load(
+                config_in=json.load(f, parse_float=Decimal),
+                flow_config_vars=Target.get_all_config_variables(),
+                design_dir=".",
+                pdk_root=pdk_root,
+                _load_pdk_configs=True,
+            )
     else:
         config_object = config
 
     target = Target.load(config_object, state_in, pdk_root)
 
-    exception: Optional[Exception] = None
+    exception: Exception | None = None
     try:
         target.start(
             toolbox=Toolbox("."),

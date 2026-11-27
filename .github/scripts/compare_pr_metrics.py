@@ -1,9 +1,8 @@
 # Copyright (c) 2026 LibreLane Contributors
 # SPDX-License-Identifier: Apache-2.0
-# flake8: noqa: E402
 import os
-import sys
 import shlex
+import sys
 from pathlib import Path
 
 __file_dir__ = Path(__file__).parent.resolve()
@@ -12,9 +11,9 @@ __librelane_root__ = __file_dir__.parents[1]
 sys.path.insert(0, str(__librelane_root__))  # make LibreLane importable
 
 try:
+    import click
     from githubkit import GitHub
     from githubkit.exception import RequestFailed
-    import click
 except ImportError as e:
     if sys.platform == "win32":
         raise e from None
@@ -59,11 +58,12 @@ except ImportError as e:
     os.execl(venv_python3, *cmd)
 
 import tempfile
+from collections.abc import Callable
+from typing import Literal
 from zipfile import ZipFile
-from typing import Callable, Literal
 
-from librelane.common.metrics.util import TableVerbosity
 from librelane.common.metrics.compare import compare_metric_directories
+from librelane.common.metrics.util import TableVerbosity
 
 
 class NoCompletedRuns(RuntimeError):

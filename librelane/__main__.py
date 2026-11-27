@@ -15,73 +15,73 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import sys
 import glob
-import shutil
 import marshal
+import os
+import shutil
+import sys
 import tempfile
 import traceback
-from textwrap import dedent
+from collections.abc import Sequence
 from functools import partial
-from typing import Any, Dict, Sequence, Tuple, Type, Optional, List
+from textwrap import dedent
+from typing import Any
 
 import click
 from cloup import (
+    command,
     option,
     option_group,
-    command,
 )
 from cloup.constraints import (
     mutually_exclusive,
 )
 
-
+from . import common
 from .__version__ import __version__
-from .state import State, DesignFormat
+from .common.cli import formatter_settings
+from .config import Config, InvalidConfig, PassedDirectoryError
+from .container import run_in_container
+from .flows import Flow, FlowError, FlowException, SequentialFlow, cloup_flow_opts
 from .logging import (
     debug,
     err,
-    warn,
     info,
+    warn,
 )
-from . import common
-from .container import run_in_container
 from .plugins import discovered_plugins
-from .common.cli import formatter_settings
-from .config import Config, InvalidConfig, PassedDirectoryError
-from .flows import Flow, SequentialFlow, FlowException, FlowError, cloup_flow_opts
+from .state import DesignFormat, State
 
 
 def run(
     ctx: click.Context,
-    flow_name: Optional[str],
-    pdk_root: Optional[str],
+    flow_name: str | None,
+    pdk_root: str | None,
     pdk: str,
-    scl: Optional[str],
-    pad: Optional[str],
+    scl: str | None,
+    pad: str | None,
     config_files: Sequence[str],
-    tag: Optional[str],
+    tag: str | None,
     last_run: bool,
-    frm: Optional[str],
-    to: Optional[str],
-    skip: Tuple[str, ...],
+    frm: str | None,
+    to: str | None,
+    skip: tuple[str, ...],
     overwrite: bool,
-    reproducible: Optional[str],
-    with_initial_state: Optional[State],
-    config_override_strings: List[str],
-    _force_run_dir: Optional[str],
-    design_dir: Optional[str],
+    reproducible: str | None,
+    with_initial_state: State | None,
+    config_override_strings: list[str],
+    _force_run_dir: str | None,
+    design_dir: str | None,
     initial_state_element_override: Sequence[str],
-    view_save_path: Optional[str] = None,
-    ef_view_save_path: Optional[str] = None,
+    view_save_path: str | None = None,
+    ef_view_save_path: str | None = None,
 ):
     try:
         if len(config_files) == 0:
             err("No config file(s) have been provided.")
             ctx.exit(1)
 
-        TargetFlow: Optional[Type[Flow]] = Flow.factory.get("Classic")
+        TargetFlow: type[Flow] | None = Flow.factory.get("Classic")
 
         for config_file in config_files:
             if meta := Config.get_meta(config_file):
@@ -99,9 +99,9 @@ def run(
                     if meta.flow is None:
                         err("config_file has substituting_steps set with no flow.")
                         ctx.exit(1)
-                    assert (
-                        TargetFlow is not None
-                    ), "run() failed to properly deduce TargetFlow -- please file an issue"
+                    assert TargetFlow is not None, (
+                        "run() failed to properly deduce TargetFlow -- please file an issue"
+                    )
                     if issubclass(TargetFlow, SequentialFlow):
                         TargetFlow = TargetFlow.Substitute(meta.substituting_steps)  # type: ignore  # Type checker is being rowdy with this one
 
@@ -133,11 +133,11 @@ def run(
                 overrides=overrides,
             )
 
-        assert (
-            TargetFlow is not None
-        ), "TargetFlow is unexpectedly None. Please report this as a bug."
+        assert TargetFlow is not None, (
+            "TargetFlow is unexpectedly None. Please report this as a bug."
+        )
 
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "pdk_root": pdk_root,
             "pdk": pdk,
             "scl": scl,
@@ -243,7 +243,7 @@ def print_bare_version(
 def run_included_example(
     ctx: click.Context,
     smoke_test: bool,
-    example: Optional[str],
+    example: str | None,
     **kwargs,
 ):
     assert smoke_test or example is not None
@@ -454,7 +454,8 @@ def cli(ctx, /, **kwargs):
     run_kwargs = kwargs.copy()
 
     if len(args) == 1 and args[0].endswith(".marshalled"):
-        run_kwargs = marshal.load(open(args[0], "rb"))
+        with open(args[0], "rb") as f:
+            run_kwargs = marshal.load(f)
         run_kwargs.update(**{k: kwargs[k] for k in ["pdk_root", "pdk", "scl", "pad"]})
 
     smoke_test = kwargs.pop("smoke_test", False)

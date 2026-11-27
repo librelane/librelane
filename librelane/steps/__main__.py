@@ -11,36 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 import os
 import shlex
 import shutil
-import datetime
 import subprocess
+from collections.abc import Sequence
 from functools import partial
-from typing import IO, Any, Dict, Optional, Sequence, Union
+from typing import IO, Any
 
-from click import pass_context, Context, argument
+from click import Context, argument, pass_context
 from cloup import (
+    Path,
+    command,
     group,
     option,
-    command,
-    Path,
 )
 
-from .step import Step, StepError, StepException
-from ..logging import info, err, warn
-from ..flows import cloup_flow_opts
 from ..__version__ import __version__
+from ..common import Toolbox, get_librelane_root, mkdirp
 from ..common.cli import formatter_settings
-from ..common import mkdirp, Toolbox, get_librelane_root
+from ..flows import cloup_flow_opts
+from ..logging import err, info, warn
+from .step import Step, StepError, StepException
 
 
 def load_step_from_inputs(
     ctx: Context,
-    id: Optional[str],
+    id: str | None,
     config: str,
     state_in: str,
-    pdk_root: Optional[str] = None,
+    pdk_root: str | None = None,
 ) -> Step:
     Target = Step
     if id is not None:
@@ -219,17 +220,17 @@ def eject(ctx, output, state_in, config, id):
 
     toolbox_dir = os.path.join(".", "toolbox_tmp")
 
-    found_cmd: Optional[Sequence[Union[str, os.PathLike]]] = None
-    found_env: Optional[Dict[str, Any]] = None
-    found_stdin_data: Optional[Union[str, bytes]] = None
+    found_cmd: Sequence[str | os.PathLike] | None = None
+    found_env: dict[str, Any] | None = None
+    found_stdin_data: str | bytes | None = None
 
     class Stop(Exception):
         pass
 
     def popen_substitute(
-        cmd: Sequence[Union[str, os.PathLike]],
-        env: Optional[Dict[str, Any]] = None,
-        stdin: Optional[IO[Any]] = None,
+        cmd: Sequence[str | os.PathLike],
+        env: dict[str, Any] | None = None,
+        stdin: IO[Any] | None = None,
         *args,
         **kwargs,
     ) -> subprocess.Popen:
@@ -289,9 +290,12 @@ def eject(ctx, output, state_in, config, id):
                 or key in ["PATH", "PYTHONPATH"]
             ):
                 continue
-            if os.path.isabs(value) and os.path.exists(value):
-                if value.startswith(canon_scripts_dir):
-                    value = value.replace(canon_scripts_dir, target_scripts_dir)
+            if (
+                os.path.isabs(value)
+                and os.path.exists(value)
+                and value.startswith(canon_scripts_dir)
+            ):
+                value = value.replace(canon_scripts_dir, target_scripts_dir)
             filtered_env[key] = value
 
     cat_in = ""
@@ -500,7 +504,6 @@ def cli():
     Try 'python3 -m librelane.steps COMMAND --help' for help with a specific
     command.
     """
-    pass
 
 
 cli.add_command(run)

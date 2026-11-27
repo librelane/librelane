@@ -13,12 +13,12 @@
 # limitations under the License.
 import os
 import pathlib
-from typing import Callable, Optional, Type
+from collections.abc import Callable
 
 import pytest
 
-from librelane.flows import flow
 from librelane.config import Variable
+from librelane.flows import flow
 from librelane.steps import step
 
 pytestmark = pytest.mark.all
@@ -34,8 +34,8 @@ def variable():
 @pytest.fixture
 def MockStepTuple(variable: Variable):
     from librelane.common import Path
-    from librelane.steps import Step
     from librelane.state import DesignFormat, State
+    from librelane.steps import Step
 
     class StepA(Step):
         id = "Test.StepA"
@@ -48,13 +48,14 @@ def MockStepTuple(variable: Variable):
             import json
 
             out_file = os.path.join(self.step_dir, "whatever.json")
-            json.dump(
-                {
-                    "not_really_a_valid_header": True,
-                    "cfg_var_value": str(self.config["DUMMY_VARIABLE"]),
-                },
-                open(out_file, "w", encoding="utf8"),
-            )
+            with open(out_file, "w", encoding="utf8") as f:
+                json.dump(
+                    {
+                        "not_really_a_valid_header": True,
+                        "cfg_var_value": str(self.config["DUMMY_VARIABLE"]),
+                    },
+                    f,
+                )
 
             return {
                 DesignFormat.JSON_HEADER: Path(out_file),
@@ -69,15 +70,16 @@ def MockStepTuple(variable: Variable):
             import json
 
             out_file = os.path.join(self.step_dir, "whatever.json")
-            json.dump(
-                {
-                    "probably_a_valid_header": False,
-                    "previous_invalid_header": str(
-                        state_in.get(DesignFormat.JSON_HEADER)
-                    ),
-                },
-                open(out_file, "w", encoding="utf8"),
-            )
+            with open(out_file, "w", encoding="utf8") as f:
+                json.dump(
+                    {
+                        "probably_a_valid_header": False,
+                        "previous_invalid_header": str(
+                            state_in.get(DesignFormat.JSON_HEADER)
+                        ),
+                    },
+                    f,
+                )
             return {
                 DesignFormat.JSON_HEADER: Path(out_file),
             }, {"step": state_in.metrics.get("step", -1) + 1}
@@ -93,13 +95,14 @@ def MockStepTuple(variable: Variable):
             import json
 
             out_file = os.path.join(self.step_dir, "whatever.json")
-            json.dump(
-                {
-                    "not_really_a_valid_header": True,
-                    "cfg_var_value": self.config["DUMMY_VARIABLE"],
-                },
-                open(out_file, "w", encoding="utf8"),
-            )
+            with open(out_file, "w", encoding="utf8") as f:
+                json.dump(
+                    {
+                        "not_really_a_valid_header": True,
+                        "cfg_var_value": self.config["DUMMY_VARIABLE"],
+                    },
+                    f,
+                )
             return {
                 DesignFormat.JSON_HEADER: Path(out_file),
             }, {"step": state_in.metrics.get("step", -1) + 1}
@@ -122,7 +125,7 @@ def DummyFlow(MockStepTuple):
         def __init__(
             self,
             *args,
-            run_override: Optional[Callable] = None,
+            run_override: Callable | None = None,
             **kwargs,
         ):
             self.run_override = run_override
@@ -148,7 +151,7 @@ def test_flow_abc_init():
     assert e is not None, "Flow ABC instantiated successfully"
 
 
-def test_factory(DummyFlow: Type[flow.Flow]):
+def test_factory(DummyFlow: type[flow.Flow]):
     from librelane.flows import Flow
 
     assert all(
@@ -167,18 +170,18 @@ def test_factory(DummyFlow: Type[flow.Flow]):
 
     Flow.factory.register("AnotherName")(DummyFlow)
 
-    assert (
-        "AnotherName" in Flow.factory.list()
-    ), "failed to register new dummy flow by another name"
+    assert "AnotherName" in Flow.factory.list(), (
+        "failed to register new dummy flow by another name"
+    )
 
-    assert (
-        Flow.factory.get("Dummy") == DummyFlow
-    ), "failed to retrieve registered dummy flow"
+    assert Flow.factory.get("Dummy") == DummyFlow, (
+        "failed to retrieve registered dummy flow"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow])
-def test_init_and_config_vars(DummyFlow: Type[flow.Flow], variable: Variable):
+def test_init_and_config_vars(DummyFlow: type[flow.Flow], variable: Variable):
     flow = DummyFlow(
         {
             "DESIGN_NAME": "WHATEVER",
@@ -191,14 +194,14 @@ def test_init_and_config_vars(DummyFlow: Type[flow.Flow], variable: Variable):
         pdk_root="/pdk",
     )
 
-    assert flow.get_all_config_variables() == pytest.COMMON_FLOW_VARS + [
-        variable
-    ], "flow config variables did not match"
+    assert flow.get_all_config_variables() == pytest.COMMON_FLOW_VARS + [variable], (
+        "flow config variables did not match"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow])
-def test_clashing_variables(DummyFlow: Type[flow.Flow], MockStepTuple):
+def test_clashing_variables(DummyFlow: type[flow.Flow], MockStepTuple):
     from librelane.flows import FlowException
 
     StepA, StepB, StepC = MockStepTuple
@@ -227,32 +230,32 @@ def test_clashing_variables(DummyFlow: Type[flow.Flow], MockStepTuple):
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow])
-def test_progress_bar(DummyFlow: Type[flow.Flow]):
+def test_progress_bar(DummyFlow: type[flow.Flow]):
     def run_override(self: DummyFlow, initial_state, **kwargs):
-        assert (
-            self.progress_bar.started
-        ), ".start() did not start the progress bar rendering"
+        assert self.progress_bar.started, (
+            ".start() did not start the progress bar rendering"
+        )
 
-        assert (
-            self.progress_bar._FlowProgressBar__progress.start_called_count == 1
-        ), "start called more than once"
+        assert self.progress_bar._FlowProgressBar__progress.start_called_count == 1, (
+            "start called more than once"
+        )
 
         self.progress_bar.set_max_stage_count(2)
-        assert (
-            self.progress_bar._FlowProgressBar__progress.total == 2
-        ), ".set_max_stage_count() failed to set progress bar total"
+        assert self.progress_bar._FlowProgressBar__progress.total == 2, (
+            ".set_max_stage_count() failed to set progress bar total"
+        )
 
         self.progress_bar.start_stage("literally whatever")
 
         self.progress_bar.end_stage()
 
-        assert (
-            self.progress_bar._FlowProgressBar__progress.update_called_count == 3
-        ), "unexpected progress bar update count"
+        assert self.progress_bar._FlowProgressBar__progress.update_called_count == 3, (
+            "unexpected progress bar update count"
+        )
 
-        assert (
-            self.progress_bar._FlowProgressBar__progress.completed == 1
-        ), "task complete count out of sync"
+        assert self.progress_bar._FlowProgressBar__progress.completed == 1, (
+            "task complete count out of sync"
+        )
 
         self.progress_bar.get_ordinal_prefix() == "2-", "incorrect ordinal returned"
 
@@ -314,27 +317,27 @@ def test_run_tags(caplog: pytest.LogCaptureFixture, MockStepTuple):
 
     create_dir("/cwd/runs/MY_TAG")
     flow.start(tag="MY_TAG")
-    assert (
-        "Starting a new run of the" in caplog.text
-    ), ".start() with an empty folder did not print a message about a new run"
+    assert "Starting a new run of the" in caplog.text, (
+        ".start() with an empty folder did not print a message about a new run"
+    )
     caplog.clear()
 
     flow.start(tag="MY_TAG2")
     caplog.clear()
 
     state = flow.start(tag="MY_TAG2")
-    assert (
-        "Using existing run at" in caplog.text
-    ), ".start() with a non-empty folder did not print a message about an existing run"
-    assert (
-        state.metrics["step"] == 3
-    ), ".start() using existing run failed to return latest state"
+    assert "Using existing run at" in caplog.text, (
+        ".start() with a non-empty folder did not print a message about an existing run"
+    )
+    assert state.metrics["step"] == 3, (
+        ".start() using existing run failed to return latest state"
+    )
     caplog.clear()
 
     flow.start(last_run=True)
-    assert flow.run_dir.endswith(
-        "MY_TAG2"
-    ), ".start() with last_run failed to return latest run"
+    assert flow.run_dir.endswith("MY_TAG2"), (
+        ".start() with last_run failed to return latest run"
+    )
 
     create_file("/cwd/runs/MY_TAG3", contents="")
     with pytest.raises(

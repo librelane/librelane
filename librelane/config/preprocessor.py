@@ -15,16 +15,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
-import os
-import glob
 import fnmatch
-from enum import Enum
-from decimal import Decimal
+import glob
+import os
+import re
 from types import SimpleNamespace
-from typing import Any, Dict, List, Mapping, Sequence, Tuple, Union, Optional
+from collections.abc import Mapping, Sequence
+from decimal import Decimal
+from enum import Enum
+from typing import Any
 
-from ..common import is_string
+from ..common import is_number, is_string
 
 Keys = SimpleNamespace(
     pdk_root="PDK_ROOT",
@@ -43,12 +44,12 @@ PROCESS_INFO_ALLOWLIST = [
 ]
 
 
-Scalar = Union[str, int, Decimal, float, bool, None]
-Valid = Union[Scalar, dict, list]
+Scalar = str | int | Decimal | float | bool | None
+Valid = Scalar | dict | list
 
 
-class Expr(object):
-    class Token(object):
+class Expr:
+    class Token:
         class Type(Enum):
             VAR = 0
             NUMBER = 1
@@ -63,7 +64,7 @@ class Expr(object):
         def __repr__(self):
             return f"<Token:{self.type} '{self.value}'>"
 
-        def prec_assoc(self) -> Tuple[int, bool]:
+        def prec_assoc(self) -> tuple[int, bool]:
             """
             Returns (precedence, is_left_assoc)
             """
@@ -80,7 +81,7 @@ class Expr(object):
                 )
 
     @staticmethod
-    def tokenize(expr: str) -> List["Expr.Token"]:
+    def tokenize(expr: str) -> list["Expr.Token"]:
         rx_list = [
             (re.compile(r"^\$([A-Za-z_][A-Za-z0-9_\.\[\]]*)"), Expr.Token.Type.VAR),
             (re.compile(r"^(-?\d+\.?\d*)"), Expr.Token.Type.NUMBER),
@@ -92,7 +93,7 @@ class Expr(object):
         ]
         tokens = []
         str_so_far = expr
-        while not str_so_far.strip() == "":
+        while str_so_far.strip() != "":
             found = False
 
             for element in rx_list:
@@ -114,12 +115,12 @@ class Expr(object):
 
     @staticmethod
     def evaluate(expression: str, symbols: Mapping[str, Any]) -> Decimal:
-        tokens: List["Expr.Token"] = Expr.tokenize(expression)
+        tokens: list[Expr.Token] = Expr.tokenize(expression)
         ETT = Expr.Token.Type
 
         # Infix to Postfix
-        postfix: List["Expr.Token"] = []
-        opstack: List["Expr.Token"] = []
+        postfix: list[Expr.Token] = []
+        opstack: list[Expr.Token] = []
         for token in tokens:
             if token.type == ETT.OP:
                 prec, assoc = token.prec_assoc()
@@ -154,7 +155,7 @@ class Expr(object):
             else:
                 postfix.append(token)
 
-        while len(opstack):
+        while opstack:
             postfix.append(opstack[-1])
             opstack.pop()
 
@@ -166,11 +167,7 @@ class Expr(object):
             elif token.type == ETT.VAR:
                 try:
                     value = symbols[token.value]
-                    if not (
-                        isinstance(value, int)
-                        or isinstance(value, float)
-                        or isinstance(value, Decimal)
-                    ):
+                    if not is_number(value):
                         raise TypeError(
                             f"Referenced variable {token.value} is not of a valid numeric type: f{type(value)}"
                         )
@@ -186,7 +183,7 @@ class Expr(object):
                     eval_stack.pop()
                     eval_stack.pop()
 
-                    result = Decimal("0")
+                    result = Decimal(0)
                     if token.value == "**":
                         result = number1**number2
                     elif token.value == "*":
@@ -216,7 +213,6 @@ ref_rx = re.compile(r"^\$([A-Za-z_][A-Za-z0-9_\.\[\]]*)")
 
 
 def process_string(value: str, symbols: Mapping[str, Any], version: int = 1) -> Valid:
-    global ref_rx
     EXPR_PREFIX = "expr::"
     REF_PREFIX = "ref::"
     REFG_PREFIX = "refg::"
@@ -241,7 +237,7 @@ def process_string(value: str, symbols: Mapping[str, Any], version: int = 1) -> 
             return Expr.evaluate(value[len(EXPR_PREFIX) :], symbols)
         except SyntaxError as e:
             raise SyntaxError(f"Invalid expression '{value}': {e}") from None
-    elif mutable.startswith(REF_PREFIX) or mutable.startswith(REFG_PREFIX):
+    elif mutable.startswith((REF_PREFIX, REFG_PREFIX)):
         reference = mutable[mutable.index("::") + 2 :]
         match = ref_rx.match(reference)
         if match is None:
@@ -300,8 +296,8 @@ SCL_PREFIX = "scl::"
 
 def process_list_recursive(
     input: Sequence[Any],
-    ref: List[Any],
-    symbols: Dict[str, Any],
+    ref: list[Any],
+    symbols: dict[str, Any],
     version: int = 1,
     *,
     key_path: str = "",
@@ -339,8 +335,8 @@ def process_list_recursive(
 
 def process_dict_recursive(
     input: Mapping[str, Any],
-    ref: Dict[str, Any],
-    symbols: Dict[str, Any],
+    ref: dict[str, Any],
+    symbols: dict[str, Any],
     version: int = 1,
     *,
     key_path: str = "",
@@ -403,15 +399,15 @@ def process_dict_recursive(
 
 
 def process_config_dict(
-    config_in: Mapping[str, Any], exposed_variables: Dict[str, Any], version: int = 1
-) -> Dict[str, Any]:
+    config_in: Mapping[str, Any], exposed_variables: dict[str, Any], version: int = 1
+) -> dict[str, Any]:
     state = dict(exposed_variables)
     symbols = dict(exposed_variables)
     process_dict_recursive(config_in, state, symbols, version)
     return state
 
 
-def extract_process_vars(config_in: Dict[str, str]) -> Dict[str, str]:
+def extract_process_vars(config_in: dict[str, str]) -> dict[str, str]:
     return {
         key: config_in[key]
         for key in PROCESS_INFO_ALLOWLIST
@@ -423,12 +419,12 @@ def preprocess_dict(
     config_dict: Mapping[str, Any],
     design_dir: str,
     only_extract_process_info: bool = False,
-    pdk: Optional[str] = None,
-    pdkpath: Optional[str] = None,
-    scl: Optional[str] = None,
-    pad: Optional[str] = None,
+    pdk: str | None = None,
+    pdkpath: str | None = None,
+    scl: str | None = None,
+    pad: str | None = None,
     version: int = 1,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if None in (pdk, pdkpath, scl):
         if only_extract_process_info:
             pdkpath = ""

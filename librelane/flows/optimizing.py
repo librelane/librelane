@@ -13,14 +13,13 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import List, Tuple
 from concurrent.futures import Future
 
-from .flow import Flow
-from ..state import State
 from ..config import Config
-from ..steps import Step, Yosys, OpenROAD, StepError
-from ..logging import get_log_level, set_log_level, LogLevels, success, info
+from ..logging import LogLevels, get_log_level, info, set_log_level, success
+from ..state import State
+from ..steps import OpenROAD, Step, StepError, Yosys
+from .flow import Flow
 
 
 #   "Optimizing" is a custom demo flow to show what's possible with non-sequential Flows in LibreLan
@@ -44,12 +43,12 @@ class Optimizing(Flow):
         self,
         initial_state: State,
         **kwargs,
-    ) -> Tuple[State, List[Step]]:
-        step_list: List[Step] = []
+    ) -> tuple[State, list[Step]]:
+        step_list: list[Step] = []
 
         self.set_max_stage_count(2)
 
-        synthesis_futures: List[Tuple[Config, Future[State]]] = []
+        synthesis_futures: list[tuple[Config, Future[State]]] = []
         self.start_stage("Synthesis Exploration")
 
         log_level_bk = get_log_level()
@@ -88,7 +87,7 @@ class Optimizing(Flow):
 
             synthesis_futures.append((config, sta_future))
 
-        synthesis_states: List[Tuple[Config, State]] = [
+        synthesis_states: list[tuple[Config, State]] = [
             (config, future.result()) for config, future in synthesis_futures
         ]
 

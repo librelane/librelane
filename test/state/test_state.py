@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import Dict
 
 import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
@@ -82,7 +81,7 @@ def test_to_raw_dict():
     state = State(test_dict, metrics=test_metrics)
     raw_dict = state.to_raw_dict()
 
-    assert isinstance(raw_dict, Dict)
+    assert isinstance(raw_dict, dict)
     assert raw_dict["nl"] == "abc"
     assert raw_dict["metrics"]["metric"] == "a"
 
@@ -140,7 +139,7 @@ def test_empty():
 
 
 def test_path_fail_exists():
-    from librelane.state import State, InvalidState
+    from librelane.state import InvalidState, State
 
     test_dict = {"nl": "./state.py", "pnl": "abcd"}
     test_metrics = {"metric": "a"}
@@ -163,8 +162,8 @@ def test_path_fail_exists():
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_path_success():
-    from librelane.state import State
     from librelane.common import Path
+    from librelane.state import State
 
     test_file = "test.nl.v"
     with open(test_file, "w") as f:
@@ -180,8 +179,9 @@ def test_path_success():
 @pytest.mark.usefixtures("_mock_fs")
 def test_save():
     import json
-    from librelane.state import State
+
     from librelane.common import Path
+    from librelane.state import State
 
     test_file = "test.nl.v"
     test_file_contents = "test\n"
@@ -209,24 +209,24 @@ def test_save():
     assert os.path.exists(save_nl_path), "save_snapshot failed to create netlist"
     assert os.path.exists(save_spef_path), "save_snapshot failed to create spef"
 
-    assert (
-        json.load(open(save_metrics_path, encoding="utf8")) == test_metrics
-    ), "serialized metrics does not match previous object"
+    with open(save_metrics_path, encoding="utf8") as f:
+        assert json.load(f) == test_metrics, (
+            "serialized metrics does not match previous object"
+        )
 
-    f = open(save_nl_path, encoding="utf8")
-    save_nl_contents = f.read()
-    f.close()
+    with open(save_nl_path, encoding="utf8") as f:
+        save_nl_contents = f.read()
     assert save_nl_contents == test_file_contents
 
-    f = open(save_spef_path, encoding="utf8")
-    save_spef_contents = f.read()
-    f.close()
+    with open(save_spef_path, encoding="utf8") as f:
+        save_spef_contents = f.read()
     assert save_spef_contents == test_file_contents
 
 
 @pytest.mark.usefixtures("_mock_fs")
 def test_loads():
     import json
+
     from librelane.state import State
 
     test_file = "test.nl.v"

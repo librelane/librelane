@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import json
-
-import yaml
-import click
+import os
 
 import ciel
+import click
+import yaml
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 ol_dir = os.path.dirname(os.path.dirname(__dir__))
@@ -43,13 +42,16 @@ TEST_SETS_FILE = os.path.join(__dir__, "test_sets.yml")
 )
 @click.argument("test_sets", nargs=-1)
 def main(scls, use_json, test_sets):
-    data_str = open(TEST_SETS_FILE).read()
+    with open(TEST_SETS_FILE, encoding="utf8") as f:
+        data_str = f.read()
     data = yaml.safe_load(data_str)
-    test_set_data = filter(lambda e: e["scl"] in scls and e["name"] in test_sets, data)
+    test_set_data: filter[dict] = filter(
+        lambda e: e["scl"] in scls and e["name"] in test_sets, data
+    )
 
-    designs = list()
+    designs = []
     empty_runner_script = "None"
-    for test_set in list(test_set_data):
+    for test_set in test_set_data:
         pdk, scl = test_set["scl"].split("/")
         for design in test_set["designs"]:
             design_name = design
@@ -80,7 +82,7 @@ def main(scls, use_json, test_sets):
                         pdk_family = family.name
                         break
             if pdk_family is None:
-                raise Exception(
+                raise RuntimeError(
                     f"Failed to determine pdk_family of {design_name} {pdk}/{scl}"
                 )
             designs.append(

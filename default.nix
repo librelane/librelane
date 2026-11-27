@@ -41,7 +41,6 @@
   yamlcore,
   rich,
   httpx2,
-  tkinter,
   lxml,
   deprecated,
   psutil,
@@ -103,7 +102,6 @@ let
       rich
       httpx2
       ciel
-      tkinter
       lxml
       deprecated
       libparse

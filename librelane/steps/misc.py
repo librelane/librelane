@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import Tuple
 
-from .step import ViewsUpdate, MetricsUpdate, Step
 from ..common import Path
-from ..state import State, DesignFormat
-from ..steps import Netgen, Magic, KLayout, OpenROAD
 from ..logging import options
+from ..state import DesignFormat, State
+from .step import MetricsUpdate, Step, ViewsUpdate
 
 
 @Step.factory.register()
@@ -38,15 +36,17 @@ class LoadBaseSDC(Step):
     inputs = []
     outputs = [DesignFormat.SDC]
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         path = self.config["FALLBACK_SDC"]
 
         target = os.path.join(self.step_dir, f"{self.config['DESIGN_NAME']}.sdc")
 
         # Otherwise, you'll end up with weird permissions and may have to chmod
-        with open(target, "w", encoding="utf8") as out:
-            for line in open(path, "r", encoding="utf8"):
-                out.write(line)
+        with (
+            open(target, "w", encoding="utf8") as sdc_out,
+            open(path, encoding="utf8") as sdc_in,
+        ):
+            sdc_out.writelines(sdc_in)
 
         return {DesignFormat.SDC: Path(target)}, {}
 
@@ -65,7 +65,7 @@ class ReportManufacturability(Step):
     outputs = []
 
     def __get_lvs_report(self, state_in):
-        lvs_step = Netgen.LVS.id
+        lvs_step = "Netgen.LVS"
         report = []
         report.append("* LVS")
         try:
@@ -89,8 +89,8 @@ class ReportManufacturability(Step):
         return "\n".join(report)
 
     def __get_drc_report(self, state_in):
-        klayout_step = KLayout.DRC.id
-        magic_step = Magic.DRC.id
+        klayout_step = "KLayout.DRC"
+        magic_step = "Magic.DRC"
         klayout_failed = False
         magic_failed = False
         report = []
@@ -130,7 +130,7 @@ class ReportManufacturability(Step):
         return "\n".join(report)
 
     def __get_antenna_report(self, state_in):
-        antenna_step = OpenROAD.CheckAntennas.id
+        antenna_step = "OpenROAD.CheckAntennas"
         report = []
         report.append("* Antenna")
 
@@ -152,7 +152,7 @@ class ReportManufacturability(Step):
 
         return "\n".join(report)
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         report_file = os.path.join(self.step_dir, "manufacturability.rpt")
         lvs_report = self.__get_lvs_report(state_in)
         drc_report = self.__get_drc_report(state_in)

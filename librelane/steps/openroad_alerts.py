@@ -13,7 +13,7 @@
 # limitations under the License.
 import re
 from dataclasses import dataclass
-from typing import Literal, Optional, Protocol, List, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
 
 from .step import OutputProcessor
 
@@ -27,7 +27,7 @@ class OpenROADAlert:
     """
 
     cls: Literal["warning", "error"]
-    code: Optional[str]
+    code: str | None
     message: str
 
     def __str__(self) -> str:
@@ -65,10 +65,12 @@ class OpenROADOutputProcessor(OutputProcessor):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.alerts: List[OpenROADAlert] = []
+        self.alerts: list[OpenROADAlert] = []
         if not isinstance(self.step, SupportsOpenROADAlerts):
-            raise ValueError(
-                "OpenROADOutputProcessor is only compatible with steps implementing the SupportsOpenROADAlerts protocol"
+            # TODO: replace with TypeError next API break?
+            raise ValueError(  # noqa: TRY004
+                "OpenROADOutputProcessor is only compatible with steps "
+                "implementing the SupportsOpenROADAlerts protocol"
             )
 
     def process_line(self, line: str):
@@ -94,7 +96,7 @@ class OpenROADOutputProcessor(OutputProcessor):
             return True  # munch
         return False  # pass on to next output processor
 
-    def result(self) -> List[OpenROADAlert]:
+    def result(self) -> list[OpenROADAlert]:
         """
         :returns: A list of OpenROAD alerts captured by this output processor
         """

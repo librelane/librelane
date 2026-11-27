@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +17,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from enum import IntEnum
-from cloup import (
-    HelpFormatter,
-    HelpTheme,
-    Style,
-)
-from typing import Any, Optional, Type, Union
+from typing import Any
 
 from click import (
     Choice,
     Context,
     Parameter,
+)
+from cloup import (
+    HelpFormatter,
+    HelpTheme,
+    Style,
 )
 
 formatter_settings = HelpFormatter.settings(
@@ -36,21 +41,21 @@ formatter_settings = HelpFormatter.settings(
 
 
 class IntEnumChoice(Choice):
-    def __init__(self, enum: Type[IntEnum], case_sensitive: bool = True) -> None:
+    def __init__(self, enum: type[IntEnum], case_sensitive: bool = True) -> None:
         super().__init__([e.name for e in enum], case_sensitive)
         self.__enum = enum
 
     def convert(
         self,
-        value: Union[str, int],
-        param: Optional[Parameter],
-        ctx: Optional[Context],
+        value: str | int,
+        param: Parameter | None,
+        ctx: Context | None,
     ) -> IntEnum:
         try:
             if isinstance(value, int):
                 return self.__enum(value)
             else:
-                as_int: Optional[int] = None
+                as_int: int | None = None
                 try:
                     as_int = int(value)
                 except ValueError:

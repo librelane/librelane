@@ -29,7 +29,7 @@ pytestmark = pytest.mark.all
 
 @pytest.fixture
 def mock_macros_config():
-    from librelane.config import Macro, Instance
+    from librelane.config import Instance, Macro
 
     return {
         "DEFAULT_CORNER": "nom_tt_025C_1v80",
@@ -424,8 +424,7 @@ def model_blackboxing():
     ],
 )
 def test_filter_views(corner, expected, mock_macros_config):
-    from librelane.common import Path
-    from librelane.common import Toolbox
+    from librelane.common import Path, Toolbox
 
     toolbox = Toolbox(".")
     views_by_corner = {
@@ -522,9 +521,9 @@ def test_get_macro_views_with_macros(
 
 
 def test_get_macro_views_by_priority():
-    from librelane.state import DesignFormat
-    from librelane.config import Macro, Instance
     from librelane.common import Toolbox
+    from librelane.config import Instance, Macro
+    from librelane.state import DesignFormat
 
     cfg = {
         "MACROS": {
@@ -683,9 +682,9 @@ def test_get_timing_files_warnings(
         ["/pdk/my.lib", "/cwd/a/lib/tt.lib", "/cwd/b/lib/tt.lib"],
     ), "get_timing_files returned unexpected result"
 
-    assert (
-        "but no netlist found" in caplog.text
-    ), "get_timing_files did not warn about missing netlists"
+    assert "but no netlist found" in caplog.text, (
+        "get_timing_files did not warn about missing netlists"
+    )
 
     cfg["MACROS"]["b"].nl = netlist_bk
 
@@ -702,9 +701,9 @@ def test_get_timing_files_warnings(
         ["/pdk/my.lib", "/cwd/a/lib/tt.lib", "/cwd/b/lib/tt.lib"],
     ), "get_timing_files returned unexpected result"
 
-    assert (
-        "but no parasitics extraction found" in caplog.text
-    ), "get_timing_files did not warn about missing spefs"
+    assert "but no parasitics extraction found" in caplog.text, (
+        "get_timing_files did not warn about missing spefs"
+    )
 
     cfg["MACROS"]["b"].spef = spefs_bk
 
@@ -726,9 +725,9 @@ def test_get_timing_files_warnings(
         ],
     ), "get_timing_files returned unexpected result"
 
-    assert (
-        "No SCL lib files" in caplog.text
-    ), "get_timing_files did not warn about missing SCL liberty"
+    assert "No SCL lib files" in caplog.text, (
+        "get_timing_files did not warn about missing SCL liberty"
+    )
 
 
 @pytest.mark.usefixtures("_lib_mock_fs")
@@ -745,10 +744,11 @@ def test_remove_cell_list_from_lib(lib_trim_result):
             excluded_cells=frozenset(excluded_cells),
         )
     for file in result:
-        contents = open(file, encoding="utf8").read()
-        assert (
-            contents.strip() in lib_trim_result
-        ), "remove_cells_from_lib produced unexpected result"
+        with open(file, encoding="utf8") as f:
+            contents = f.read()
+            assert contents.strip() in lib_trim_result, (
+                "remove_cells_from_lib produced unexpected result"
+            )
 
 
 @pytest.mark.usefixtures("_lib_mock_fs")
@@ -757,20 +757,20 @@ def test_remove_cells_from_lib(lib_trim_result):
 
     toolbox = Toolbox(".")
 
-    excluded_cells = (
-        open("/cwd/bad_cell_list.txt", encoding="utf8").read().strip().splitlines()
-    )
+    with open("/cwd/bad_cell_list.txt", encoding="utf8") as f:
+        excluded_cells = frozenset(c.strip() for c in iter(f) if c.strip() != "")
 
     with pytest.deprecated_call():
         result = toolbox.remove_cells_from_lib(
             frozenset(["/cwd/example_lib.lib", "/cwd/example_lib2.lib"]),
-            excluded_cells=frozenset(excluded_cells),
+            excluded_cells=excluded_cells,
         )
     for file in result:
-        contents = open(file, encoding="utf8").read()
-        assert (
-            contents.strip() in lib_trim_result
-        ), "remove_cells_from_lib produced unexpected result"
+        with open(file, encoding="utf8") as f:
+            contents = f.read()
+        assert contents.strip() in lib_trim_result, (
+            "remove_cells_from_lib produced unexpected result"
+        )
 
 
 @mock.patch.dict(os.environ, {"PATH": "/bin"})
@@ -786,9 +786,10 @@ def test_blackbox_creation_no_yosys(model_blackboxing):
 
     out_path = toolbox.create_blackbox_model(frozenset(["start.v"]), frozenset())
 
-    assert (
-        open(out_path, encoding="utf8").read().strip() == mid.strip()
-    ), "Cleaning file for yosys didn't work as expected"
+    with open(out_path, encoding="utf8") as f:
+        assert f.read().strip() == mid.strip(), (
+            "Cleaning file for yosys didn't work as expected"
+        )
 
 
 @pytest.mark.skipif(
@@ -828,9 +829,9 @@ def test_blackbox_creation_w_yosys(model_blackboxing):
         encoding="utf8",
     )
 
-    assert (
-        "Equivalence successfully proven" in output
-    ), "Creating black-box file of SCL models did not return the expected result"
+    assert "Equivalence successfully proven" in output, (
+        "Creating black-box file of SCL models did not return the expected result"
+    )
 
 
 @pytest.mark.usefixtures("_chdir_test_rundir")
@@ -843,17 +844,17 @@ def test_voltage_lib_get(sample_lib_files, caplog: pytest.LogCaptureFixture):
         with open(path, "w", encoding="utf8") as f:
             f.write(contents)
 
-    assert (
-        toolbox.get_lib_voltage("example_lib.lib") == 3
-    ), "Library with a single set of operating conditions did not return the correct value"
-    assert (
-        toolbox.get_lib_voltage("example_lib2.lib") == 4
-    ), "Library with explicit default operating conditions did not return the correct value"
-    assert (
-        toolbox.get_lib_voltage("example_lib3.lib") is None
-    ), "Library with multiple operating conditions and no default returned a value"
-    assert (
-        "and the lib file has multiple operating conditions" in caplog.text
-    ), "Library with multiple operating conditions and no default did not produce a warning"
+    assert toolbox.get_lib_voltage("example_lib.lib") == 3, (
+        "Library with a single set of operating conditions did not return the correct value"
+    )
+    assert toolbox.get_lib_voltage("example_lib2.lib") == 4, (
+        "Library with explicit default operating conditions did not return the correct value"
+    )
+    assert toolbox.get_lib_voltage("example_lib3.lib") is None, (
+        "Library with multiple operating conditions and no default returned a value"
+    )
+    assert "and the lib file has multiple operating conditions" in caplog.text, (
+        "Library with multiple operating conditions and no default did not produce a warning"
+    )
     with pytest.raises(RuntimeError):
         toolbox.get_lib_voltage("bad_lib.lib")

@@ -16,19 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 import pathlib
+import re
 import shutil
-from unittest import mock
+from collections.abc import Callable, Iterable
 from decimal import Decimal
-from typing import Any, Literal, Optional, Iterable, Callable, List, Dict
+from typing import Any, Literal
+from unittest import mock
 
 import pytest
-from pyfakefs.fake_filesystem_unittest import Patcher
 from _pytest.fixtures import SubRequest
+from pyfakefs.fake_filesystem_unittest import Patcher
 
-from librelane.config import Variable, Macro
-from librelane.common import Path, GenericDict
+from librelane.common import GenericDict, Path
+from librelane.config import Macro, Variable
 
 
 def pytest_assertrepr_compare(op, left, right):
@@ -40,7 +41,7 @@ def pytest_assertrepr_compare(op, left, right):
         for key in set(left_d.keys()).union(right_d.keys()):
             if left_d.get(key) != right_d.get(key):
                 return_value.append(
-                    f"  * mismatched values for '{key}': {repr(left_d.get(key))} vs. {repr(right_d.get(key))}"
+                    f"  * mismatched values for '{key}': {left_d.get(key)!r} vs. {right_d.get(key)!r}"
                 )
         return return_value
 
@@ -102,7 +103,7 @@ def _mock_conf_fs():
         yield
 
 
-class chdir(object):
+class chdir:
     def __init__(self, path):
         self.path = path
         self.previous = None
@@ -152,7 +153,7 @@ MOCK_PDK_VARS = [
     ),
     Variable(
         "TECH_LEFS",
-        Dict[str, Path],
+        dict[str, Path],
         description="x",
         pdk=True,
     ),
@@ -165,7 +166,7 @@ MOCK_PDK_VARS = [
     ),
     Variable(
         "RANDOM_ARRAY",
-        Optional[List[str]],
+        list[str] | None,
         description="x",
     ),
 ]
@@ -192,7 +193,7 @@ MOCK_FLOW_VARS = [
     ),
     Variable(
         "VERILOG_FILES",
-        List[Path],
+        list[Path],
         description="x",
     ),
     Variable(
@@ -215,7 +216,7 @@ MOCK_FLOW_VARS = [
     ),
     Variable(
         "MACROS",
-        Optional[Dict[str, Macro]],
+        dict[str, Macro] | None,
         description="x",
         default=None,
     ),
@@ -223,7 +224,7 @@ MOCK_FLOW_VARS = [
 COMMON_FLOW_VARS = MOCK_PDK_VARS + MOCK_FLOW_VARS
 
 
-def mock_variables(patch_in_objects: Optional[Iterable[Any]] = None):
+def mock_variables(patch_in_objects: Iterable[Any] | None = None):
     from librelane.config import config
 
     if patch_in_objects is None:
@@ -281,7 +282,7 @@ def mock_config():
     return mock_config
 
 
-class MockProgress(object):
+class MockProgress:
     def __init__(self, *args, **kwargs):
         self.add_task_called_count = 0
         self.start_called_count = 0
@@ -303,9 +304,9 @@ class MockProgress(object):
     def update(
         self,
         _,
-        description: Optional[str] = None,
-        total: Optional[int] = None,
-        completed: Optional[float] = None,
+        description: str | None = None,
+        total: int | None = None,
+        completed: float | None = None,
     ):
         if total_stages := total:
             self.total = total_stages

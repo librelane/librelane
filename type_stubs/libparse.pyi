@@ -1,14 +1,13 @@
 from io import TextIOWrapper
-from typing import List
 
-class LibertyAst(object):
+class LibertyAst:
     id: str
     value: str
-    args: List[str]
-    children: List[LibertyAst]
+    args: list[str]
+    children: list[LibertyAst]
 
     def find(self, name: str) -> LibertyAst: ...
 
-class LibertyParser(object):
+class LibertyParser:
     ast: LibertyAst
     def __init__(self, file: TextIOWrapper) -> None: ...

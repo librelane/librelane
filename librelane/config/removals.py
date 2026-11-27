@@ -15,9 +15,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict
 
-removed_variables: Dict[str, str] = {
+removed_variables: dict[str, str] = {
     "PL_RANDOM_GLB_PLACEMENT": "The random global placer no longer yields a tangible benefit with newer versions of OpenROAD.",
     "PL_RANDOM_INITIAL_PLACEMENT": "A random initial placer no longer yields a tangible benefit with newer versions of OpenROAD.",
     "KLAYOUT_XOR_GDS": "The GDS output is of limited utility compared to the XML database.",

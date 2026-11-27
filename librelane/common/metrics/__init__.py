@@ -1,16 +1,8 @@
-# Copyright 2023 Efabless Corporation
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Adapted from OpenLane 2
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,5 +24,15 @@ Classes and functions for dealing with Metrics based on the `METRICS2.1 <https:/
 """
 
 from . import library
-from .metric import MetricAggregator, MetricComparisonResult, Metric
-from .util import parse_metric_modifiers, aggregate_metrics, MetricDiff
+from .metric import Metric, MetricAggregator, MetricComparisonResult
+from .util import MetricDiff, aggregate_metrics, parse_metric_modifiers
+
+__all__ = [
+    "Metric",
+    "MetricAggregator",
+    "MetricComparisonResult",
+    "MetricDiff",
+    "aggregate_metrics",
+    "library",
+    "parse_metric_modifiers",
+]

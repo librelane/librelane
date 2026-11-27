@@ -17,10 +17,8 @@
 # limitations under the License.
 import os
 import sys
-import json
-from functools import partial, wraps
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, Union, Tuple
+from functools import partial, wraps
 
 from click import (
     Context,
@@ -29,12 +27,16 @@ from click import (
 )
 from click.formatting import join_options
 from cloup import (
-    option,
-    argument,
-    option_group,
-    Choice,
     Argument,
+    Choice,
+    argument,
+    option,
+    option_group,
+)
+from cloup import (
     Option as CloupOption,
+)
+from cloup import (
     Path as CloupPath,
 )
 from cloup.constraints import (
@@ -42,10 +44,11 @@ from cloup.constraints import (
 )
 from cloup.typing import Decorator
 
+from ..common import _get_process_limit, cli, get_ciel_pdk_hash, set_tpe
+from ..common.serialize import JSONError, json_loadp
+from ..logging import LogLevels, err, options, set_log_level, verbose
+from ..state import InvalidState, State
 from .flow import Flow
-from ..common import set_tpe, cli, get_ciel_pdk_hash, _get_process_limit
-from ..logging import set_log_level, verbose, err, options, LogLevels
-from ..state import State, InvalidState
 
 
 class Option(CloupOption):
@@ -54,7 +57,7 @@ class Option(CloupOption):
     variable(s) in envvar upon use.
     """
 
-    def resolve_envvar_value(self, ctx: Context) -> Optional[str]:
+    def resolve_envvar_value(self, ctx: Context) -> str | None:
         if self.envvar is None:
             return None
         evs = self.envvar
@@ -75,9 +78,9 @@ class Path(CloupPath):
 
     def convert(
         self,
-        value: Union[str, os.PathLike],
-        param: Optional[Parameter],
-        ctx: Optional[Context],
+        value: str | os.PathLike,
+        param: Parameter | None,
+        ctx: Context | None,
     ):
         value = str(value)
         assert param is not None
@@ -85,7 +88,7 @@ class Path(CloupPath):
 
         is_cmd = False
         if sys.platform == "win32":
-            import psutil
+            import psutil  # noqa: PLC0415
 
             is_cmd = psutil.Process(os.getppid()).name().lower().endswith("cmd.exe")
         if not is_cmd and value.startswith("~"):
@@ -115,12 +118,12 @@ class Path(CloupPath):
 def set_log_level_cb(
     ctx: Context,
     param: Parameter,
-    value: Optional[str],
+    value: str | None,
 ):
     if value is None:
         return
 
-    level: Union[str, int] = value
+    level: str | int = value
     try:
         try:
             level = int(value)
@@ -136,10 +139,10 @@ def set_log_level_cb(
 def set_worker_count_cb(
     ctx: Context,
     param: Parameter,
-    value: Optional[int],
+    value: int | None,
 ):
     if value is None:
-        return None
+        return
 
     set_tpe(ThreadPoolExecutor(max_workers=value))
 
@@ -147,7 +150,7 @@ def set_worker_count_cb(
 def initial_state_cb(
     ctx: Context,
     param: Parameter,
-    value: Tuple[str],
+    value: tuple[str],
 ):
     if len(value) == 0:
         return None
@@ -155,12 +158,12 @@ def initial_state_cb(
     raw = {}
     for state_json in value:
         try:
-            with open(state_json, encoding="utf8") as f:
-                state_dict = json.load(f)
-                if not isinstance(state_dict, dict):
-                    raise ValueError(f"JSON data {value} is not a dictionary")
-                raw.update(state_dict)
-        except json.JSONDecodeError as e:
+            state_dict = json_loadp(state_json)
+            if not isinstance(state_dict, dict):
+                # TODO: replace with TypeError next API break?
+                raise ValueError(f"JSON data {value} is not a dictionary")  # noqa: TRY004
+            raw.update(state_dict)
+        except JSONError as e:
             err(f"Invalid JSON file: {e}")
             ctx.exit(-1)
         except Exception as e:
@@ -178,7 +181,7 @@ def initial_state_cb(
 def only_cb(
     ctx: Context,
     param: Parameter,
-    value: Optional[str],
+    value: str | None,
 ):
     if value is not None:
         ctx.obj = ctx.obj or {}
@@ -189,7 +192,7 @@ def only_cb(
 def from_to_cb(
     ctx: Context,
     param: Parameter,
-    value: Optional[str],
+    value: str | None,
 ):
     if isinstance(ctx.obj, dict) and ctx.obj.get("only"):
         return ctx.obj.get("only")
@@ -202,7 +205,7 @@ def condensed_cb(ctx: Context, param: Parameter, value: bool):
         options.set_show_progress_bar(False)
 
 
-def progressbar_cb(ctx: Context, param: Parameter, value: Optional[bool]):
+def progressbar_cb(ctx: Context, param: Parameter, value: bool | None):
     if value is not None:
         options.set_show_progress_bar(value)
 
@@ -218,7 +221,7 @@ def cloup_flow_opts(
     jobs: bool = True,
     accept_config_files: bool = True,
     volare_by_default: bool = True,
-    volare_pdk_override: Optional[str] = None,
+    volare_pdk_override: str | None = None,
     _enable_debug_flags: bool = False,
     enable_overwrite_flag: bool = False,
     enable_initial_state_element: bool = False,
@@ -235,24 +238,24 @@ def cloup_flow_opts(
     ---
 
     * Flow configuration options (if parameter ``config_options`` is ``True``):
-        * ``flow_name``: ``Optional[str]``: A valid flow ID to be used with :meth:`Flow.factory.get`
-        * ``config_override_strings`` ‡: ``Optional[Iterable[str]]``
+        * ``flow_name``: ``str | None``: A valid flow ID to be used with :meth:`Flow.factory.get`
+        * ``config_override_strings`` ‡: ``Iterable[str] | None``
     * Sequential flow controls (if parameter ``sequential_flow_controls`` is ``True``)
-        * ``frm`` §: ``Optional[str]``: Start from a step with this ID. Supported by sequential flows.
-        * ``to`` §: ``Optional[str]``: Stop at a step with this id. Supported by sequential flows.
+        * ``frm`` §: ``str | None``: Start from a step with this ID. Supported by sequential flows.
+        * ``to`` §: ``str | None``: Stop at a step with this id. Supported by sequential flows.
         * ``skip`` §: ``Iterable[str]``: Skip these steps. Supported by sequential flows.
     * Sequential flow reproducible (if parameter ``sequential_flow_reproducible`` is ``True``)
         * ``reproducible`` §: ``str``: Create a reproducible for a step with is ID, aborting the flow afterwards. Supported by sequential flows.
     * Flow run options (if parameter ``run_options`` is ``True``):
-        * ``tag`` §: ``Optional[str]``
+        * ``tag`` §: ``str | None``
         * ``last_run`` §: ``bool``: If ``True``, ``tag`` is guaranteed to be None.
-        * ``with_initial_state`` §: ``Optional[State]``
+        * ``with_initial_state`` §: ``State | None``
     * PDK options
         * ``use_volare`` : ``bool``
-        * ``pdk_root`` ‡: ``Optional[str]``
+        * ``pdk_root`` ‡: ``str | None``
         * ``pdk`` ‡: ``str``
-        * ``scl`` ‡: ``Optional[str]``
-        * ``pad`` ‡: ``Optional[str]``
+        * ``scl`` ‡: ``str | None``
+        * ``pad`` ‡: ``str | None``
     * ``config_files``: ``Iterable[str]``: Paths to configuration files (if
       parameter  ``accept_config_files`` is ``True``)
 
@@ -502,10 +505,10 @@ def cloup_flow_opts(
             @wraps(f)
             def pdk_resolve_wrapper(
                 *args,
-                pdk_root: Optional[str],
+                pdk_root: str | None,
                 pdk: str,
-                scl: Optional[str],
-                pad: Optional[str],
+                scl: str | None,
+                pad: str | None,
                 use_ciel: bool,
                 **kwargs,
             ) -> str:
@@ -514,8 +517,8 @@ def cloup_flow_opts(
                         err("Argument --pdk-root must be present with --manual-pdk.")
                         exit(1)
                 else:
-                    import ciel
-                    from ciel.source import StaticWebDataSource
+                    import ciel  # noqa: PLC0415
+                    from ciel.source import StaticWebDataSource  # noqa: PLC0415
 
                     ciel_home = str(ciel.get_ciel_home(pdk_root))
 

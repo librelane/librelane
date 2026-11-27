@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Type
 
 import pytest
 
-from librelane.flows import flow as flow_module, sequential as sequential_flow_module
-from librelane.steps import Step, step as step_module
+from librelane.flows import flow as flow_module
+from librelane.flows import sequential as sequential_flow_module
+from librelane.steps import Step
+from librelane.steps import step as step_module
 
 pytestmark = pytest.mark.all
 
@@ -45,7 +46,7 @@ def MetricIncrementer():
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
-def test_sequential_flow(MetricIncrementer: Type[Step]):
+def test_sequential_flow(MetricIncrementer: type[Step]):
     from librelane.flows import SequentialFlow
 
     class Dummy(SequentialFlow):
@@ -93,9 +94,9 @@ def test_custom_seqflow(MetricIncrementer):
     )
 
     for step in MyFlow.Steps:
-        assert issubclass(
-            step, MetricIncrementer
-        ), "CustomSequentialFlow could not properly import Steps by id"
+        assert issubclass(step, MetricIncrementer), (
+            "CustomSequentialFlow could not properly import Steps by id"
+        )
 
     flow = MyFlow(
         {
@@ -217,13 +218,15 @@ def test_substitution(MetricIncrementer):
         "Test.MetricIncrementer",
         "Test.MetricIncrementer-1",
         "Test.FinalMetricIncrementer",
-    ], "SequentialFlow did not increment IDs properly for duplicate steps when using tuples"
+    ], (
+        "SequentialFlow did not increment IDs properly for duplicate steps when using tuples"
+    )
 
 
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_substitute_none(MetricIncrementer):
-    from librelane.flows import SequentialFlow, FlowException
+    from librelane.flows import FlowException, SequentialFlow
 
     MyFlow = SequentialFlow.Make(
         [
@@ -263,7 +266,7 @@ def test_substitute_none(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_bad_substitution(MetricIncrementer):
-    from librelane.flows import SequentialFlow, FlowException
+    from librelane.flows import FlowException, SequentialFlow
 
     MyFlow = SequentialFlow.Make(
         [
@@ -356,8 +359,8 @@ def test_flow_control(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_wildcard_gating(MetricIncrementer):
-    from librelane.flows import SequentialFlow
     from librelane.config import Variable
+    from librelane.flows import SequentialFlow
 
     class OtherMetricIncrementer(MetricIncrementer):
         id = "Test.OtherMetricIncrementer"
@@ -403,8 +406,8 @@ def test_wildcard_gating(MetricIncrementer):
 @pytest.mark.usefixtures("_mock_conf_fs")
 @mock_variables([flow_module, sequential_flow_module, step_module])
 def test_gating_validation(MetricIncrementer):
-    from librelane.flows import SequentialFlow
     from librelane.config import Variable
+    from librelane.flows import SequentialFlow
 
     class Dummy(SequentialFlow):
         Steps = [MetricIncrementer]

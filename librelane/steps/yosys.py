@@ -16,30 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import textwrap
 import subprocess
+import textwrap
 from abc import abstractmethod
-from typing import List, Literal, Optional, Set, Tuple
+from typing import Literal
 
-from .tclstep import TclStep
-from .step import ViewsUpdate, MetricsUpdate, Step
+from ..common import Path, TclUtils, Toolbox, process_list_file
+from ..config import Config, Variable
+from ..logging import info
+from ..state import DesignFormat, State
 from .pyosys import (
-    PyosysStep,
     JsonHeader,
-    verilog_rtl_cfg_vars,
+    PyosysStep,
     Synthesis,
     VHDLSynthesis,
+    verilog_rtl_cfg_vars,
 )
-
-from ..config import Variable, Config
-from ..state import State, DesignFormat
-from ..logging import info
-from ..common import Path, Toolbox, TclUtils, process_list_file
-
-# Re-export for back-compat
-JsonHeader
-Synthesis
-VHDLSynthesis
+from .step import MetricsUpdate, Step, ViewsUpdate
+from .tclstep import TclStep
 
 
 # This is now only used by EQY since we moved our Yosys scripts to Python.
@@ -52,7 +46,7 @@ def _generate_read_deps(
     commands = ""
 
     synth_defines = [
-        f"PDK_{config['PDK'].replace('-','_')}",
+        f"PDK_{config['PDK'].replace('-', '_')}",
         f"SCL_{config['STD_CELL_LIBRARY']}",
         "__librelane__",
         "__pnr__",
@@ -72,13 +66,12 @@ def _generate_read_deps(
     scl_lib_list = toolbox.filter_views(config, config["CELL_LIBS"])
     pad_lib_list = toolbox.filter_views(config, config["PAD_LIBS"])
 
-    if power_defines:
-        if power_define := config.get(
-            "VERILOG_POWER_DEFINE"
-        ):  # VERILOG_POWER_DEFINE not defined for VHDLSynthesis
-            commands += f"verilog_defines {TclUtils.escape(f'-D{power_define}')}\n"
-            if tcl:
-                commands += f"lappend ::_synlig_defines {TclUtils.escape(f'+define+{power_define}')}\n"
+    if power_defines and (
+        power_define := config.get("VERILOG_POWER_DEFINE")
+    ):  # VERILOG_POWER_DEFINE not defined for VHDLSynthesis
+        commands += f"verilog_defines {TclUtils.escape(f'-D{power_define}')}\n"
+        if tcl:
+            commands += f"lappend ::_synlig_defines {TclUtils.escape(f'+define+{power_define}')}\n"
 
     # Try your best to use powered blackbox models if power_defines is true
     if power_defines:
@@ -102,7 +95,7 @@ def _generate_read_deps(
                 f"read_liberty -lib -ignore_miss_dir -setattr blackbox {lib_str}\n"
             )
 
-    excluded_cells: Set[str] = set(config["EXTRA_EXCLUDED_CELLS"] or [])
+    excluded_cells: set[str] = set(config["EXTRA_EXCLUDED_CELLS"] or [])
     excluded_cells.update(process_list_file(config["SYNTH_EXCLUDED_CELL_FILE"]))
     excluded_cells.update(process_list_file(config["PNR_EXCLUDED_CELL_FILE"]))
 
@@ -165,34 +158,34 @@ class YosysStep(TclStep):
     config_vars = [
         Variable(
             "SYNTH_LATCH_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the latch mapping for Yosys.",
             pdk=True,
         ),
         Variable(
             "SYNTH_TRISTATE_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the tri-state buffer mapping for Yosys.",
             deprecated_names=["TRISTATE_BUFFER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_CSA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the carry-select adder mapping for Yosys.",
             deprecated_names=["CARRY_SELECT_ADDER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_RCA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the ripple-carry adder mapping for Yosys.",
             deprecated_names=["RIPPLE_CARRY_ADDER_MAP"],
             pdk=True,
         ),
         Variable(
             "SYNTH_FA_MAP",
-            Optional[Path],
+            Path | None,
             "A path to a file containing the full adder mapping for Yosys.",
             deprecated_names=["FULL_ADDER_MAP"],
             pdk=True,
@@ -213,7 +206,7 @@ class YosysStep(TclStep):
     def get_script_path(self) -> str:
         pass
 
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         script_path = self.get_script_path()
         cmd = [self.get_yosys_path(), "-c", script_path]
         if self.config["YOSYS_LOG_LEVEL"] != "ALL":
@@ -224,7 +217,7 @@ class YosysStep(TclStep):
             cmd += ["-qq"]
         return cmd
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         power_defines = False
         if "power_defines" in kwargs:
             power_defines = kwargs.pop("power_defines")
@@ -268,12 +261,12 @@ class EQY(Step):
         + [
             Variable(
                 "EQY_SCRIPT",
-                Optional[Path],
+                Path | None,
                 "The EQY script to use. If unset, a generic EQY script will be generated, but this fails in a number of scenarios.",
             ),
             Variable(
                 "MACRO_PLACEMENT_CFG",
-                Optional[Path],
+                Path | None,
                 "This step will warn if this deprecated variable is used, as it indicates Macros are used without the new Macro object.",
             ),
             Variable(
@@ -285,7 +278,7 @@ class EQY(Step):
         ]
     )
 
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
+    def run(self, state_in: State, **kwargs) -> tuple[ViewsUpdate, MetricsUpdate]:
         processed_pdk = os.path.join(self.step_dir, "formal_pdk.v")
 
         if self.config["PDK"].startswith("sky130A"):
@@ -314,8 +307,8 @@ class EQY(Step):
 
         with open(eqy_script_path, "w", encoding="utf8") as f:
             if eqy_script := self.config["EQY_SCRIPT"]:
-                for line in open(eqy_script, "r", encoding="utf8"):
-                    f.write(line)
+                with open(eqy_script, encoding="utf8") as eqy_in:
+                    f.writelines(eqy_in)
             else:
                 script = textwrap.dedent(
                     """
@@ -376,3 +369,6 @@ class EQY(Step):
         )
 
         return {}, subprocess_result["generated_metrics"]
+
+
+__all__ = ["EQY", "JsonHeader", "Synthesis", "VHDLSynthesis", "YosysStep"]

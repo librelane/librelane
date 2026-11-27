@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import math
 import enum
-from decimal import Decimal
-from dataclasses import dataclass
+import math
+import os
 from collections import UserString
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from decimal import Decimal
 
 import pytest
 
@@ -31,15 +31,15 @@ class MyString(UserString):
 def test_is_string():
     from librelane.common import is_string
 
-    assert is_string(
-        "just a normal string"
-    ), "is_string is not accepting a python string"
+    assert is_string("just a normal string"), (
+        "is_string is not accepting a python string"
+    )
 
     assert not is_string(b"a byte string"), "is_string is accepting a byte string"
 
-    assert is_string(
-        MyString("a userstring")
-    ), "is_string is not accepting a userstring"
+    assert is_string(MyString("a userstring")), (
+        "is_string is not accepting a userstring"
+    )
 
 
 def test_parse_metric_modifiers():
@@ -79,8 +79,8 @@ def test_parse_metric_modifiers():
                 "flower__count": 0,
             },
             {
-                "flower__count": (0, lambda x: sum(x)),
-                "flower__max__height": (-math.inf, lambda x: max(x)),
+                "flower__count": (0, sum),
+                "flower__max__height": (-math.inf, max),
             },
             {
                 "flower__count__type:roses": 12,
@@ -96,9 +96,9 @@ def test_parse_metric_modifiers():
 def test_aggregate_metrics(input, aggregators, expected):
     from librelane.common import aggregate_metrics
 
-    assert (
-        aggregate_metrics(input, aggregators) == expected
-    ), "aggregate_metrics() returned unexpected output"
+    assert aggregate_metrics(input, aggregators) == expected, (
+        "aggregate_metrics() returned unexpected output"
+    )
 
 
 def test_generic_dict():
@@ -147,7 +147,7 @@ deep_dict = {
     "a": [
         {
             "b": MyEnum.Horse,
-            "d": Decimal(0.2),
+            "d": Decimal("0.2"),
             "f": ["g", "h"],
         },
     ],
@@ -174,19 +174,19 @@ def test_copy_recursive():
 
     deep_dict_copy = copy_recursive(deep_dict)
 
-    assert id(deep_dict["a"][0]["f"]) != id(
-        deep_dict_copy["a"][0]["f"]
-    ), "Reference in list identical to original"
+    assert id(deep_dict["a"][0]["f"]) != id(deep_dict_copy["a"][0]["f"]), (
+        "Reference in list identical to original"
+    )
 
-    assert id(deep_dict["i"]["j"]) != id(
-        deep_dict_copy["i"]["j"]
-    ), "Reference in dict identical to original"
+    assert id(deep_dict["i"]["j"]) != id(deep_dict_copy["i"]["j"]), (
+        "Reference in dict identical to original"
+    )
 
     deep_dict_copy["x"] = deep_dict_copy
 
-    assert id(deep_dict["i"]["j"][1]) != id(
-        deep_dict_copy["i"]["j"][1]
-    ), "Reference to dataclass identical to original"
+    assert id(deep_dict["i"]["j"][1]) != id(deep_dict_copy["i"]["j"][1]), (
+        "Reference to dataclass identical to original"
+    )
 
     with pytest.raises(ValueError, match="Circular"):
         copy_recursive(deep_dict_copy)
@@ -196,7 +196,7 @@ def test_copy_recursive_visitor():
     from librelane.common import copy_recursive
 
     def visitor(x):
-        if type(x) == MyString:
+        if type(x) is MyString:
             x = "MY_" + x
         return x
 

@@ -11,16 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import click
 import atexit
 import logging
+from collections.abc import Iterable
 from enum import IntEnum
-from typing import ClassVar, Iterable, Union
+from typing import ClassVar
 
+import click
 import rich.console
 import rich.logging
-from rich.text import Text
 from rich.style import Style, StyleType
+from rich.text import Text
 
 
 class LogLevels(IntEnum):
@@ -121,9 +122,8 @@ class LevelFilter(logging.Filter):
         self.invert = invert
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if options.get_condensed_mode():
-            if record.levelname == "SUBPROCESS":
-                return False
+        if options.get_condensed_mode() and record.levelname == "SUBPROCESS":
+            return False
         if self.invert:
             return record.levelname not in self.levels
         else:
@@ -131,8 +131,6 @@ class LevelFilter(logging.Filter):
 
 
 def initialize_logger():
-    global __event_logger, console
-
     for level in LogLevels:
         logging.addLevelName(level.value, level.name)
 
@@ -195,7 +193,7 @@ def deregister_additional_handler(handler: logging.Handler):
     __event_logger.removeHandler(handler)
 
 
-def set_log_level(lv: Union[str, int]):
+def set_log_level(lv: str | int):
     """
     Sets the log level of the default LibreLane logger.
 

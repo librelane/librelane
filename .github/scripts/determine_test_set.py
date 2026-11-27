@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2026 LibreLane Contributors
 # SPDX-License-Identifier: Apache-2.0
 #

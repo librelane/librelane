@@ -1,4 +1,5 @@
 # Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
 # Adapted from OpenLane 2
 #
@@ -16,12 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import json
-from decimal import Decimal
-from typing import Set, Tuple
 
-from .util import MetricDiff, TableVerbosity
 from ..misc import Filter
+from ..serialize import json_loadp
+from .util import MetricDiff, TableVerbosity
 
 default_filter_set = [
     "design__*__area",
@@ -52,16 +51,16 @@ default_filter_set = [
 
 
 def compare_metric_directories(
-    filter_wildcards: Tuple[str, ...],
+    filter_wildcards: tuple[str, ...],
     table_verbosity: TableVerbosity,
     path_a: str,
     path_b: str,
     significant_figures: int,
-) -> Tuple[str, str]:  # (summary, table)
-    a: Set[Tuple[str, str, str]] = set()
-    b: Set[Tuple[str, str, str]] = set()
+) -> tuple[str, str]:  # (summary, table)
+    a: set[tuple[str, str, str]] = set()
+    b: set[tuple[str, str, str]] = set()
 
-    def add_designs(in_dir: str, to_set: Set[Tuple[str, str, str]]):
+    def add_designs(in_dir: str, to_set: set[tuple[str, str, str]]):
         for file in os.listdir(in_dir):
             basename = os.path.basename(file)
             if not basename.endswith(".metrics.json"):
@@ -105,20 +104,18 @@ def compare_metric_directories(
     tables = ""
     total_critical = 0
     for pdk, scl, design in sorted(common):
-        metrics_a = json.load(
-            open(
-                os.path.join(path_a, f"{pdk}-{scl}-{design}.metrics.json"),
-                encoding="utf8",
-            ),
-            parse_float=Decimal,
+        metrics_a = json_loadp(
+            os.path.join(path_a, f"{pdk}-{scl}-{design}.metrics.json")
+        )
+        metrics_b = json_loadp(
+            os.path.join(path_b, f"{pdk}-{scl}-{design}.metrics.json")
         )
 
-        metrics_b = json.load(
-            open(
-                os.path.join(path_b, f"{pdk}-{scl}-{design}.metrics.json"),
-                encoding="utf8",
-            ),
-            parse_float=Decimal,
+        assert isinstance(metrics_a, dict), (
+            "First metrics file unexpectedly non-dictionary"
+        )
+        assert isinstance(metrics_b, dict), (
+            "Second metrics file unexpectedly non-dictionary"
         )
 
         diff = MetricDiff.from_metrics(

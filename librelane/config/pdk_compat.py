@@ -17,11 +17,12 @@
 # limitations under the License.
 import os
 import re
+from collections.abc import Mapping
 from glob import glob
-from typing import Any, Dict, List, Mapping
+from typing import Any
 
 
-def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
+def migrate_old_config(config: Mapping[str, Any]) -> dict[str, Any]:
     new = dict(config)
 
     # 1. Migrate SYNTH_DRIVING_CELL
@@ -61,30 +62,24 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
 
     # 5. Interconnect Corners
     if "RCX_RULESETS" not in new and config.get("RCX_RULES") is not None:
-        new["RCX_RULESETS"] = f"nom_* \"{config['RCX_RULES']}\""
+        new["RCX_RULESETS"] = f'nom_* "{config["RCX_RULES"]}"'
         if config.get("RCX_RULES_MIN") is not None:
-            new["RCX_RULESETS"] += f" min_* \"{config['RCX_RULES_MIN']}\""
+            new["RCX_RULESETS"] += f' min_* "{config["RCX_RULES_MIN"]}"'
         if config.get("RCX_RULES_MAX") is not None:
-            new["RCX_RULESETS"] += f" max_* \"{config['RCX_RULES_MAX']}\""
-    if "RCX_RULES" in new:
-        del new["RCX_RULES"]
-    if "RCX_RULES_MIN" in new:
-        del new["RCX_RULES_MIN"]
-    if "RCX_RULES_MAX" in new:
-        del new["RCX_RULES_MAX"]
+            new["RCX_RULESETS"] += f' max_* "{config["RCX_RULES_MAX"]}"'
+    new.pop("RCX_RULES", None)
+    new.pop("RCX_RULES_MIN", None)
+    new.pop("RCX_RULES_MAX", None)
 
     if "TECH_LEFS" not in new and config.get("TECH_LEF") is not None:
-        new["TECH_LEFS"] = f"nom_* \"{config['TECH_LEF']}\""
+        new["TECH_LEFS"] = f'nom_* "{config["TECH_LEF"]}"'
         if config.get("TECH_LEF_MIN") is not None:
-            new["TECH_LEFS"] += f" min_* \"{config['TECH_LEF_MIN']}\""
+            new["TECH_LEFS"] += f' min_* "{config["TECH_LEF_MIN"]}"'
         if config.get("TECH_LEF_MAX") is not None:
-            new["TECH_LEFS"] += f" max_* \"{config['TECH_LEF_MAX']}\""
-    if "TECH_LEF" in new:
-        del new["TECH_LEF"]
-    if "TECH_LEF_MIN" in new:
-        del new["TECH_LEF_MIN"]
-    if "TECH_LEF_MAX" in new:
-        del new["TECH_LEF_MAX"]
+            new["TECH_LEFS"] += f' max_* "{config["TECH_LEF_MAX"]}"'
+    new.pop("TECH_LEF", None)
+    new.pop("TECH_LEF_MIN", None)
+    new.pop("TECH_LEF_MAX", None)
 
     # 7. RC
     if "SYNTH_CAP_LOAD" in config:
@@ -167,28 +162,21 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         )
 
     # x1. Disconnected Modules (sky130)
-    if new["PDK"].startswith("sky130"):
-        if "IGNORE_DISCONNECTED_MODULES" not in config:
-            new["IGNORE_DISCONNECTED_MODULES"] = "sky130_fd_sc_hd__conb_1"
+    if new["PDK"].startswith("sky130") and "IGNORE_DISCONNECTED_MODULES" not in config:
+        new["IGNORE_DISCONNECTED_MODULES"] = "sky130_fd_sc_hd__conb_1"
 
     # x2. Invalid Variables (gf180mcu)
     if new["PDK"].startswith("gf180mcu"):
-        if "CARRY_SELECT_ADDER_MAP" in new:
-            del new["CARRY_SELECT_ADDER_MAP"]
-        if "FULL_ADDER_MAP" in new:
-            del new["FULL_ADDER_MAP"]
-        if "RIPPLE_CARRY_ADDER_MAP" in new:
-            del new["RIPPLE_CARRY_ADDER_MAP"]
-        if "SYNTH_LATCH_MAP" in new:
-            del new["SYNTH_LATCH_MAP"]
-        if "TRISTATE_BUFFER_MAP" in new:
-            del new["TRISTATE_BUFFER_MAP"]
+        new.pop("CARRY_SELECT_ADDER_MAP", None)
+        new.pop("FULL_ADDER_MAP", None)
+        new.pop("RIPPLE_CARRY_ADDER_MAP", None)
+        new.pop("SYNTH_LATCH_MAP", None)
+        new.pop("TRISTATE_BUFFER_MAP", None)
 
-        if "KLAYOUT_DRC_TECH_SCRIPT" in new:
-            del new["KLAYOUT_DRC_TECH_SCRIPT"]
+        new.pop("KLAYOUT_DRC_TECH_SCRIPT", None)
 
     # x3. Timing Corners
-    lib_sta: Dict[str, List[str]] = {}
+    lib_sta: dict[str, list[str]] = {}
     ws = re.compile(r"\s+")
 
     default_pvt = ""
@@ -342,16 +330,16 @@ def migrate_old_config(config: Mapping[str, Any]) -> Dict[str, Any]:
         #    new["FP_IO_VLENGTH"] = 4
 
     # x5. Primary Signoff Tool
-    if new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu"):
-        if "PRIMARY_GDSII_STREAMOUT_TOOL" not in config:
-            new["PRIMARY_GDSII_STREAMOUT_TOOL"] = "magic"
+    if (
+        new["PDK"].startswith("sky130") or new["PDK"].startswith("gf180mcu")
+    ) and "PRIMARY_GDSII_STREAMOUT_TOOL" not in config:
+        new["PRIMARY_GDSII_STREAMOUT_TOOL"] = "magic"
 
     # x6. Heuristic Antenna Thresholds
-    if new["PDK"].startswith("sky130"):
-        if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
+    if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
+        if new["PDK"].startswith("sky130"):
             new["HEURISTIC_ANTENNA_THRESHOLD"] = 90
-    elif new["PDK"].startswith("gf180mcu"):
-        if "HEURISTIC_ANTENNA_THRESHOLD" not in config:
+        elif new["PDK"].startswith("gf180mcu"):
             new["HEURISTIC_ANTENNA_THRESHOLD"] = 130
 
     if new["PDK"].startswith("sky130"):

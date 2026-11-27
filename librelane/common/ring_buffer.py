@@ -1,3 +1,8 @@
+# Copyright 2026 LibreLane Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Adapted from OpenLane 2
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable, Iterator, Type, TypeVar
+from collections.abc import Iterable, Iterator
+from typing import TypeVar
 
 VT = TypeVar("VT")
 
@@ -24,7 +30,7 @@ class RingBuffer(Iterable[VT]):
 
     def __init__(
         self,
-        t: Type[VT],
+        t: type[VT],
         max: int,
     ) -> None:
         super().__init__()
@@ -59,5 +65,5 @@ class RingBuffer(Iterable[VT]):
         return self._len
 
     def __iter__(self) -> Iterator[VT]:
-        for i in range(0, self._len):
+        for i in range(self._len):
             yield self[i]

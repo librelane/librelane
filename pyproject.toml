@@ -43,9 +43,7 @@ documentation = "https://librelane.readthedocs.io"
 
 [dependency-groups]
 lint = [
-    "black<26",
-    "flake8",
-    "flake8-pytest-style; python_version < '4'",
+    "ruff",
     "mypy>=1.18.2,<2",
     "lxml-stubs",
     "types-urllib3",
@@ -79,10 +77,10 @@ librelane = "librelane.__main__:cli"
 
 [tool.ruff]
 target-version = "py310"
-include = ["librelane/scripts/*.py"]
+exclude = ["test/steps/all/*", "test/designs/*"]
 
 [tool.ruff.lint]
-extend-select = ["I", "PL", "UP"]
+extend-select = ["I", "PL", "UP", "F"]
 ignore = [
     # Annoying refactor suggestions
     "PLR",
@@ -92,20 +90,27 @@ ignore = [
     # bare except
     "BLE001",
     # try-except-pass
-    "S110"
+    "S110",
+    # for loop variable overwritten by target - common pattern
+    "PLW2901",
+    # no assigning lambdas
+    "E731"
 ]
 
 [tool.ruff.lint.isort]
 case-sensitive = true
 known-first-party = ["reader", "ys_common", "construct_abc_script", "librelane"]
-force-to-top = ["klayout.rdbcore"]  # https://github.com/KLayout/klayout/issues/2551#issuecomment-6924627274
+force-to-top = [
+    "types", # recursive import in librelane.common otherwise
+    "klayout.rdbcore", # https://github.com/KLayout/klayout/issues/2551#issuecomment-6924627274
+]  
 
 [tool.ruff.lint.per-file-ignores]
+"notebook.ipynb" = ["E402"]
 "librelane/env_info.py" = ["UP"]
 "librelane/scripts/klayout/*.py" = ["PLC0415"]
-
-[tool.black]
-extend-exclude = "(test/designs|test/steps/all)"
+"test/*.py" = ["PLC0415", "UP"]
+"librelane/common/toolbox.py" = ["PLC0415"]
 
 [tool.pytest.ini_options]
 pythonpath = "."

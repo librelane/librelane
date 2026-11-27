@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +14,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import os
-import inspect
-import traceback
 import importlib
+import inspect
+import os
+import traceback
 from types import ModuleType
-from typing import List, Tuple, Dict, Optional, Set
 
 import jinja2
-from sphinx.config import Config
+from docstring_parser import Docstring, parse
 from sphinx.application import Sphinx
-from docstring_parser import parse, Docstring
-
-from util import debug, rimraf, mkdirp
+from sphinx.config import Config
+from util import debug, mkdirp, rimraf
 
 
 def setup(app: Sphinx):
@@ -38,11 +34,11 @@ def setup(app: Sphinx):
 
 
 def generate_docs_for_module(
-    processed: Set[ModuleType],
+    processed: set[ModuleType],
     build_path: str,
-    templates: Dict[str, jinja2.Template],
-    top_level_name: Optional[str],
-    top_level_dir: Optional[str],
+    templates: dict[str, jinja2.Template],
+    top_level_name: str | None,
+    top_level_dir: str | None,
     module: ModuleType,
     docstring: Docstring,
 ):
@@ -95,7 +91,7 @@ def generate_docs_for_module(
 
         docstring_raw = None
         try:
-            docstring_raw = getattr(attr, "__doc__")
+            docstring_raw = attr.__doc__
         except AttributeError:
             pass
 
@@ -159,7 +155,7 @@ def generate_docs_for_module(
 
 def generate_module_docs(app: Sphinx, conf: Config):
     try:
-        generate_module_autodocs_conf: List[Tuple[str, str]] = (
+        generate_module_autodocs_conf: list[tuple[str, str]] = (
             conf.generate_module_autodocs
         )
 
@@ -193,7 +189,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
             top_level_module = importlib.import_module(module_name)
 
             try:
-                docstring_raw = getattr(top_level_module, "__doc__")
+                docstring_raw = top_level_module.__doc__
             except AttributeError:
                 raise ValueError("Top level module lacks a docstring.")
 
