@@ -65,7 +65,7 @@ puts "\n========================================================================
 puts "report_checks -path_delay min (Hold)"
 puts "============================================================================"
 puts "======================= $corner_name Corner ===================================\n"
-report_checks -sort_by_slack -path_delay min -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner $corner_name
+report_checks -sort_by_slack -path_delay min -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000
 puts ""
 puts "%OL_END_REPORT"
 
@@ -75,7 +75,7 @@ puts "\n========================================================================
 puts "report_checks -path_delay max (Setup)"
 puts "============================================================================"
 puts "======================= $corner_name Corner ===================================\n"
-report_checks -sort_by_slack -path_delay max -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000 -corner $corner_name
+report_checks -sort_by_slack -path_delay max -fields {slew cap input net fanout} -format full_clock_expanded -group_path_count 1000
 puts ""
 puts "%OL_END_REPORT"
 
@@ -85,7 +85,7 @@ puts "\n========================================================================
 puts "report_checks -unconstrained"
 puts "==========================================================================="
 puts "======================= $corner_name Corner ===================================\n"
-report_checks -unconstrained -fields {slew cap input net fanout} -format full_clock_expanded -corner $corner_name
+report_checks -unconstrained -fields {slew cap input net fanout} -format full_clock_expanded
 puts ""
 
 
@@ -93,14 +93,14 @@ puts "\n========================================================================
 puts "report_checks --slack_max -0.01"
 puts "============================================================================"
 puts "======================= $corner_name Corner ===================================\n"
-report_checks -slack_max -0.01 -fields {slew cap input net fanout} -format full_clock_expanded -corner $corner_name
+report_checks -slack_max -0.01 -fields {slew cap input net fanout} -format full_clock_expanded
 puts ""
 
 puts "\n==========================================================================="
 puts " report_check_types -max_slew -max_cap -max_fanout -violators"
 puts "============================================================================"
 puts "======================= $corner_name Corner ===================================\n"
-report_check_types -max_slew -max_capacitance -max_fanout -violators -corner $corner_name
+report_check_types -max_slew -max_capacitance -max_fanout -violators
 puts ""
 
 puts "\n==========================================================================="
@@ -130,7 +130,7 @@ puts "\n========================================================================
 puts " report_power"
 puts "============================================================================"
 puts "======================= $corner_name Corner ===================================\n"
-report_power -corner $corner_name
+report_power
 
 set power_result [sta::design_power $corner_object]
 set totals       [lrange $power_result  0  3]
@@ -153,7 +153,7 @@ set skew_corner [worst_clock_skew -hold]
 write_metric_num "clock__skew__worst_hold__corner:$corner_name" $skew_corner
 
 puts "======================= $corner_name Corner ===================================\n"
-report_clock_skew -corner $corner_name -hold
+report_clock_skew -hold
 
 puts "%OL_END_REPORT"
 
@@ -165,7 +165,7 @@ set skew_corner [worst_clock_skew -setup]
 write_metric_num "clock__skew__worst_setup__corner:$corner_name" $skew_corner
 
 puts "======================= $corner_name Corner ===================================\n"
-report_clock_skew -corner $corner_name -setup
+report_clock_skew -setup
 
 puts "%OL_END_REPORT"
 
@@ -173,7 +173,7 @@ puts "%OL_CREATE_REPORT ws.min.rpt"
 puts "\n==========================================================================="
 puts "Worst Slack (Hold)"
 puts "============================================================================"
-set ws [worst_slack -corner $corner_name -min]
+set ws [worst_slack -min]
 write_metric_num "timing__hold__ws__corner:$corner_name" $ws
 puts "$corner_name: $ws"
 puts "%OL_END_REPORT"
@@ -183,7 +183,7 @@ puts "\n========================================================================
 puts "Worst Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner $corner_name -max]
+set ws [worst_slack -max]
 write_metric_num "timing__setup__ws__corner:$corner_name" $ws
 puts "$corner_name: $ws"
 puts "%OL_END_REPORT"
@@ -193,7 +193,7 @@ puts "\n========================================================================
 puts "Total Negative Slack (Hold)"
 puts "============================================================================"
 
-set tns [total_negative_slack -corner $corner_name -min]
+set tns [total_negative_slack -min]
 write_metric_num "timing__hold__tns__corner:$corner_name" $tns
 puts "$corner_name: $tns"
 puts "%OL_END_REPORT"
@@ -202,7 +202,7 @@ puts "%OL_CREATE_REPORT tns.max.rpt"
 puts "\n==========================================================================="
 puts "Total Negative Slack (Setup)"
 puts "============================================================================"
-set tns [total_negative_slack -corner $corner_name -max]
+set tns [total_negative_slack -max]
 write_metric_num "timing__setup__tns__corner:$corner_name" $tns
 puts "$corner_name: $tns"
 puts "%OL_END_REPORT"
@@ -212,7 +212,7 @@ puts "\n========================================================================
 puts "Worst Negative Slack (Hold)"
 puts "============================================================================"
 
-set ws [worst_slack -corner $corner_name -min]
+set ws [worst_slack -min]
 set wns 0
 if { $ws < 0 } {
     set wns $ws
@@ -226,7 +226,7 @@ puts "\n========================================================================
 puts "Worst Negative Slack (Setup)"
 puts "============================================================================"
 
-set ws [worst_slack -corner $corner_name -max]
+set ws [worst_slack -max]
 set wns 0.0
 if { $ws < 0 } {
     set wns $ws

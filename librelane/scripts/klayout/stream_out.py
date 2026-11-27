@@ -86,6 +86,11 @@ from klayout.dbcore import (
     required=True,
     help="KLayout .map (LEF/DEF layer map) file",
 )
+@click.option(
+    "--isosub",
+    default=None,
+    help="Layer number and datatype for virtual substrate isolation (SUBCUT) layer, in the format '{number}/{datatype}'. If passed, a polygon the size of the top cell is added to this layer.",
+)
 @click.option("-w", "--with-gds-file", "input_gds_files", multiple=True, default=[])
 @click.option("-s", "--seal-gds-file", "seal_gds", default=None)
 @click.option(
@@ -117,6 +122,7 @@ def stream_out(
     design_name: str,
     input: str,
     conflict_resolution: str,
+    isosub: str,
 ):  # Load technology file
     try:
         tech = Technology()
@@ -203,6 +209,13 @@ def stream_out(
                         f"[INFO] Merging '{cell.name}' as child of '{top_cell.name}'…"
                     )
                     top.insert(CellInstArray(cell.cell_index(), DTrans()))
+
+        if isosub is not None:
+            print("[INFO] Adding virtual substrate isolation layer for Magic…")
+            isosub_layer = tuple(int(i) for i in isosub.split("/", maxsplit=2))
+            top_cell_bbox = top_only_layout.top_cell().bbox()
+            isosub_layer = top_only_layout.layer(*isosub_layer)
+            top_only_layout.top_cell().shapes(isosub_layer).insert(top_cell_bbox)
 
         # Write out the GDS
         print(f"[INFO] Writing out GDS '{output}'…")
