@@ -124,6 +124,10 @@ Style Notes
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
 
+* `OpenROAD.WriteLEF`
+
+  * Added the step. Allows to write a LEF using OpenROAD.
+
 * `Verilator.Lint`
 
   * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.

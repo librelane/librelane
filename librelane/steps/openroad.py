@@ -2470,6 +2470,37 @@ class WriteViews(OpenROADStep):
 
 
 @Step.factory.register()
+class WriteLEF(OpenROADStep):
+    """
+    Writes a LEF view of the design using the ODB using OpenROAD.
+    """
+
+    id = "OpenROAD.WriteLEF"
+    name = "Write LEF (OpenROAD)"
+    outputs = [
+        DesignFormat.LEF,
+    ]
+
+    config_vars = OpenROADStep.config_vars + [
+        Variable(
+            "OPENROAD_LEF_BLOAT_OCCUPIED_LAYERS",
+            bool,
+            description="Generates cover obstructions (obstructions over the entire layer) for each layer where shapes are present",
+            default=True,
+        ),
+        Variable(
+            "OPENROAD_LEF_BLOAT_FACTOR",
+            Optional[int],
+            description="Specifies the bloat factor used when bloating then merging shapes into LEF obstructions. The factor is measured in # of default metal pitches for the respective layer. A factor of `0` will result in detailed LEF obstructions",
+            units="# of default metal pitches",
+        ),
+    ]
+
+    def get_script_path(self):
+        return os.path.join(get_script_dir(), "openroad", "write_views.tcl")
+
+
+@Step.factory.register()
 class WriteCDL(OpenROADStep):
     """
     Write CDL view of an ODB design
