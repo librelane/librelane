@@ -13,49 +13,65 @@
 # limitations under the License.
 
 # Power nets
+
+# Applies a list of PDN connection hooks as global power/ground connections.
+# Each hook has the format "<instance_name_rx> <vdd_net> <gnd_net> <vdd_pin>
+# <gnd_pin>" and is shared by PDN_MACRO_CONNECTIONS and PDN_PAD_CONNECTIONS.
+# `label` is used only for diagnostics.
+proc _apply_pdn_connections {connections label} {
+    foreach pdn_hook $connections {
+        set pdn_hook [regexp -all -inline {\S+} $pdn_hook]
+        set instance_name [lindex $pdn_hook 0]
+        set power_net [lindex $pdn_hook 1]
+        set ground_net [lindex $pdn_hook 2]
+        set power_pin [lindex $pdn_hook 3]
+        set ground_pin [lindex $pdn_hook 4]
+
+        if { $power_pin == "" || $ground_pin == "" } {
+            puts "$label missing power and ground pin names"
+            exit_unless_gui 1
+        }
+
+        set matched 0
+        foreach cell [[ord::get_db_block] getInsts] {
+            if { [regexp "\^$instance_name\$" [$cell getName]] } {
+                set matched 1
+                puts "$instance_name matched with [$cell getName]"
+            }
+        }
+        if { $matched != 1 } {
+            puts stderr "\[ERROR\] No match found for regular expression '$instance_name' defined in $label."
+            exit_unless_gui 1
+        }
+
+        add_global_connection \
+            -net $power_net \
+            -inst_pattern $instance_name \
+            -pin_pattern $power_pin \
+            -power
+
+        add_global_connection \
+            -net $ground_net \
+            -inst_pattern $instance_name \
+            -pin_pattern $ground_pin \
+            -ground
+    }
+}
+
 proc set_global_connections {} {
     puts "\[INFO\] Setting global connections..."
 
     # Make global connections for macros
     if { $::env(PDN_CONNECT_MACROS_TO_GRID) == 1 &&
         [info exists ::env(PDN_MACRO_CONNECTIONS)]} {
-        foreach pdn_hook $::env(PDN_MACRO_CONNECTIONS) {
-            set pdn_hook [regexp -all -inline {\S+} $pdn_hook]
-            set instance_name [lindex $pdn_hook 0]
-            set power_net [lindex $pdn_hook 1]
-            set ground_net [lindex $pdn_hook 2]
-            set power_pin [lindex $pdn_hook 3]
-            set ground_pin [lindex $pdn_hook 4]
+        _apply_pdn_connections $::env(PDN_MACRO_CONNECTIONS) "PDN_MACRO_CONNECTIONS"
+    }
 
-            if { $power_pin == "" || $ground_pin == "" } {
-                puts "PDN_MACRO_CONNECTIONS missing power and ground pin names"
-                exit_unless_gui 1
-            }
-
-            set matched 0
-            foreach cell [[ord::get_db_block] getInsts] {
-                if { [regexp "\^$instance_name\$" [$cell getName]] } {
-                    set matched 1
-                    puts "$instance_name matched with [$cell getName]"
-                }
-            }
-            if { $matched != 1 } {
-                puts stderr "\[ERROR\] No match found for regular expression '$instance_name' defined in PDN_MACRO_CONNECTIONS."
-                exit_unless_gui 1
-            }
-
-            add_global_connection \
-                -net $power_net \
-                -inst_pattern $instance_name \
-                -pin_pattern $power_pin \
-                -power
-
-            add_global_connection \
-                -net $ground_net \
-                -inst_pattern $instance_name \
-                -pin_pattern $ground_pin \
-                -ground
-        }
+    # Make global connections for the padframe (PDK level, chip flow only)
+    if { [info exists ::env(PDN_CONNECT_PADS_TO_GRID)] &&
+        $::env(PDN_CONNECT_PADS_TO_GRID) == 1 &&
+        [info exists ::env(PDN_PAD_CONNECTIONS)]} {
+        _apply_pdn_connections $::env(PDN_PAD_CONNECTIONS) "PDN_PAD_CONNECTIONS"
     }
 
     # Make global connections for SCLs
