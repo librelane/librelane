@@ -1,0 +1,36 @@
+diff --git a/src/grt/src/RepairAntennas.cpp b/src/grt/src/RepairAntennas.cpp
+index 4fdf3514da..5f5d4d480e 100644
+--- a/src/grt/src/RepairAntennas.cpp
++++ b/src/grt/src/RepairAntennas.cpp
+@@ -168,11 +168,11 @@ void RepairAntennas::repairAntennas(odb::dbMTerm* diode_mterm)
+   }
+ 
+   std::vector<odb::dbInst*> insts_to_restore;
+-  if (routing_source_ == RoutingSource::DetailedRouting) {
+-    // set all other instances as fixed to prevent repair_antennas changing
+-    // other nets, prevent DRT rerouting nets unnecessarily
+-    setInstsPlacementStatus(insts_to_restore);
+-  }
++
++  // set all other instances as fixed to prevent repair_antennas changing
++  // other nets, prevent rerouting nets unnecessarily and keep mirroring
++  setInstsPlacementStatus(insts_to_restore);
++
+   setDiodesAndGatesPlacementStatus(odb::dbPlacementStatus::FIRM);
+   int fixed_inst_count = 0;
+   getFixedInstances(fixed_insts, fixed_inst_count);
+@@ -230,10 +230,10 @@ void RepairAntennas::repairAntennas(odb::dbMTerm* diode_mterm)
+   }
+ 
+   legalizePlacedCells();
+-  if (routing_source_ == RoutingSource::DetailedRouting) {
+-    // restore placement status of changed insts
+-    setInstsPlacementStatus(insts_to_restore);
+-  }
++
++  // restore placement status of changed insts
++  setInstsPlacementStatus(insts_to_restore);
++
+ }
+ 
+ void RepairAntennas::legalizePlacedCells()

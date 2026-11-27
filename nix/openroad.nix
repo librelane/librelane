@@ -82,6 +82,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   patches = [
     ./patches/openroad/fix_pad_connections.patch
+    ./patches/openroad/fix_antenna_mirroring.patch
   ];
 
   cmakeFlags = (cmakeFlagsCommon false) ++ [
