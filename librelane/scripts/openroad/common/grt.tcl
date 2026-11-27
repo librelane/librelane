@@ -23,6 +23,7 @@ if { ![info exists ::grt_preamble] } {
 set arg_list [list]
 lappend arg_list -congestion_iterations $::env(GRT_OVERFLOW_ITERS)
 lappend arg_list -verbose
+lappend arg_list -congestion_report_file $::env(STEP_DIR)/congestion.rpt
 append_if_flag arg_list GRT_ALLOW_CONGESTION -allow_congestion
 
 log_cmd global_route {*}$arg_list
