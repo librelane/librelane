@@ -2486,7 +2486,7 @@ class WriteLEF(OpenROADStep):
         ),
         Variable(
             "OPENROAD_LEF_BLOAT_FACTOR",
-            Optional[int],
+            int | None,
             description="Specifies the bloat factor used when bloating then merging shapes into LEF obstructions. The factor is measured in # of default metal pitches for the respective layer. A factor of `0` will result in detailed LEF obstructions",
             units="# of default metal pitches",
         ),
