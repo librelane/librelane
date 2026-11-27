@@ -124,6 +124,10 @@ Style Notes
 
   * Use `SYNTH_BUFFER_CELL` for port buffering.
 
+* `OpenROAD.WriteLEF`
+
+  * Added the step. Allows to write a LEF using OpenROAD.
+
 * `Verilator.Lint`
 
   * Added `LINTER_VLTS` to specify a list of paths to Verilator Control Files.
@@ -214,6 +218,12 @@ Style Notes
       macOS.
 
 ## Misc. Enhancements/Bugfixes
+
+* `base.sdc`
+
+  * Only supply `port_args` to `create_clock` if `CLOCK_PORT` is set. This
+    prevents the `[STA-0366] port '__VIRTUAL_CLK__' not found.` warning for
+    combinatorial designs.
 
 * `librelane.common`
 
