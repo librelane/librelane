@@ -219,6 +219,12 @@ Style Notes
 
 ## Misc. Enhancements/Bugfixes
 
+* `base.sdc`
+
+  * Only supply `port_args` to `create_clock` if `CLOCK_PORT` is set. This
+    prevents the `[STA-0366] port '__VIRTUAL_CLK__' not found.` warning for
+    combinatorial designs.
+
 * `librelane.common`
 
   * `TclUtils`

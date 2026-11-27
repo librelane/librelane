@@ -1,5 +1,6 @@
-set clock_port __VIRTUAL_CLK__
-if { [info exists ::env(CLOCK_PORT)] } {
+set clock_name __VIRTUAL_CLK__
+set port_args ""
+if { [info exists ::env(CLOCK_PORT)] && $::env(CLOCK_PORT) ne "" } {
     set port_count [llength $::env(CLOCK_PORT)]
 
     if { $port_count == "0" } {
@@ -9,12 +10,35 @@ if { [info exists ::env(CLOCK_PORT)] } {
     }
 
     if { $port_count > "0" } {
-        set ::clock_port [lindex $::env(CLOCK_PORT) 0]
+        set ::clock_name [lindex $::env(CLOCK_PORT) 0]
     }
+    
+    set port_args [get_ports $clock_name]
+    puts "\[INFO] Using clock $clock_name"
+    
+    set clk_input [get_port $clock_name]
+    set clk_indx [lsearch [all_inputs] $clk_input]
+    set all_inputs_wo_clk [lreplace [all_inputs] $clk_indx $clk_indx ""]
+
+    # For now, LibreLane doesn't know what port the reset is
+    #set rst_input [get_port resetn]
+    #set rst_indx [lsearch [all_inputs] $rst_input]
+    #set all_inputs_wo_clk_rst [lreplace $all_inputs_wo_clk $rst_indx $rst_indx ""]
+    set all_inputs_wo_clk_rst $all_inputs_wo_clk
+
+    if { ![info exists ::env(SYNTH_CLK_DRIVING_CELL)] } {
+        set ::env(SYNTH_CLK_DRIVING_CELL) $::env(SYNTH_DRIVING_CELL)
+    }
+
+    set_driving_cell \
+      -lib_cell [lindex [split $::env(SYNTH_CLK_DRIVING_CELL) "/"] 0] \
+      -pin [lindex [split $::env(SYNTH_CLK_DRIVING_CELL) "/"] 1] \
+      $clk_input
+} else {
+    set all_inputs_wo_clk [all_inputs]
+    set all_inputs_wo_clk_rst $all_inputs_wo_clk
 }
-set port_args [get_ports $clock_port]
-puts "\[INFO] Using clock $clock_port…"
-create_clock {*}$port_args -name $clock_port -period $::env(CLOCK_PERIOD)
+create_clock {*}$port_args -name $clock_name -period $::env(CLOCK_PERIOD)
 
 set input_delay_value [expr $::env(CLOCK_PERIOD) * $::env(IO_DELAY_CONSTRAINT) / 100]
 set output_delay_value [expr $::env(CLOCK_PERIOD) * $::env(IO_DELAY_CONSTRAINT) / 100]
@@ -29,34 +53,16 @@ if { [info exists ::env(MAX_CAPACITANCE_CONSTRAINT)] } {
     set_max_capacitance $::env(MAX_CAPACITANCE_CONSTRAINT) [current_design]
 } 
 
-set clk_input [get_port $clock_port]
-set clk_indx [lsearch [all_inputs] $clk_input]
-set all_inputs_wo_clk [lreplace [all_inputs] $clk_indx $clk_indx ""]
-
-#set rst_input [get_port resetn]
-#set rst_indx [lsearch [all_inputs] $rst_input]
-#set all_inputs_wo_clk_rst [lreplace $all_inputs_wo_clk $rst_indx $rst_indx ""]
-set all_inputs_wo_clk_rst $all_inputs_wo_clk
-
 # correct resetn
-set clocks [get_clocks $clock_port]
+set clocks [get_clocks $clock_name]
 
 set_input_delay $input_delay_value -clock $clocks $all_inputs_wo_clk_rst
 set_output_delay $output_delay_value -clock $clocks [all_outputs]
-
-if { ![info exists ::env(SYNTH_CLK_DRIVING_CELL)] } {
-    set ::env(SYNTH_CLK_DRIVING_CELL) $::env(SYNTH_DRIVING_CELL)
-}
 
 set_driving_cell \
     -lib_cell [lindex [split $::env(SYNTH_DRIVING_CELL) "/"] 0] \
     -pin [lindex [split $::env(SYNTH_DRIVING_CELL) "/"] 1] \
     $all_inputs_wo_clk_rst
-
-set_driving_cell \
-    -lib_cell [lindex [split $::env(SYNTH_CLK_DRIVING_CELL) "/"] 0] \
-    -pin [lindex [split $::env(SYNTH_CLK_DRIVING_CELL) "/"] 1] \
-    $clk_input
 
 set cap_load [expr $::env(OUTPUT_CAP_LOAD) / 1000.0]
 puts "\[INFO] Setting load to: $cap_load"
